@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Story_Script, Petrona } from 'next/font/google'
+import { Story_Script, Petrona, DM_Mono } from 'next/font/google'
 
 import "./globals.css";
 
@@ -14,6 +14,10 @@ const geistMono = localFont({
 });
 const story = Story_Script({
   variable: "--font-story",
+  weight: ["400"]
+})
+const dmMono = DM_Mono({
+  variable: "--font-mono",
   weight: ["400"]
 })
 const petrona = Petrona({
@@ -32,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${petrona.variable} ${story.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${petrona.variable} ${dmMono.variable} ${story.variable}`}>
         {children}
       </body>
     </html>

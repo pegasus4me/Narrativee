@@ -16,6 +16,7 @@ export default function FileUploadPrompt() {
     story?: string;
     fileName?: string;
     fileSize?: number;
+    fileData?: string; // Base64 encoded file
   }>("narrativee-session", {});
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,9 +46,16 @@ export default function FileUploadPrompt() {
     setUploading(true);
 
     try {
-      // TODO: Upload file to server and get session ID
-      // For now, simulate upload
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Convert file to base64 for storage
+      let fileData: string | undefined;
+      if (file) {
+        fileData = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
 
       // Generate temporary session ID
       const sessionId = Math.random().toString(36).substring(7);
@@ -58,6 +66,7 @@ export default function FileUploadPrompt() {
         story: message || undefined,
         fileName: file?.name || undefined,
         fileSize: file?.size || undefined,
+        fileData: fileData || undefined,
       });
 
       // Redirect to intent page

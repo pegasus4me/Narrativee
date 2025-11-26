@@ -5,19 +5,24 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import logo from "../../public/logo.png";
 import useLocalStorage from "../hooks/useLocalStorage";
-
+import { useSession } from "../lib/auth-client";
 export default function CreatePage() {
   const router = useRouter();
-
+  const session = useSession()
+  console.log("session", session)
   const [sessionData] = useLocalStorage<{
     sessionId?: string;
     story?: string;
     fileName?: string;
+    fileSize?: number;
+    fileData?: string; // Base64 encoded file
   }>("narrativee-session", {});
 
   const [story, setStory] = useState("");
   const [audience, setAudience] = useState("");
+  const [reportStyle, setReportStyle] = useState(""); // New state for style
   const [hasStory, setHasStory] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     // Load story from localStorage if it exists
@@ -27,23 +32,99 @@ export default function CreatePage() {
     }
   }, [sessionData.story]);
 
-  const handleContinue = () => {
-    if (!audience || (!hasStory && !story)) {
+  const handleContinue = async () => {
+    if (!audience || (!hasStory && !story) || !reportStyle) {
       alert("Please complete all fields");
       return;
     }
 
-    // Save to localStorage
-    const updatedSession = {
-      ...sessionData,
-      story: hasStory ? sessionData.story : story,
-      audience: audience
-    };
+    // Get the file from localStorage
+    const fileData = sessionData.fileData;
+    const fileName = sessionData.fileName;
 
-    localStorage.setItem("narrativee-session", JSON.stringify(updatedSession));
+    if (!fileData || !fileName) {
+      alert("File data not found. Please upload a file again.");
+      router.push('/');
+      return;
+    }
 
-    // Redirect to processing page
-    router.push(`/processing`);
+    setIsGenerating(true);
+
+    try {
+      // Convert base64 back to File object
+      const base64Parts = fileData.split(',');
+      if (base64Parts.length < 2 || !base64Parts[1]) {
+        throw new Error('Invalid file data format');
+      }
+      const byteString = atob(base64Parts[1]);
+
+      const mimeTypePart = base64Parts[0]?.split(':')[1];
+      if (!mimeTypePart) {
+        throw new Error('Invalid MIME type format');
+      }
+      const mimeParts = mimeTypePart.split(';');
+      const mimeString = mimeParts[0] || 'application/octet-stream';
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: mimeString });
+      const file = new File([blob], fileName, { type: mimeString });
+
+      // Prepare FormData
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('story', hasStory ? sessionData.story! : story);
+      formData.append('audience', audience);
+      formData.append('reportStyle', reportStyle); // Send the selected style
+
+      // Generate temporary reportId
+      const tempReportId = Math.random().toString(36).substring(7);
+      console.log('Generated reportId:', tempReportId);
+
+      // Call API and wait for response
+      const response = await fetch('http://localhost:3002/api/report/generate', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include', // Send Better Auth cookies for authentication
+      });
+
+      console.log('API Response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error response:', errorText);
+        throw new Error(`Failed to generate report: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Report generated successfully:', data);
+      console.log('Data has template?', !!data.template);
+      console.log('Template has sections?', !!data.template?.sections);
+
+      // Use reportId from backend if available (authenticated user), otherwise use tempReportId
+      const reportId = data.reportId || tempReportId;
+      console.log('Using reportId:', reportId, '(from backend:', !!data.reportId, ')');
+
+      // Store the report data in localStorage (as backup for both cases)
+      const storageKey = `report-${reportId}`;
+      localStorage.setItem(storageKey, JSON.stringify(data));
+      console.log('Saved to localStorage with key:', storageKey);
+
+      // Verify it was saved
+      const saved = localStorage.getItem(storageKey);
+      console.log('Verification - data was saved?', !!saved);
+
+      // Redirect to workspace after data is saved
+      console.log('Redirecting to /workspace/' + reportId);
+      router.push(`/workspace/${reportId}`);
+
+    } catch (error) {
+      console.error('Error generating report:', error);
+      alert('Failed to generate report. Please try again.');
+      setIsGenerating(false);
+    }
   };
 
   const audiences = [
@@ -73,6 +154,28 @@ export default function CreatePage() {
     }
   ];
 
+  // Options matching the prompt types in ReportPrompt.ts
+  const styles = [
+    {
+      value: "executive",
+      label: "Strategic Brief",
+      icon: "⚡",
+      description: "Concise, impactful, bottom-line first"
+    },
+    {
+      value: "story",
+      label: "Narrative Story",
+      icon: "📖",
+      description: "Engaging, human-centric, flow-driven"
+    },
+    {
+      value: "detailed",
+      label: "Deep Analysis",
+      icon: "🔍",
+      description: "Thorough, methodological, precise"
+    }
+  ];
+
   return (
     <div className="">
       {/* Header */}
@@ -87,12 +190,11 @@ export default function CreatePage() {
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
-            File uploaded successfully
+            File and context uploaded successfully
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'var(--font-petrona)' }}>
-            Let&apos;s understand your needs
+            Let&apos;s understand your goal
           </h1>
-
         </div>
 
         <div className="space-y-8">
@@ -114,17 +216,6 @@ export default function CreatePage() {
               />
             </div>
           )}
-
-          {/* Show existing story if provided */}
-          {hasStory && (
-            <div className="bg-amber-50/40 rounded-2xl  p-6">
-              <label className="block font-semibold text-xl text-amber-900 mb-2" style={{ fontFamily: 'var(--font-petrona)' }}>
-                Your goal:
-              </label>
-              <p className="text-gray-800  text-sm ml-4">{story}</p>
-            </div>
-          )}
-
           {/* Audience Selection */}
           <div>
             <label className="block text-lg font-semibold text-gray-900 mb-2" style={{ fontFamily: 'var(--font-petrona)' }}>
@@ -140,9 +231,9 @@ export default function CreatePage() {
                   key={aud.value}
                   onClick={() => setAudience(aud.value)}
                   className={`
-                    p-6 rounded-xl border text-left transition-all
+                    p-6 rounded-md border text-left transition-all
                     ${audience === aud.value
-                      ? "border-amber-800 bg-amber-50 shadow-xs"
+                      ? "border-amber-800 bg-amber-50/50 shadow-xs"
                       : "border-gray-100 bg-white hover:border-gray-300"
                     }
                   `}
@@ -167,16 +258,67 @@ export default function CreatePage() {
               ))}
             </div>
           </div>
-        </div>
 
+          {/* Style/Goal Selection */}
+          <div className="mb-6">
+            <label 
+              className="block text-lg font-semibold text-gray-900 mb-2" 
+              style={{ fontFamily: 'var(--font-petrona)' }}
+            >
+              What is your main objective?
+            </label>
+            
+            <p className="text-sm text-gray-600 mb-4 ml-4">
+               This tells to Narrativee whether to write a 
+               persuasive narrative report or an objective report. 
+              It ensures the tone matches your intent.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {styles.map((style) => (
+                <button
+                  key={style.value}
+                  onClick={() => setReportStyle(style.value)}
+                  className={`
+                    p-4 rounded-md border text-left transition-all h-full
+                    ${reportStyle === style.value
+                      ? "border-amber-800 bg-amber-50/50"
+                      : "border-gray-100 bg-white hover:border-gray-300"
+                    }
+                  `}
+                >
+                  <div className="flex flex-col gap-2">
+                    <span className="text-2xl">{style.icon}</span>
+                    <div>
+                      <h3 className="font-semibold text-gray-900" style={{ fontFamily: 'var(--font-petrona)' }}>
+                        {style.label}
+                      </h3>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {style.description}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+            
         {/* Continue Button */}
         <div className="mt-12 flex justify-center">
           <button
             onClick={handleContinue}
-            disabled={!audience || (!hasStory && !story)}
-            className="px-8 py-4 bg-amber-400 text-black border border-amber-800 text font-semibold rounded-lg hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            disabled={!audience || (!hasStory && !story) || !reportStyle || isGenerating}
+            className="px-8 py-4 bg-amber-400 text-black border text font-semibold rounded-lg hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 justify-center"
           >
-            Continue to Generate Templates
+            {isGenerating ? (
+              <>
+                <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                Generating...
+              </>
+            ) : (
+              'Generate Report'
+            )}
           </button>
         </div>
       </main>

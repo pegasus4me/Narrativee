@@ -4,11 +4,17 @@ import { Button } from "@repo/ui/button";
 import logo from "../public/logo.png";
 import FileUploadPrompt from "./components/FileUploadPrompt";
 import { useEffect, useState } from "react";
+import { authClient } from "../lib/auth-client";
+import { useMigrateReports } from "../lib/hooks/useMigrateReports";
 export default function Home() {
   const words = ["csv", "sheet", "excel"];
   const words2 = ["narrative", "interactive"];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentIndex2, setCurrentIndex2] = useState(0);
+  const { data: session } = authClient.useSession();
+
+  // Auto-migrate localStorage reports when user logs in
+  const { isMigrating, migratedCount } = useMigrateReports();
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -32,10 +38,28 @@ export default function Home() {
       <header className="p-4 flex justify-between max-w-[90%] mx-auto">
         <Image src={logo} alt="logo" width={170}/>
         <div className="flex gap-4 items-center">
-          <a href="" className="text-gray-700 hover:text-gray-900">Login</a>
-          <Button className="bg-amber-400 border  px-5 py-2 rounded-md font-medium text-black hover:bg-amber-500">
-            Start for free
-          </Button>
+          {session?.user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600"style={{ fontFamily: 'var(--font-petrona)' }} >Free plan</span>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer">
+                <Image
+                  src={session.user.image || '/default-avatar.png'}
+                  alt={session.user.name || 'User'}
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
+                <span className="text-sm font-medium text-gray-900">{session.user.name}</span>
+              </div>
+            </div>
+          ) : (
+            <>
+              <a href="/auth/signin" className="text-gray-700 hover:text-gray-900">Login</a>
+              <Button className="bg-amber-400 border px-5 py-2 rounded-md font-medium text-black hover:bg-amber-500">
+                Start for free
+              </Button>
+            </>
+          )}
         </div>
       </header>
 
