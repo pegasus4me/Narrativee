@@ -6,7 +6,7 @@ import env from 'dotenv';
 
 env.config();
 
-const sql = neon(process.env.DATABASE_URL!);
+const sql = neon(process.env.DATABASE_URL || "postgresql://postgres:Rayan_2008@db.nwqzqzzgrbdergqehnso.supabase.co:6543/postgres");
 const db = drizzle(sql);
 
 export const auth = betterAuth({
