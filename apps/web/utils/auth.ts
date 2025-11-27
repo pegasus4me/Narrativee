@@ -1,13 +1,10 @@
 import { betterAuth } from "better-auth";
-import { Pool } from "pg";
+import { Pool } from "@neondatabase/serverless";
 import env from 'dotenv';
 env.config();
 export const auth = betterAuth({
     database: new Pool({
-        connectionString: process.env.DATABASE_URL,
-        ssl: {
-            rejectUnauthorized: false // Required for Supabase
-        }
+        connectionString: process.env.DATABASE_URL
     }),
     emailAndPassword: {
         enabled: true,

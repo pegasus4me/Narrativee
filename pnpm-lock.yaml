@@ -148,6 +148,9 @@ importers:
       '@lexical/utils':
         specifier: ^0.38.2
         version: 0.38.2
+      '@neondatabase/serverless':
+        specifier: ^1.0.2
+        version: 1.0.2
       '@nivo/bar':
         specifier: ^0.99.0
         version: 0.99.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -1494,6 +1497,10 @@ packages:
     peerDependencies:
       yjs: '>=13.5.22'
 
+  '@neondatabase/serverless@1.0.2':
+    resolution: {integrity: sha512-I5sbpSIAHiB+b6UttofhrN/UJXII+4tZPAq1qugzwCwLIL8EZLV7F/JyHUrEIiGgQpEXzpnjlJ+zwcEhheGvCw==}
+    engines: {node: '>=19.0.0'}
+
   '@next/env@16.0.1':
     resolution: {integrity: sha512-LFvlK0TG2L3fEOX77OC35KowL8D7DlFF45C0OvKMC4hy8c/md1RC4UMNDlUGJqfCoCS2VWrZ4dSE6OjaX5+8mw==}
 
@@ -2259,6 +2266,9 @@ packages:
 
   '@types/node@22.15.3':
     resolution: {integrity: sha512-lX7HFZeHf4QG/J7tBZqrCAXwz9J5RD56Y6MpP0eJkka8p+K0RY/yBTW7CYFJ4VGCclxqOLKmiGP5juQc6MKgcw==}
+
+  '@types/node@22.19.1':
+    resolution: {integrity: sha512-LCCV0HdSZZZb34qifBsyWlUmok6W7ouER+oQIGBScS8EsZsQbrtFTUrDX4hOl+CS6p7cnNC4td+qrSVGSCTUfQ==}
 
   '@types/papaparse@5.5.0':
     resolution: {integrity: sha512-GVs5iMQmUr54BAZYYkByv8zPofFxmyxUpISPb2oh8sayR3+1zbxasrOvoKiHJ/nnoq/uULuPsu1Lze1EkagVFg==}
@@ -6258,6 +6268,11 @@ snapshots:
       lexical: 0.38.2
       yjs: 13.6.27
 
+  '@neondatabase/serverless@1.0.2':
+    dependencies:
+      '@types/node': 22.19.1
+      '@types/pg': 8.15.6
+
   '@next/env@16.0.1': {}
 
   '@next/eslint-plugin-next@15.5.0':
@@ -7359,6 +7374,10 @@ snapshots:
       undici-types: 5.26.5
 
   '@types/node@22.15.3':
+    dependencies:
+      undici-types: 6.21.0
+
+  '@types/node@22.19.1':
     dependencies:
       undici-types: 6.21.0
 
