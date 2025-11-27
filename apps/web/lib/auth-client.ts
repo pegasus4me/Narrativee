@@ -1,7 +1,7 @@
 import { createAuthClient } from "better-auth/react";
 
 const client = createAuthClient({
-  baseURL: process.env.FRONTEND_URL || "http://localhost:3000"
+  baseURL: process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"
 });
 
 // Explicitly define the type using ReturnType
