@@ -4,6 +4,12 @@
   --font-story: 'Comic Sans MS', cursive;
 }
 
+/* Apply font to Lexical editor content */
+.lexical-editor-content,
+.lexical-editor-content * {
+  font-family: var(--font-noto) !important;
+}
+
 @keyframes fadeIn {
   0% {
     opacity: 0;

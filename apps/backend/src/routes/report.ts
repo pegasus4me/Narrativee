@@ -1,12 +1,17 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
-import { generateReport } from '../services/LLM/grok';
+import { nanoid } from 'nanoid';
+import { generateReport } from '../services/LLM/llm';
 import { parseCSV } from '../utils/csv/csvParser';
 import { optionalAuth, verifyAuth, AuthRequest } from '../middleware/auth';
-import { saveReport, getUserReports, getReportById, updateReport, deleteReport } from '../services/database/reportDB';
+import { saveReport, getUserReports, getReportById, updateReport, deleteReport, generateShareLink, getSharedReport } from '../services/database/reportDB';
+import { REPORT_LIMITS } from '../config/llm.config';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+// Cookie name for tracking anonymous report generation
+const ANONYMOUS_REPORT_COOKIE = 'narrativee_anon_report_generated';
 
 // Generate report from uploaded CSV (allows both authenticated and anonymous users)
 router.post('/generate', optionalAuth, upload.single('file'), async (req: AuthRequest, res: Response) => {
@@ -35,19 +40,35 @@ router.post('/generate', optionalAuth, upload.single('file'), async (req: AuthRe
       return res.status(400).json({ error: 'Story and audience are required' });
     }
 
+    // Check if anonymous user already generated a report
+    if (!req.user) {
+      const hasGeneratedReport = req.cookies?.[ANONYMOUS_REPORT_COOKIE];
+
+      if (hasGeneratedReport === 'true') {
+        console.log('🚫 Anonymous user already generated 1 report');
+        return res.status(403).json({
+          error: 'Report limit reached',
+          message: 'You can only generate 1 report without an account. Please sign in to create more reports.',
+          requiresAuth: true,
+          limit: REPORT_LIMITS.anonymous
+        });
+      }
+    }
+
     // Parse CSV
     console.log('📊 Parsing CSV...');
     const csvData = await parseCSV(file.buffer.toString('utf-8'));
     console.log(`✅ Parsed ${csvData.length} rows`);
 
-    // Generate report template using Grok
+    // Generate report template with plan-based LLM selection
     console.log('🤖 Generating report template...');
     const template = await generateReport({
       csvData,
       story,
       audience,
       reportStyle,
-      fileName: file.originalname
+      fileName: file.originalname,
+      userPlan: req.user?.plan || null, // null = no auth
     });
 
     console.log('✅ Template generated:', {
@@ -92,6 +113,17 @@ router.post('/generate', optionalAuth, upload.single('file'), async (req: AuthRe
         columns: csvData.length > 0 ? Object.keys(csvData[0]) : []
       }
     };
+
+    // Set cookie to track anonymous report generation (30 days expiry)
+    if (!req.user) {
+      res.cookie(ANONYMOUS_REPORT_COOKIE, 'true', {
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production'
+      });
+      console.log('🍪 Set anonymous report cookie (1/1 reports used)');
+    }
 
     console.log('📤 Sending response');
     return res.json(response);
@@ -235,6 +267,73 @@ router.post('/migrate', verifyAuth, async (req: AuthRequest, res: Response) => {
     console.error('Error migrating report:', error);
     return res.status(500).json({
       error: 'Failed to migrate report',
+      message: error.message
+    });
+  }
+});
+
+// Generate share link for a report
+router.post('/:reportId/share', verifyAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { reportId } = req.params;
+
+    console.log('📤 Generating share link for report:', reportId);
+
+    // Generate unique share ID (10 characters, URL-safe)
+    const shareId = nanoid(10);
+
+    // Update report with share ID
+    const report = await generateShareLink(reportId, req.user.id, shareId);
+
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found or unauthorized' });
+    }
+
+    const shareUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/share/${shareId}`;
+
+    console.log('✅ Share link generated:', shareUrl);
+
+    return res.json({
+      success: true,
+      shareUrl,
+      shareId: report.shareId
+    });
+  } catch (error: any) {
+    console.error('Error generating share link:', error);
+    return res.status(500).json({
+      error: 'Failed to generate share link',
+      message: error.message
+    });
+  }
+});
+
+// Get shared report (public access, no auth)
+router.get('/share/:shareId', async (req: Request, res: Response) => {
+  try {
+    const { shareId } = req.params;
+
+    console.log('🔍 Fetching shared report:', shareId);
+
+    const report = await getSharedReport(shareId);
+
+    if (!report) {
+      return res.status(404).json({ error: 'Shared report not found' });
+    }
+
+    console.log('✅ Shared report found:', report.id);
+
+    return res.json({
+      success: true,
+      report
+    });
+  } catch (error: any) {
+    console.error('Error fetching shared report:', error);
+    return res.status(500).json({
+      error: 'Failed to fetch shared report',
       message: error.message
     });
   }

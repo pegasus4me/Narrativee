@@ -2,13 +2,15 @@ import { CSVRow } from "../../utils/csv/csvParser";
 import OpenAI from "openai";
 import { promptTemplate } from "./ReportPrompt";
 import { toCSVString } from "../../utils/tools";
-console.log("hello");
+import { getReportGenerationConfig, type UserPlan } from "../../config/llm.config";
+
 interface GenerateReportInput {
   csvData: CSVRow[];
   story: string;
   audience: string;
   fileName: string;
   reportStyle: 'executive' | 'story' | 'detailed';
+  userPlan?: UserPlan; // null = no auth, 'free' | 'premium'
 }
 
 interface ReportTemplate {
@@ -21,9 +23,14 @@ interface ReportTemplate {
 export async function generateReport(
   input: GenerateReportInput
 ): Promise<ReportTemplate> {
-  const { csvData, story, audience, fileName, reportStyle } = input;
+  const { csvData, story, audience, fileName, reportStyle, userPlan = null } = input;
 
-  // Prepare data summary for Grok
+  // Get LLM config based on user plan
+  const llmConfig = getReportGenerationConfig(userPlan);
+
+  console.log(`🤖 Report generation for plan: ${userPlan || 'no-auth'} using ${llmConfig.model}`);
+
+  // Prepare data summary
   // Safety cap: If over 2000 rows, slice it so we don't crash the LLM
   const dataLimit = 2000;
   const dataToAnalyze =
@@ -45,9 +52,9 @@ export async function generateReport(
 
   const prompt = promptTemplate(data);
   try {
-    console.log('🤖 Calling Grok API to generate report...');
-    const markdown = await callGrokAPI(prompt);
-    console.log('✅ Grok API response received');
+    console.log(`🤖 Calling ${llmConfig.model} to generate report...`);
+    const markdown = await callLLMAPI(prompt, llmConfig);
+    console.log('✅ LLM API response received');
 
     return {
       id: reportStyle,
@@ -56,7 +63,7 @@ export async function generateReport(
       markdown: markdown
     };
   } catch (error: any) {
-    console.error("❌ Grok API error:", error?.message || error);
+    console.error("❌ Claude API error:", error?.message || error);
 
     // Check if it's a timeout error
     if (error?.message?.includes('timeout') || error?.code === 'ETIMEDOUT') {
@@ -69,60 +76,49 @@ export async function generateReport(
   }
 }
 
-async function callGrokAPI(prompt: string): Promise<string> {
-  const GROK_API_KEY = process.env.GROK_API_KEY;
-  console.log("GROK_API_KEY", GROK_API_KEY);
-  if (!GROK_API_KEY) {
-    throw new Error("GROK_API_KEY not found in environment variables");
+async function callLLMAPI(prompt: string, llmConfig: any): Promise<string> {
+  // Get API key from environment
+  const apiKey = process.env[llmConfig.apiKeyEnv];
+
+  if (!apiKey) {
+    throw new Error(`${llmConfig.apiKeyEnv} not found in environment variables`);
   }
 
-  // Initialize OpenAI client with Liona's Grok provider
+  // Initialize OpenAI client
   const openai = new OpenAI({
-    apiKey: GROK_API_KEY,
-    baseURL: "https://api.x.ai/v1",
+    apiKey,
+    baseURL: llmConfig.baseURL,
+    ...(llmConfig.provider === 'openrouter' && {
+      defaultHeaders: {
+        'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:3000',
+        'X-Title': 'Narrativee',
+      },
+    }),
   });
 
-  // Call Grok via OpenAI SDK with increased timeout
+  console.log(`📤 Sending request to ${llmConfig.model}...`);
+
+  // Call LLM API using OpenAI SDK
   const completion = await openai.chat.completions.create({
     messages: [
-      {
-        role: "system",
-        content: `
-          You are an expert data analyst creating story-driven narrative reports from CSV data.
-
-          IMPORTANT: Respond ONLY with clean Markdown. No JSON, no code blocks, just pure markdown content.
-
-          Use markdown syntax:
-          - # for H1 (main sections)
-          - ## for H2 (subsections)
-          - ### for H3 (deep dives)
-          - Regular paragraphs for content
-          - > for insight/quote callouts
-
-          Your goal is to tell a **cohesive story with the data**, highlighting key trends, comparisons, and insights.
-          Tailor the narrative and tone to the audience described in the user message.
-
-          Do NOT include chart placeholders or visualizations in the markdown - the system will add those separately.
-        `,
-      },
       {
         role: "user",
         content: prompt,
       },
     ],
-    model: "grok-4-1-fast-reasoning",
-    temperature: 0.5,
-    // timeout: 120000, // 2 minutes timeout
+    model: llmConfig.model,
+    temperature: llmConfig.temperature,
+    max_tokens: llmConfig.maxTokens,
   });
 
   // Parse the response
   let content = completion.choices[0]?.message?.content;
 
   if (!content) {
-    throw new Error("No content in Grok response");
+    throw new Error("No content in Claude response");
   }
 
-  // Remove markdown code blocks if present (Grok sometimes wraps in ```)
+  // Remove markdown code blocks if present (Claude sometimes wraps in ```)
   content = content.trim();
   if (content.startsWith('```markdown') || content.startsWith('```md')) {
     content = content.replace(/^```(markdown|md)\n?/, '').replace(/\n?```$/, '');
@@ -130,6 +126,7 @@ async function callGrokAPI(prompt: string): Promise<string> {
     content = content.replace(/^```\n?/, '').replace(/\n?```$/, '');
   }
 
+  console.log('✅ LLM response processed successfully');
   return content.trim();
 }
 

@@ -162,7 +162,7 @@ export default function FileUploadPrompt() {
 
         {/* Helper text */}
         <p className="mt-2 text-xs text-gray-500 px-2">
-          Upload CSV or Excel files • Max 10MB
+          Upload CSV or Excel (Max 10MB). Your Data stays in your browser
         </p>
       </form>
     </div>

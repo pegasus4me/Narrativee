@@ -34,10 +34,14 @@ export interface Report {
   audience: string;
   reportStyle: string;
   markdownContent: string;
-  // csvData: any; // ❌ REMOVED: Don't store raw CSV data
   metadata: any;
   createdAt: Date;
   updatedAt: Date;
+  shareId?: string;
+  isShared?: boolean;
+  sharedAt?: Date;
+  viewCount?: number;
+  lastViewedAt?: Date;
 }
 
 /**
@@ -80,7 +84,9 @@ export async function getUserReports(userId: string): Promise<Report[]> {
     SELECT
       id, user_id as "userId", name, file_name as "fileName",
       story, audience, report_style as "reportStyle",
-      metadata, created_at as "createdAt", updated_at as "updatedAt"
+      metadata, created_at as "createdAt", updated_at as "updatedAt",
+      share_id as "shareId", is_shared as "isShared", shared_at as "sharedAt",
+      view_count as "viewCount", last_viewed_at as "lastViewedAt"
     FROM reports
     WHERE user_id = $1
     ORDER BY created_at DESC
@@ -99,7 +105,9 @@ export async function getReportById(reportId: string, userId: string): Promise<R
       id, user_id as "userId", name, file_name as "fileName",
       story, audience, report_style as "reportStyle",
       markdown_content as "markdownContent",
-      metadata, created_at as "createdAt", updated_at as "updatedAt"
+      metadata, created_at as "createdAt", updated_at as "updatedAt",
+      share_id as "shareId", is_shared as "isShared", shared_at as "sharedAt",
+      view_count as "viewCount", last_viewed_at as "lastViewedAt"
     FROM reports
     WHERE id = $1 AND user_id = $2
   `;
@@ -167,4 +175,58 @@ export async function deleteReport(reportId: string, userId: string): Promise<bo
 
   const result = await pool.query(query, [reportId, userId]);
   return result.rowCount !== null && result.rowCount > 0;
+}
+
+/**
+ * Generate share link for a report
+ */
+export async function generateShareLink(reportId: string, userId: string, shareId: string): Promise<Report | null> {
+  const query = `
+    UPDATE reports
+    SET share_id = $1, is_shared = true, shared_at = NOW(), updated_at = NOW()
+    WHERE id = $2 AND user_id = $3
+    RETURNING
+      id, user_id as "userId", name, file_name as "fileName",
+      story, audience, report_style as "reportStyle",
+      markdown_content as "markdownContent",
+      metadata, created_at as "createdAt", updated_at as "updatedAt",
+      share_id as "shareId", is_shared as "isShared", shared_at as "sharedAt"
+  `;
+
+  const result = await pool.query(query, [shareId, reportId, userId]);
+  return result.rows[0] || null;
+}
+
+/**
+ * Get shared report by share ID (public access, no auth needed)
+ */
+export async function getSharedReport(shareId: string): Promise<Report | null> {
+  const query = `
+    SELECT
+      id, user_id as "userId", name, file_name as "fileName",
+      story, audience, report_style as "reportStyle",
+      markdown_content as "markdownContent",
+      metadata, created_at as "createdAt", updated_at as "updatedAt",
+      share_id as "shareId", is_shared as "isShared", shared_at as "sharedAt",
+      view_count as "viewCount", last_viewed_at as "lastViewedAt"
+    FROM reports
+    WHERE share_id = $1 AND is_shared = true
+  `;
+
+  const result = await pool.query(query, [shareId]);
+  const report = result.rows[0];
+
+  // Increment view count (fire and forget - don't wait for it)
+  if (report) {
+    pool.query(`
+      UPDATE reports
+      SET view_count = COALESCE(view_count, 0) + 1,
+          last_viewed_at = NOW()
+      WHERE share_id = $1
+    `, [shareId]).catch(err => {
+      console.error('Failed to update view count:', err);
+    });
+  }
+
+  return report || null;
 }

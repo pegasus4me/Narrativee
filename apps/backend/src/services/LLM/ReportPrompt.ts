@@ -17,50 +17,131 @@ interface GenerateReportInput {
 }
 
 export function promptTemplate({ story, audience, fileName, dataSummary, reportStyle }: GenerateReportInput): string {
-  const dataContext = dataSummary.isPartialData 
+  const dataContext = dataSummary.isPartialData
     ? `NOTE: Due to size limits, only the first ${dataSummary.rowCount} rows are provided below. Analyze these as a representative sample.`
     : `NOTE: The FULL dataset is provided below. You have access to every single row for accurate analysis.`;
 
-  // Define specific instructions for each style
+  // Define specific instructions for each style with mandatory structure
   const styleInstructions = {
     executive: `
 -----------------------------------------
 📌 TARGET STYLE: The Strategic Narrative (Executive)
 -----------------------------------------
-- **ID:** "executive"
-- **Style:** Concise but impactful. Think "CEO Briefing Memo" written by a skilled communicator.
-- **Focus:** The "Bottom Line" and Strategic Implications.
-- **Structure:**
-  1. **The Lead:** A single, powerful paragraph summarizing the most critical insight/tension.
-  2. **The Evidence:** A narrative explanation of the key data drivers (citing specific high/low performers).
-  3. **The "Why" Analysis:** A section explaining the potential causes visible in the data patterns.
-  4. **The Path Forward:** Strategic recommendations woven into the conclusion.
+**Style:** Concise but impactful. CEO briefing memo format.
+**Focus:** Bottom-line insights and strategic implications.
+**Tone:** Professional, direct, action-oriented.
+
+**MANDATORY STRUCTURE:**
+1. **Executive Summary** - One powerful opening paragraph with the most critical finding
+2. **Context & Scope** - What this data represents, timeframe, analytical approach (2-3 paragraphs)
+3. **Data Overview** - Dataset description: key metrics, columns, data quality notes
+4. **Key Findings** - 3-5 major insights with specific numbers and 1-2 strategic charts
+5. **Trend Analysis** - Temporal patterns or performance trends with visualizations
+6. **Strategic Implications** - What these findings mean for decision-makers
+7. **Recommendations** - 3-5 concrete, actionable next steps
+
+**Requirements:**
+- Length: 1500-2000 words
+- Charts: 2-4 strategic visualizations
+- Each finding must cite specific data points
+- End every major section with a clear takeaway
 `,
     story: `
 -----------------------------------------
 📌 TARGET STYLE: The Feature Story (Narrative)
 -----------------------------------------
-- **ID:** "story"
-- **Style:** Magazine Feature. Immersive, character-driven (using countries/entities as characters).
-- **Focus:** The Human Story behind the numbers.
-- **Structure:**
-  1. **The Hook:** Open with a vivid contrast or a surprising data point (e.g., "In the data, two worlds collide...").
-  2. **The Journey:** Walk the reader through the global landscape—the peaks, the valleys, and the middle ground.
-  3. **The Conflict:** Analyze the "tension" in the data (e.g., wealthy nations failing vs. rising stars).
-  4. **The Resolution:** What this means for the future.
+**Style:** Magazine feature with narrative arc.
+**Focus:** The human/contextual story behind the numbers.
+**Tone:** Engaging, accessible, story-driven.
+
+**MANDATORY STRUCTURE:**
+1. **The Hook** - Open with a vivid contrast, surprising insight, or compelling scene (1-2 paragraphs)
+2. **Setting the Stage** - Introduce the data landscape and why it matters (context)
+3. **The Dataset Story** - Describe what we're analyzing: columns, metrics, what each represents (make it engaging, not dry)
+4. **First Discoveries** - Initial exploratory analysis with 2-3 foundational charts revealing patterns
+5. **The Journey Through Time** - Temporal trends, year-by-year evolution, or period analysis with visualizations
+6. **The Landscape of Categories** - Genre/type/regional distributions with charts showing proportions and comparisons
+7. **The Outliers' Tale** - Special cases, anomalies, record-breakers, and what makes them unique
+8. **Connecting the Dots** - Synthesize patterns, correlations, strategic insights
+9. **The Resolution** - Conclude with implications, recommendations, and future outlook
+
+**Requirements:**
+- Length: 2000-2800 words
+- Charts: 4-6 narrative-supporting visualizations
+- Use entities as "characters" in the story
+- Make every number tell part of the larger narrative
+- Build tension and resolve it with insights
 `,
     detailed: `
 -----------------------------------------
 📌 TARGET STYLE: The Deep Dive Analysis (Analytical)
 -----------------------------------------
-- **ID:** "detailed"
-- **Style:** Intellectual & Thorough. Think "White Paper" but written by a great author.
-- **Focus:** Methodology, Distributions, and Correlations.
-- **Structure:**
-  1. **The Context:** Set the stage with the global aggregate numbers and what they represent.
-  2. **The Mechanics:** Explain the *distribution*—is it top-heavy? Uniform?
-  3. **The Outliers:** Dedicate a section to the extremes (highest vs lowest) and what they tell us about the reality.
-  4. **The Synthesis:** A deep, concluding look at the correlations implied by the data.
+**Style:** Comprehensive white paper / research report.
+**Focus:** Methodology, statistical rigor, comprehensive analysis.
+**Tone:** Academic but readable, thorough, evidence-based.
+
+**MANDATORY STRUCTURE:**
+1. **Introduction**
+   - Context and background (what is this data about?)
+   - Research questions or analytical objectives
+   - Scope and limitations
+   - Report structure overview
+
+2. **Data Description & Methodology**
+   - Dataset overview (source, size, time period, ${dataSummary.rowCount} rows)
+   - Column definitions and data types (explain each column: ${dataSummary.columns.join(", ")})
+   - Data quality assessment (missing values, outliers, cleaning steps)
+   - Analytical methods employed
+
+3. **Exploratory Data Analysis**
+   - Descriptive statistics (means, medians, ranges, standard deviations)
+   - Distribution analysis with appropriate charts
+   - Initial patterns and observations
+   - 2-3 foundational visualizations
+
+4. **Temporal Analysis** (if time-based data exists)
+   - Year-over-year trends or period-over-period changes
+   - Growth rates and velocity analysis
+   - Seasonality or cyclical patterns
+   - Trend forecasting or trajectory analysis
+   - 2-3 time-series visualizations
+
+5. **Categorical & Segmentation Analysis**
+   - Breakdown by key dimensions (genre, type, region, category)
+   - Comparative analysis across segments
+   - Distribution charts (pie, stacked bar) showing proportions
+   - Performance leaders vs. laggards by category
+   - 2-3 categorical comparison charts
+
+6. **Outlier Analysis & Special Cases**
+   - Statistical outlier identification (values beyond 2-3 standard deviations)
+   - Deep dive into anomalies and edge cases
+   - What makes these cases unique or exceptional
+   - Lessons from the extremes
+
+7. **Correlation & Multivariate Analysis**
+   - Relationships between variables
+   - Scatter plots showing correlations
+   - Pattern synthesis across multiple dimensions
+   - Complex insights from intersecting data
+
+8. **Key Findings & Strategic Insights**
+   - Synthesize all analysis into 5-7 major findings
+   - Business implications and strategic value
+   - Actionable intelligence for decision-makers
+
+9. **Conclusion & Recommendations**
+   - Summary of most critical insights
+   - Data-driven recommendations (3-5 specific actions)
+   - Limitations of this analysis
+   - Suggestions for future research or data collection
+
+**Requirements:**
+- Length: 3000-4500 words
+- Charts: 6-10 comprehensive visualizations covering all analytical dimensions
+- Include statistical measures where relevant
+- Every claim backed by specific data
+- Professional, thorough, publication-ready quality
 `
   };
 
@@ -68,154 +149,168 @@ export function promptTemplate({ story, audience, fileName, dataSummary, reportS
   const selectedInstruction = styleInstructions[reportStyle];
 
   const prompt = `
-You are an elite **Data Journalist and Storyteller**. 
-Your goal is to create a SINGLE, deep, publication-ready report based on the specific style requested below.
-
-We need the perfect equilibrium:
-1. **Deep Data Explanations:** You must explain *why* the numbers look the way they do.
-2. **Narrative Story:** The report must flow like a high-quality magazine feature.
+You are an elite **Data Analyst and Report Writer** tasked with creating a comprehensive, publication-ready report.
 
 ============================================================
-🎭 WRITING STYLE: THE "PLEASURE TO READ" STANDARD
+🎯 YOUR MISSION
 ============================================================
-- **Avoid "Robot Lists":** Never write: "The data shows X. The data shows Y."
-- **Use Active Verbs:** Instead of "There is a difference between A and B," write "Country A diverges sharply from Country B..."
-- **Weave Stats into Prose:** Don't let numbers interrupt the flow. 
-  * *Bad:* "Denmark has a GII of 0.003. Yemen has 0.838."
-  * *Good:* "While Denmark approaches near-parity at 0.003, Yemen stands at the opposite extreme (0.838), illustrating a global chasm in equality."
-- **Length:** Since you are only writing ONE report, make it substantial (1500+ words).
+Create a **SINGLE, COMPLETE REPORT** that follows the exact structure specified below. This must be thorough, well-researched, and grounded entirely in the provided data.
+
+**Critical Success Factors:**
+1. **Follow the structure religiously** - Every section listed must appear in your report
+2. **Ground every claim in data** - Cite specific numbers from the CSV
+3. **Create meaningful visualizations** - Charts must illuminate insights, not just display data
+4. **Write for ${audience}** - Adjust technical depth and tone accordingly
+5. **Make it actionable** - Insights should lead to understanding and decisions
 
 ============================================================
-🔒 DATA GROUNDING
+🎭 WRITING STANDARDS
 ============================================================
-1. **Do not invent numbers.** Use the provided CSV rows.
-2. **Cite your sources.** When you make a claim, back it up with a specific number from the rows.
+**Quality Markers:**
+- **Clarity over complexity** - Make sophisticated analysis accessible
+- **Active voice** - "Revenue grew 45%" not "There was a 45% growth in revenue"
+- **Smooth integration of data** - Weave numbers into prose naturally
+- **Varied sentence structure** - Mix short impact statements with detailed explanations
+- **Logical flow** - Each paragraph should connect to the next
+
+**Avoid:**
+- ❌ Generic statements without data support
+- ❌ Repetitive phrasing ("The data shows... The data indicates...")
+- ❌ Charts without clear purpose or insight
+- ❌ Skipping required sections from the structure
+- ❌ Inventing or estimating numbers not in the dataset
 
 ============================================================
-📄 CONTEXT
+📊 CHART EXCELLENCE STANDARDS
 ============================================================
-**Core Story:** ${story}
-**Audience:** ${audience}
-**Dataset:** ${fileName} (${dataSummary.rowCount} rows)
-**Columns:** ${dataSummary.columns.join(", ")}
+**Every chart must:**
+1. **Have a clear purpose** - Answer a specific question or reveal a pattern
+2. **Use exact column names** from the CSV data
+3. **Include real data** extracted from the provided rows
+4. **Have a descriptive title** that telegraphs the insight
+5. **Support the narrative** - Appear where they advance understanding
+
+**Chart Types & When to Use:**
+- **bar** - Comparing categories or entities (top 10 performers, category breakdown)
+- **line** - Showing trends over time (year-by-year growth, temporal patterns)
+- **pie** - Showing proportions of a whole (market share, category distribution)
+- **scatter** - Revealing correlations between two variables
+
+**Chart Data Requirements:**
+- Extract 10-15 most relevant data points
+- Use exact column names as they appear in CSV
+- Format as valid JSON array of objects
+- Include all necessary fields for the chart type
+
+============================================================
+📄 YOUR DATA CONTEXT
+============================================================
+**Core Story/Question:** ${story}
+**Target Audience:** ${audience}
+**Dataset:** ${fileName}
+**Row Count:** ${dataSummary.rowCount} rows
+**Columns Available:** ${dataSummary.columns.join(", ")}
 
 ${dataContext}
 
+**THE ACTUAL DATA:**
 [BEGIN CSV DATA]
 ${dataSummary.rawCSVContent}
 [END CSV DATA]
 
 ============================================================
-📘 TASK
+📋 YOUR SPECIFIC ASSIGNMENT
 ============================================================
-Generate **1 complete report** strictly following this style definition:
-
 ${selectedInstruction}
 
-**General Rules:**
-- **Structure:** Use natural, magazine-quality hierarchy with Markdown formatting
-- **Headings:** Use engaging, journalistic headlines (not generic like "Introduction" or "Conclusion")
-- **Flow:** Let the narrative breathe - don't force rigid patterns. Some sections may have multiple paragraphs before a chart, others may have chart → insight → more analysis
-- **Length:** 1500-2500 words total with natural section breaks
-- **Charts:** Include 2-4 visualizations strategically placed where they support the narrative
-
-**Chart Guidelines:**
-- Use column names EXACTLY as they appear in the CSV data
-- Chart types: "line" (trends over time), "bar" (comparisons), "pie" (proportions), "scatter" (correlations)
-- For line/bar charts: xField should be categorical (e.g., country, month), yField should be numeric
-- For pie charts: xField is the label, yField is the value
-- **IMPORTANT:** Include the actual data array from the CSV - extract relevant rows for the chart
-- Limit chart data to top 10-15 most relevant data points for clarity
+**YOU MUST INCLUDE EVERY SECTION LISTED ABOVE.**
+Do not skip any section. Do not merge sections unless explicitly told to.
+Each section should be substantive (multiple paragraphs where appropriate).
 
 ============================================================
-OUTPUT FORMAT: MARKDOWN
+📝 OUTPUT FORMAT: MARKDOWN
 ============================================================
-Output a well-structured Markdown document following this exact format:
+**Document Structure:**
+\`\`\`
+# [Compelling Report Title]
 
-# [Compelling Main Title]
+[Opening paragraph if appropriate for style]
 
-[Opening paragraph that hooks the reader with the most striking insight...]
+## 1. [First Required Section Title]
 
-## [First Major Section Heading]
+[Content with data, analysis, and insights]
 
-[Analysis paragraph weaving in specific data points...]
+[More paragraphs as needed]
 
-[Another paragraph building on the analysis...]
-
-> **Key Insight:** [Specific data-backed observation that crystallizes the point]
+> **Key Insight:** [Standout finding from this section]
 
 \`\`\`chart:bar
-title: [Descriptive Chart Title]
-x: column_name_from_csv
-y: column_name_from_csv
+title: [Descriptive Chart Title That Reveals The Insight]
+x: exact_column_name_from_csv
+y: exact_column_name_from_csv
 data: [
-  {"column_name_from_csv": "value1", "other_column": 123},
-  {"column_name_from_csv": "value2", "other_column": 456}
+  {"exact_column_name": "value1", "exact_column_name": 123.45},
+  {"exact_column_name": "value2", "exact_column_name": 678.90}
 ]
 \`\`\`
 
-[Continue the narrative naturally after the chart...]
+[Continue analysis after the chart]
 
-### [Subsection for Deeper Analysis]
+## 2. [Second Required Section Title]
 
-[Detailed exploration of a specific pattern...]
-
-## [Second Major Section]
-
-[More analysis...]
-
-> **Key Insight:** [Another important takeaway]
-
-\`\`\`chart:line
-title: [Another Chart Title]
-x: time_column
-y: metric_column
-data: [...]
+[Continue through all required sections...]
 \`\`\`
 
----
+**Formatting Rules:**
+- Use **#** for report title (only one H1)
+- Use **##** for major sections (the numbered structure points)
+- Use **###** for subsections within major sections
+- Use **> Key Insight:** for important callouts
+- Use **bold** for emphasis on key terms or findings
+- Use *italics* sparingly for dramatic effect
+- Use \`\`\`chart:type for visualizations
 
-**Markdown Formatting Rules:**
-- Use # for main section headings (H1) - typically 3-5 main sections
-- Use ## for major subsections (H2)
-- Use ### for deep dive topics (H3)
-- Use > **Key Insight:** for important callouts/insights
-- Use \`\`\`chart:type for chart blocks with inline JSON data
-- Write in flowing paragraphs - let ideas connect naturally
-- Bold key terms with **term** when introducing them
-- Use *emphasis* sparingly for dramatic effect
-
-**Chart Block Format:**
-Each chart must use this exact structure:
+**Chart Block Template:**
 \`\`\`chart:bar
-title: Exact Chart Title Here
-x: exact_column_name
-y: exact_column_name
+title: Exact Descriptive Title
+x: column_name_exactly_as_in_csv
+y: column_name_exactly_as_in_csv
 data: [
-  {"exact_column_name": "value", "exact_column_name": 123},
-  {"exact_column_name": "value", "exact_column_name": 456}
+  {"column_name": "Category A", "column_name": 100},
+  {"column_name": "Category B", "column_name": 250}
 ]
 \`\`\`
 
-Supported chart types: chart:bar, chart:line, chart:pie, chart:scatter
-
-**Focus on QUALITY WRITING first, formatting second.**
-The Markdown structure should feel invisible - let the story shine through.
-
 ============================================================
-CRITICAL REMINDERS
+⚠️ CRITICAL REQUIREMENTS - READ CAREFULLY
 ============================================================
-1. Output ONLY the Markdown content - no JSON wrapper, no meta-commentary
-2. Start directly with # [Your Main Title]
-3. Use real data from the CSV - no invented numbers
-4. Cite specific values naturally in prose
-5. Let the narrative flow - don't force artificial structure
-6. Make every heading compelling and specific
-7. Place charts where they genuinely enhance understanding
-8. Write for ${audience} - adjust tone and depth accordingly
+1. **Output ONLY Markdown** - No JSON wrapper, no meta-commentary, no code blocks around the whole thing
+2. **Start with # [Title]** - First line should be your H1 title
+3. **Follow the structure exactly** - Include every required section for your assigned style
+4. **Use real data only** - Every number must come from the CSV provided
+5. **Create required number of charts** - Match the chart count specified for your style
+6. **Cite specific values** - "Revenue reached $2.4M in 2023" not "Revenue was high"
+7. **Make it substantial** - Hit the word count target for your style
+8. **Write for the audience** - Adjust complexity and tone for ${audience}
+9. **End with actionable insights** - Recommendations should be specific and data-driven
+10. **Proofread mentally** - Ensure smooth flow and professional quality
 
 ============================================================
-BEGIN GENERATION
+✅ QUALITY CHECKLIST (Verify Before Submitting)
+============================================================
+- [ ] All required sections from the structure are present
+- [ ] Every major claim is supported by specific data from the CSV
+- [ ] Required number of charts are included with real data
+- [ ] Charts use exact column names from: ${dataSummary.columns.join(", ")}
+- [ ] Writing is clear, engaging, and appropriate for ${audience}
+- [ ] Document flows logically from introduction to conclusion
+- [ ] Insights are actionable and grounded in analysis
+- [ ] Word count meets the target for ${reportStyle} style
+- [ ] No sections are skipped or merged inappropriately
+- [ ] Format is clean Markdown starting with # title
+
+============================================================
+🚀 BEGIN REPORT GENERATION NOW
 ============================================================`;
 
   return prompt;

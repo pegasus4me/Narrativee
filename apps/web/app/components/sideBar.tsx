@@ -4,11 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import logo from "../../public/logo.png";
-import { Add, Setting7, Download, File } from "clicons-react";
+import { Add, Setting7, File, Home4 } from "clicons-react";
 import Link from "next/link";
 import { useSideBarStore } from "../state/logo-transition/SideBar.store";
 import { authClient } from "../../lib/auth-client";
 import { reportApi } from "../../lib/apis";
+import { usePathname, useRouter} from "next/navigation";
+
+
 interface Template {
   id: string;
   name: string;
@@ -39,6 +42,9 @@ interface SavedReport {
 
 export function SideBar({ selectedTemplateId }: SideBarProps) {
   const params = useParams();
+  const path = usePathname()
+  const router = useRouter()
+  console.log("PATH", path)
   const reportId = params.reportID as string;
   const isSidebarOpen = useSideBarStore((state) => state.opened);
   const toggleSidebar = useSideBarStore((state) => state.toggleSidebar);
@@ -101,6 +107,8 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
       console.error('❌ Failed to update report name:', error);
     }
   };
+
+
 
   useEffect(() => {
     // Load report data from localStorage or backend
@@ -249,7 +257,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               <Image src={logo} alt="logo" width={140} />
             </div>
 
-            {reportData && (
+            {reportData && !path.endsWith('/workspace') && (
               <div className="space-y-3">
                 <div>
                   <label className="text-xs text-gray-500 uppercase tracking-wide">
@@ -281,7 +289,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               </div>
             )}
 
-            {isLoading && (
+            {!path.endsWith('/workspace') && isLoading && (
               <div className="space-y-3 animate-pulse">
                 <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/2"></div>
@@ -360,9 +368,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               Added `space-y-2` for spacing between buttons
           */}
           <div className="mt-auto pt-4 border-t border-gray-200 space-y-2">
-            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
-              <Download size={20} />
-              Download Data
+            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2"
+            onClick={()=> router.push("/workspace")}
+            >
+              <Home4 size={20} />
+              Wour workspace
             </button>
 
             <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">

@@ -5,7 +5,8 @@ import logo from "../public/logo.png";
 import FileUploadPrompt from "./components/FileUploadPrompt";
 import { useEffect, useState } from "react";
 import { authClient } from "../lib/auth-client";
-import { useMigrateReports } from "../lib/hooks/useMigrateReports";
+import { useMigrateReports } from "./hooks/useMigrateReports";
+import template from "../public/example.png"
 export default function Home() {
   const words = ["csv", "sheet", "excel"];
   const words2 = ["narrative", "interactive"];
@@ -36,7 +37,9 @@ export default function Home() {
     <div className=" to-gray-50">
       {/* Header */}
       <header className="p-4 flex justify-between max-w-[90%] mx-auto">
-        <Image src={logo} alt="logo" width={170}/>
+       <div>
+         <Image src={logo} alt="logo" width={170}/>
+       </div>
         <div className="flex gap-4 items-center">
           {session?.user ? (
             <div className="flex items-center gap-3">
@@ -98,6 +101,29 @@ export default function Home() {
           <FileUploadPrompt />
         </div>
       </main>
+
+      {/* Template Preview Section */}
+      <section className="mx-auto my-16 p-2">
+        <div className="text-center mb-8">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
+            Create, Edit and Publish
+          </h2>
+          <p className="text-lg text-gray-600  mx-auto">
+            Interactive reports with charts, insights, and professional formatting
+          </p>
+        </div>
+        <div className="flex justify-center">
+          <div className="relative rounded-2xl overflow-hidden border border-gray-200 max-w-[90%] shadow-md">
+            <Image
+              src={template}
+              alt="Report template example"
+              width={1100}
+              className="w-full h-auto"
+              priority
+            />
+          </div>
+        </div>
+      </section>
 
     </div>
   );

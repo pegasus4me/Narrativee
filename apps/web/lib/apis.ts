@@ -11,6 +11,11 @@ export interface Report {
   markdownContent?: string;
   createdAt: string;
   metadata?: any;
+  shareId?: string;
+  isShared?: boolean;
+  sharedAt?: string;
+  viewCount?: number;
+  lastViewedAt?: string;
 }
 
 export interface GenerateReportParams {
@@ -160,6 +165,38 @@ export class ReportAPI {
       return response.report;
     } catch (error) {
       console.error('Error migrating report:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * POST /:reportId/share
+   * Generates a shareable link for a report
+   */
+  async generateShareLink(reportId: string): Promise<{ shareUrl: string; shareId: string }> {
+    try {
+      const { data } = await this.client.post<{ success: boolean; shareUrl: string; shareId: string }>(
+        `/${reportId}/share`
+      );
+      return { shareUrl: data.shareUrl, shareId: data.shareId };
+    } catch (error) {
+      console.error('Error generating share link:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * GET /share/:shareId
+   * Fetches a shared report (public, no auth required)
+   */
+  async getSharedReport(shareId: string): Promise<Report> {
+    try {
+      const { data } = await this.client.get<{ success: boolean; report: Report }>(
+        `/share/${shareId}`
+      );
+      return data.report;
+    } catch (error) {
+      console.error('Error fetching shared report:', error);
       throw error;
     }
   }

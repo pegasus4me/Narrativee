@@ -1,9 +1,9 @@
-import { $createHeadingNode, $createQuoteNode } from '@lexical/rich-text';
-import { $createParagraphNode, $createTextNode, TextNode } from 'lexical';
-import { $createChartNode } from '../editor/nodes/ChartNode';
+import { $createHeadingNode, $createQuoteNode } from "@lexical/rich-text";
+import { $createParagraphNode, $createTextNode, TextNode } from "lexical";
+import { $createChartNode } from "../app/workspace/components/editor/nodes/ChartNode";
 
 export function parseMarkdown(markdown: string) {
-  const lines = markdown.split('\n') as string[];
+  const lines = markdown.split("\n") as string[];
   const nodes: any[] = [];
 
   let i = 0;
@@ -17,16 +17,16 @@ export function parseMarkdown(markdown: string) {
     }
 
     // Chart block: ```chart:type
-    if (line.startsWith('```chart:')) {
+    if (line.startsWith("```chart:")) {
       const chartMatch = line.match(/```chart:(\w+)/);
       if (chartMatch) {
-        const chartType = chartMatch[1];
+        const chartType = chartMatch[1] as string;
         i++;
 
         // Collect all lines until closing ```
-        let chartContent = '';
-        while (i < lines.length && !lines[i].trim().startsWith('```')) {
-          chartContent += lines[i] + '\n';
+        let chartContent = "";
+        while (i < lines.length && !(lines[i] as string).trim().startsWith("```")) {
+          chartContent += lines[i] + "\n";
           i++;
         }
 
@@ -36,7 +36,7 @@ export function parseMarkdown(markdown: string) {
           const chartNode = $createChartNode(chartConfig);
           nodes.push(chartNode);
         } catch (error) {
-          console.error('Failed to parse chart:', error);
+          console.error("Failed to parse chart:", error);
         }
 
         i++; // Skip closing ```
@@ -45,42 +45,45 @@ export function parseMarkdown(markdown: string) {
     }
 
     // H1 heading
-    if (line.startsWith('# ')) {
-      const headingNode = $createHeadingNode('h1');
+    if (line.startsWith("# ")) {
+      const headingNode = $createHeadingNode("h1");
       const textNodes = parseInlineFormatting(line.slice(2));
-      textNodes.forEach(node => headingNode.append(node));
+      textNodes.forEach((node) => headingNode.append(node));
       nodes.push(headingNode);
       i++;
     }
     // H2 heading
-    else if (line.startsWith('## ')) {
-      const headingNode = $createHeadingNode('h2');
+    else if (line.startsWith("## ")) {
+      const headingNode = $createHeadingNode("h2");
       const textNodes = parseInlineFormatting(line.slice(3));
-      textNodes.forEach(node => headingNode.append(node));
+      textNodes.forEach((node) => headingNode.append(node));
       nodes.push(headingNode);
       i++;
     }
     // H3 heading
-    else if (line.startsWith('### ')) {
-      const headingNode = $createHeadingNode('h3');
+    else if (line.startsWith("### ")) {
+      const headingNode = $createHeadingNode("h3");
       const textNodes = parseInlineFormatting(line.slice(4));
-      textNodes.forEach(node => headingNode.append(node));
+      textNodes.forEach((node) => headingNode.append(node));
       nodes.push(headingNode);
       i++;
     }
     // Blockquote
-    else if (line.startsWith('> ')) {
+    else if (line.startsWith("> ")) {
       const quoteNode = $createQuoteNode();
       let quoteText = line.slice(2);
 
       // Collect multi-line quotes
-      while (i + 1 < lines.length && lines[i + 1].startsWith('> ')) {
+      while (
+        i + 1 < lines.length &&
+        (lines[i + 1] as string).startsWith("> ")
+      ) {
         i++;
-        quoteText += '\n' + lines[i].slice(2);
+        quoteText += "\n" + (lines[i] as string).slice(2);
       }
 
       const textNodes = parseInlineFormatting(quoteText);
-      textNodes.forEach(node => quoteNode.append(node));
+      textNodes.forEach((node) => quoteNode.append(node));
       nodes.push(quoteNode);
       i++;
     }
@@ -92,17 +95,21 @@ export function parseMarkdown(markdown: string) {
       // Collect multi-line paragraphs (until empty line or heading)
       while (i + 1 < lines.length) {
         const nextLine = lines[i + 1];
-        if(!nextLine) break; // Changed from return to break
-        if (!nextLine.trim() || nextLine.startsWith('#') || nextLine.startsWith('>')) {
+        if (!nextLine) break; // Changed from return to break
+        if (
+          !nextLine.trim() ||
+          nextLine.startsWith("#") ||
+          nextLine.startsWith(">")
+        ) {
           break;
         }
         i++;
-        paragraphText += ' ' + nextLine;
+        paragraphText += " " + nextLine;
       }
 
       // Parse inline formatting (bold, italic) and append to paragraph
       const textNodes = parseInlineFormatting(paragraphText);
-      textNodes.forEach(node => paragraphNode.append(node));
+      textNodes.forEach((node) => paragraphNode.append(node));
       nodes.push(paragraphNode);
       i++;
     }
@@ -123,12 +130,12 @@ function parseInlineFormatting(text: string): TextNode[] {
     if (match[2]) {
       // **bold**
       const textNode = $createTextNode(match[2]);
-      textNode.toggleFormat('bold');
+      textNode.toggleFormat("bold");
       nodes.push(textNode);
     } else if (match[3]) {
       // *italic*
       const textNode = $createTextNode(match[3]);
-      textNode.toggleFormat('italic');
+      textNode.toggleFormat("italic");
       nodes.push(textNode);
     } else if (match[4]) {
       // Regular text
@@ -141,46 +148,52 @@ function parseInlineFormatting(text: string): TextNode[] {
 
 // Helper function to parse chart configuration from markdown block
 function parseChartConfig(chartType: string, content: string): any {
-  const lines = content.trim().split('\n');
-  const config: any = {
+  const lines = content.trim().split("\n");
+  const config: {
+    type: string;
+    title: string;
+    xField: string;
+    yField: string;
+    data: any[];
+  } = {
     type: chartType,
-    title: '',
-    xField: '',
-    yField: '',
-    data: []
+    title: "",
+    xField: "",
+    yField: "",
+    data: [],
   };
 
   for (const line of lines) {
     const trimmed = line.trim();
 
     // Parse title: title: Chart Title
-    if (trimmed.startsWith('title:')) {
-      config.title = trimmed.replace('title:', '').trim();
+    if (trimmed.startsWith("title:")) {
+      config.title = trimmed.replace("title:", "").trim();
     }
     // Parse xField: x: field_name
-    else if (trimmed.startsWith('x:')) {
-      config.xField = trimmed.replace('x:', '').trim();
+    else if (trimmed.startsWith("x:")) {
+      config.xField = trimmed.replace("x:", "").trim();
     }
     // Parse yField: y: field_name
-    else if (trimmed.startsWith('y:')) {
-      config.yField = trimmed.replace('y:', '').trim();
+    else if (trimmed.startsWith("y:")) {
+      config.yField = trimmed.replace("y:", "").trim();
     }
     // Parse data: data: [...]
-    else if (trimmed.startsWith('data:')) {
+    else if (trimmed.startsWith("data:")) {
       // Extract JSON array from data: line and remaining lines
-      let dataStr = trimmed.replace('data:', '').trim();
+      let dataStr = trimmed.replace("data:", "").trim();
 
       // If data spans multiple lines, collect them
       let dataIndex = lines.indexOf(line);
-      while (dataIndex < lines.length - 1 && !dataStr.includes(']')) {
+      while (dataIndex < lines.length - 1 && !dataStr.includes("]")) {
         dataIndex++;
-        dataStr += lines[dataIndex].trim();
+        dataStr += (lines[dataIndex] as string).trim();
       }
 
       try {
         config.data = JSON.parse(dataStr);
       } catch (error) {
-        console.error('Failed to parse chart data JSON:', error);
+        console.error("Failed to parse chart data JSON:", error);
         config.data = [];
       }
     }

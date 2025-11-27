@@ -8,18 +8,19 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { HeadingNode, QuoteNode} from "@lexical/rich-text";
 import { LinkNode, AutoLinkNode } from "@lexical/link";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
-import { $getRoot } from "lexical";
+import { $getRoot, $getSelection, $createParagraphNode, $createTextNode } from "lexical";
 import React, { useEffect, useState, useRef } from "react";
 import Toolbar from "./Toolbar";
 import { CollapsibleNode } from "../editor/nodes/CollapsibleNode";
 import { ChartNode } from "../editor/nodes/ChartNode";
-import { Share4, UserAdd} from "clicons-react";
-import { parseMarkdown } from "./parseMarkdown";
+import { Share4, UserAdd, Sparkles} from "clicons-react";
+import { parseMarkdown } from "../../../../lib/parseMarkdown";
 import { useSideBarStore } from "../../../state/logo-transition/SideBar.store";
 import sideLogo from "../../../../public/sidelogo.png"
 import Image from "next/image";
 import { reportApi } from "../../../../lib/apis";
 import { authClient } from "../../../../lib/auth-client";
+import { ChatSidebar } from "../../../components/ChatSidebar";
 interface Template {
   id: string;
   name: string;
@@ -30,6 +31,7 @@ interface Template {
 interface ReportEditorProps {
   template: Template;
   reportId: string;
+  readOnly?: boolean;
 }
 
 class CustomErrorBoundary extends React.Component<
@@ -207,21 +209,39 @@ function AutoSavePlugin({
   return null;
 }
 
-export default function ReportEditor({ template, reportId }: ReportEditorProps) {
+// Plugin to capture editor instance
+function EditorRefPlugin({ editorRef }: { editorRef: React.MutableRefObject<any> }) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    editorRef.current = editor;
+  }, [editor, editorRef]);
+
+  return null;
+}
+
+export default function ReportEditor({ template, reportId, readOnly = false }: ReportEditorProps) {
   const isOpened = useSideBarStore((state) => state.opened);
   const { data: session } = authClient.useSession();
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [reportName, setReportName] = useState(template.name);
   const nameTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [viewCount, setViewCount] = useState(0);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [editorContent, setEditorContent] = useState("");
+  const editorRef = useRef<any>(null);
 
   const initialConfig = {
     namespace: 'NarrativeeEditor',
     theme: {
       paragraph: 'text-lg text-gray-600 mb-6 p-2',
       heading: {
-        h1: 'text-4xl font-bold text-black-900 mb-6 mt-8',
-        h2: 'text-2xl font-bold text-gray-800 mb-4 mt-6',
+        h1: 'text-6xl font-bold text-black-900 mb-6 mt-8',
+        h2: 'text-3xl font-bold text-gray-800 mb-4 mt-6',
         h3: 'text-xl font-semibold text-gray-900 mb-3 mt-4',
       },
       text: {
@@ -271,6 +291,77 @@ export default function ReportEditor({ template, reportId }: ReportEditorProps) 
     }, 1000);
   };
 
+  // Handle share button click
+  const handleShare = async () => {
+    // Check if user is authenticated and report is saved
+    if (!session?.user || !isValidUUID(reportId)) {
+      alert('Please save your report first to share it.');
+      return;
+    }
+
+    setShowShareModal(true);
+    setIsGeneratingLink(true);
+
+    try {
+      const { shareUrl: url } = await reportApi.generateShareLink(reportId);
+      setShareUrl(url);
+      console.log('✅ Share link generated:', url);
+
+      // Fetch current view count
+      const report = await reportApi.getReportById(reportId);
+      setViewCount(report.viewCount || 0);
+    } catch (error) {
+      console.error('❌ Failed to generate share link:', error);
+      alert('Failed to generate share link. Please try again.');
+      setShowShareModal(false);
+    } finally {
+      setIsGeneratingLink(false);
+    }
+  };
+
+  // Copy share link to clipboard
+  const copyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert('Link copied to clipboard!');
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      alert('Failed to copy link. Please copy manually.');
+    }
+  };
+
+  // Function to insert content from chat
+  const handleContentInsert = (content: string, position: "end" | "cursor") => {
+    if (!editorRef.current) {
+      console.error("Editor not available");
+      return;
+    }
+
+    editorRef.current.update(() => {
+      const root = $getRoot();
+
+      // Parse the new markdown content
+      const newNodes = parseMarkdown(content);
+
+      if (position === "end") {
+        // Append to end of document
+        newNodes.forEach((node) => {
+          root.append(node);
+        });
+      } else {
+        // Insert at cursor position
+        const selection = $getSelection();
+        if (selection) {
+          newNodes.forEach((node) => {
+            selection.insertNodes([node]);
+          });
+        }
+      }
+    });
+
+    console.log("✅ Content inserted successfully");
+  };
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -282,7 +373,8 @@ export default function ReportEditor({ template, reportId }: ReportEditorProps) 
 
   return (
     <div className="h-full w-full overflow-y-auto">
-      {/* Header */}
+      {/* Header - Hide in read-only mode */}
+      {!readOnly && (
       <header className="sticky top-0 z-10 p-3 bg-transparent backdrop-blur-md">
         <div className="flex justify-between">
           <div className="flex items-center gap-5">
@@ -331,47 +423,136 @@ export default function ReportEditor({ template, reportId }: ReportEditorProps) 
           </div>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsChatOpen(!isChatOpen)}
+              className="px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+            >
+              <Sparkles size={17}/>
+              Ask AI
+            </button>
             <button className="px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium flex items-center gap-2">
               <UserAdd size={17}/>
               Collaborate
             </button>
-            <button className="px-4 py-2 bg-amber-500 text-black border hover:bg-amber-600 rounded-lg transition-colors text-sm font-medium flex items-center gap-2">
+            <button
+              onClick={handleShare}
+              className="px-4 py-2 bg-amber-500 text-black border hover:bg-amber-600 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+            >
               <Share4 size={17}/>
               Share page
             </button>
           </div>
         </div>
       </header>
+      )}
 
-      {/* Editor Content */}
-      <div className={`mx-auto transition-all duration-300 ${isOpened ? 'max-w-[60%]' : 'max-w-[50%]'}`}>
-          <LexicalComposer initialConfig={initialConfig}>
-            <Toolbar />
+      {/* Editor Content - Adjust width when chat is open */}
+      <div
+        className={`mx-auto transition-all duration-300 ${
+          isChatOpen
+            ? 'max-w-[70%]'
+            : (readOnly ? 'max-w-[60%]' : (isOpened ? 'max-w-[60%]' : 'max-w-[60%]'))
+        }`}
+        style={{ marginRight: isChatOpen ? '400px' : 'auto' }}
+      >
+          <LexicalComposer initialConfig={{ ...initialConfig, editable: !readOnly }}>
+            {!readOnly && <Toolbar />}
 
             <RichTextPlugin
               contentEditable={
-                <ContentEditable className="outline-none focus:outline-none min-h-screen px-4" />
+                <ContentEditable className="outline-none focus:outline-none min-h-screen px-4 lexical-editor-content" />
               }
               placeholder={
-                <div className="relative top-0 text-gray-400 pointer-events-none">
-                  Start editing your report...
-                </div>
+                !readOnly ? (
+                  <div className="relative top-0 text-gray-400 pointer-events-none">
+                    Start editing your report...
+                  </div>
+                ) : null
               }
               // ✅ FIX: Use the Class Component here
               ErrorBoundary={CustomErrorBoundary}
             />
 
             <InitialContentPlugin template={template} />
-            <AutoSavePlugin
-              reportId={reportId}
-              session={session}
-              setIsSaving={setIsSaving}
-              setLastSaved={setLastSaved}
-            />
-            <HistoryPlugin />
+            <EditorRefPlugin editorRef={editorRef} />
+            {!readOnly && (
+              <AutoSavePlugin
+                reportId={reportId}
+                session={session}
+                setIsSaving={setIsSaving}
+                setLastSaved={setLastSaved}
+              />
+            )}
+            {!readOnly && <HistoryPlugin />}
             <LinkPlugin />
           </LexicalComposer>
         </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-transparent backdrop-blur-2xl flex items-center justify-center z-50" onClick={() => setShowShareModal(false)}>
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Share Report</h3>
+
+            {isGeneratingLink ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                <span className="ml-3 text-gray-600">Generating share link...</span>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-gray-600 mb-4">
+                  Anyone with this link can view your report (read-only)
+                </p>
+
+                <div className="flex gap-2 mb-4">
+                  <input
+                    type="text"
+                    value={shareUrl}
+                    readOnly
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
+                  />
+                  <button
+                    onClick={copyShareLink}
+                    className="px-4 py-2 bg-amber-500 text-black rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
+                  >
+                    Copy
+                  </button>
+                </div>
+                
+
+                {/* View count */}
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 px-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <span>{viewCount} {viewCount === 1 ? 'view' : 'views'}</span>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowShareModal(false)}
+                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors text-sm"
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Chat Sidebar */}
+      <ChatSidebar
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        reportContent={template.markdown}
+        reportId={reportId}
+        editor={editorRef.current}
+        onContentInsert={handleContentInsert}
+      />
     </div>
   );
 }

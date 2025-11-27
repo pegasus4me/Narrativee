@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { authClient } from '../auth-client';
-import { reportApi } from '../apis';
+import { authClient } from '../../lib/auth-client';
+import { reportApi } from '../../lib/apis';
 
 interface LocalReport {
   id: string;

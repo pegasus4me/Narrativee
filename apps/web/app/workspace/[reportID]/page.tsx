@@ -6,7 +6,8 @@ import { SideBar } from "../../components/sideBar";
 import ReportEditor from "../components/lexical/ReportEditor";
 import { authClient } from "../../../lib/auth-client";
 import { reportApi } from "../../../lib/apis";
-
+import Image from "next/image";
+import logo from "../../../public/sidelogo.png"
 interface Template {
   id: string;
   name: string;
@@ -105,13 +106,15 @@ export default function WorkspacePage() {
     <div className="h-screen flex bg-gray-50">
 
       {/* Main Editor Area */}
-      <main className="flex-1 overflow-hidden bg-neutral-50">
+      <main className="flex-1 overflow-hidden bg-[#ffffff]">
         {isLoading ? (
-          <div className="text-center py-20">
-            <div className="inline-block w-16 h-16 border-4 border-amber-400 border-t-transtyle={{ fontFamily: 'var(--font-petrona)' }}sparent rounded-full animate-spin mb-4"></div>
+          <div className="flex items-center justify-center flex-col py-20">
+            <div>
+              <Image src={logo} alt="logo" width={170} className="animate-pulse"/>
             <h2 className="text-2xl font-semibold text-gray-900 mb-2" >
               Generating Your Report
             </h2>
+            </div>
             <p className="text-gray-600">
               Our AI is analyzing your data and creating your narrative report...
             </p>

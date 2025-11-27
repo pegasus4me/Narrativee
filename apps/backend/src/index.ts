@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import reportRouter from './routes/report';
+import chatRouter from './routes/chat';
 import cookieParser from 'cookie-parser';
 
 dotenv.config();
@@ -25,6 +26,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/report', reportRouter);
+app.use('/api/chat', chatRouter);
 
 // Start server
 app.listen(PORT, () => {

@@ -73,10 +73,23 @@ export default function Chart({ config, csvData }: ChartProps) {
 
     switch (type) {
       case 'line':
+        // Sort data by x-axis value (ascending order)
+        const sortedLineData = [...rawData].sort((a, b) => {
+          const aVal = a[xField];
+          const bVal = b[xField];
+
+          // If numeric, sort numerically
+          if (!isNaN(aVal) && !isNaN(bVal)) {
+            return parseFloat(aVal) - parseFloat(bVal);
+          }
+          // Otherwise, sort alphabetically
+          return String(aVal).localeCompare(String(bVal));
+        });
+
         return [
           {
             id: title || 'data',
-            data: rawData.map((row: any) => ({
+            data: sortedLineData.map((row: any) => ({
               x: row[xField],
               y: parseFloat(row[yField]) || 0,
             })),
@@ -135,7 +148,7 @@ export default function Chart({ config, csvData }: ChartProps) {
             data={chartData}
             margin={{ top: 20, right: 110, bottom: 60, left: 60 }}
             xScale={{ type: 'point' }}
-            yScale={{ type: 'linear', min: 'auto', max: 12 }}
+            yScale={{ type: 'linear', min: 'auto', max: 'auto', reverse: false }}
             axisBottom={{
               tickRotation: -45,
               legend: xField,
@@ -158,7 +171,7 @@ export default function Chart({ config, csvData }: ChartProps) {
             crosshairType="cross"
             legends={[
               {
-                anchor: 'bottom-right',
+                anchor: 'top',
                 direction: 'column',
                 justify: false,
                 translateX: 100,
