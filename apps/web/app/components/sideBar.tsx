@@ -125,10 +125,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               description: `${report.audience} - ${report.reportStyle}`,
               sections: []
             },
-            metadata: report.metadata || {
+            metadata: {
               fileName: report.fileName,
               rowCount: 0,
-              columns: []
+              columns: [],
+              ...report.metadata, // Spread metadata to override defaults if they exist
             }
           };
           setReportData(data);

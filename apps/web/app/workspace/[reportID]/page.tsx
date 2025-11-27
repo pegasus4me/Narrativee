@@ -60,10 +60,11 @@ export default function WorkspacePage() {
               description: `${report.audience} - ${report.reportStyle}`,
               markdown: report.markdownContent || '',
             },
-            metadata: report.metadata || {
+            metadata: {
               fileName: report.fileName,
               rowCount: 0,
-              columns: []
+              columns: [],
+              ...report.metadata, // Spread metadata to override defaults if they exist
             }
           };
 
