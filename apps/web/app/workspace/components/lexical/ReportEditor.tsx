@@ -8,7 +8,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { HeadingNode, QuoteNode} from "@lexical/rich-text";
 import { LinkNode, AutoLinkNode } from "@lexical/link";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
-import { $getRoot, $getSelection, $createParagraphNode, $createTextNode } from "lexical";
+import { $getRoot, $getSelection } from "lexical";
 import React, { useEffect, useState, useRef } from "react";
 import Toolbar from "./Toolbar";
 import { CollapsibleNode } from "../editor/nodes/CollapsibleNode";
@@ -35,7 +35,7 @@ interface ReportEditorProps {
 }
 
 class CustomErrorBoundary extends React.Component<
-  { children: React.ReactNode; onError: (error: Error) => void },
+  { children: React.ReactElement; onError: (error: Error) => void },
   { hasError: boolean; error: Error | null }
 > {
   constructor(props: any) {

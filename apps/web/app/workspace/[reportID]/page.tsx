@@ -2,7 +2,6 @@
 
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { SideBar } from "../../components/sideBar";
 import ReportEditor from "../components/lexical/ReportEditor";
 import { authClient } from "../../../lib/auth-client";
 import { reportApi } from "../../../lib/apis";

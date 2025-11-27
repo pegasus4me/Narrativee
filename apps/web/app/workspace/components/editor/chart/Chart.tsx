@@ -94,7 +94,7 @@ export default function Chart({ config, csvData }: ChartProps) {
               y: parseFloat(row[yField]) || 0,
             })),
           },
-        ];
+        ] as any;
 
       case 'bar':
         return rawData.map((row: any) => ({
@@ -144,7 +144,6 @@ export default function Chart({ config, csvData }: ChartProps) {
       <div style={{ height: '500px' }} className="bg-white p-6 rounded-lg border border-gray-200">
         {type === 'line' && (
           <ResponsiveLine
-            className="border"
             data={chartData}
             margin={{ top: 20, right: 110, bottom: 60, left: 60 }}
             xScale={{ type: 'point' }}
@@ -388,11 +387,11 @@ export default function Chart({ config, csvData }: ChartProps) {
                 <strong className="text-gray-900">{node.serieId}</strong>
                 <div className="text-sm text-gray-600">
                   <span>{xField}: </span>
-                  <span className="font-medium">{node.data.x}</span>
+                  <span className="font-medium">{String(node.data.x)}</span>
                 </div>
                 <div className="text-sm text-gray-600">
                   <span>{yField}: </span>
-                  <span className="font-medium">{node.data.y}</span>
+                  <span className="font-medium">{String(node.data.y)}</span>
                 </div>
               </div>
             )}

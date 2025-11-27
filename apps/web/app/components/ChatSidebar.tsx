@@ -194,7 +194,7 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
       console.error("Chat error:", error);
 
       // Handle 401 Unauthorized specifically
-      const errorContent = error.message?.includes("401") || data?.error === "Authentication required"
+      const errorContent = error.message?.includes("401") || error.message?.includes("Authentication required")
         ? "Your session has expired. Please log in again to use the chat feature."
         : "Sorry, I encountered an error. Please try again.";
 

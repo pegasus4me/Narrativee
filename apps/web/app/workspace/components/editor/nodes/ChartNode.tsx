@@ -1,6 +1,6 @@
 'use client';
 
-import { DecoratorNode, NodeKey, SerializedLexicalNode, Spread, LexicalEditor } from 'lexical';
+import { DecoratorNode, NodeKey, SerializedLexicalNode, Spread } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 // ✅ IMPORT THE WRAPPER, NOT THE CHART
 import ChartWrapper from '../chart/ChartWrapper';
