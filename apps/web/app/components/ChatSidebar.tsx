@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles } from "clicons-react";
 import { LexicalEditor } from "lexical";
-import { useSession } from "../lib/auth-client";
+import { authClient } from "../../lib/auth-client";
 
 interface Message {
   role: "user" | "assistant";
@@ -22,7 +22,7 @@ interface ChatSidebarProps {
 }
 
 export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, onContentInsert }: ChatSidebarProps) {
-  const { data: session, isPending } = useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",

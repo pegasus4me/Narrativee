@@ -6,7 +6,6 @@ import { ViewOff, View, Sparkles, Loader} from "clicons-react";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Logo from "../../../public/sidelogo.png"
-import { GoogleLogo } from "clicons-react";
 export default function SignIn() {
   const router = useRouter();
   const [email, setEmail] = useState("");

@@ -5,10 +5,10 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import logo from "../../public/logo.png";
 import useLocalStorage from "../hooks/useLocalStorage";
-import { useSession } from "../lib/auth-client";
+import { authClient } from "../../lib/auth-client";
 export default function CreatePage() {
   const router = useRouter();
-  const session = useSession()
+  const session = authClient.useSession()
   console.log("session", session)
   const [sessionData] = useLocalStorage<{
     sessionId?: string;

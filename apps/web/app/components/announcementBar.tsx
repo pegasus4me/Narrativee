@@ -1,11 +1,11 @@
 "use client"
 import Link from "next/link";
-import { useSession } from "../lib/auth-client";
+import { authClient } from "../../lib/auth-client";
 
 // 1. Fixed typo in component name
 export default function AnnouncementBar() {
     // 2. Destructure 'isPending' to prevent the bar from flashing briefly while checking auth
-    const { data: session, isPending } = useSession();
+    const { data: session, isPending } = authClient.useSession();
 
     // 3. Early return: If loading or user is logged in, render nothing (null is cleaner than <></>)
     if (isPending || session?.user) return null;
