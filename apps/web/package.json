@@ -28,6 +28,7 @@
     "@nivo/scatterplot": "^0.99.0",
     "@opennextjs/cloudflare": "^1.13.1",
     "@repo/ui": "workspace:*",
+    "@supabase/supabase-js": "^2.86.0",
     "@tailwindcss/postcss": "^4.1.17",
     "axios": "^1.13.2",
     "better-auth": "^1.4.1",
@@ -39,6 +40,7 @@
     "next": "^16.0.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "ws": "^8.18.3",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
@@ -48,6 +50,7 @@
     "@types/pg": "^8.15.6",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
+    "@types/ws": "^8.18.1",
     "autoprefixer": "^10.4.22",
     "eslint": "^9.39.1",
     "postcss": "^8.5.6",

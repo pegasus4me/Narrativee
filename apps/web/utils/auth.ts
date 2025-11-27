@@ -1,7 +1,15 @@
 import { betterAuth } from "better-auth";
-import { Pool } from "@neondatabase/serverless";
+import { neonConfig, Pool } from "@neondatabase/serverless";
 import env from 'dotenv';
+import ws from 'ws';
+
 env.config();
+
+// Configure WebSocket for Cloudflare Workers compatibility
+if (typeof WebSocket === 'undefined') {
+    neonConfig.webSocketConstructor = ws;
+}
+
 export const auth = betterAuth({
     database: new Pool({
         connectionString: process.env.DATABASE_URL
