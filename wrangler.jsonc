@@ -1,5 +1,5 @@
 {
-  "name": "narativee/app",
+  "name": "narrativee-app",
   "compatibility_date": "2025-11-27",
-  "pages_build_output_dir": ".next"
+  "pages_build_output_dir": "apps/web/.vercel/output/static"
 }
