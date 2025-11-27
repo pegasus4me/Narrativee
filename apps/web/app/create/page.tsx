@@ -23,6 +23,7 @@ export default function CreatePage() {
   const [reportStyle, setReportStyle] = useState(""); // New state for style
   const [hasStory, setHasStory] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   useEffect(() => {
     // Load story from localStorage if it exists
@@ -93,6 +94,16 @@ export default function CreatePage() {
       console.log('API Response status:', response.status, response.statusText);
 
       if (!response.ok) {
+        // Handle 403 - Anonymous user limit reached
+        if (response.status === 403) {
+          const errorData = await response.json();
+          if (errorData.requiresAuth) {
+            setShowLimitModal(true);
+            setIsGenerating(false);
+            return;
+          }
+        }
+
         const errorText = await response.text();
         console.error('API Error response:', errorText);
         throw new Error(`Failed to generate report: ${response.status} ${errorText}`);
@@ -178,6 +189,53 @@ export default function CreatePage() {
 
   return (
     <div className="">
+      {/* Limit Reached Modal */}
+      {showLimitModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl">
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+
+              <h2 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'var(--font-petrona)' }}>
+                Report Limit Reached
+              </h2>
+
+              <p className="text-gray-600 mb-6">
+                You can only generate <strong>1 report</strong> without an account.
+                Create a free account to generate more <strong>reports</strong> with betters outputs and unlock chat features!
+              </p>
+
+              <div className="space-y-3">
+                <a
+                  href="/auth/signup"
+                  className="block w-full px-6 py-3 bg-amber-400 text-black font-semibold rounded-lg hover:bg-amber-500 transition-colors"
+                >
+                  Create Free Account
+                </a>
+
+                <a
+                  href="/auth/signin"
+                  className="block w-full px-6 py-3 border-2 border-gray-200 text-gray-700 font-medium rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                >
+                  Sign In
+                </a>
+
+                <button
+                  onClick={() => setShowLimitModal(false)}
+                  className="block w-full px-6 py-2 text-gray-500 text-sm hover:text-gray-700 transition-colors"
+                >
+                  Go Back
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="p-4 flex justify-between max-w-[90%] mx-auto">
         <Image src={logo} alt="logo" width={170}/>
