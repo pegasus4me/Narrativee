@@ -1,7 +1,0 @@
-name = "narrativee"
-compatibility_date = "2025-11-27"
-
-main = ".vercel/output/functions/worker.js"
-
-# Optional but recommended for image routing
-assets = { directory = ".vercel/output/static" }
