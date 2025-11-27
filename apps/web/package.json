@@ -34,6 +34,8 @@
     "better-auth": "^1.4.1",
     "clicons-react": "^1.0.16",
     "dotenv": "^17.2.3",
+    "drizzle-kit": "^0.31.7",
+    "drizzle-orm": "^0.44.7",
     "lexical": "^0.38.2",
     "markdown-to-jsx": "^9.1.1",
     "motion": "^12.23.24",

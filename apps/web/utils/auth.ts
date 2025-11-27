@@ -1,19 +1,15 @@
 import { betterAuth } from "better-auth";
-import { neonConfig, Pool } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
 import env from 'dotenv';
-import ws from 'ws';
 
 env.config();
 
-// Configure WebSocket for Cloudflare Workers compatibility
-if (typeof WebSocket === 'undefined') {
-    neonConfig.webSocketConstructor = ws;
-}
+const sql = neon(process.env.DATABASE_URL!);
+const db = drizzle(sql);
 
 export const auth = betterAuth({
-    database: new Pool({
-        connectionString: process.env.DATABASE_URL
-    }),
+    database: db,
     emailAndPassword: {
         enabled: true,
         requireEmailVerification: false // Set to true in production
