@@ -254,8 +254,8 @@ router.post(
         });
       }
 
-      const csvData = parsed.data;
-      const columns = csvData.length > 0 ? Object.keys(csvData[0]) : [];
+      const csvData = parsed.data as any[];
+      const columns = csvData.length > 0 ? Object.keys(csvData[0] as any) : [];
 
       console.log(
         `📊 CSV parsed: ${csvData.length} rows, ${columns.length} columns`
@@ -280,7 +280,7 @@ router.post(
 
       // Build prompt for generating new content based on new data
       const dataLimit = 500;
-      const dataToAnalyze =
+      const dataToAnalyze: any[] =
         csvData.length > dataLimit ? csvData.slice(0, dataLimit) : csvData;
 
       const systemPrompt = `You are a data analyst generating NEW insights based on newly uploaded data.
