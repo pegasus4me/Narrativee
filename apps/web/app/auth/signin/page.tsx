@@ -21,7 +21,7 @@ export default function SignIn() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/create",
+        callbackURL: "/",
       });
     } catch (err) {
       setError("Failed to connect with Google");
@@ -52,7 +52,7 @@ export default function SignIn() {
         password,
       }, {
         onSuccess: () => {
-          router.push("/create");
+          router.push("/");
         },
         onError: (ctx) => {
           setError(ctx.error.message);
