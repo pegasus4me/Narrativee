@@ -1,11 +1,14 @@
 import { betterAuth } from "better-auth";
 import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { neon, neonConfig } from "@neondatabase/serverless";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import * as schema from "../auth-schema";
 import env from 'dotenv';
 
 env.config();
+
+// Enable connection caching for Cloudflare Workers
+neonConfig.fetchConnectionCache = true;
 
 const sql = neon(process.env.DATABASE_URL || "postgresql://postgres:Rayan_2008@db.nwqzqzzgrbdergqehnso.supabase.co:6543/postgres");
 const db = drizzle(sql, { schema });
