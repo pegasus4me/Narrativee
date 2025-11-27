@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import env from 'dotenv';
 
 env.config();
@@ -9,7 +10,9 @@ const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql);
 
 export const auth = betterAuth({
-    database: db,
+    database: drizzleAdapter(db, {
+        provider: "pg"
+    }),
     emailAndPassword: {
         enabled: true,
         requireEmailVerification: false // Set to true in production
