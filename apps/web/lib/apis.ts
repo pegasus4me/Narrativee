@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 
-// Types based on your backend response structure
+// --- Types ---
+
 export interface Report {
   id: string;
   name: string;
@@ -10,7 +11,7 @@ export interface Report {
   reportStyle: string;
   markdownContent?: string;
   createdAt: string;
-  metadata?: any;
+  metadata?: Record<string, any>; // Better than 'any'
   shareId?: string;
   isShared?: boolean;
   sharedAt?: string;
@@ -31,7 +32,6 @@ export interface GenerateResponse {
     id: string;
     name: string;
     markdown: string;
-    // other template fields
   };
   reportId?: string;
   metadata: {
@@ -41,20 +41,33 @@ export interface GenerateResponse {
   };
 }
 
+// --- API Service ---
+
 export class ReportAPI {
   private client: AxiosInstance;
 
   constructor() {
+    // 1. Best Practice: Use Env Variables, fallback to localhost
+    const baseURL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002") + "/api/report";
+
     this.client = axios.create({
-      baseURL: "http://localhost:3002/api/report",
-      // Important: This allows cookies (Better Auth session) to be sent to the backend
-      withCredentials: true, 
+      baseURL,
+      withCredentials: true, // Crucial for Better-Auth
     });
+
+    // 2. Best Practice: Global Error Logging (Axios Interceptor)
+    // This replaces the repetitive try/catch blocks in every method
+    this.client.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        console.error(`API Error [${error.config?.url}]:`, error.response?.data || error.message);
+        return Promise.reject(error);
+      }
+    );
   }
 
   /**
    * POST /generate
-   * Uploads a CSV file and generates a report
    */
   async generateReport(params: GenerateReportParams): Promise<GenerateResponse> {
     const formData = new FormData();
@@ -63,56 +76,34 @@ export class ReportAPI {
     formData.append("audience", params.audience);
     formData.append("reportStyle", params.reportStyle);
 
-    try {
-      const { data } = await this.client.post<GenerateResponse>("/generate", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return data;
-    } catch (error) {
-      console.error("Error generating report:", error);
-      throw error;
-    }
+    // 3. Improvement: Do NOT manually set Content-Type for FormData. 
+    // Axios/Browser detects it automatically and adds the required 'boundary' string.
+    const { data } = await this.client.post<GenerateResponse>("/generate", formData);
+    return data;
   }
 
   /**
    * GET /my-reports
-   * Fetches all reports for the authenticated user
    */
   async getAllReports(): Promise<Report[]> {
-    try {
-      // The backend returns { success: true, reports: [...] }
-      const { data } = await this.client.get<{ success: boolean; reports: Report[] }>(
-        "/my-reports"
-      );
-      return data.reports;
-    } catch (error) {
-      console.error("Error fetching reports:", error);
-      throw error;
-    }
+    const { data } = await this.client.get<{ success: boolean; reports: Report[] }>(
+      "/my-reports"
+    );
+    return data.reports;
   }
 
   /**
    * GET /:reportId
-   * Fetches a specific report by ID
    */
   async getReportById(reportId: string): Promise<Report> {
-    try {
-      // The backend returns { success: true, report: { ... } }
-      const { data } = await this.client.get<{ success: boolean; report: Report }>(
-        `/${reportId}`
-      );
-      return data.report;
-    } catch (error) {
-      console.error(`Error fetching report ${reportId}:`, error);
-      throw error;
-    }
+    const { data } = await this.client.get<{ success: boolean; report: Report }>(
+      `/${reportId}`
+    );
+    return data.report;
   }
 
   /**
    * PUT /:reportId
-   * Updates a specific report
    */
   async updateReport(
     reportId: string,
@@ -122,34 +113,22 @@ export class ReportAPI {
       reportStyle?: 'executive' | 'story' | 'detailed';
     }
   ): Promise<Report> {
-    try {
-      const { data } = await this.client.put<{ success: boolean; report: Report }>(
-        `/${reportId}`,
-        updates
-      );
-      return data.report;
-    } catch (error) {
-      console.error(`Error updating report ${reportId}:`, error);
-      throw error;
-    }
+    const { data } = await this.client.put<{ success: boolean; report: Report }>(
+      `/${reportId}`,
+      updates
+    );
+    return data.report;
   }
 
   /**
    * DELETE /:reportId
-   * Deletes a specific report
    */
   async deleteReport(reportId: string): Promise<void> {
-    try {
-      await this.client.delete(`/${reportId}`);
-    } catch (error) {
-      console.error(`Error deleting report ${reportId}:`, error);
-      throw error;
-    }
+    await this.client.delete(`/${reportId}`);
   }
 
   /**
    * POST /migrate
-   * Migrates a localStorage report to the database
    */
   async migrateLocalReport(data: {
     name: string;
@@ -157,48 +136,31 @@ export class ReportAPI {
     markdownContent: string;
     metadata: any;
   }): Promise<Report> {
-    try {
-      const { data: response } = await this.client.post<{ success: boolean; report: Report }>(
-        '/migrate',
-        data
-      );
-      return response.report;
-    } catch (error) {
-      console.error('Error migrating report:', error);
-      throw error;
-    }
+    const { data: response } = await this.client.post<{ success: boolean; report: Report }>(
+      '/migrate',
+      data
+    );
+    return response.report;
   }
 
   /**
    * POST /:reportId/share
-   * Generates a shareable link for a report
    */
   async generateShareLink(reportId: string): Promise<{ shareUrl: string; shareId: string }> {
-    try {
-      const { data } = await this.client.post<{ success: boolean; shareUrl: string; shareId: string }>(
-        `/${reportId}/share`
-      );
-      return { shareUrl: data.shareUrl, shareId: data.shareId };
-    } catch (error) {
-      console.error('Error generating share link:', error);
-      throw error;
-    }
+    const { data } = await this.client.post<{ success: boolean; shareUrl: string; shareId: string }>(
+      `/${reportId}/share`
+    );
+    return { shareUrl: data.shareUrl, shareId: data.shareId };
   }
 
   /**
    * GET /share/:shareId
-   * Fetches a shared report (public, no auth required)
    */
   async getSharedReport(shareId: string): Promise<Report> {
-    try {
-      const { data } = await this.client.get<{ success: boolean; report: Report }>(
-        `/share/${shareId}`
-      );
-      return data.report;
-    } catch (error) {
-      console.error('Error fetching shared report:', error);
-      throw error;
-    }
+    const { data } = await this.client.get<{ success: boolean; report: Report }>(
+      `/share/${shareId}`
+    );
+    return data.report;
   }
 }
 
