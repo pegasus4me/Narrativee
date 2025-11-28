@@ -1,15 +1,4 @@
-import { auth } from "../../../../utils/auth";
+import { auth } from "@/utils/auth";
+import { toNextJsHandler } from "better-auth/next-js";
 
-export default {
-    async fetch(request: Request) {
-        const url = new URL(request.url);
-
-        // Handle auth routes
-        if (url.pathname.startsWith("/api/auth")) {
-            return auth.handler(request);
-        }
-
-        // Handle other routes
-        return new Response("Not found", { status: 404 });
-    },
-};
+export const { GET, POST } = toNextJsHandler(auth);
