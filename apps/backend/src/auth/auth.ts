@@ -3,7 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { Pool } from "pg";
 import * as schema from "./schema/schema";
 import dotenv from "dotenv"
-import { drizzle } from "drizzle-orm/singlestore/driver";
+import { drizzle } from 'drizzle-orm/node-postgres'
 dotenv.config()
 
 
