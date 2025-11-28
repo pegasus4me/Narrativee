@@ -13,7 +13,7 @@ const pool = new Pool({
 });
 
 // create drizzle db instance
-const db = drizzle(pool, { schema });
+const db = drizzle(pool, { schema: schema });
 
 
 // plug it into better auth

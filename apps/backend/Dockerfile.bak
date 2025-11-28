@@ -1,0 +1,59 @@
+# Use Node.js LTS version with pnpm
+FROM node:20-alpine AS base
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+# Build stage
+FROM base AS builder
+WORKDIR /app
+
+# Copy workspace and package files
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY apps/backend/package.json ./apps/backend/
+
+# Install all dependencies
+RUN pnpm install --frozen-lockfile --filter backend...
+
+# Copy backend source code
+COPY apps/backend ./apps/backend
+
+# Build TypeScript to JavaScript
+WORKDIR /app/apps/backend
+RUN pnpm run build
+
+# Production stage
+FROM base AS runner
+WORKDIR /app
+
+# Set NODE_ENV to production
+ENV NODE_ENV=production
+
+# Create a non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nodejs
+
+# Copy workspace files for pnpm
+COPY --from=builder --chown=nodejs:nodejs /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nodejs:nodejs /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/package.json ./apps/backend/package.json
+
+# Install production dependencies only
+RUN pnpm install --frozen-lockfile --filter backend... --filter .
+# Copy built application from builder stage
+COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./dist
+
+# Copy migrations if needed for runtime
+COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/migrations ./migrations
+
+# Switch to non-root user
+USER nodejs
+
+# Expose the application port
+EXPOSE 3002
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3002/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Start the application
+CMD ["node", "dist/index.js"]

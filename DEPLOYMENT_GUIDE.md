@@ -12,9 +12,65 @@ Complete guide for deploying backend to AWS and frontend to Vercel using GitHub 
 
 ---
 
-## Prerequisites
+## Deployment Options
 
-### AWS EC2 Setup
+You have two main options for deploying the backend:
+1.  **Docker (Recommended)**: Deploy the container to AWS App Runner. Easiest to manage.
+2.  **Manual EC2**: Run Node.js directly on an EC2 instance.
+
+---
+
+## Option 1: Docker Deployment (Recommended)
+
+This method uses **AWS App Runner**, which automatically builds and deploys your container, handles SSL, load balancing, and auto-scaling.
+
+### 1. Create ECR Repository
+1.  Go to **AWS Console** -> **Elastic Container Registry (ECR)**.
+2.  Click **Create repository**.
+3.  Name it `narrative-backend`.
+4.  Keep "Private" selected.
+5.  Click **Create repository**.
+
+### 2. Push Image to ECR
+Run these commands locally (make sure you have AWS CLI installed and configured):
+
+```bash
+# 1. Login to ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <your-account-id>.dkr.ecr.us-east-1.amazonaws.com
+
+# 2. Build the image (for linux/amd64 architecture)
+docker build --platform linux/amd64 -f apps/backend/Dockerfile -t narrative-backend .
+
+# 3. Tag the image
+docker tag narrative-backend:latest <your-account-id>.dkr.ecr.us-east-1.amazonaws.com/narrative-backend:latest
+
+# 4. Push to ECR
+docker push <your-account-id>.dkr.ecr.us-east-1.amazonaws.com/narrative-backend:latest
+```
+
+### 3. Deploy to AWS App Runner
+1.  Go to **AWS Console** -> **App Runner**.
+2.  Click **Create service**.
+3.  **Source**: Select **Container registry**.
+4.  **Provider**: Select **Amazon ECR**.
+5.  **Image URI**: Browse and select `narrative-backend:latest`.
+6.  **Deployment settings**: Select **Automatic** (deploys every time you push a new image).
+7.  **Configuration**:
+    - **Runtime**: Select **Create new service role** (gives App Runner permission to pull from ECR).
+8.  **Service settings**:
+    - **Service name**: `narrative-backend`
+    - **Port**: `3002`
+    - **Environment variables**: Add all variables from your `.env` file here.
+      - `BETTER_AUTH_URL`: The App Runner URL (you'll get this after creation, e.g., `https://xyz.awsapprunner.com`).
+      - `DATABASE_URL`, `BETTER_AUTH_SECRET`, etc.
+9.  Click **Create & deploy**.
+
+### 4. Update Frontend
+Once deployed, copy the **Default domain** from App Runner (e.g., `https://xyz.awsapprunner.com`) and update your frontend environment variable `NEXT_PUBLIC_API_URL`.
+
+---
+
+## Option 2: Manual EC2 Deployment
 
 1. **Launch EC2 Instance**:
    - AMI: Ubuntu 22.04 LTS

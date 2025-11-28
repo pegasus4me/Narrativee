@@ -5,11 +5,13 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"],
-      "env": [
-        "BETTER_AUTH_SECRET",
-        "BETTER_AUTH_URL",
-        "SUPABASE_URI"
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        "node_modules/**",
+        "pnpm-lock.yaml",
+        "package-lock.json"
       ]
     },
     "lint": {

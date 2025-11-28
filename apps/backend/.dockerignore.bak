@@ -1,0 +1,38 @@
+# Node modules
+node_modules
+npm-debug.log
+
+# Development files
+.env
+.env.local
+.env.*.local
+
+# TypeScript source (we only need compiled JS)
+src
+
+# Build artifacts
+dist
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Turbo
+.turbo
+
+# Misc
+*.md
+.DS_Store
+.dockerfile
+
+# Tests
+*.test.ts
+*.spec.ts
+__tests__
+coverage
