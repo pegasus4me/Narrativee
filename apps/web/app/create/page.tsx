@@ -96,7 +96,7 @@ export default function CreatePage() {
       if (!response.ok) {
         // Handle 403 - Anonymous user limit reached
         if (response.status === 403) {
-          const errorData = await response.json();
+          const errorData:any = await response.json();
           if (errorData.requiresAuth) {
             setShowLimitModal(true);
             setIsGenerating(false);
@@ -109,7 +109,7 @@ export default function CreatePage() {
         throw new Error(`Failed to generate report: ${response.status} ${errorText}`);
       }
 
-      const data = await response.json();
+      const data:any = await response.json();
       console.log('Report generated successfully:', data);
       console.log('Data has template?', !!data.template);
       console.log('Template has sections?', !!data.template?.sections);
