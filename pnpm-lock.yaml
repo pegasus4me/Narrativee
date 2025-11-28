@@ -148,9 +148,6 @@ importers:
       '@lexical/utils':
         specifier: ^0.38.2
         version: 0.38.2
-      '@neondatabase/serverless':
-        specifier: ^1.0.2
-        version: 1.0.2
       '@nivo/bar':
         specifier: ^0.99.0
         version: 0.99.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -208,6 +205,9 @@ importers:
       next:
         specifier: ^16.0.1
         version: 16.0.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      pg:
+        specifier: ^8.16.3
+        version: 8.16.3
       react:
         specifier: ^19.2.0
         version: 19.2.0
@@ -6657,6 +6657,7 @@ snapshots:
     dependencies:
       '@types/node': 22.19.1
       '@types/pg': 8.15.6
+    optional: true
 
   '@next/env@16.0.1': {}
 
