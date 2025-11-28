@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import reportRouter from './routes/report';
 import chatRouter from './routes/chat';
 import cookieParser from 'cookie-parser';
+import {auth} from "./auth/auth"
+import { toNodeHandler } from "better-auth/node";
 
 dotenv.config();
 
@@ -17,6 +19,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+app.all('/api/auth/{*any}', toNodeHandler(auth));
 app.use(express.json());
 app.use(cookieParser());
 
