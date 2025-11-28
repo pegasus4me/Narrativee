@@ -139,7 +139,7 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
 
     try {
       let response;
-      let data;
+      let data: any;
 
       if (requestType === "upload") {
         // Handle file upload + regeneration

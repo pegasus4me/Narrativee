@@ -4,22 +4,49 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "../auth-schema";
 
-interface Hyperdrive {
-  connectionString: string;
+interface CloudflareEnv {
+  HYPERDRIVE: Hyperdrive;
+  GOOGLE_CLIENT_ID: string;
+  GOOGLE_CLIENT_SECRET: string;
+  BETTER_AUTH_SECRET: string;
+  DATABASE_URL: string;
 }
 
-// Check if we're in Cloudflare Workers environment
-function getConnectionString() {
-  // In Cloudflare Workers, globalThis will have the env bindings
-  if (typeof globalThis !== 'undefined' && (globalThis as any).HYPERDRIVE) {
-    return (globalThis as any).HYPERDRIVE.connectionString;
-  }
-  // Fallback to local environment variable
-  return process.env.DATABASE_URL;
+// Function to create auth with Cloudflare env (for production)
+export function createAuthWithEnv(env: CloudflareEnv) {
+  const pool = new Pool({
+    connectionString: env.HYPERDRIVE.connectionString,
+  });
+
+  const db = drizzle(pool, { schema });
+
+  return betterAuth({
+    database: drizzleAdapter(db, {
+      provider: "pg",
+      schema: {
+        user: schema.user,
+        session: schema.session,
+        account: schema.account,
+        verification: schema.verification
+      }
+    }),
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification: false 
+    },
+    socialProviders: {
+      google: {
+        clientId: env.GOOGLE_CLIENT_ID || "",
+        clientSecret: env.GOOGLE_CLIENT_SECRET || "",
+        enabled: !!env.GOOGLE_CLIENT_ID
+      }
+    },
+  });
 }
 
+// Default auth instance for local development
 const pool = new Pool({
-  connectionString: getConnectionString(),
+  connectionString: process.env.DATABASE_URL,
 });
 
 const db = drizzle(pool, { schema });
