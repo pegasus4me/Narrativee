@@ -1,6 +1,6 @@
 import { defineConfig } from "drizzle-kit";
 import dotenv from "dotenv";
-
+dotenv.config({ path: ".env.local" })
 // Load environment variables from .env file
 dotenv.config();
 
