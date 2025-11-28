@@ -35,6 +35,12 @@
     "GOOGLE_CLIENT_ID": "711835687460-nelc00l553fq3fee4stpp6j8pvm2hh1o.apps.googleusercontent.com",
     "GOOGLE_CLIENT_SECRET":"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",
     "BETTER_AUTH_SECRET": "2dkUq5Tk7TOKH7fKxN7fLl9tdkHQjCjo",
-    "DATABASE_URL": "postgresql://postgres:Rayan_2008@db.nwqzqzzgrbdergqehnso.supabase.co:6543/postgres?sslmode=require"
-  }
+    "DATABASE_URL": "postgresql://postgres:Rayan_2008@db.nwqzqzzgrbdergqehnso.supabase.co:5432/postgres"
+  },
+    "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "e1f8bed3326d4d238eabe6aa36aaaf91"
+    }
+  ],
 }
