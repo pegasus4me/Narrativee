@@ -20,6 +20,7 @@ interface ReportTemplate {
   markdown: string; // Now we return raw markdown
 }
 
+
 export async function generateReport(
   input: GenerateReportInput
 ): Promise<ReportTemplate> {
