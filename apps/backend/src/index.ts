@@ -21,9 +21,11 @@ const PORT = process.env.PORT || 3002;
 
 // CORS MUST be before BetterAuth
 app.use(cors({
-  origin: process.env.NODE_ENV === "production"
-    ? ["https://narrativee.com", "https://api.narrativee.com"]
-    : ["http://localhost:3000"],
+  origin: [
+    "http://localhost:3000",
+    "https://narrativee.com",
+
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

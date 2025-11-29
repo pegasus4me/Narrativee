@@ -2,19 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { betterAuth } from 'better-auth';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
-
+import { auth } from '../auth/auth';
 dotenv.config();
-
-// Initialize Better Auth with same config as frontend
-const auth = betterAuth({
-  database: new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false
-    }
-  }),
-  secret: process.env.BETTER_AUTH_SECRET || 'your-secret-key', // Must match frontend
-});
 
 export interface AuthRequest extends Request {
   user?: {

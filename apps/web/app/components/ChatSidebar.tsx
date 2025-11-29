@@ -139,7 +139,6 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
     setIsLoading(true);
 
     try {
-      let response;
       let data: any;
 
       if (requestType === "upload") {

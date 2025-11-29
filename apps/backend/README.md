@@ -16,6 +16,18 @@ This project is containerized using Docker and can be built and run using Docker
    ```
    This will build the Docker image and start the `ts-app` service.
 
+   ```sh
+   docker build --platform linux/amd64 -f apps/backend/Dockerfile -t safoantouil/narrative:latest .
+   docker push safoantouil/narrative:latest
+   ```
+   
+   ```sh
+   sudo docker pull safoantouil/narrative:latest
+   sudo docker rm -f narrative-backend
+   sudo docker run -d --name narrative-backend --restart always -p 3002:3002 --env-file .env safoantouil/narrative:latest
+   ```
+
+
 2. **Environment Configuration:**
    - If your application requires environment variables, create a `.env` file in the project root and uncomment the `env_file` line in `docker-compose.yml`.
 
