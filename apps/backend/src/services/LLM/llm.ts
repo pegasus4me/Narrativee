@@ -28,7 +28,7 @@ export async function generateReport(
 
   // Get LLM config based on user plan
   const llmConfig = getReportGenerationConfig(userPlan);
-
+  console.log(`🤖 llmConfig: ${JSON.stringify(llmConfig)}`, userPlan);
   console.log(`🤖 Report generation for plan: ${userPlan || 'no-auth'} using ${llmConfig.model}`);
 
   // Prepare data summary

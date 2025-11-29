@@ -7,52 +7,63 @@ on:
     paths:
       - 'apps/backend/**'
       - '.github/workflows/deploy-backend.yml'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          node-version: '18'
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
+      - name: Build and push
+        uses: docker/build-push-action@v5
         with:
-          version: 9
+          context: .
+          file: apps/backend/Dockerfile
+          push: true
+          tags: safoantouil/narrative:latest
+          platforms: linux/amd64
+          cache-from: type=registry,ref=safoantouil/narrative:buildcache
+          cache-to: type=registry,ref=safoantouil/narrative:buildcache,mode=max
 
-      - name: Install dependencies
-        run: |
-          cd apps/backend
-          pnpm install --frozen-lockfile
-
-      - name: Build backend
-        run: |
-          cd apps/backend
-          pnpm build
-
-      - name: Deploy to AWS EC2
-        uses: easingthemes/ssh-deploy@main
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.EC2_HOST }}
-          REMOTE_USER: ${{ secrets.EC2_USER }}
-          SOURCE: "apps/backend/dist/ apps/backend/package.json apps/backend/pnpm-lock.yaml"
-          TARGET: "/home/${{ secrets.EC2_USER }}/narrativee-backend"
-          EXCLUDE: "/node_modules/"
-          SCRIPT_BEFORE: |
-            whoami
-            ls -al
-          SCRIPT_AFTER: |
-            cd /home/${{ secrets.EC2_USER }}/narrativee-backend
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-            pnpm install --prod
-            pm2 restart narrativee-backend || pm2 start dist/index.js --name narrativee-backend
-            pm2 save
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Update .env file (create if not exists)
+            echo "${{ secrets.ENV_FILE }}" > .env
+            
+            # Pull latest image
+            sudo docker pull safoantouil/narrative:latest
+            
+            # Stop and remove existing container
+            sudo docker stop narrative-backend || true
+            sudo docker rm narrative-backend || true
+            
+            # Run new container
+            sudo docker run -d \
+              --name narrative-backend \
+              --restart always \
+              -p 3002:3002 \
+              --env-file .env \
+              safoantouil/narrative:latest
+            
+            # Cleanup unused images to save space
+            sudo docker image prune -f

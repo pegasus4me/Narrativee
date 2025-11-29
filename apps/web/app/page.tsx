@@ -17,7 +17,7 @@ export default function Home() {
 
   // Auto-migrate localStorage reports when user logs in
   const { isMigrating, migratedCount } = useMigrateReports();
-
+  console.log(session)
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % words.length);
@@ -81,7 +81,7 @@ export default function Home() {
               </span>
             </span> reports
           </h1>
-          <p className="text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-noto)' }}>
             Transform your Data into clear, interactive and shareable presentations. Describe your goal, upload your data, and get a polished reports with charts, insights, and a storyline in minutes.
           </p>
         </div>

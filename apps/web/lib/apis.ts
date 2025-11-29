@@ -200,6 +200,16 @@ export class ReportAPI {
     );
     return data;
   }
+
+  /**
+   * GET /user/credits
+   */
+  async getUserCredits(): Promise<number> {
+    const { data } = await this.client.get<{ success: boolean; credits: number }>(
+      "/user/credits"
+    );
+    return data.credits;
+  }
 }
 
 export const reportApi = new ReportAPI();
