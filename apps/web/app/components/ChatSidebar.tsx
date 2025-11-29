@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles } from "clicons-react";
 import { LexicalEditor } from "lexical";
 import { authClient } from "../../lib/auth-client";
+import { reportApi } from "../../lib/apis";
 
 interface Message {
   role: "user" | "assistant";
@@ -143,38 +144,24 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
 
       if (requestType === "upload") {
         // Handle file upload + regeneration
-        const formData = new FormData();
-        formData.append("file", currentFile!);
-        formData.append("question", currentInput);
-        formData.append("reportId", reportId);
-        formData.append("reportContent", reportContent);
-
-        response = await fetch("http://localhost:3002/api/chat/regenerate", {
-          method: "POST",
-          credentials: "include",
-          body: formData,
+        data = await reportApi.regenerateReport({
+          file: currentFile!,
+          question: currentInput,
+          reportId,
+          reportContent,
         });
-        data = await response.json();
 
         if (data.success && data.newContent && onContentInsert) {
           onContentInsert(data.newContent, "end");
         }
       } else {
         // Handle question or edit request
-        response = await fetch("http://localhost:3002/api/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            question: currentInput,
-            reportContent,
-            reportId,
-            requestType,
-          }),
+        data = await reportApi.chat({
+          question: currentInput,
+          reportContent,
+          reportId,
+          requestType: requestType as "question" | "edit",
         });
-        data = await response.json();
 
         // If it's an edit request and we got content, insert it
         if (requestType === "edit" && data.generatedContent && onContentInsert) {
@@ -218,15 +205,14 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
 
   return (
     <div
-      className={`fixed top-0 right-0 h-screen bg-white border-l border-gray-200 transition-all duration-300 ease-in-out z-40 flex flex-col ${
-        isOpen ? "w-96" : "w-0"
-      }`}
+      className={`fixed top-0 right-0 h-screen bg-white border-l border-gray-200 transition-all duration-300 ease-in-out z-40 flex flex-col ${isOpen ? "w-96" : "w-0"
+        }`}
       style={{ overflow: isOpen ? "visible" : "hidden" }}
     >
 
       <header className="p-2 mt-3 border-b border-gray-200">
         <div className="flex items-center gap-2" >
-          <Sparkles strokeWidth={1.5} size={19} className="text-amber-600"/>
+          <Sparkles strokeWidth={1.5} size={19} className="text-amber-600" />
           <p style={{ fontFamily: 'var(--font-petrona)' }} className="text-xl">Assistant</p>
         </div>
       </header>
@@ -261,11 +247,10 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-lg p-3 ${
-                    message.role === "user"
-                      ? "bg-amber-400/40 text-black"
-                      : "text-gray-900"
-                  }`}
+                  className={`max-w-[85%] rounded-lg p-3 ${message.role === "user"
+                    ? "bg-amber-400/40 text-black"
+                    : "text-gray-900"
+                    }`}
                   style={{ fontFamily: 'var(--font-noto)' }}
                 >
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>

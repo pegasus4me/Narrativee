@@ -6,8 +6,10 @@ import Image from "next/image";
 import logo from "../../public/logo.png";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { authClient } from "../../lib/auth-client";
+import { ReportAPI } from "../../lib/apis";
 export default function CreatePage() {
   const router = useRouter();
+  const apis = new ReportAPI();
   const session = authClient.useSession()
   console.log("session", session)
   const [sessionData] = useLocalStorage<{
@@ -73,46 +75,19 @@ export default function CreatePage() {
       const blob = new Blob([ab], { type: mimeString });
       const file = new File([blob], fileName, { type: mimeString });
 
-      // Prepare FormData
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('story', hasStory ? sessionData.story! : story);
-      formData.append('audience', audience);
-      formData.append('reportStyle', reportStyle); // Send the selected style
-
       // Generate temporary reportId
       const tempReportId = Math.random().toString(36).substring(7);
       console.log('Generated reportId:', tempReportId);
 
-      // Call API and wait for response
-      const response = await fetch('http://localhost:3002/api/report/generate', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include', // Send Better Auth cookies for authentication
+      // Call API using the client
+      const data = await apis.generateReport({
+        file,
+        story: hasStory ? sessionData.story! : story,
+        audience,
+        reportStyle,
       });
-
-      console.log('API Response status:', response.status, response.statusText);
-
-      if (!response.ok) {
-        // Handle 403 - Anonymous user limit reached
-        if (response.status === 403) {
-          const errorData:any = await response.json();
-          if (errorData.requiresAuth) {
-            setShowLimitModal(true);
-            setIsGenerating(false);
-            return;
-          }
-        }
-
-        const errorText = await response.text();
-        console.error('API Error response:', errorText);
-        throw new Error(`Failed to generate report: ${response.status} ${errorText}`);
-      }
-
-      const data:any = await response.json();
       console.log('Report generated successfully:', data);
       console.log('Data has template?', !!data.template);
-      console.log('Template has sections?', !!data.template?.sections);
 
       // Use reportId from backend if available (authenticated user), otherwise use tempReportId
       const reportId = data.reportId || tempReportId;
@@ -131,8 +106,16 @@ export default function CreatePage() {
       console.log('Redirecting to /workspace/' + reportId);
       router.push(`/workspace/${reportId}`);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating report:', error);
+
+      // Handle 403 from Axios error
+      if (error.response?.status === 403 && error.response?.data?.requiresAuth) {
+        setShowLimitModal(true);
+        setIsGenerating(false);
+        return;
+      }
+
       alert('Failed to generate report. Please try again.');
       setIsGenerating(false);
     }
@@ -238,7 +221,7 @@ export default function CreatePage() {
 
       {/* Header */}
       <header className="p-4 flex justify-between max-w-[90%] mx-auto">
-        <Image src={logo} alt="logo" width={170}/>
+        <Image src={logo} alt="logo" width={170} />
       </header>
 
       {/* Main Content */}
@@ -319,19 +302,19 @@ export default function CreatePage() {
 
           {/* Style/Goal Selection */}
           <div className="mb-6">
-            <label 
-              className="block text-lg font-semibold text-gray-900 mb-2" 
+            <label
+              className="block text-lg font-semibold text-gray-900 mb-2"
               style={{ fontFamily: 'var(--font-petrona)' }}
             >
               What is your main objective?
             </label>
-            
+
             <p className="text-sm text-gray-600 mb-4 ml-4">
-               This tells to Narrativee whether to write a 
-               persuasive narrative report or an objective report. 
+              This tells to Narrativee whether to write a
+              persuasive narrative report or an objective report.
               It ensures the tone matches your intent.
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {styles.map((style) => (
                 <button
@@ -361,7 +344,7 @@ export default function CreatePage() {
             </div>
           </div>
         </div>
-            
+
         {/* Continue Button */}
         <div className="mt-12 flex justify-center">
           <button

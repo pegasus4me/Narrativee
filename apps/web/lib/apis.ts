@@ -48,7 +48,7 @@ export class ReportAPI {
 
   constructor() {
     // 1. Best Practice: Use Env Variables, fallback to localhost
-    const baseURL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002") + "/api/report";
+    const baseURL = (process.env.NODE_ENV === "production" ? "https://api.narrativee.com" : "http://localhost:3002") + "/api";
 
     this.client = axios.create({
       baseURL,
@@ -67,7 +67,7 @@ export class ReportAPI {
   }
 
   /**
-   * POST /generate
+   * POST /report/generate
    */
   async generateReport(params: GenerateReportParams): Promise<GenerateResponse> {
     const formData = new FormData();
@@ -78,32 +78,32 @@ export class ReportAPI {
 
     // 3. Improvement: Do NOT manually set Content-Type for FormData. 
     // Axios/Browser detects it automatically and adds the required 'boundary' string.
-    const { data } = await this.client.post<GenerateResponse>("/generate", formData);
+    const { data } = await this.client.post<GenerateResponse>("/report/generate", formData);
     return data;
   }
 
   /**
-   * GET /my-reports
+   * GET /report/my-reports
    */
   async getAllReports(): Promise<Report[]> {
     const { data } = await this.client.get<{ success: boolean; reports: Report[] }>(
-      "/my-reports"
+      "/report/my-reports"
     );
     return data.reports;
   }
 
   /**
-   * GET /:reportId
+   * GET /report/:reportId
    */
   async getReportById(reportId: string): Promise<Report> {
     const { data } = await this.client.get<{ success: boolean; report: Report }>(
-      `/${reportId}`
+      `/report/${reportId}`
     );
     return data.report;
   }
 
   /**
-   * PUT /:reportId
+   * PUT /report/:reportId
    */
   async updateReport(
     reportId: string,
@@ -114,21 +114,21 @@ export class ReportAPI {
     }
   ): Promise<Report> {
     const { data } = await this.client.put<{ success: boolean; report: Report }>(
-      `/${reportId}`,
+      `/report/${reportId}`,
       updates
     );
     return data.report;
   }
 
   /**
-   * DELETE /:reportId
+   * DELETE /report/:reportId
    */
   async deleteReport(reportId: string): Promise<void> {
-    await this.client.delete(`/${reportId}`);
+    await this.client.delete(`/report/${reportId}`);
   }
 
   /**
-   * POST /migrate
+   * POST /report/migrate
    */
   async migrateLocalReport(data: {
     name: string;
@@ -137,30 +137,68 @@ export class ReportAPI {
     metadata: any;
   }): Promise<Report> {
     const { data: response } = await this.client.post<{ success: boolean; report: Report }>(
-      '/migrate',
+      '/report/migrate',
       data
     );
     return response.report;
   }
 
   /**
-   * POST /:reportId/share
+   * POST /report/:reportId/share
    */
   async generateShareLink(reportId: string): Promise<{ shareUrl: string; shareId: string }> {
     const { data } = await this.client.post<{ success: boolean; shareUrl: string; shareId: string }>(
-      `/${reportId}/share`
+      `/report/${reportId}/share`
     );
     return { shareUrl: data.shareUrl, shareId: data.shareId };
   }
 
   /**
-   * GET /share/:shareId
+   * GET /report/share/:shareId
    */
   async getSharedReport(shareId: string): Promise<Report> {
     const { data } = await this.client.get<{ success: boolean; report: Report }>(
-      `/share/${shareId}`
+      `/report/share/${shareId}`
     );
     return data.report;
+  }
+
+  /**
+   * POST /chat
+   */
+  async chat(params: {
+    question: string;
+    reportContent: string;
+    reportId: string;
+    requestType: "question" | "edit";
+  }): Promise<{ answer: string; generatedContent?: string }> {
+    const { data } = await this.client.post<{ answer: string; generatedContent?: string }>(
+      "/chat",
+      params
+    );
+    return data;
+  }
+
+  /**
+   * POST /chat/regenerate
+   */
+  async regenerateReport(params: {
+    file: File;
+    question: string;
+    reportId: string;
+    reportContent: string;
+  }): Promise<{ success: boolean; newContent: string }> {
+    const formData = new FormData();
+    formData.append("file", params.file);
+    formData.append("question", params.question);
+    formData.append("reportId", params.reportId);
+    formData.append("reportContent", params.reportContent);
+
+    const { data } = await this.client.post<{ success: boolean; newContent: string }>(
+      "/chat/regenerate",
+      formData
+    );
+    return data;
   }
 }
 
