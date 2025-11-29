@@ -6,16 +6,16 @@ dotenv.config();
 export default defineConfig({
   // Point this to your actual schema file path
   // Based on your imports ("../auth-schema"), this might be "./src/auth-schema.ts"
-  schema: "./src/auth/schema/schema.ts", 
-  
+  schema: "./src/auth/schema/schema.ts",
+
   // Where migration files will be stored
   out: "./drizzle",
-  
+
   // Database dialect
   dialect: "postgresql",
-  
+
   // Your Supabase connection string
   dbCredentials: {
-    url: process.env.LOCAL_DATABASE_URL!,  // change to prod DB if needed
+    url: process.env.DATABASE_URL!,  // change to prod DB if needed
   },
 });

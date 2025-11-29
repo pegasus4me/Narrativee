@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { authClient } from "../lib/auth-client";
 import { useMigrateReports } from "./hooks/useMigrateReports";
 import template from "../public/example.png"
+import ProfileMenu from "./components/ProfileMenu";
 export default function Home() {
   const words = ["csv", "sheet", "excel"];
   const words2 = ["narrative", "interactive"];
@@ -16,7 +17,7 @@ export default function Home() {
 
   // Auto-migrate localStorage reports when user logs in
   const { isMigrating, migratedCount } = useMigrateReports();
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % words.length);
@@ -37,24 +38,12 @@ export default function Home() {
     <div className=" to-gray-50">
       {/* Header */}
       <header className="p-4 flex justify-between max-w-[90%] mx-auto">
-       <div>
-         <Image src={logo} alt="logo" width={170}/>
-       </div>
+        <div>
+          <Image src={logo} alt="logo" width={170} />
+        </div>
         <div className="flex gap-4 items-center">
           {session?.user ? (
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600"style={{ fontFamily: 'var(--font-petrona)' }} >Free plan</span>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer">
-                <Image
-                  src={session.user.image || '/default-avatar.png'}
-                  alt={session.user.name || 'User'}
-                  width={32}
-                  height={32}
-                  className="rounded-full"
-                />
-                <span className="text-sm font-medium text-gray-900">{session.user.name}</span>
-              </div>
-            </div>
+            <ProfileMenu />
           ) : (
             <>
               <a href="/auth/signin" className="text-gray-700 hover:text-gray-900">Login</a>

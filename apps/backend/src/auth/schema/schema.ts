@@ -47,7 +47,7 @@ export const account = pgTable("account", {
 export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
-  value: jsonb("value").notNull(), // Changed back to jsonb to match DB
+  value: text("value").notNull(), // Must be text for better-auth to parse correctly
   expiresAt: timestamp("expiresAt").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { authClient } from '../../../lib/auth-client';
-import { ViewOff, View, Sparkles, Loader} from "clicons-react";
+import { ViewOff, View, Sparkles, Loader } from "clicons-react";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Logo from "../../../public/sidelogo.png"
@@ -21,7 +21,7 @@ export default function SignIn() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/",
+        callbackURL: window.location.origin,
       });
     } catch (err) {
       setError("Failed to connect with Google");
@@ -73,12 +73,12 @@ export default function SignIn() {
 
       {/* Main Card */}
       <div className="w-full max-w-[440px] z-10">
-        
+
         {/* Header Section */}
         <div className="flex flex-col items-center mb-8">
           {/* Logo Placeholder */}
           <div className="">
-            <Image src={Logo} alt='narrative' width={100}/>
+            <Image src={Logo} alt='narrative' width={100} />
           </div>
           <h1 className="text-2xl font-medium tracking-tight text-black mb-2" style={{ fontFamily: 'var(--font-petrona)' }}>
             Sign in
@@ -87,7 +87,7 @@ export default function SignIn() {
 
         {/* Card Content */}
         <div className="p-6 sm:p-8">
-          
+
           {/* Google Button */}
           <button
             onClick={handleGoogleSignIn}
@@ -138,7 +138,7 @@ export default function SignIn() {
                 {error}
               </div>
             )}
-            
+
             <div className="space-y-1.5">
               <label className="text-[13px] font-medium text-gray-600 ml-1">Email</label>
               <input
@@ -182,7 +182,7 @@ export default function SignIn() {
               disabled={isLoading}
               className="w-full h-12 bg-amber-400 text-black border font-medium rounded-lg transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
             >
-               {isLoading ? (
+              {isLoading ? (
                 <Loader className="w-5 h-5 animate-spin" />
               ) : (
                 showPasswordField ? "Sign in" : "Continue"
@@ -194,17 +194,17 @@ export default function SignIn() {
 
         {/* Footer */}
         <div className="text-center mt-8">
-           <p className="text-[#6B7280] text-sm">
-             Don't have an account?{" "}
-             <a href="/auth/signup" className="text-amber-500 font-medium hover:underline transition-colors">
-               Sign up
-             </a>
-           </p>
+          <p className="text-[#6B7280] text-sm">
+            Don't have an account?{" "}
+            <a href="/auth/signup" className="text-amber-500 font-medium hover:underline transition-colors">
+              Sign up
+            </a>
+          </p>
         </div>
       </div>
-      
+
       {/* Footer Branding (Optional, like Gamma) */}
-      <div className="absolute bottom-6 text-[#4B5563] text-xs"  style={{ fontFamily: 'var(--font-petrona)' }}>
+      <div className="absolute bottom-6 text-[#4B5563] text-xs" style={{ fontFamily: 'var(--font-petrona)' }}>
         &copy; 2025 Narrativee.
       </div>
     </div>
