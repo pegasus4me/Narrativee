@@ -1,15 +1,20 @@
+import { webcrypto } from 'node:crypto';
+if (!global.crypto) {
+  global.crypto = webcrypto as any;
+}
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import reportRouter from './routes/report';
 import chatRouter from './routes/chat';
 import cookieParser from 'cookie-parser';
-import {auth} from "./auth/auth"
+import { auth } from "./auth/auth"
 import { toNodeHandler } from "better-auth/node";
 
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', true); // Trust Nginx headers (X-Forwarded-Proto, Host)
 const PORT = process.env.PORT || 3002;
 
 // Middleware

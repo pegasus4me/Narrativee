@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@openrouter/sdk": "^0.1.27",
-    "better-auth": "^1.4.1",
+    "better-auth": "^1.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
