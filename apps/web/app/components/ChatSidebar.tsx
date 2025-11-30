@@ -285,7 +285,7 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
           </div>
 
           {/* Input */}
-          <div className="p-4 border-t border-gray-200 bg-[#FBFBFB] rounded-t-2xl">
+          <div className="p-4 border border-gray-200 bg-[#FBFBFB] rounded-t-2xl">
             {!session?.user ? (
               <div className="text-center py-4">
                 <p className="text-sm text-gray-600 mb-3">

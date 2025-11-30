@@ -4,26 +4,26 @@ import { CSVRow } from "../../utils/csv/csvParser";
 export type ReportStyle = 'executive' | 'story' | 'detailed';
 
 interface GenerateReportInput {
-  story: string;
-  audience: string;
-  fileName: string;
-  dataSummary: {
-    rowCount: number;
-    columns: string[];
-    rawCSVContent: string;
-    isPartialData: boolean;
-  };
-  reportStyle: ReportStyle;
+   story: string;
+   audience: string;
+   fileName: string;
+   dataSummary: {
+      rowCount: number;
+      columns: string[];
+      rawCSVContent: string;
+      isPartialData: boolean;
+   };
+   reportStyle: ReportStyle;
 }
 
 export function promptTemplate({ story, audience, fileName, dataSummary, reportStyle }: GenerateReportInput): string {
-  const dataContext = dataSummary.isPartialData
-    ? `NOTE: Due to size limits, only the first ${dataSummary.rowCount} rows are provided below. Analyze these as a representative sample.`
-    : `NOTE: The FULL dataset is provided below. You have access to every single row for accurate analysis.`;
+   const dataContext = dataSummary.isPartialData
+      ? `NOTE: Due to size limits, only the first ${dataSummary.rowCount} rows are provided below. Analyze these as a representative sample.`
+      : `NOTE: The FULL dataset is provided below. You have access to every single row for accurate analysis.`;
 
-  // Define specific instructions for each style with mandatory structure
-  const styleInstructions = {
-    executive: `
+   // Define specific instructions for each style with mandatory structure
+   const styleInstructions = {
+      executive: `
 -----------------------------------------
 📌 TARGET STYLE: The Strategic Narrative (Executive)
 -----------------------------------------
@@ -46,7 +46,7 @@ export function promptTemplate({ story, audience, fileName, dataSummary, reportS
 - Each finding must cite specific data points
 - End every major section with a clear takeaway
 `,
-    story: `
+      story: `
 -----------------------------------------
 📌 TARGET STYLE: The Feature Story (Narrative)
 -----------------------------------------
@@ -72,7 +72,7 @@ export function promptTemplate({ story, audience, fileName, dataSummary, reportS
 - Make every number tell part of the larger narrative
 - Build tension and resolve it with insights
 `,
-    detailed: `
+      detailed: `
 -----------------------------------------
 📌 TARGET STYLE: The Deep Dive Analysis (Analytical)
 -----------------------------------------
@@ -143,12 +143,12 @@ export function promptTemplate({ story, audience, fileName, dataSummary, reportS
 - Every claim backed by specific data
 - Professional, thorough, publication-ready quality
 `
-  };
+   };
 
-  // Select the instruction block based on the user's choice
-  const selectedInstruction = styleInstructions[reportStyle];
+   // Select the instruction block based on the user's choice
+   const selectedInstruction = styleInstructions[reportStyle];
 
-  const prompt = `
+   const prompt = `
 You are an elite **Data Analyst and Report Writer** tasked with creating a comprehensive, publication-ready report.
 
 ============================================================
@@ -179,6 +179,7 @@ Create a **SINGLE, COMPLETE REPORT** that follows the exact structure specified 
 - ❌ Charts without clear purpose or insight
 - ❌ Skipping required sections from the structure
 - ❌ Inventing or estimating numbers not in the dataset
+- ❌ Dont use En dash and Em dash in the report
 
 ============================================================
 📊 CHART EXCELLENCE STANDARDS
@@ -269,6 +270,9 @@ data: [
 - Use **bold** for emphasis on key terms or findings
 - Use *italics* sparingly for dramatic effect
 - Use \`\`\`chart:type for visualizations
+- Use standard Markdown lists:
+  - Unordered: \`- Item\` or \`* Item\`
+  - Ordered: \`1. Item\`
 
 **Chart Block Template:**
 \`\`\`chart:bar
@@ -313,5 +317,5 @@ data: [
 🚀 BEGIN REPORT GENERATION NOW
 ============================================================`;
 
-  return prompt;
+   return prompt;
 }

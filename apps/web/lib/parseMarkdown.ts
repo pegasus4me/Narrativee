@@ -1,5 +1,6 @@
 import { $createHeadingNode, $createQuoteNode } from "@lexical/rich-text";
 import { $createParagraphNode, $createTextNode, TextNode } from "lexical";
+import { $createListNode, $createListItemNode } from "@lexical/list";
 import { $createChartNode } from "../app/workspace/components/editor/nodes/ChartNode";
 
 export function parseMarkdown(markdown: string) {
@@ -87,19 +88,67 @@ export function parseMarkdown(markdown: string) {
       nodes.push(quoteNode);
       i++;
     }
+    // Unordered List (bullet points)
+    else if (line.trim().startsWith("- ") || line.trim().startsWith("* ")) {
+      const listNode = $createListNode("bullet");
+
+      while (i < lines.length) {
+        const currentLine = lines[i] as string;
+        const trimmed = currentLine.trim();
+
+        if (!trimmed.startsWith("- ") && !trimmed.startsWith("* ")) {
+          break;
+        }
+
+        const listItem = $createListItemNode();
+        const textContent = trimmed.substring(2);
+        const textNodes = parseInlineFormatting(textContent);
+        textNodes.forEach(node => listItem.append(node));
+        listNode.append(listItem);
+        i++;
+      }
+      nodes.push(listNode);
+    }
+    // Ordered List (numbered)
+    else if (/^\d+\.\s/.test(line.trim())) {
+      const listNode = $createListNode("number");
+
+      while (i < lines.length) {
+        const currentLine = lines[i] as string;
+        const trimmed = currentLine.trim();
+
+        if (!/^\d+\.\s/.test(trimmed)) {
+          break;
+        }
+
+        const listItem = $createListItemNode();
+        // Remove "1. " or "10. " etc
+        const textContent = trimmed.replace(/^\d+\.\s/, "");
+        const textNodes = parseInlineFormatting(textContent);
+        textNodes.forEach(node => listItem.append(node));
+        listNode.append(listItem);
+        i++;
+      }
+      nodes.push(listNode);
+    }
     // Regular paragraph
     else {
       const paragraphNode = $createParagraphNode();
       let paragraphText = line;
 
-      // Collect multi-line paragraphs (until empty line or heading)
+      // Collect multi-line paragraphs (until empty line, heading, blockquote, or list)
       while (i + 1 < lines.length) {
         const nextLine = lines[i + 1];
-        if (!nextLine) break; // Changed from return to break
+        if (!nextLine) break;
+        const nextTrimmed = nextLine.trim();
+
         if (
-          !nextLine.trim() ||
-          nextLine.startsWith("#") ||
-          nextLine.startsWith(">")
+          !nextTrimmed ||
+          nextTrimmed.startsWith("#") ||
+          nextTrimmed.startsWith(">") ||
+          nextTrimmed.startsWith("- ") ||
+          nextTrimmed.startsWith("* ") ||
+          /^\d+\.\s/.test(nextTrimmed)
         ) {
           break;
         }
@@ -118,12 +167,13 @@ export function parseMarkdown(markdown: string) {
   return nodes;
 }
 
-// Helper function to parse inline formatting (bold, italic) in text
+// Helper function to parse inline formatting (bold, italic, code) in text
 function parseInlineFormatting(text: string): TextNode[] {
   const nodes: TextNode[] = [];
 
-  // Regex to match **bold** and *italic* (avoiding overlap)
-  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*)|([^*]+)/g;
+  // Regex to match **bold**, *italic*, and `code`
+  // Group 2: bold, Group 3: italic, Group 4: code, Group 5: regular text
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`)|([^*`]+)/g;
   let match;
 
   while ((match = regex.exec(text)) !== null) {
@@ -138,8 +188,13 @@ function parseInlineFormatting(text: string): TextNode[] {
       textNode.toggleFormat("italic");
       nodes.push(textNode);
     } else if (match[4]) {
+      // `code`
+      const textNode = $createTextNode(match[4]);
+      textNode.toggleFormat("code");
+      nodes.push(textNode);
+    } else if (match[5]) {
       // Regular text
-      nodes.push($createTextNode(match[4]));
+      nodes.push($createTextNode(match[5]));
     }
   }
 

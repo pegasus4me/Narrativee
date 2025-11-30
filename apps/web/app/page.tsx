@@ -82,7 +82,7 @@ export default function Home() {
             </span> reports
           </h1>
           <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-noto)' }}>
-            Transform your Data into clear, interactive and shareable presentations. Describe your goal, upload your data, and get a polished reports with charts, insights, and a storyline in minutes.
+            Transform your data into interactive reports. Upload your files, describe your goal, and get polished charts, insights, and a compelling storyline—in minutes.
           </p>
         </div>
         <div className="flex-1 flex items-center justify-center p-6 flex-col">
