@@ -18,7 +18,7 @@ export default function Home() {
 
   // Auto-migrate localStorage reports when user logs in
   const { isMigrating, migratedCount } = useMigrateReports();
-  console.log(session)
+  console.log('dddd',session)
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % words.length);

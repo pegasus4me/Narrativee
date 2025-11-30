@@ -39,9 +39,9 @@ export const auth = betterAuth({
   ],
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
-    // REMOVE OR DISABLE crossSubDomainCookies for now
     crossSubDomainCookies: {
-      enabled: false,  // ← Changed to false
+      enabled: true,
+      domain: ".narrativee.com"
     },
   },
   user: {
