@@ -46,7 +46,6 @@ export default function ProfileMenu() {
         return null;
     }
 
-    console.log(session.data.user.plan);
     return (
         <div className="relative" ref={menuRef}>
             <div className="flex items-center gap-3">
