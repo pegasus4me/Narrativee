@@ -12,3 +12,4 @@ export const stripe = new Stripe(secret, {
     apiVersion: '2025-01-27.acacia' as any, // Cast to any to avoid strict version mismatch if types are outdated
     typescript: true,
 });
+
