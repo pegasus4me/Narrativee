@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useSideBarStore } from "../state/logo-transition/SideBar.store";
 import { authClient } from "../../lib/auth-client";
 import { reportApi } from "../../lib/apis";
-import { usePathname, useRouter} from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 
 interface Template {
@@ -56,6 +56,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const nameTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [editingReportId, setEditingReportId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [credits, setCredits] = useState<number | null>(null);
 
   // Check if reportId is a valid UUID
   const isValidUUID = (id: string) => {
@@ -108,7 +109,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
     }
   };
 
-
+  useEffect(() => {
+    if (session?.user) {
+      reportApi.getUserCredits().then(setCredits).catch(console.error);
+    }
+  }, [session?.user]);
 
   useEffect(() => {
     // Load report data from localStorage or backend
@@ -251,7 +256,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
            2. flex-col: Stacks children vertically
         */}
         <div className="p-6 h-full overflow-y-auto flex flex-col">
-          
+
           {/* --- Top Section (Report Status) --- */}
           <div className="mb-6">
             <div className="mb-5">
@@ -306,61 +311,60 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               New Report
             </Link>
             <section>
-                <h4 className="px-4 text-sm font-medium text-gray-900 mb-2">Workspace</h4>
-                <div className="">
-                    {/* Loop through created reports */}
-                    {savedReports.length > 0 ? (
-                      savedReports.map((report) => (
-                        <div
-                          key={report.id}
-                          className={`px-4 py-2 text-left text-sm rounded-md transition-colors ${
-                            reportId === report.id
-                              ? 'text-natural-500 font-medium bg-neutral-100'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          {editingReportId === report.id ? (
-                            <div className="flex items-center gap-2">
-                              <File className="size-4" strokeWidth={1.5}/>
-                              <input
-                                type="text"
-                                value={editingName}
-                                onChange={(e) => setEditingName(e.target.value)}
-                                onBlur={() => handleWorkspaceNameUpdate(report.id, editingName)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    handleWorkspaceNameUpdate(report.id, editingName);
-                                  } else if (e.key === 'Escape') {
-                                    setEditingReportId(null);
-                                  }
-                                }}
-                                autoFocus
-                                className="flex-1 px-1 py-0.5 border border-amber-400 rounded focus:outline-none"
-                              />
-                            </div>
-                          ) : (
-                            <Link href={`/workspace/${report.id}`} className="flex items-center gap-2">
-                              <File className="size-4" strokeWidth={1.5}/>
-                              <span
-                                className="truncate flex-1"
-                                onDoubleClick={(e) => {
-                                  e.preventDefault();
-                                  if (session?.user && isValidUUID(report.id)) {
-                                    setEditingReportId(report.id);
-                                    setEditingName(report.name);
-                                  }
-                                }}
-                              >
-                                {report.name}
-                              </span>
-                            </Link>
-                          )}
+              <h4 className="px-4 text-sm font-medium text-gray-900 mb-2">Workspace</h4>
+              <div className="">
+                {/* Loop through created reports */}
+                {savedReports.length > 0 ? (
+                  savedReports.map((report) => (
+                    <div
+                      key={report.id}
+                      className={`px-4 py-2 text-left text-sm rounded-md transition-colors ${reportId === report.id
+                          ? 'text-natural-500 font-medium bg-neutral-100'
+                          : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                    >
+                      {editingReportId === report.id ? (
+                        <div className="flex items-center gap-2">
+                          <File className="size-4" strokeWidth={1.5} />
+                          <input
+                            type="text"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            onBlur={() => handleWorkspaceNameUpdate(report.id, editingName)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleWorkspaceNameUpdate(report.id, editingName);
+                              } else if (e.key === 'Escape') {
+                                setEditingReportId(null);
+                              }
+                            }}
+                            autoFocus
+                            className="flex-1 px-1 py-0.5 border border-amber-400 rounded focus:outline-none"
+                          />
                         </div>
-                      ))
-                    ) : (
-                      <p className="px-4 py-2 text-xs text-gray-500 italic">No reports yet</p>
-                    )}
-                </div>
+                      ) : (
+                        <Link href={`/workspace/${report.id}`} className="flex items-center gap-2">
+                          <File className="size-4" strokeWidth={1.5} />
+                          <span
+                            className="truncate flex-1"
+                            onDoubleClick={(e) => {
+                              e.preventDefault();
+                              if (session?.user && isValidUUID(report.id)) {
+                                setEditingReportId(report.id);
+                                setEditingName(report.name);
+                              }
+                            }}
+                          >
+                            {report.name}
+                          </span>
+                        </Link>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="px-4 py-2 text-xs text-gray-500 italic">No reports yet</p>
+                )}
+              </div>
             </section>
           </div>
 
@@ -370,7 +374,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
           */}
           <div className="mt-auto pt-4 border-t border-gray-200 space-y-2">
             <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2"
-            onClick={()=> router.push("/workspace")}
+              onClick={() => router.push("/workspace")}
             >
               <Home4 size={20} />
               Wour workspace
@@ -394,7 +398,12 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{session.user.name}</p>
-                      <p className="text-xs text-gray-900" style={{ fontFamily: 'var(--font-petrona)' }}>Free plan</p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-gray-900" style={{ fontFamily: 'var(--font-petrona)' }}>Free plan</p>
+                        {credits !== null && (
+                          <span className="text-xs text-amber-600 font-medium ml-2">{credits} credits</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -406,7 +415,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
             </div>
           </div>
         </div>
-    </aside>
+      </aside>
     </>
   );
 }

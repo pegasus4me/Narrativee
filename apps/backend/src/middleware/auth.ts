@@ -11,8 +11,9 @@ export interface AuthRequest extends Request {
     email: string;
     name: string;
     image?: string;
-    plan: 'free' | 'premium';
-    tokens?: number; // For future token tracking
+    plan: 'free' | 'premium' | 'pro';
+    tokens?: number;
+    subscriptionStatus?: string;
   };
   session?: any;
 }
@@ -58,8 +59,9 @@ export async function verifyAuth(
       email: session.user.email,
       name: session.user.name,
       image: session.user.image as string,
-      plan: (session.user as any).plan || 'free', // Default to free plan
-      tokens: (session.user as any).tokens || 0, // For future token tracking
+      plan: (session.user as any).plan || 'free',
+      tokens: (session.user as any).tokens || 0,
+      subscriptionStatus: (session.user as any).subscriptionStatus,
     };
     req.session = session.session;
 
@@ -100,6 +102,7 @@ export async function optionalAuth(
           image: session.user.image as string,
           plan: (session.user as any).plan || 'free',
           tokens: (session.user as any).tokens || 0,
+          subscriptionStatus: (session.user as any).subscriptionStatus,
         };
         req.session = session.session;
       }

@@ -7,6 +7,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import reportRouter from './routes/report';
 import chatRouter from './routes/chat';
+import pricingRouter from './routes/pricing';
+
 import userRouter from './routes/user';
 import cookieParser from 'cookie-parser';
 import { auth } from "./auth/auth"
@@ -24,6 +26,7 @@ const PORT = process.env.PORT || 3002;
 app.use(cors({
   origin: [
     "http://localhost:3000",
+    "http://localhost:3001",
     "https://narrativee.com",
 
   ],
@@ -34,7 +37,11 @@ app.use(cors({
 
 app.use(cookieParser());
 // Better Auth handler (Express 5 syntax)
+// Better Auth handler (Express 5 syntax)
 app.all('/api/auth/*splat', toNodeHandler(auth));
+
+// Pricing router (must be before express.json() for webhook raw body)
+app.use('/api/pricing', pricingRouter);
 
 app.use(express.json());
 

@@ -3,10 +3,12 @@ import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { reportApi } from "../../lib/apis";
 
 export default function ProfileMenu() {
     const session = authClient.useSession();
     const [isOpen, setIsOpen] = useState(false);
+    const [credits, setCredits] = useState<number | null>(null);
     const router = useRouter();
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -23,6 +25,13 @@ export default function ProfileMenu() {
         };
     }, []);
 
+    // Fetch credits
+    useEffect(() => {
+        if (session.data?.user) {
+            reportApi.getUserCredits().then(setCredits).catch(console.error);
+        }
+    }, [session.data?.user]);
+
     const handleLogout = async () => {
         await authClient.signOut({
             fetchOptions: {
@@ -37,10 +46,18 @@ export default function ProfileMenu() {
         return null;
     }
 
+    console.log(session.data.user.plan);
     return (
         <div className="relative" ref={menuRef}>
             <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600" style={{ fontFamily: 'var(--font-petrona)' }}>Free plan</span>
+                <div className="flex flex-col items-end mr-2">
+                    <span className="text-sm text-gray-600" style={{ fontFamily: 'var(--font-petrona)' }}>
+                        {(session.data.user as any).plan ? (session.data.user as any).plan.charAt(0).toUpperCase() + (session.data.user as any).plan.slice(1) : 'Free'} plan
+                    </span>
+                    {credits !== null && (
+                        <span className="text-xs text-amber-600 font-medium">{credits} credits</span>
+                    )}
+                </div>
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer border border-transparent hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200"

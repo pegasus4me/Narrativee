@@ -11,9 +11,9 @@ interface PricingButtonProps {
 
 export default function PricingButton({ color, onClick, children }: PricingButtonProps) {
     const colorStyles = {
-        gray: "bg-gray-100 text-gray-900 hover:bg-gray-200",
-        amber: "bg-amber-400 text-black hover:bg-amber-500",
-        black: "bg-gray-900 text-white hover:bg-gray-800",
+        gray: "bg-gray-100 p-2 text-gray-900 hover:bg-gray-200 rounded-md",
+        amber: "bg-amber-400 text-black p-2 hover:bg-amber-500 rounded-md",
+        black: "bg-gray-900 p-2 text-white hover:bg-gray-800 rounded-md",
     };
 
     return (

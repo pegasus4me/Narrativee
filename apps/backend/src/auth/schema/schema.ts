@@ -11,6 +11,10 @@ export const user = pgTable("user", {
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   plan: text("plan").notNull().default("free"),
   tokens: integer("tokens").default(50),
+  stripeCustomerId: text("stripeCustomerId"),
+  stripeSubscriptionId: text("stripeSubscriptionId"),
+  subscriptionStatus: text("subscriptionStatus"),
+  currentPeriodEnd: timestamp("currentPeriodEnd"),
 });
 
 export const session = pgTable("session", {

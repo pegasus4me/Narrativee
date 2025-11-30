@@ -13,7 +13,7 @@ const pool = new Pool({
   allowExitOnIdle: true,
 });
 
-const db = drizzle(pool, { schema: schema });
+export const db = drizzle(pool, { schema: schema });
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
@@ -43,5 +43,25 @@ export const auth = betterAuth({
     crossSubDomainCookies: {
       enabled: false,  // ← Changed to false
     },
+  },
+  user: {
+    additionalFields: {
+      plan: {
+        type: "string",
+        defaultValue: "free"
+      },
+      tokens: {
+        type: "number",
+        defaultValue: 0
+      },
+      subscriptionStatus: {
+        type: "string",
+        required: false
+      },
+      stripeCustomerId: {
+        type: "string",
+        required: false
+      }
+    }
   }
 });

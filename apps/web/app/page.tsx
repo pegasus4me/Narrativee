@@ -8,6 +8,7 @@ import { authClient } from "../lib/auth-client";
 import { useMigrateReports } from "./hooks/useMigrateReports";
 import template from "../public/example.png"
 import ProfileMenu from "./components/ProfileMenu";
+import Link from "next/link";
 export default function Home() {
   const words = ["csv", "sheet", "excel"];
   const words2 = ["narrative", "interactive"];
@@ -38,9 +39,14 @@ export default function Home() {
     <div className=" to-gray-50">
       {/* Header */}
       <header className="p-4 flex justify-between max-w-[90%] mx-auto">
-        <div>
+        <div className="flex gap-4 items-center">
           <Image src={logo} alt="logo" width={170} />
+          <div className="flex gap-4 items-center">
+            <Link href="/pricing" className="text-gray-700 hover:text-gray-900">Pricing</Link>
+            <Link href="/resources" className="text-gray-700 hover:text-gray-900">Resources</Link>
+          </div>
         </div>
+        
         <div className="flex gap-4 items-center">
           {session?.user ? (
             <ProfileMenu />

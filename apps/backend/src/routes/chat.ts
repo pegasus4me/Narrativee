@@ -5,6 +5,9 @@ import { parse as parseCSV } from "papaparse";
 import { toCSVString } from "../utils/tools";
 import { verifyAuth, AuthRequest } from "../middleware/auth";
 import { getChatConfig } from "../config/llm.config";
+import { db } from "../auth/auth";
+import { user } from "../auth/schema/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -39,6 +42,29 @@ router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
 
     // Get LLM config based on request type
     const llmConfig = getChatConfig(requestType === "question" ? "question" : "edit");
+    const tokenCost = llmConfig.tokenCost || 0;
+
+    // Check & Deduct Tokens
+    if (tokenCost > 0 && (req.user.tokens || 0) < tokenCost) {
+      return res.status(403).json({
+        success: false,
+        error: "Insufficient credits",
+        message: `You need ${tokenCost} credits to use this feature. You have ${req.user.tokens || 0} credits left.`
+      });
+    }
+
+    // Deduct tokens if cost > 0
+    if (tokenCost > 0) {
+      try {
+        await db.update(user)
+          .set({ tokens: (req.user.tokens || 0) - tokenCost })
+          .where(eq(user.id, req.user.id));
+        console.log(`✅ Deducted ${tokenCost} tokens for user ${req.user.id}. Remaining: ${(req.user.tokens || 0) - tokenCost}`);
+      } catch (err) {
+        console.error('Failed to deduct tokens:', err);
+        // Fail safe: proceed but log error
+      }
+    }
 
     console.log(`🤖 Using ${llmConfig.model} for ${requestType}`);
 
@@ -128,12 +154,12 @@ router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
         content: llmConfig.provider === 'xai'
           ? systemPrompt // Grok uses simple string
           : [
-              {
-                type: "text",
-                text: systemPrompt,
-                cache_control: { type: "ephemeral" }, // Claude caching
-              },
-            ],
+            {
+              type: "text",
+              text: systemPrompt,
+              cache_control: { type: "ephemeral" }, // Claude caching
+            },
+          ],
       },
       {
         role: "user",

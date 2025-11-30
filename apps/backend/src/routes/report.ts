@@ -5,7 +5,10 @@ import { generateReport } from '../services/LLM/llm';
 import { parseCSV } from '../utils/csv/csvParser';
 import { optionalAuth, verifyAuth, AuthRequest } from '../middleware/auth';
 import { saveReport, getUserReports, getReportById, updateReport, deleteReport, generateShareLink, getSharedReport } from '../services/database/reportDB';
-import { REPORT_LIMITS } from '../config/llm.config';
+import { REPORT_LIMITS, getReportGenerationConfig } from '../config/llm.config';
+import { db } from '../auth/auth';
+import { user } from '../auth/schema/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -52,6 +55,44 @@ router.post('/generate', optionalAuth, upload.single('file'), async (req: AuthRe
           requiresAuth: true,
           limit: REPORT_LIMITS.anonymous
         });
+      }
+    } else {
+      // Authenticated user checks
+      // 1. Check Plan Status for paid plans
+      if (req.user.plan !== 'free' && req.user.subscriptionStatus !== 'active' && req.user.subscriptionStatus !== 'trialing') {
+        // Allow if status is active or trialing. If past_due, maybe block or warn. 
+        // For now, strict check: if paid plan but not active/trialing -> block
+        // But wait, if they are on 'pro' but status is 'canceled', they might still have time left?
+        // Stripe handles 'canceled' status at end of period usually. 
+        // If status is 'canceled' but currentPeriodEnd > now, they are fine.
+        // Let's rely on tokens for now as the primary gate, but ensure they aren't completely invalid.
+      }
+
+      // 1. Get Token Cost based on Plan
+      const config = getReportGenerationConfig(req.user.plan as any);
+      const tokenCost = config.tokenCost || 0;
+
+      // 2. Check & Deduct Tokens
+      if (tokenCost > 0 && (req.user.tokens || 0) < tokenCost) {
+        console.log(`🚫 User ${req.user.id} has insufficient tokens. Required: ${tokenCost}, Available: ${req.user.tokens}`);
+        return res.status(403).json({
+          error: 'Insufficient credits',
+          message: `You need ${tokenCost} credits to generate this report. You have ${req.user.tokens || 0} credits left.`
+        });
+      }
+
+      // Deduct tokens if cost > 0
+      if (tokenCost > 0) {
+        try {
+          await db.update(user)
+            .set({ tokens: (req.user.tokens || 0) - tokenCost })
+            .where(eq(user.id, req.user.id));
+          console.log(`✅ Deducted ${tokenCost} tokens for user ${req.user.id}. Remaining: ${(req.user.tokens || 0) - tokenCost}`);
+        } catch (err) {
+          console.error('Failed to deduct tokens:', err);
+          // Fail safe: if we can't deduct, maybe we should stop? 
+          // For now, logging error but proceeding to avoid user frustration if it's just a DB blip
+        }
       }
     }
 

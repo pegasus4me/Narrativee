@@ -3,7 +3,7 @@
  * Centralized configuration for different LLM models and their usage
  */
 
-export type UserPlan = 'free' | 'premium' | null; // null = no auth
+export type UserPlan = 'free' | 'premium' | 'pro' | null; // null = no auth
 
 export interface LLMConfig {
   provider: 'openrouter' | 'xai';
@@ -49,6 +49,15 @@ export const LLM_CONFIGS = {
       apiKeyEnv: 'OPEN_ROUTER_KEY',
       tokenCost: 0, // Premium users don't consume tokens
     } as LLMConfig,
+    pro: {
+      provider: 'openrouter',
+      model: 'anthropic/claude-sonnet-4.5', // Better model for Pro
+      baseURL: 'https://openrouter.ai/api/v1',
+      maxTokens: 32000,
+      temperature: 0.7,
+      apiKeyEnv: 'OPEN_ROUTER_KEY',
+      tokenCost: 0,
+    } as LLMConfig,
   },
 
   // Chat models
@@ -88,7 +97,8 @@ export const LLM_CONFIGS = {
  */
 export const DEFAULT_USER_TOKENS = {
   free: 50,
-  premium: 1000, // Premium users get credits (not unlimited), configurable later
+  premium: 130, // Premium users get credits (not unlimited), configurable later
+  pro: 300,
 };
 
 /**
@@ -96,8 +106,9 @@ export const DEFAULT_USER_TOKENS = {
  */
 export const REPORT_LIMITS = {
   anonymous: 1, // Anonymous users can only create 1 report before login
-  free: 50, // Free users limited by tokens (50 reports max)
+  free: 5, // Free users limited by tokens (50 reports max)
   premium: 1000, // Premium users limited by credits (1000 reports max, configurable)
+  pro: 3000,
 };
 
 /**
@@ -106,6 +117,9 @@ export const REPORT_LIMITS = {
 export function getReportGenerationConfig(userPlan: UserPlan): LLMConfig {
   if (!userPlan) {
     return LLM_CONFIGS.reportGeneration.noAuth;
+  }
+  if (userPlan === 'pro') {
+    return LLM_CONFIGS.reportGeneration.pro;
   }
   if (userPlan === 'premium') {
     return LLM_CONFIGS.reportGeneration.premium;
