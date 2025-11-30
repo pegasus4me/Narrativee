@@ -12,6 +12,7 @@ import { eq } from "drizzle-orm";
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+
 // Chat endpoint - requires authentication
 router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
   try {
