@@ -54,7 +54,8 @@ export default function ProfileMenu() {
                         {(session.data.user as any).plan ? (session.data.user as any).plan.charAt(0).toUpperCase() + (session.data.user as any).plan.slice(1) : 'Free'} plan
                     </span>
                     {credits !== null && (
-                        <span className="text-xs text-amber-600 font-medium">{credits} credits</span>
+                        // @ts-ignore
+                        <span className="text-xs text-amber-600 font-medium">{session.data.user.tokens} credits</span>
                     )}
                 </div>
                 <button

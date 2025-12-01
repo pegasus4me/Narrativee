@@ -319,8 +319,8 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                     <div
                       key={report.id}
                       className={`px-4 py-2 text-left text-sm rounded-md transition-colors ${reportId === report.id
-                          ? 'text-natural-500 font-medium bg-neutral-100'
-                          : 'text-gray-700 hover:bg-gray-100'
+                        ? 'text-natural-500 font-medium bg-neutral-100'
+                        : 'text-gray-700 hover:bg-gray-100'
                         }`}
                     >
                       {editingReportId === report.id ? (
@@ -399,7 +399,9 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{session.user.name}</p>
                       <div className="flex justify-between items-center">
-                        <p className="text-xs text-gray-900" style={{ fontFamily: 'var(--font-petrona)' }}>Free plan</p>
+                        <p className="text-xs text-gray-900" style={{ fontFamily: 'var(--font-petrona)' }}>
+                          {(session.user as any).plan ? (session.user as any).plan.charAt(0).toUpperCase() + (session.user as any).plan.slice(1) : 'Free'} plan
+                        </p>
                         {credits !== null && (
                           <span className="text-xs text-amber-600 font-medium ml-2">{credits} credits</span>
                         )}

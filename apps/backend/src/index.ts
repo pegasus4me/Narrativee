@@ -28,6 +28,7 @@ app.use(cors({
     "http://localhost:3000",
     "http://localhost:3001",
     "https://narrativee.com",
+    "https://www.narrativee.com",
 
   ],
   credentials: true,
