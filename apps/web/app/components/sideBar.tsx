@@ -10,6 +10,7 @@ import { useSideBarStore } from "../state/logo-transition/SideBar.store";
 import { authClient } from "../../lib/auth-client";
 import { reportApi } from "../../lib/apis";
 import { usePathname, useRouter } from "next/navigation";
+import PrimaryButton from "./PrimaryButton";
 
 
 interface Template {
@@ -413,9 +414,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                   </div>
                 </div>
               ) : (
-                <button className="w-full bg-amber-400 border px-5 py-2 rounded-md font-medium text-black text-sm hover:bg-amber-500 transition-colors text-center">
+                <PrimaryButton className="w-full font-semibold"
+                  onClick={() => router.push("/auth/signin")}
+                >
                   Login to save your work
-                </button>
+                </PrimaryButton>
               )}
             </div>
           </div>

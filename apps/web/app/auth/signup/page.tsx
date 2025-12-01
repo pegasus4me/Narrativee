@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import { authClient } from '../../../lib/auth-client';
-import { ViewOff, View, Sparkles, Loader} from "clicons-react";
+import { ViewOff, View, Sparkles, Loader } from "clicons-react";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Logo from "../../../public/sidelogo.png";
+import PrimaryButton from "../../components/PrimaryButton";
 
 export default function SignUp() {
   const router = useRouter();
@@ -68,7 +69,7 @@ export default function SignUp() {
         <div className="flex flex-col items-center mb-8">
           {/* Logo */}
           <div className="">
-            <Image src={Logo} alt='narrative' width={100}/>
+            <Image src={Logo} alt='narrative' width={100} />
           </div>
           <h1 className="text-2xl font-medium tracking-tight text-black mb-2" style={{ fontFamily: 'var(--font-petrona)' }}>
             Sign up
@@ -175,34 +176,34 @@ export default function SignUp() {
               </div>
             </div>
 
-            <button
+            <PrimaryButton
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-amber-400 text-black border font-medium rounded-lg transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full h-12 flex items-center justify-center"
             >
-               {isLoading ? (
+              {isLoading ? (
                 <Loader className="w-5 h-5 animate-spin" />
               ) : (
                 "Create Account"
               )}
-            </button>
+            </PrimaryButton>
           </form>
 
         </div>
 
         {/* Footer */}
         <div className="text-center mt-8">
-           <p className="text-[#6B7280] text-sm">
-             Already have an account?{" "}
-             <a href="/auth/signin" className="text-amber-500 font-medium hover:underline transition-colors">
-               Sign in
-             </a>
-           </p>
+          <p className="text-[#6B7280] text-sm">
+            Already have an account?{" "}
+            <a href="/auth/signin" className="text-amber-500 font-medium hover:underline transition-colors">
+              Sign in
+            </a>
+          </p>
         </div>
       </div>
 
       {/* Footer Branding */}
-      <div className="absolute bottom-6 text-[#4B5563] text-xs"  style={{ fontFamily: 'var(--font-petrona)' }}>
+      <div className="absolute bottom-6 text-[#4B5563] text-xs" style={{ fontFamily: 'var(--font-petrona)' }}>
         &copy; 2025 Narrativee.
       </div>
     </div>

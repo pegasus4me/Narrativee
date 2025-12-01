@@ -9,7 +9,10 @@ import { useMigrateReports } from "./hooks/useMigrateReports";
 import template from "../public/example.png"
 import ProfileMenu from "./components/ProfileMenu";
 import Link from "next/link";
+import PrimaryButton from "./components/PrimaryButton";
+import { useRouter } from "next/navigation";
 export default function Home() {
+  const router = useRouter();
   const words = ["csv", "sheet", "excel"];
   const words2 = ["narrative", "interactive"];
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -47,34 +50,43 @@ export default function Home() {
             {/* You could add a hamburger menu here later */}
           </div>
 
+        </div>
+
+        <div className="flex gap-4 items-center w-full md:w-auto justify-center md:justify-end font-medium">
           <div className="hidden md:flex gap-4 items-center ml-4">
             <Link href="/pricing" className="text-gray-700 hover:text-gray-900">Pricing</Link>
-            <Link href="/resources" className="text-gray-700 hover:text-gray-900">Resources</Link>
+          </div>
+          <div className="flex gap-4 items-center w-full md:w-auto justify-center md:justify-end">
+            {session?.user ? (
+              <ProfileMenu />
+            ) : (
+              <>
+                <a href="/auth/signin" className="text-gray-700 hover:text-gray-900 text-sm md:text-base">Login</a>
+                <PrimaryButton
+                  onClick={() => {
+                    router.push('/auth/signup');
+                  }}
+                >
+                  Start for free
+                </PrimaryButton>
+              </>
+            )}
           </div>
         </div>
 
-        <div className="flex gap-4 items-center w-full md:w-auto justify-center md:justify-end">
-          {session?.user ? (
-            <ProfileMenu />
-          ) : (
-            <>
-              <a href="/auth/signin" className="text-gray-700 hover:text-gray-900 text-sm md:text-base">Login</a>
-              <Button className="bg-amber-400 border px-4 py-2 md:px-5 md:py-2 rounded-md font-medium text-black hover:bg-amber-500 text-sm md:text-base whitespace-nowrap">
-                Start for free
-              </Button>
-            </>
-          )}
-        </div>
       </header>
 
       {/* Hero Section */}
       <main className="p-4 md:p-5 mt-5 max-w-[95%] md:max-w-[90%] mx-auto">
         <div className="text-center mb-8 md:mb-12 p-2">
           <h1 className="text-4xl md:text-6xl lg:text-8xl font-bold text-gray-900 mb-4 max-w-5xl mx-auto leading-tight" style={{ fontFamily: 'var(--font-petrona)' }}>
-            Turn <span className="inline-block text-center px-2 rounded-md bg-amber-400 text-white transform -rotate-2 my-2 md:my-0" style={{ minWidth: 'auto', width: 'auto', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
+            Turn your <span className="inline-block text-center px-2 rounded-md bg-amber-400 text-white transform -rotate-2 my-2 md:my-0" style={{ minWidth: 'auto', width: 'auto', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
               <span
                 key={currentIndex}
-                className="inline-block px-2"
+                className="inline-block px-2 border border-amber-500/20
+        shadow-[inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-2px_0_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.05)]
+        active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]
+        active:translate-y-[1px]"
                 style={{
                   animation: 'fadeIn 0.5s ease-in-out'
                 }}
@@ -94,7 +106,7 @@ export default function Home() {
             </span> reports
           </h1>
           <p className="text-base md:text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto px-4" style={{ fontFamily: 'var(--font-noto)' }}>
-            Transform your data into interactive reports. Upload your files, describe your goal, and get polished charts, insights, and a compelling storyline—in minutes.
+            Transform your data into interactive and editable reports. Upload your files, describe your goal, and get polished charts, insights, and a compelling storyline—in minutes.
           </p>
         </div>
         <div className="flex-1 flex items-center justify-center p-2 md:p-6 flex-col">
@@ -116,11 +128,11 @@ export default function Home() {
           </p>
         </div>
         <div className="flex justify-center">
-          <div className="relative rounded-2xl overflow-hidden border border-gray-200 max-w-[95%] md:max-w-[90%] shadow-md">
+          <div className="relative rounded-2xl overflow-hidden border border-gray-200 max-w-[95%] md:max-w-[90%] shadow-xs [mask-image:linear-gradient(to_bottom,black_85%,transparent)]">
             <Image
               src={template}
               alt="Report template example"
-              width={1100}
+              width={1050}
               className="w-full h-auto"
               priority
             />

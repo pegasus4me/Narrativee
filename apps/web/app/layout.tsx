@@ -21,7 +21,7 @@ const noto = Noto_Sans({
 })
 const petrona = Petrona({
   variable: "--font-petrona",
-  weight: ["400"]
+  subsets: ["latin"],
 })
 export const metadata: Metadata = {
   title: "Narrativee",

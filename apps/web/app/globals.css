@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
-/* Fix font rendering for Safari */
 body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-weight: 400;
+  font-synthesis: none;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
 }
+
 
 :root {
   --font-story: 'Comic Sans MS', cursive;

@@ -24,6 +24,7 @@ import Image from "next/image";
 import { reportApi } from "../../../../lib/apis";
 import { authClient } from "../../../../lib/auth-client";
 import { ChatSidebar } from "../../../components/ChatSidebar";
+import PrimaryButton from "../../../components/PrimaryButton";
 
 interface Template {
     id: string;
@@ -361,13 +362,13 @@ export default function ReportEditor({ template, reportId, readOnly = false }: R
                                 <UserAdd size={17} />
                                 Collaborate
                             </button>
-                            <button
+                            <PrimaryButton
+                                className="px-4 py-2 flex items-center gap-2"
                                 onClick={handleShare}
-                                className="px-4 py-2 bg-amber-500 text-black hover:bg-amber-600 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
                             >
                                 <Share4 size={17} />
                                 Share page
-                            </button>
+                            </PrimaryButton>
                         </div>
                     </div>
                 </header>

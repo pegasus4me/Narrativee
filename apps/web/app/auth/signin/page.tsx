@@ -6,6 +6,7 @@ import { ViewOff, View, Sparkles, Loader } from "clicons-react";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Logo from "../../../public/sidelogo.png"
+import PrimaryButton from "../../components/PrimaryButton";
 export default function SignIn() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -177,17 +178,17 @@ export default function SignIn() {
               </div>
             )}
 
-            <button
+            <PrimaryButton
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-amber-400 text-black border font-medium rounded-lg transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full h-12 flex items-center justify-center"
             >
               {isLoading ? (
                 <Loader className="w-5 h-5 animate-spin" />
               ) : (
                 showPasswordField ? "Sign in" : "Continue"
               )}
-            </button>
+            </PrimaryButton>
           </form>
 
         </div>
