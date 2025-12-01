@@ -13,6 +13,11 @@ const pool = new Pool({
   allowExitOnIdle: true,
 });
 
+// Prevent crash on idle client error
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+});
+
 export const db = drizzle(pool, { schema: schema });
 
 export const auth = betterAuth({
@@ -39,10 +44,8 @@ export const auth = betterAuth({
   ],
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
-    crossSubDomainCookies: {
-      enabled: true,
-      domain: ".narrativee.com"
-    },
+    // REMOVE THIS IN LOCAL DEVELOPEMENT
+  
   },
   user: {
     additionalFields: {

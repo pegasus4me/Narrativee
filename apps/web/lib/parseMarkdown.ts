@@ -173,7 +173,10 @@ function parseInlineFormatting(text: string): TextNode[] {
 
   // Regex to match **bold**, *italic*, and `code`
   // Group 2: bold, Group 3: italic, Group 4: code, Group 5: regular text
-  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`)|([^*`]+)/g;
+  // Regex to match **bold**, *italic*, and `code`
+  // Group 2: bold, Group 3: italic, Group 4: code, Group 5: regular text
+  // Improved regex to handle mixed content and avoid skipping characters
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`)|([\s\S]+?)(?=(\*\*|\*|`|$))/g;
   let match;
 
   while ((match = regex.exec(text)) !== null) {

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles } from "clicons-react";
+import { Send, Sparkles, Upload } from "clicons-react";
 import { LexicalEditor } from "lexical";
 import { authClient } from "../../lib/auth-client";
 import { reportApi } from "../../lib/apis";
+import Markdown from "markdown-to-jsx";
 
 interface Message {
   role: "user" | "assistant";
@@ -37,6 +38,7 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [mode, setMode] = useState<"question" | "edit">("question");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sendTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -96,33 +98,7 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
 
     lastSendTimeRef.current = now;
 
-    // Detect if this is an edit request or question
-    const lowerInput = input.toLowerCase();
-
-
-    // change this to support other languages
-    // Question indicators (even if they contain edit keywords)
-    const isQuestion =
-      lowerInput.includes("?") ||
-      lowerInput.startsWith("what") ||
-      lowerInput.startsWith("how") ||
-      lowerInput.startsWith("why") ||
-      lowerInput.startsWith("when") ||
-      lowerInput.startsWith("can you") ||
-      lowerInput.startsWith("could you") ||
-      lowerInput.startsWith("should i");
-
-    // Edit indicators (imperative commands)
-    const hasEditKeyword =
-      lowerInput.includes("add a") ||
-      lowerInput.includes("insert a") ||
-      lowerInput.includes("write a") ||
-      lowerInput.includes("create a section") ||
-      lowerInput.includes("generate a");
-
-    const isEditRequest = !isQuestion && hasEditKeyword;
-
-    const requestType = uploadedFile ? "upload" : isEditRequest ? "edit" : "question";
+    const requestType = uploadedFile ? "upload" : mode;
 
     const userMessage: Message = {
       role: "user",
@@ -252,7 +228,20 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
                     }`}
                   style={{ fontFamily: 'var(--font-noto)' }}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <div className="text-sm whitespace-pre-wrap">
+                    <Markdown options={{
+                      overrides: {
+                        p: { component: 'p', props: { className: 'mb-2 last:mb-0' } },
+                        a: { component: 'a', props: { className: 'text-blue-600 hover:underline', target: '_blank' } },
+                        ul: { component: 'ul', props: { className: 'list-disc ml-4 mb-2' } },
+                        ol: { component: 'ol', props: { className: 'list-decimal ml-4 mb-2' } },
+                        li: { component: 'li', props: { className: 'mb-1' } },
+                        code: { component: 'code', props: { className: 'bg-black/10 rounded px-1 py-0.5 font-mono text-xs' } },
+                      }
+                    }}>
+                      {message.content}
+                    </Markdown>
+                  </div>
                   <span className="text-xs opacity-70 mt-1 block">
                     {message.timestamp.toLocaleTimeString([], {
                       hour: "2-digit",
@@ -265,18 +254,8 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
 
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.4s" }}
-                    ></div>
-                  </div>
+                <div className="rounded-lg p-3">
+                  <p className="text-sm text-gray-600">Thinking...</p>
                 </div>
               </div>
             )}
@@ -311,14 +290,37 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
                     </button>
                   </div>
                 )}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-xs px-3 bg-amber-400 rounded-sm border mb-2"
-                  aria-label="Upload CSV"
-                  disabled={isLoading}
-                >
-                  upload file
-                </button>
+                {/* --- Action Bar --- */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex bg-gray-100 p-1 rounded-lg">
+                    <button
+                      onClick={() => setMode("question")}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${mode === "question"
+                        ? "bg-white shadow-sm text-black"
+                        : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                      Question
+                    </button>
+                    <button
+                      onClick={() => setMode("edit")}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${mode === "edit"
+                        ? "bg-white shadow-sm text-black"
+                        : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                      Edit Report
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-gray-400 hover:text-amber-600 transition-colors p-1.5 hover:bg-amber-50 rounded-md"
+                    title="Upload CSV"
+                  >
+                    <Upload size={18} />
+                  </button>
+                </div>
                 <div className="relative">
                   <input
                     ref={fileInputRef}

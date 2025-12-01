@@ -29,6 +29,7 @@ This project is containerized using Docker and can be built and run using Docker
 
 
 2. **Environment Configuration:**
+
    - If your application requires environment variables, create a `.env` file in the project root and uncomment the `env_file` line in `docker-compose.yml`.
 
 ### Special Configuration
@@ -45,6 +46,12 @@ This project is containerized using Docker and can be built and run using Docker
     ```
   - Update this section based on your application's requirements.
 
----
+- **Cross Subdomain Cookies:** REMOVE IT IN LOCAL DEVELOPMENT
+    ```yaml
+    crossSubDomainCookies: {
+      enabled: true,
+      domain: ".narrativee.com"
+    },
+    ```
 
 *Update this section as your Docker setup evolves or if you add additional services or configuration.*

@@ -251,6 +251,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
           ${isSidebarOpen ? "w-80" : "w-0"}
           overflow-hidden
         `}
+        style={{ fontFamily: 'var(--font-noto)' }}
       >
         {/* 1. h-full: Makes the container take full height 
            2. flex-col: Stacks children vertically
@@ -385,10 +386,12 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               Settings
             </button>
 
+
             <div suppressHydrationWarning>
+              
               {session?.user ? (
                 <div className="pt-2">
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200">
+                  <div className="flex items-center gap-2 px-3 py-2 ">
                     <Image
                       src={session.user.image || '/default-avatar.png'}
                       alt={session.user.name || 'User'}
@@ -397,13 +400,13 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                       className="rounded-full"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{session.user.name}</p>
+                      <p className="text-sm font-medium text-gray-900 truncate" style={{ fontFamily: 'var(--font-petrona)' }}>{session.user.name}</p>
                       <div className="flex justify-between items-center">
-                        <p className="text-xs text-gray-900" style={{ fontFamily: 'var(--font-petrona)' }}>
+                        <p className="text-xs text-gray-900">
                           {(session.user as any).plan ? (session.user as any).plan.charAt(0).toUpperCase() + (session.user as any).plan.slice(1) : 'Free'} plan
                         </p>
                         {credits !== null && (
-                          <span className="text-xs text-amber-600 font-medium ml-2">{credits} credits</span>
+                          <span className="text-xs text-black font-medium ml-2" style={{ fontFamily: 'var(--font-noto)' }}>{credits} credits</span>
                         )}
                       </div>
                     </div>
