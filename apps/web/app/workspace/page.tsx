@@ -14,13 +14,6 @@ export default function WorkspaceMainPage() {
     const [isLoadingReports, setIsLoadingReports] = useState(true);
 
     useEffect(() => {
-        // Redirect unauthenticated users
-        if (!isPending && !session) {
-            router.push("/auth/signin");
-        }
-    }, [session, isPending, router]);
-
-    useEffect(() => {
         // Fetch reports when user is authenticated
         const fetchReports = async () => {
             if (session?.user) {
@@ -32,11 +25,15 @@ export default function WorkspaceMainPage() {
                 } finally {
                     setIsLoadingReports(false);
                 }
+            } else {
+                setIsLoadingReports(false);
             }
         };
 
-        fetchReports();
-    }, [session]);
+        if (!isPending) {
+            fetchReports();
+        }
+    }, [session, isPending]);
 
     // Handle Loading State
     if (isPending) {
@@ -50,10 +47,6 @@ export default function WorkspaceMainPage() {
         );
     }
 
-    // Return null if redirecting
-    if (!session) {
-        return null;
-    }
 
     return (
         <div className="h-full w-full overflow-y-auto bg-gray-50">
@@ -61,7 +54,7 @@ export default function WorkspaceMainPage() {
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: 'var(--font-petrona)' }}>
-                        <span className="font-light">Hey</span>, {session.user.name}
+                        <span className="font-light">Hey</span>, {session?.user?.name || 'Guest'}
                     </h1>
                     <p className="text-gray-600">Manage your reports and track their performance</p>
                 </div>

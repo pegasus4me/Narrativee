@@ -378,7 +378,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               onClick={() => router.push("/workspace")}
             >
               <Home4 size={20} />
-              Wour workspace
+              Your workspace
             </button>
 
             <Link href="/setting" className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
@@ -388,7 +388,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
 
 
             <div suppressHydrationWarning>
-              
+
               {session?.user ? (
                 <div className="pt-2">
                   <div className="flex items-center gap-2 px-3 py-2 ">

@@ -18,7 +18,7 @@ export default function Home() {
 
   // Auto-migrate localStorage reports when user logs in
   const { isMigrating, migratedCount } = useMigrateReports();
-  console.log('dddd',session)
+  console.log('dddd', session)
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % words.length);
@@ -36,24 +36,30 @@ export default function Home() {
   }, [words2.length]);
 
   return (
-    <div className=" to-gray-50">
+    <div className="to-gray-50 overflow-x-hidden">
       {/* Header */}
-      <header className="p-4 flex justify-between max-w-[90%] mx-auto">
-        <div className="flex gap-4 items-center">
-          <Image src={logo} alt="logo" width={170} />
-          <div className="flex gap-4 items-center">
+      <header className="p-4 flex flex-col md:flex-row justify-between items-center max-w-[90%] mx-auto gap-4 md:gap-0">
+        <div className="flex gap-4 items-center w-full md:w-auto justify-between md:justify-start">
+          <Image src={logo} alt="logo" width={140} className="md:w-[170px]" />
+
+          {/* Mobile Menu Button (Placeholder - for now just hiding links on mobile) */}
+          <div className="flex gap-4 items-center md:hidden">
+            {/* You could add a hamburger menu here later */}
+          </div>
+
+          <div className="hidden md:flex gap-4 items-center ml-4">
             <Link href="/pricing" className="text-gray-700 hover:text-gray-900">Pricing</Link>
             <Link href="/resources" className="text-gray-700 hover:text-gray-900">Resources</Link>
           </div>
         </div>
-        
-        <div className="flex gap-4 items-center">
+
+        <div className="flex gap-4 items-center w-full md:w-auto justify-center md:justify-end">
           {session?.user ? (
             <ProfileMenu />
           ) : (
             <>
-              <a href="/auth/signin" className="text-gray-700 hover:text-gray-900">Login</a>
-              <Button className="bg-amber-400 border px-5 py-2 rounded-md font-medium text-black hover:bg-amber-500">
+              <a href="/auth/signin" className="text-gray-700 hover:text-gray-900 text-sm md:text-base">Login</a>
+              <Button className="bg-amber-400 border px-4 py-2 md:px-5 md:py-2 rounded-md font-medium text-black hover:bg-amber-500 text-sm md:text-base whitespace-nowrap">
                 Start for free
               </Button>
             </>
@@ -62,20 +68,20 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <main className="p-5 mt-5 max-w-[90%] mx-auto ">
-        <div className="text-center mb-12  p-2 ">
-          <h1 className="text-8xl font-bold text-gray-900 mb-4 max-w-5xl mx-auto" style={{ fontFamily: 'var(--font-petrona)' }}>
-            Turn <span className="inline-block text-center px-2 rounded-md bg-amber-400 text-white" style={{ minWidth: '280px', transform: 'rotate(-2deg)' }}>
+      <main className="p-4 md:p-5 mt-5 max-w-[95%] md:max-w-[90%] mx-auto">
+        <div className="text-center mb-8 md:mb-12 p-2">
+          <h1 className="text-4xl md:text-6xl lg:text-8xl font-bold text-gray-900 mb-4 max-w-5xl mx-auto leading-tight" style={{ fontFamily: 'var(--font-petrona)' }}>
+            Turn <span className="inline-block text-center px-2 rounded-md bg-amber-400 text-white transform -rotate-2 my-2 md:my-0" style={{ minWidth: 'auto', width: 'auto', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
               <span
                 key={currentIndex}
-                className="inline-block"
+                className="inline-block px-2"
                 style={{
                   animation: 'fadeIn 0.5s ease-in-out'
                 }}
               >
                 {words[currentIndex]}
               </span>
-            </span> Data into <span style={{ fontFamily: 'var(--font-petrona)' }}>
+            </span> <br className="md:hidden" /> Data into <span style={{ fontFamily: 'var(--font-petrona)' }}>
               <span
                 key={currentIndex2}
                 className="inline-block"
@@ -87,28 +93,30 @@ export default function Home() {
               </span>
             </span> reports
           </h1>
-          <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-noto)' }}>
+          <p className="text-base md:text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto px-4" style={{ fontFamily: 'var(--font-noto)' }}>
             Transform your data into interactive reports. Upload your files, describe your goal, and get polished charts, insights, and a compelling storyline—in minutes.
           </p>
         </div>
-        <div className="flex-1 flex items-center justify-center p-6 flex-col">
-          <p className="font-normal text-slate-700 p-2 text-lg leading-relaxed" style={{ fontFamily: 'var(--font-petrona)' }}>Get started — no account needed</p>
-          <FileUploadPrompt />
+        <div className="flex-1 flex items-center justify-center p-2 md:p-6 flex-col">
+          <p className="font-normal text-slate-700 p-2 text-base md:text-lg leading-relaxed text-center" style={{ fontFamily: 'var(--font-petrona)' }}>Get started — no account needed</p>
+          <div className="w-full max-w-md md:max-w-xl">
+            <FileUploadPrompt />
+          </div>
         </div>
       </main>
 
       {/* Template Preview Section */}
-      <section className="mx-auto my-16 p-2">
+      <section className="mx-auto my-10 md:my-16 p-2">
         <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
             Create, Edit and Publish
           </h2>
-          <p className="text-lg text-gray-600  mx-auto">
+          <p className="text-base md:text-lg text-gray-600 mx-auto px-4">
             Interactive reports with charts, insights, and professional formatting
           </p>
         </div>
         <div className="flex justify-center">
-          <div className="relative rounded-2xl overflow-hidden border border-gray-200 max-w-[90%] shadow-md">
+          <div className="relative rounded-2xl overflow-hidden border border-gray-200 max-w-[95%] md:max-w-[90%] shadow-md">
             <Image
               src={template}
               alt="Report template example"
@@ -119,6 +127,32 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200 bg-white mt-auto">
+        <div className="max-w-[90%] mx-auto py-8 md:py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center">
+            <Image src={logo} alt="Narrativee Logo" width={120} />
+          </div>
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+            <a href="mailto:contact@narrativee.com" className="text-gray-600 hover:text-amber-600 transition-colors text-sm font-medium">
+              contact@narrativee.com
+            </a>
+            <a
+              href="https://x.com/narrativee_io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-black transition-colors"
+              aria-label="Follow us on X"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-current">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </footer>
+
 
     </div>
   );
