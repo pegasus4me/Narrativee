@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Fix font rendering for Safari */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+}
+
 :root {
   --font-story: 'Comic Sans MS', cursive;
 }
@@ -15,11 +22,13 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 .thick-shadow {
   box-shadow:
     0 1px 1px 0 rgba(0, 0, 0, 0.1),
@@ -44,6 +53,6 @@
 }
 
 .focus-visible\:outline-none:focus-visible {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
 }
