@@ -47,7 +47,7 @@ export const LLM_CONFIGS = {
       maxTokens: 16000,
       temperature: 0.7,
       apiKeyEnv: 'OPEN_ROUTER_KEY',
-      tokenCost: 4, // 4 tokens per report
+      tokenCost: 3, // 4 tokens per report
     } as LLMConfig,
     pro: {
       provider: 'openrouter',
@@ -56,7 +56,7 @@ export const LLM_CONFIGS = {
       maxTokens: 32000,
       temperature: 0.7,
       apiKeyEnv: 'OPEN_ROUTER_KEY',
-      tokenCost: 3, // 3 tokens per report
+      tokenCost: 2, // 3 tokens per report
     } as LLMConfig,
   },
 

@@ -52,10 +52,15 @@ export default function FileUploadPrompt() {
         "text/csv",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.oasis.opendocument.spreadsheet", // .ods
+        "application/vnd.ms-excel.sheet.binary.macroEnabled.12" // .xlsb
       ];
 
-      if (!validTypes.includes(selectedFile.type) && !selectedFile.name.endsWith('.csv')) {
-        alert("Please upload a CSV or Excel file");
+      const validExtensions = ['.csv', '.xlsx', '.xls', '.ods', '.xlsb'];
+      const fileExtension = selectedFile.name.toLowerCase().substring(selectedFile.name.lastIndexOf('.'));
+
+      if (!validTypes.includes(selectedFile.type) && !validExtensions.includes(fileExtension)) {
+        alert("Please upload a CSV, Excel, or ODS file");
         return;
       }
 
@@ -165,7 +170,7 @@ export default function FileUploadPrompt() {
             ref={fileInputRef}
             type="file"
             onChange={handleFileSelect}
-            accept=".csv,.xlsx,.xls"
+            accept=".csv,.xlsx,.xls,.ods,.xlsb"
             className="hidden"
           />
 

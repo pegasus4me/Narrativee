@@ -3,6 +3,7 @@ import multer from 'multer';
 import { nanoid } from 'nanoid';
 import { generateReport } from '../services/LLM/llm';
 import { parseCSV } from '../utils/csv/csvParser';
+import { parseExcel } from '../utils/excel/excelParser';
 import { optionalAuth, verifyAuth, AuthRequest } from '../middleware/auth';
 import { saveReport, getUserReports, getReportById, updateReport, deleteReport, generateShareLink, getSharedReport } from '../services/database/reportDB';
 import { REPORT_LIMITS, FILE_LIMITS, getReportGenerationConfig, calculateReportCost } from '../config/llm.config';
@@ -58,10 +59,28 @@ router.post('/generate', optionalAuth, upload.single('file'), async (req: AuthRe
       });
     }
 
-    // Parse CSV first to determine cost and validate limits
-    console.log('📊 Parsing CSV...');
-    const csvData = await parseCSV(file.buffer.toString('utf-8'));
+    // Parse File based on type
+    console.log('📊 Parsing file...');
+    let csvData: any[] = [];
+
+    const isExcel = file.mimetype.includes('excel') ||
+      file.mimetype.includes('spreadsheetml') ||
+      file.mimetype.includes('opendocument.spreadsheet') ||
+      file.originalname.endsWith('.xlsx') ||
+      file.originalname.endsWith('.xls') ||
+      file.originalname.endsWith('.ods') ||
+      file.originalname.endsWith('.xlsb');
+
+    if (isExcel) {
+      console.log('📊 Detected Excel file');
+      csvData = await parseExcel(file.buffer);
+    } else {
+      console.log('📊 Detected CSV file');
+      csvData = await parseCSV(file.buffer.toString('utf-8'));
+    }
+
     console.log(`✅ Parsed ${csvData.length} rows`);
+
 
     // 2. Check Row Count
     if (csvData.length > limits.maxRows) {
