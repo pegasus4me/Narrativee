@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Story_Script, Petrona, DM_Mono, Noto_Sans } from 'next/font/google'
+import { GoogleTagManager } from '@next/third-parties/google'
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 import "./globals.css";
 
@@ -34,6 +36,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${petrona.variable} ${dmMono.variable} ${story.variable} ${noto.variable}`}>
+        <GoogleTagManager gtmId="GTM-5BCN3HMQ" />
+        <GoogleAnalytics gaId="G-L8W7KEVHQ4" />
         {children}
       </body>
     </html>
