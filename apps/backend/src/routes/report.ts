@@ -5,7 +5,7 @@ import { generateReport } from '../services/LLM/llm';
 import { parseCSV } from '../utils/csv/csvParser';
 import { optionalAuth, verifyAuth, AuthRequest } from '../middleware/auth';
 import { saveReport, getUserReports, getReportById, updateReport, deleteReport, generateShareLink, getSharedReport } from '../services/database/reportDB';
-import { REPORT_LIMITS, getReportGenerationConfig } from '../config/llm.config';
+import { REPORT_LIMITS, FILE_LIMITS, getReportGenerationConfig, calculateReportCost } from '../config/llm.config';
 import { db } from '../auth/auth';
 import { user } from '../auth/schema/schema';
 import { eq } from 'drizzle-orm';
@@ -43,6 +43,35 @@ router.post('/generate', optionalAuth, upload.single('file'), async (req: AuthRe
       return res.status(400).json({ error: 'Story and audience are required' });
     }
 
+    // Determine limits based on user plan
+    const userPlan = req.user?.plan || 'anonymous';
+    const limits = FILE_LIMITS[userPlan as keyof typeof FILE_LIMITS] || FILE_LIMITS.free;
+
+    // 1. Check File Size
+    if (file.size > limits.maxSize) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      const limitMB = (limits.maxSize / (1024 * 1024)).toFixed(0);
+      console.error(`❌ File too large: ${sizeMB}MB (Limit: ${limitMB}MB)`);
+      return res.status(400).json({
+        error: 'File too large',
+        message: `Your plan allows files up to ${limitMB}MB. This file is ${sizeMB}MB. Please upgrade to upload larger files.`
+      });
+    }
+
+    // Parse CSV first to determine cost and validate limits
+    console.log('📊 Parsing CSV...');
+    const csvData = await parseCSV(file.buffer.toString('utf-8'));
+    console.log(`✅ Parsed ${csvData.length} rows`);
+
+    // 2. Check Row Count
+    if (csvData.length > limits.maxRows) {
+      console.error(`❌ Too many rows: ${csvData.length} (Limit: ${limits.maxRows})`);
+      return res.status(400).json({
+        error: 'Too many rows',
+        message: `Your plan allows up to ${limits.maxRows} rows. This file has ${csvData.length} rows. Please upgrade to analyze larger datasets.`
+      });
+    }
+
     // Check if anonymous user already generated a report
     if (!req.user) {
       const hasGeneratedReport = req.cookies?.[ANONYMOUS_REPORT_COOKIE];
@@ -60,46 +89,37 @@ router.post('/generate', optionalAuth, upload.single('file'), async (req: AuthRe
       // Authenticated user checks
       // 1. Check Plan Status for paid plans
       if (req.user.plan !== 'free' && req.user.subscriptionStatus !== 'active' && req.user.subscriptionStatus !== 'trialing') {
-        // Allow if status is active or trialing. If past_due, maybe block or warn. 
-        // For now, strict check: if paid plan but not active/trialing -> block
-        // But wait, if they are on 'pro' but status is 'canceled', they might still have time left?
-        // Stripe handles 'canceled' status at end of period usually. 
-        // If status is 'canceled' but currentPeriodEnd > now, they are fine.
-        // Let's rely on tokens for now as the primary gate, but ensure they aren't completely invalid.
+        // Allow if status is active or trialing.
       }
 
-      // 1. Get Token Cost based on Plan
+      // 1. Get Base Token Cost based on Plan
       const config = getReportGenerationConfig(req.user.plan as any);
-      const tokenCost = config.tokenCost || 0;
+      const baseCost = config.tokenCost || 0;
 
-      // 2. Check & Deduct Tokens
-      if (tokenCost > 0 && (req.user.tokens || 0) < tokenCost) {
-        console.log(`🚫 User ${req.user.id} has insufficient tokens. Required: ${tokenCost}, Available: ${req.user.tokens}`);
+      // 2. Calculate Dynamic Cost based on rows
+      const totalCost = calculateReportCost(csvData.length, baseCost);
+
+      // 3. Check & Deduct Tokens
+      if (totalCost > 0 && (req.user.tokens || 0) < totalCost) {
+        console.log(`🚫 User ${req.user.id} has insufficient tokens. Required: ${totalCost}, Available: ${req.user.tokens}`);
         return res.status(403).json({
           error: 'Insufficient credits',
-          message: `You need ${tokenCost} credits to generate this report. You have ${req.user.tokens || 0} credits left.`
+          message: `This report requires ${totalCost} credits (based on file size). You have ${req.user.tokens || 0} credits left.`
         });
       }
 
       // Deduct tokens if cost > 0
-      if (tokenCost > 0) {
+      if (totalCost > 0) {
         try {
           await db.update(user)
-            .set({ tokens: (req.user.tokens || 0) - tokenCost })
+            .set({ tokens: (req.user.tokens || 0) - totalCost })
             .where(eq(user.id, req.user.id));
-          console.log(`✅ Deducted ${tokenCost} tokens for user ${req.user.id}. Remaining: ${(req.user.tokens || 0) - tokenCost}`);
+          console.log(`✅ Deducted ${totalCost} tokens for user ${req.user.id}. Remaining: ${(req.user.tokens || 0) - totalCost}`);
         } catch (err) {
           console.error('Failed to deduct tokens:', err);
-          // Fail safe: if we can't deduct, maybe we should stop? 
-          // For now, logging error but proceeding to avoid user frustration if it's just a DB blip
         }
       }
     }
-
-    // Parse CSV
-    console.log('📊 Parsing CSV...');
-    const csvData = await parseCSV(file.buffer.toString('utf-8'));
-    console.log(`✅ Parsed ${csvData.length} rows`);
 
     // Generate report template with plan-based LLM selection
     console.log('🤖 Generating report template...');

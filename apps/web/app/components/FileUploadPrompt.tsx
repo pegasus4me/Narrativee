@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import useLocalStorage from "../hooks/useLocalStorage";
+import { authClient } from "../../lib/auth-client";
 
 export default function FileUploadPrompt() {
   const [message, setMessage] = useState("");
@@ -18,6 +19,30 @@ export default function FileUploadPrompt() {
     fileSize?: number;
     fileData?: string; // Base64 encoded file
   }>("narrativee-session", {});
+
+  const { data: session } = authClient.useSession();
+  const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
+
+  const calculateCost = async (file: File) => {
+    if (!session?.user) return;
+
+    // Base costs
+    const plan = (session.user as any).plan || 'free';
+    const baseCosts: Record<string, number> = {
+      free: 5,
+      premium: 4,
+      pro: 3
+    };
+    const baseCost = baseCosts[plan] || 5;
+
+    // Count rows (approximate)
+    const text = await file.text();
+    const rowCount = text.split('\n').length;
+
+    // Formula: Base + ceil(Rows / 300)
+    const variableCost = Math.ceil(rowCount / 300);
+    setEstimatedCost(baseCost + variableCost);
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -35,6 +60,7 @@ export default function FileUploadPrompt() {
       }
 
       setFile(selectedFile);
+      calculateCost(selectedFile);
     }
   };
 
@@ -90,21 +116,33 @@ export default function FileUploadPrompt() {
       <form onSubmit={handleSubmit} className="relative">
         {/* File attachment preview */}
         {file && (
-          <div className="mb-3 flex items-center gap-2 px-4 py-2 bg-amber-50 rounded-lg text-sm">
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span className="flex-1 text-gray-700 font-medium truncate">{file.name}</span>
-            <span className="text-gray-500 text-xs">{(file.size / 1024).toFixed(1)} KB</span>
-            <button
-              type="button"
-              onClick={removeFile}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <div className="mb-3 flex flex-col gap-2 px-4 py-2 bg-amber-50 rounded-lg text-sm">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-            </button>
+              <span className="flex-1 text-gray-700 font-medium truncate">{file.name}</span>
+              <span className="text-gray-500 text-xs">{(file.size / 1024).toFixed(1)} KB</span>
+              <button
+                type="button"
+                onClick={removeFile}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Cost Estimate */}
+            {estimatedCost !== null && session?.user && (
+              <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-100/50 px-2 py-1 rounded">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>Estimated cost: <strong>{estimatedCost} credits</strong></span>
+              </div>
+            )}
           </div>
         )}
 

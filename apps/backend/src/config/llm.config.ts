@@ -38,7 +38,7 @@ export const LLM_CONFIGS = {
       maxTokens: 8000,
       temperature: 0.7,
       apiKeyEnv: 'OPEN_ROUTER_KEY',
-      tokenCost: 3, // 3 tokens per report
+      tokenCost: 5, // 5 tokens per report
     } as LLMConfig,
     premium: {
       provider: 'openrouter',
@@ -47,7 +47,7 @@ export const LLM_CONFIGS = {
       maxTokens: 16000,
       temperature: 0.7,
       apiKeyEnv: 'OPEN_ROUTER_KEY',
-      tokenCost: 0, // Premium users don't consume tokens
+      tokenCost: 4, // 4 tokens per report
     } as LLMConfig,
     pro: {
       provider: 'openrouter',
@@ -56,7 +56,7 @@ export const LLM_CONFIGS = {
       maxTokens: 32000,
       temperature: 0.7,
       apiKeyEnv: 'OPEN_ROUTER_KEY',
-      tokenCost: 0,
+      tokenCost: 3, // 3 tokens per report
     } as LLMConfig,
   },
 
@@ -112,6 +112,28 @@ export const REPORT_LIMITS = {
 };
 
 /**
+ * File upload limits (Size in bytes, Rows count)
+ */
+export const FILE_LIMITS = {
+  anonymous: {
+    maxSize: 2 * 1024 * 1024, // 2MB
+    maxRows: 100,
+  },
+  free: {
+    maxSize: 5 * 1024 * 1024, // 5MB
+    maxRows: 500,
+  },
+  premium: {
+    maxSize: 20 * 1024 * 1024, // 20MB
+    maxRows: 10000,
+  },
+  pro: {
+    maxSize: 50 * 1024 * 1024, // 50MB
+    maxRows: 50000,
+  },
+};
+
+/**
  * Get LLM config for report generation based on user plan
  */
 export function getReportGenerationConfig(userPlan: UserPlan): LLMConfig {
@@ -138,4 +160,18 @@ export function getChatConfig(requestType: 'question' | 'edit' | 'regenerate'): 
     return LLM_CONFIGS.chat.regenerate;
   }
   return LLM_CONFIGS.chat.edits;
+}
+
+/**
+ * Calculate dynamic report cost based on row count
+ * Formula: Base Cost + (1 credit per 300 rows)
+ */
+export function calculateReportCost(rowCount: number, baseCost: number): number {
+  // If base cost is 0 (Unlimited plans), return 0
+  if (baseCost === 0) return 0;
+
+  // Variable cost: 1 extra credit for every 300 rows
+  const variableCost = Math.ceil(rowCount / 500);
+
+  return baseCost + variableCost;
 }
