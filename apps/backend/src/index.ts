@@ -55,6 +55,11 @@ app.use('/api/report', reportRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/user', userRouter);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+
+// Increase timeout to 5 minutes (300s) for slow LLM responses
+server.setTimeout(300000);
+server.keepAliveTimeout = 300000;
+server.headersTimeout = 301000;
