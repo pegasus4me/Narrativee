@@ -210,6 +210,17 @@ export class ReportAPI {
     );
     return data.credits;
   }
+
+  /**
+   * POST /pricing/create-portal-session
+   */
+  async createPortalSession(): Promise<{ url: string }> {
+    const { data } = await this.client.post<{ url: string }>(
+      "/pricing/create-portal-session"
+    );
+    return data;
+  }
+
 }
 
 export const reportApi = new ReportAPI();

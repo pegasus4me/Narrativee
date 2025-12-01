@@ -153,4 +153,31 @@ router.post('/create-checkout-session', express.json(), verifyAuth, async (req: 
     }
 });
 
+// Create Customer Portal Session
+router.post('/create-portal-session', express.json(), verifyAuth, async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        // Get user from DB to find stripeCustomerId
+        const users = await db.select().from(user).where(eq(user.id, req.user.id));
+        const dbUser = users[0];
+
+        if (!dbUser || !dbUser.stripeCustomerId) {
+            return res.status(400).json({ error: 'No billing account found' });
+        }
+
+        const session = await stripe.billingPortal.sessions.create({
+            customer: dbUser.stripeCustomerId,
+            return_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/setting`,
+        });
+
+        return res.json({ url: session.url });
+    } catch (error: any) {
+        console.error('Error creating portal session:', error);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;

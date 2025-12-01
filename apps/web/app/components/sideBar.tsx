@@ -381,10 +381,10 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               Wour workspace
             </button>
 
-            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
+            <Link href="/setting" className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
               <Setting7 size={20} />
               Settings
-            </button>
+            </Link>
 
 
             <div suppressHydrationWarning>
