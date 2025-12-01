@@ -54,7 +54,7 @@ router.post('/generate', optionalAuth, upload.single('file'), async (req: AuthRe
       console.error(`❌ File too large: ${sizeMB}MB (Limit: ${limitMB}MB)`);
       return res.status(400).json({
         error: 'File too large',
-        message: `Your plan allows files up to ${limitMB}MB. This file is ${sizeMB}MB. Please upgrade to upload larger files.`
+        message: `Your plan allows files up to ${limitMB}MB. This file is ${sizeMB}MB. Please sign up or upgrade to upload larger files.`
       });
     }
 
@@ -68,7 +68,7 @@ router.post('/generate', optionalAuth, upload.single('file'), async (req: AuthRe
       console.error(`❌ Too many rows: ${csvData.length} (Limit: ${limits.maxRows})`);
       return res.status(400).json({
         error: 'Too many rows',
-        message: `Your plan allows up to ${limits.maxRows} rows. This file has ${csvData.length} rows. Please upgrade to analyze larger datasets.`
+        message: `Your plan allows up to ${limits.maxRows} rows. This file has ${csvData.length} rows. Please sign up or upgrade to analyze larger datasets.`
       });
     }
 
