@@ -32,14 +32,18 @@ export async function verifyAuth(
     const authHeader = req.headers.authorization;
     const token = authHeader?.startsWith('Bearer ')
       ? authHeader.substring(7)
-      : req.cookies?.['better-auth.session_token'];
+      : req.cookies?.['better-auth.session_token'] || req.cookies?.['__Secure-better-auth.session_token'];
 
     if (!token) {
-      return res.status(401).json({
-        error: 'Unauthorized',
-        message: 'No authentication token provided'
-      });
+      // Try one last time with getSession directly, as it might find something we missed
+      // But usually if no cookie/header, it's empty.
+      // Let's keep the check but include the secure cookie name.
+    } else {
+      // Token found
     }
+
+    // Actually, simpler: Just remove the strict "if (!token)" block and let auth.api.getSession handle it.
+    // If getSession returns null, we send 401.
 
     // Verify session using Better Auth
     const session = await auth.api.getSession({

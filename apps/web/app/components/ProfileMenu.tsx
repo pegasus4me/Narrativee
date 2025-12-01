@@ -55,7 +55,7 @@ export default function ProfileMenu() {
                     </span>
                     {credits !== null && (
                         // @ts-ignore
-                        <span className="text-xs text-amber-600 font-medium">{session.data.user.tokens} credits</span>
+                        <span className="text-xs text-amber-600 font-medium">{credits} credits</span>
                     )}
                 </div>
                 <button
