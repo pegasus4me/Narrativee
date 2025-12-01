@@ -96,7 +96,7 @@ export const LLM_CONFIGS = {
  * Default token/credit allocation for users
  */
 export const DEFAULT_USER_TOKENS = {
-  free: 50,
+  free: 20,
   premium: 130, // Premium users get credits (not unlimited), configurable later
   pro: 300,
 };
