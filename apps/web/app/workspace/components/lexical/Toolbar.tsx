@@ -13,7 +13,7 @@ import { $setBlocksType } from "@lexical/selection";
 import { $createHeadingNode, $isHeadingNode, HeadingTagType } from "@lexical/rich-text";
 import { TOGGLE_LINK_COMMAND, $isLinkNode } from "@lexical/link";
 import { createPortal } from "react-dom";
-
+import { ColorPicker } from "clicons-react"; 
 export default function Toolbar() {
   const [editor] = useLexicalComposerContext();
   const [isBold, setIsBold] = useState(false);
@@ -182,7 +182,7 @@ export default function Toolbar() {
   return createPortal(
     <div
       ref={toolbarRef}
-      className="fixed z-50 bg-amber-400/40 backdrop-blur-xl text-black rounded-sm shadow-xl px-2 py-1.5 flex items-center gap-1 transform -translate-x-1/2 -translate-y-full animate-in fade-in slide-in-from-bottom-2 duration-200"
+      className="fixed z-50 bg-neutral-400/40 backdrop-blur-md text-black rounded-sm shadow-xl px-2 py-1.5 flex items-center gap-1 transform -translate-x-1/2 -translate-y-full animate-in fade-in slide-in-from-bottom-2 duration-200"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
@@ -261,7 +261,7 @@ export default function Toolbar() {
         onClick={() => {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
         }}
-        className={`p-2 rounded hover:bg-amber-300 transition-colors ${
+        className={`p-2 rounded hover:bg-gray-700 transition-colors ${
           isBold ? "bg-amber-600" : ""
         }`}
         aria-label="Bold"
@@ -372,10 +372,7 @@ export default function Toolbar() {
           aria-label="Text Color"
           title="Text Color"
         >
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
-            <rect x="3" y="20" width="18" height="2" style={{ fill: textColor }}/>
-          </svg>
+         <ColorPicker size={17} />
         </button>
 
         {showColorPicker && (
