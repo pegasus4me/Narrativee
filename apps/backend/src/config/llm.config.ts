@@ -42,7 +42,7 @@ export const LLM_CONFIGS = {
     } as LLMConfig,
     premium: {
       provider: 'openrouter',
-      model: 'anthropic/claude-haiku-4.5',
+      model: 'qwen/qwen3-235b-a22b-2507',
       baseURL: 'https://openrouter.ai/api/v1',
       maxTokens: 16000,
       temperature: 0.7,

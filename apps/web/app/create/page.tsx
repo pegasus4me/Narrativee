@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import ProgressiveLoader from "../components/ProgressiveLoader";
 import Image from "next/image";
 import logo from "../../public/logo.png";
 import useLocalStorage from "../hooks/useLocalStorage";
@@ -270,6 +271,9 @@ export default function CreatePage() {
       <header className="p-4 flex justify-between max-w-[90%] mx-auto">
         <Image src={logo} alt="logo" width={170} />
       </header>
+
+      {/* Progressive Loader Overlay */}
+      {isGenerating && <ProgressiveLoader />}
 
       {/* Main Content */}
       <main className="max-w-3xl mx-auto px-6 py-12">

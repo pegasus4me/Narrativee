@@ -37,6 +37,7 @@
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.7",
     "drizzle-orm": "^0.44.7",
+    "framer-motion": "^12.23.25",
     "lexical": "^0.38.2",
     "markdown-to-jsx": "^9.1.1",
     "motion": "^12.23.24",
