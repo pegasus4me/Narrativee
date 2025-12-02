@@ -94,15 +94,16 @@ export default function Home() {
           </p>
         </div>
         <div className="flex justify-center">
-          <div className="relative rounded-2xl overflow-hidden border border-gray-200 max-w-[80%] md:max-w-[80%] shadow-xs [mask-image:linear-gradient(to_bottom,black_85%,transparent)]">
-            <video
-              src="/presentation.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-auto"
-            />
+          <div className="w-full relative rounded-2xl overflow-hidden border border-gray-200 max-w-[80%] md:max-w-[80%] shadow-xs [mask-image:linear-gradient(to_bottom,black_85%,transparent)]">
+            <div style={{ position: 'relative', paddingTop: '62.21198156682027%' }}>
+              <iframe
+                src="https://customer-qusdy8i1rves1ask.cloudflarestream.com/76cb163ce2351fe40fce075ffe4f211d/iframe?autoplay=true&poster=https%3A%2F%2Fcustomer-qusdy8i1rves1ask.cloudflarestream.com%2F76cb163ce2351fe40fce075ffe4f211d%2Fthumbnails%2Fthumbnail.jpg%3Ftime%3D%26height%3D600"
+                loading="lazy"
+                style={{ border: 'none', position: 'absolute', top: 0, left: 0, height: '100%', width: '100%' }}
+                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                allowFullScreen={true}
+              ></iframe>
+            </div>
           </div>
         </div>
       </section>
