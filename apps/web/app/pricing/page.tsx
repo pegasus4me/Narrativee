@@ -48,7 +48,7 @@ export default function PricingPage() {
             });
 
             if (!response.ok) {
-                const error = await response.json();
+                const error = await response.json() as { error?: string };
                 console.error("Checkout error:", error);
                 alert(`Failed to start checkout: ${error.error || JSON.stringify(error)}`);
                 return;
