@@ -101,7 +101,7 @@ export default function Home() {
                 <div className="overflow-hidden p-1">
                     <p className="text-gray-600 leading-relaxed text-xs">
                         We are deeply concerned about privacy and security, this is why your uploaded data is strictly processed in your browser and never sent to the server or any third party,
-                        The data driven reports you generate are Encrypted using AES-256 encryption before being stored
+                        The data driven reports you create are Encrypted using AES-256 encryption before being stored
                     </p>
                 </div>
             </div>
