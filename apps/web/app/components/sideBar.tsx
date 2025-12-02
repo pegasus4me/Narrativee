@@ -386,7 +386,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               <Setting7 size={20} />
               Settings
             </Link>
-            <a href="https://narrativeecomunity.slack.com" target="_blank" className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
+            <a href="https://narrativecommunity.slack.com" target="_blank" className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
               <Slack size={20} />
               Join Narrativee slack 
             </a>

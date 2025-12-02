@@ -8,6 +8,8 @@ import Image from "next/image";
 import logo from "../../../public/logo.png";
 import { Eye } from "clicons-react";
 import Link from "next/link";
+import PrimaryButton from "../../components/PrimaryButton";
+import { useRouter } from "next/navigation";
 interface Template {
   id: string;
   name: string;
@@ -18,7 +20,7 @@ interface Template {
 export default function SharedReportPage() {
   const params = useParams();
   const shareId = params.shareId as string;
-
+  const router = useRouter();
   const [reportData, setReportData] = useState<Template | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,12 +113,11 @@ export default function SharedReportPage() {
       <header className=" px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <Image src={logo} alt="logo" width={140} />
-          <Link
-            href="/"
-            className="px-4 py-2 bg-amber-500 text-black rounded-lg border hover:bg-amber-600 transition-colors text-sm font-medium"
+          <PrimaryButton
+            onClick={() => router.push("/")}
           >
             Create Your Own Report
-          </Link>
+          </PrimaryButton>
         </div>
       </header>
 
