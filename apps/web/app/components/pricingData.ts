@@ -25,7 +25,7 @@ export const PricingPlans = [
     },
     {
         name: "Premium",
-        subtitle: "For serious creators",
+        subtitle: "Unlock the full power of Narrativee: for individuals, students and small teams looking to create data-driven professional reports",
         monthlyPrice: 14.95,
         annualPrice: 11.95,
         monthlyPriceId: isProd ? "price_1SZA9wLShg9EGCkGW25Thvw1" : "price_1SZBdXL1bbAsFy34HqQJGg4q",
@@ -48,9 +48,9 @@ export const PricingPlans = [
     },
     {
         name: "Pro",
-        subtitle: "For teams & professionals",
+        subtitle: "For growing teams & professionals that need higher limits, unlimited collaboration, and priority support",
         monthlyPrice: 22.95,
-        annualPrice: 20.95,
+        annualPrice: 19.95,
         monthlyPriceId: isProd ? "price_1SZADVLShg9EGCkGEyaNibWz" : "price_1SZBe3L1bbAsFy34b3o7wgOK",
         annualPriceId: isProd ? "price_1SZAZvLShg9EGCkGlWkRs5ny" : "price_1SZBeQL1bbAsFy34as2o0Gc7",
         savings: 120,
