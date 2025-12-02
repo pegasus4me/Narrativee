@@ -53,6 +53,7 @@ export class ReportAPI {
     this.client = axios.create({
       baseURL,
       withCredentials: true, // Crucial for Better-Auth
+      timeout: 300000, // 5 minutes to match backend
     });
 
     // 2. Best Practice: Global Error Logging (Axios Interceptor)
