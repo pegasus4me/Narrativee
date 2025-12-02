@@ -63,7 +63,6 @@ export const PricingPlans = [
             { text: "Upload up to 50MB files and 30,000 rows", included: true },
             { text: "Access to powerful AI models for deeper insights", included: true, highlight: true },
             { text: "Unlimited collaborators", included: true, highlight: true },
-            { text: "White-label reports (remove all branding)", included: true, highlight: true },
             { text: "Dedicated support", included: true },
             { text: "Priority chat support (3h response)", included: true },
         ],
