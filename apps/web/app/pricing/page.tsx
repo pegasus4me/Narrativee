@@ -33,7 +33,8 @@ export default function PricingPage() {
                 return;
             }
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3002'}/api/pricing/create-checkout-session`, {
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (process.env.NODE_ENV === 'production' ? "https://api.narrativee.com" : "http://localhost:3002");
+            const response = await fetch(`${backendUrl}/api/pricing/create-checkout-session`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
