@@ -8,6 +8,7 @@ import logo from "../../public/logo.png";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { authClient } from "../../lib/auth-client";
 import { ReportAPI } from "../../lib/apis";
+import PrimaryButton from "../components/PrimaryButton";
 export default function CreatePage() {
   const router = useRouter();
   const apis = new ReportAPI();
@@ -398,10 +399,10 @@ export default function CreatePage() {
 
         {/* Continue Button */}
         <div className="mt-12 flex justify-center">
-          <button
+          <PrimaryButton
             onClick={handleContinue}
             disabled={!audience || (!hasStory && !story) || !reportStyle || isGenerating}
-            className="px-8 py-4 bg-amber-400 text-black border text font-semibold rounded-lg hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 justify-center"
+            className=""
           >
             {isGenerating ? (
               <>
@@ -409,9 +410,9 @@ export default function CreatePage() {
                 Generating...
               </>
             ) : (
-              'Generate Report'
+              'Generate your report'
             )}
-          </button>
+          </PrimaryButton>
         </div>
       </main>
     </div>
