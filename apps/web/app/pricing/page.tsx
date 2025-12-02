@@ -21,7 +21,7 @@ export default function PricingPage() {
         }
 
         if (plan.monthlyPrice === 0) {
-            router.push("/dashboard");
+            router.push("/workspace");
             return;
         }
 
