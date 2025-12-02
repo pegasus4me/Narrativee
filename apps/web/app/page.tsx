@@ -94,13 +94,14 @@ export default function Home() {
           </p>
         </div>
         <div className="flex justify-center">
-          <div className="relative rounded-2xl overflow-hidden border border-gray-200 max-w-[95%] md:max-w-[90%] shadow-xs [mask-image:linear-gradient(to_bottom,black_85%,transparent)]">
-            <Image
-              src={template}
-              alt="Report template example"
-              width={1050}
+          <div className="relative rounded-2xl overflow-hidden border border-gray-200 max-w-[80%] md:max-w-[80%] shadow-xs [mask-image:linear-gradient(to_bottom,black_85%,transparent)]">
+            <video
+              src="/presentation.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-auto"
-              priority
             />
           </div>
         </div>
