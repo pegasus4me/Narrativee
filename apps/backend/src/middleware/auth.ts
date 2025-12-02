@@ -91,7 +91,7 @@ export async function optionalAuth(
     const authHeader = req.headers.authorization;
     const token = authHeader?.startsWith('Bearer ')
       ? authHeader.substring(7)
-      : req.cookies?.['better-auth.session_token'];
+      : req.cookies?.['better-auth.session_token'] || req.cookies?.['__Secure-better-auth.session_token'];
 
     if (token) {
       const session = await auth.api.getSession({
