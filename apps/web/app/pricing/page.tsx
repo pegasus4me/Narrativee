@@ -1,14 +1,11 @@
 "use client";
 
-import Image from "next/image";
-import { Button } from "@repo/ui/button";
-import logo from "../../public/logo.png";
-import ProfileMenu from "../components/ProfileMenu";
 import { authClient } from "../../lib/auth-client";
 import { useState } from "react";
 import { Tick2 } from "clicons-react";
-import PricingButton from "./components/PricingButton";
+import PrimaryButton from "../components/PrimaryButton";
 import { PricingPlans } from "../components/pricingData";
+import Header from "../components/Header";
 
 import { useRouter } from "next/navigation";
 
@@ -70,23 +67,7 @@ export default function PricingPage() {
     return (
         <div className="min-h-screen bg-gray-50/50">
             {/* Header */}
-            <header className="p-4 flex justify-between max-w-[90%] mx-auto">
-                <a href="/">
-                    <Image src={logo} alt="logo" width={170} />
-                </a>
-                <div className="flex gap-4 items-center">
-                    {session?.user ? (
-                        <ProfileMenu />
-                    ) : (
-                        <>
-                            <a href="/auth/signin" className="text-gray-700 hover:text-gray-900">Login</a>
-                            <Button className="bg-amber-400 border px-5 py-2 rounded-md font-medium text-black hover:bg-amber-500">
-                                Start for free
-                            </Button>
-                        </>
-                    )}
-                </div>
-            </header>
+            <Header />
 
             <main className="py-20 px-4">
                 {/* Hero */}
@@ -145,9 +126,9 @@ export default function PricingPage() {
                                 <span className="text-4xl font-bold text-gray-900">${isAnnual ? plan.annualPrice : plan.monthlyPrice}</span>
                                 <span className="text-gray-500">/month</span>
                             </div>
-                            <PricingButton color={plan.color} onClick={() => handleCheckout(plan)}>
+                            <PrimaryButton className="w-full mb-8" onClick={() => handleCheckout(plan)}>
                                 {plan.cta}
-                            </PricingButton>
+                            </PrimaryButton>
                             <ul className="space-y-4">
                                 {plan.features.map((feature, idx) => (
                                     <li key={idx} className="flex items-start gap-3 text-sm text-gray-600">

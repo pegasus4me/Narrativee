@@ -7,10 +7,9 @@ import { useEffect, useState } from "react";
 import { authClient } from "../lib/auth-client";
 import { useMigrateReports } from "./hooks/useMigrateReports";
 import template from "../public/example.png"
-import ProfileMenu from "./components/ProfileMenu";
 import Link from "next/link";
-import PrimaryButton from "./components/PrimaryButton";
 import { useRouter } from "next/navigation";
+import Header from "./components/Header";
 export default function Home() {
   const router = useRouter();
   const words = ["csv", "sheet", "excel"];
@@ -41,40 +40,7 @@ export default function Home() {
   return (
     <div className="to-gray-50 overflow-x-hidden">
       {/* Header */}
-      <header className="p-4 flex flex-col md:flex-row justify-between items-center max-w-[90%] mx-auto gap-4 md:gap-0">
-        <div className="flex gap-4 items-center w-full md:w-auto justify-between md:justify-start">
-          <Image src={logo} alt="logo" width={140} className="md:w-[170px]" />
-
-          {/* Mobile Menu Button (Placeholder - for now just hiding links on mobile) */}
-          <div className="flex gap-4 items-center md:hidden">
-            {/* You could add a hamburger menu here later */}
-          </div>
-
-        </div>
-
-        <div className="flex gap-4 items-center w-full md:w-auto justify-center md:justify-end font-medium">
-          <div className="hidden md:flex gap-4 items-center ml-4">
-            <Link href="/pricing" className="text-gray-700 hover:text-gray-900">Pricing</Link>
-          </div>
-          <div className="flex gap-4 items-center w-full md:w-auto justify-center md:justify-end">
-            {session?.user ? (
-              <ProfileMenu />
-            ) : (
-              <>
-                <a href="/auth/signin" className="text-gray-700 hover:text-gray-900 text-sm md:text-base">Login</a>
-                <PrimaryButton
-                  onClick={() => {
-                    router.push('/auth/signup');
-                  }}
-                >
-                  Start for free
-                </PrimaryButton>
-              </>
-            )}
-          </div>
-        </div>
-
-      </header>
+      <Header />
 
       {/* Hero Section */}
       <main className="p-4 md:p-5 mt-5 max-w-[95%] md:max-w-[90%] mx-auto">
