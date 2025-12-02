@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import logo from "../../public/logo.png";
-import { Add, Setting7, File, Home4 } from "clicons-react";
+import { Add, Setting7, File, Home4, Slack} from "clicons-react";
 import Link from "next/link";
 import { useSideBarStore } from "../state/logo-transition/SideBar.store";
 import { authClient } from "../../lib/auth-client";
@@ -386,6 +386,10 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               <Setting7 size={20} />
               Settings
             </Link>
+            <a href="https://narrativeecomunity.slack.com" target="_blank" className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
+              <Slack size={20} />
+              Join Narrativee slack 
+            </a>
 
 
             <div suppressHydrationWarning>
