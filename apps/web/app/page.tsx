@@ -10,12 +10,14 @@ import template from "../public/example.png"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "./components/Header";
+import { ChevronRight } from "clicons-react";
 export default function Home() {
   const router = useRouter();
   const words = ["csv", "sheet", "excel"];
   const words2 = ["narrative", "interactive"];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentIndex2, setCurrentIndex2] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
   const { data: session } = authClient.useSession();
 
   // Auto-migrate localStorage reports when user logs in
@@ -79,6 +81,30 @@ export default function Home() {
           <p className="font-normal text-slate-700 p-2 text-base md:text-lg leading-relaxed text-center" style={{ fontFamily: 'var(--font-petrona)' }}>Get started — no account needed</p>
           <div className="w-full max-w-md md:max-w-xl">
             <FileUploadPrompt />
+          </div>
+          <div className="w-full max-w-md md:max-w-xl">
+                <button
+                className="w-full py-6 flex items-center justify-between text-left focus:outline-none group"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <h3 className="text-sm font-medium text-gray-900 transition-colors" >
+                  Privacy first concerning your data
+                </h3>
+                <span className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                    <ChevronRight />
+                </span>
+            </button>
+                   <div
+                className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mb-6' : 'grid-rows-[0fr] opacity-0'
+                    }`}
+            >
+                <div className="overflow-hidden p-1">
+                    <p className="text-gray-600 leading-relaxed text-xs">
+                        We are deeply concerned about privacy and security, this is why your uploaded data is strictly processed in your browser and never sent to the server or any third party,
+                        The data driven reports you generate are Encrypted using AES-256 encryption before being stored
+                    </p>
+                </div>
+            </div>
           </div>
         </div>
       </main>

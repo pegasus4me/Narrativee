@@ -195,7 +195,7 @@ export default function Chart({ config, csvData }: ChartProps) {
               }
             ]}
             tooltip={({ point }) => (
-              <div className="bg-white px-3 py-2 rounded shadow-lg border border-gray-200">
+              <div className="bg-white px-3 py-2 rounded shadow-lg border border-gray-200 w-md ">
                 <strong className="text-gray-900">{point.seriesId}</strong>
                 <div className="text-sm text-gray-600">
                   <span>{xField}: </span>
