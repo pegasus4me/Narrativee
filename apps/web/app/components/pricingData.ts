@@ -26,8 +26,8 @@ export const PricingPlans = [
     {
         name: "Premium",
         subtitle: "For serious creators",
-        monthlyPrice: 15,
-        annualPrice: 12,
+        monthlyPrice: 14.95,
+        annualPrice: 11.95,
         monthlyPriceId: isProd ? "price_1SZA9wLShg9EGCkGW25Thvw1" : "price_1SZBdXL1bbAsFy34HqQJGg4q",
         annualPriceId: isProd ? "price_1SZAaRLShg9EGCkGpjmDFzIm" : "price_1SZBdpL1bbAsFy34wH6cEfl2",
         savings: 60,
@@ -49,8 +49,8 @@ export const PricingPlans = [
     {
         name: "Pro",
         subtitle: "For teams & professionals",
-        monthlyPrice: 23,
-        annualPrice: 20,
+        monthlyPrice: 22.95,
+        annualPrice: 20.95,
         monthlyPriceId: isProd ? "price_1SZADVLShg9EGCkGEyaNibWz" : "price_1SZBe3L1bbAsFy34b3o7wgOK",
         annualPriceId: isProd ? "price_1SZAZvLShg9EGCkGlWkRs5ny" : "price_1SZBeQL1bbAsFy34as2o0Gc7",
         savings: 120,
