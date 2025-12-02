@@ -28,7 +28,7 @@ router.post('/generate', optionalAuth, upload.single('file'), async (req: AuthRe
     console.log('Request params:', {
       hasFile: !!file,
       fileName: file?.originalname,
-      story: story?.substring(0, 50),
+      story: story,
       audience,
       reportStyle,
       isAuthenticated: !!req.user
