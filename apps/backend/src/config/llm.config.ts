@@ -33,7 +33,7 @@ export const LLM_CONFIGS = {
     } as LLMConfig,
     free: {
       provider: 'openrouter',
-      model: 'meta-llama/llama-3.3-70b-instruct',
+      model: 'qwen/qwen3-235b-a22b-2507',
       baseURL: 'https://openrouter.ai/api/v1',
       maxTokens: 8000,
       temperature: 0.7,
@@ -42,7 +42,7 @@ export const LLM_CONFIGS = {
     } as LLMConfig,
     premium: {
       provider: 'openrouter',
-      model: 'meta-llama/llama-3.3-70b-instruct',
+      model: 'qwen/qwen3-235b-a22b-2507',
       baseURL: 'https://openrouter.ai/api/v1',
       maxTokens: 16000,
       temperature: 0.7,
