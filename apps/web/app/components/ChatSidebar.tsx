@@ -6,6 +6,7 @@ import { LexicalEditor } from "lexical";
 import { authClient } from "../../lib/auth-client";
 import { reportApi } from "../../lib/apis";
 import Markdown from "markdown-to-jsx";
+import { sendGTMEvent } from "../../lib/gtm";
 
 interface Message {
   role: "user" | "assistant";
@@ -113,6 +114,11 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
     setInput("");
     setUploadedFile(null);
     setIsLoading(true);
+
+    sendGTMEvent('talk_with_ai', {
+      type: requestType,
+      hasFile: !!uploadedFile
+    });
 
     try {
       let data: any;

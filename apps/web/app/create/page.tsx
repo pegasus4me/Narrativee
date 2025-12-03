@@ -9,6 +9,7 @@ import useLocalStorage from "../hooks/useLocalStorage";
 import { authClient } from "../../lib/auth-client";
 import { ReportAPI } from "../../lib/apis";
 import PrimaryButton from "../components/PrimaryButton";
+import { sendGTMEvent } from "../../lib/gtm";
 export default function CreatePage() {
   const router = useRouter();
   const apis = new ReportAPI();
@@ -107,6 +108,12 @@ export default function CreatePage() {
 
       // Redirect to workspace after data is saved
       console.log('Redirecting to /workspace/' + reportId);
+      sendGTMEvent('create_report', {
+        reportId,
+        audience,
+        style: reportStyle,
+        hasStory: hasStory || !!story
+      });
       router.push(`/workspace/${reportId}`);
 
     } catch (error: any) {

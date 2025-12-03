@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Logo from "../../../public/sidelogo.png";
 import PrimaryButton from "../../components/PrimaryButton";
+import { sendGTMEvent } from "../../../lib/gtm";
 
 export default function SignUp() {
   const router = useRouter();
@@ -43,6 +44,7 @@ export default function SignUp() {
         name,
       }, {
         onSuccess: () => {
+          sendGTMEvent('create_account', { method: 'email' });
           router.push("/create");
         },
         onError: (ctx) => {

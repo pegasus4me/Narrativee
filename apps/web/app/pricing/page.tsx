@@ -8,6 +8,7 @@ import { PricingPlans } from "../components/pricingData";
 import Header from "../components/Header";
 
 import { useRouter } from "next/navigation";
+import { sendGTMEvent } from "../../lib/gtm";
 
 export default function PricingPage() {
     const { data: session } = authClient.useSession();
@@ -127,7 +128,10 @@ export default function PricingPage() {
                                 <span className="text-4xl font-bold text-gray-900">${isAnnual ? plan.annualPrice : plan.monthlyPrice}</span>
                                 <span className="text-gray-500">/month</span>
                             </div>
-                            <PrimaryButton className="w-full mb-8" onClick={() => handleCheckout(plan)}>
+                            <PrimaryButton className="w-full mb-8" onClick={() => {
+                                sendGTMEvent('click_pricing', { plan: plan.name, price: isAnnual ? plan.annualPrice : plan.monthlyPrice });
+                                handleCheckout(plan);
+                            }}>
                                 {plan.cta}
                             </PrimaryButton>
                             <ul className="space-y-4">
