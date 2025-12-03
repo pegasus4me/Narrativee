@@ -131,7 +131,7 @@ export default function Home() {
         <div className="relative z-10 max-w-[90%] mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
-              From Raw Data to Compelling Narrative
+              From Raw Data to Compelling Reports
             </h2>
             <p className="text-base md:text-lg text-gray-600 mx-auto px-4 max-w-2xl">
               See how Narrativee transforms your spreadsheet into a professional, story-driven and interactive report.
