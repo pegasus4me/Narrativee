@@ -42,8 +42,12 @@ export default function Home() {
   return (
     <div className="to-gray-50 overflow-x-hidden">
       {/* Header */}
-      <Header />
 
+      <Header />
+      {/* Badges */}
+      <div className="flex justify-center">
+        <a href="https://foundrlist.com/product/narrativee" target="_blank"><img src="https://foundrlist.com/api/badge/narrativee?style=featured" alt="Narrativee" style={{ width: 200, height: 64 }} /></a>
+      </div>
       {/* Hero Section */}
       <main className="p-4 md:p-5 mt-5 max-w-[95%] md:max-w-[90%] mx-auto">
         <div className="text-center mb-8 md:mb-12 p-2">
