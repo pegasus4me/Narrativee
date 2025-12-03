@@ -95,6 +95,7 @@ async function callLLMAPI(prompt: string, llmConfig: any): Promise<string> {
         'X-Title': 'Narrativee',
       },
     }),
+    timeout: 300000, // 5 minutes timeout
   });
 
   console.log(`📤 Sending request to ${llmConfig.model}...`);

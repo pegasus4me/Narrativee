@@ -49,6 +49,12 @@ export default function ProgressiveLoader() {
         <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-6">
             <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
 
+                <div className="text-center mb-6">
+                    <p className="text-sm font-medium text-amber-600 bg-amber-50 px-4 py-2 rounded-full inline-block">
+                        Reports take a couple of minutes to be generated
+                    </p>
+                </div>
+
                 {/* Logo or Icon Animation */}
                 <div className="flex justify-center mb-8">
                     <div className="relative w-16 h-16">
