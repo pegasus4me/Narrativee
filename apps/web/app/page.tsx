@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "./components/Header";
 import { ChevronRight } from "clicons-react";
+import BeforeAfterSlider from "./components/BeforeAfterSlider";
 export default function Home() {
   const router = useRouter();
   const words = ["csv", "sheet", "excel"];
@@ -87,36 +88,72 @@ export default function Home() {
             <FileUploadPrompt />
           </div>
           <div className="w-full max-w-md md:max-w-xl">
-                <button
-                className="w-full py-6 flex items-center justify-between text-left focus:outline-none group"
-                onClick={() => setIsOpen(!isOpen)}
+            <button
+              className="w-full py-6 flex items-center justify-between text-left focus:outline-none group"
+              onClick={() => setIsOpen(!isOpen)}
             >
-                <h3 className="text-sm font-medium text-gray-900 transition-colors" >
-                  Privacy first concerning your data
-                </h3>
-                <span className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
-                    <ChevronRight />
-                </span>
+              <h3 className="text-sm font-medium text-gray-900 transition-colors" >
+                Privacy first concerning your data
+              </h3>
+              <span className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                <ChevronRight />
+              </span>
             </button>
-                   <div
-                className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mb-6' : 'grid-rows-[0fr] opacity-0'
-                    }`}
+            <div
+              className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mb-6' : 'grid-rows-[0fr] opacity-0'
+                }`}
             >
-                <div className="overflow-hidden p-1">
-                    <p className="text-gray-600 leading-relaxed text-xs">
-                        We are deeply concerned about privacy and security, this is why your uploaded data is strictly processed in your browser and never sent to the server or any third party,
-                        The data driven reports you create are Encrypted using AES-256 encryption before being stored
-                    </p>
-                </div>
+              <div className="overflow-hidden p-1">
+                <p className="text-gray-600 leading-relaxed text-xs">
+                  We are deeply concerned about privacy and security, this is why your uploaded data is strictly processed in your browser and never sent to the server or any third party,
+                  The data driven reports you create are Encrypted using AES-256 encryption before being stored
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </main>
 
+      {/* Before/After Comparison Section */}
+      <section className="relative mx-auto my-10 md:my-16 py-16 px-4 w-full overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/backgroundimg.png"
+            alt="Background"
+            fill
+            className="object-cover opacity-30"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white"></div>
+        </div>
+
+        <div className="relative z-10 max-w-[90%] mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
+              From Raw Data to Compelling Narrative
+            </h2>
+            <p className="text-base md:text-lg text-gray-600 mx-auto px-4 max-w-2xl">
+              See how Narrativee transforms your spreadsheet into a professional, story-driven and interactive report.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <div className="w-full max-w-5xl shadow-2xl rounded-xl overflow-hidden border border-gray-200 bg-white">
+              <BeforeAfterSlider
+                beforeImage="/before.png"
+                afterImage="/after.png"
+                beforeLabel="20k rows Raw CSV Data"
+                afterLabel="Narrativee Report"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Template Preview Section */}
       <section className="mx-auto my-10 md:my-16 p-2">
         <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
             Create, Edit and Publish
           </h2>
           <p className="text-base md:text-lg text-gray-600 mx-auto px-4">
