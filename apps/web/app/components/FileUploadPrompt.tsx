@@ -205,7 +205,7 @@ export default function FileUploadPrompt() {
 
         {/* Helper text */}
         <p className="mt-2 text-xs text-gray-500 px-2">
-          Upload CSV or Excel. Your data stays securely in your browser
+          Upload CSV or Excel files
         </p>
       </form>
     </div>

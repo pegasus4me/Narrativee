@@ -13,7 +13,7 @@ export default function Header() {
     const { data: session } = authClient.useSession();
 
     return (
-        <header className="p-4 flex flex-col md:flex-row justify-between items-center max-w-[90%] mx-auto gap-4 md:gap-0">
+        <header className="p-4 flex flex-col md:flex-row justify-between items-center max-w-[70%] mx-auto gap-4 md:gap-0">
             <div className="flex gap-4 items-center w-full md:w-auto justify-between md:justify-start">
                 <Link href="/">
                     <Image src={logo} alt="logo" width={140} className="md:w-[170px]" />
