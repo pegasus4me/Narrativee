@@ -179,6 +179,30 @@ export default function Toolbar() {
     setShowColorPicker(false);
   };
 
+  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+      dropdownTimeoutRef.current = null;
+    }
+    setShowHeadingDropdown(true);
+  };
+
+  const handleMouseLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setShowHeadingDropdown(false);
+    }, 300);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (dropdownTimeoutRef.current) {
+        clearTimeout(dropdownTimeoutRef.current);
+      }
+    };
+  }, []);
+
   if (!isVisible) {
     return null;
   }
@@ -195,8 +219,8 @@ export default function Toolbar() {
       {/* Heading Dropdown */}
       <div
         className="relative"
-        onMouseEnter={() => setShowHeadingDropdown(true)}
-        onMouseLeave={() => setShowHeadingDropdown(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <button
           className="px-2 py-1.5 rounded hover:bg-amber-300 transition-colors text-xs font-medium flex items-center gap-1 min-w-[50px]"
