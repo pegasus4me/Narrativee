@@ -45,41 +45,24 @@ export default function Home() {
       {/* Header */}
 
       <Header />
-      {/* Badges */}
-      <div className="flex justify-center">
-        <a href="https://foundrlist.com/product/narrativee" target="_blank"><img src="https://foundrlist.com/api/badge/narrativee?style=featured" alt="Narrativee" style={{ width: 200, height: 64 }} /></a>
-      </div>
       {/* Hero Section */}
-      <main className="p-4 md:p-5 mt-5 max-w-[95%] md:max-w-[90%] mx-auto">
-        <div className="text-center mb-8 md:mb-12 p-2">
-          <h1 className="text-4xl md:text-6xl lg:text-8xl font-bold text-gray-900 mb-4 max-w-5xl mx-auto leading-tight" style={{ fontFamily: 'var(--font-petrona)' }}>
-            Turn your <span className="inline-block text-center px-2 rounded-md bg-amber-400 text-white transform -rotate-2 my-2 md:my-0" style={{ minWidth: 'auto', width: 'auto', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
-              <span
-                key={currentIndex}
-                className="inline-block px-2 border border-amber-500/20
-        shadow-[inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-2px_0_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.05)]
-        active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]
-        active:translate-y-[1px]"
-                style={{
-                  animation: 'fadeIn 0.5s ease-in-out'
-                }}
-              >
-                {words[currentIndex]}
-              </span>
-            </span> <br className="md:hidden" /> Data into <span style={{ fontFamily: 'var(--font-petrona)' }}>
-              <span
-                key={currentIndex2}
-                className="inline-block"
-                style={{
-                  animation: 'fadeIn 0.5s ease-in-out'
-                }}
-              >
-                {words2[currentIndex2]}
-              </span>
-            </span> reports
+      <main className="p-4 md:p-5 mt-5 max-w-[95%] md:max-w-[90%] mx-auto z-10">
+        <div className="absolute inset-0 z-[-1]">
+          <Image
+            src="/backgroundimg.png"
+            alt="Background"
+            fill
+            className="object-cover opacity-10"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white"></div>
+        </div>
+        <div className="text-center">
+          <h1 className="text-6xl bg-clip-text text-transparent bg-gradient-to-br from-gray-900 via-gray-700 to-gray-500 mb-4 max-w-3xl mx-auto pb-2" style={{ fontFamily: 'var(--font-petrona)' }}>
+            Turn your spreadsheet data into narrative reports
           </h1>
-          <p className="text-base md:text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto px-4" style={{ fontFamily: 'var(--font-noto)' }}>
-            Transform your data into interactive and editable reports. Upload your files, describe your goal, and get polished charts, insights, and a compelling storyline—in minutes.
+          <p className="text-base md:text-md text-gray-500 max-w-xl mx-auto px-4" style={{ fontFamily: 'var(--font-noto)' }}>
+            The AI-powered workspace that transform your raw data into compelling and collaborative reports, in minutes.
           </p>
         </div>
         <div className="flex-1 flex items-center justify-center p-2 md:p-6 flex-col">
@@ -115,22 +98,13 @@ export default function Home() {
       </main>
 
       {/* Before/After Comparison Section */}
-      <section className="relative mx-auto my-10 md:my-16 py-16 px-4 w-full overflow-hidden">
+      <section className="relative mx-auto px-4 w-full overflow-hidden">
         {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/backgroundimg.png"
-            alt="Background"
-            fill
-            className="object-cover opacity-30"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white"></div>
-        </div>
+
 
         <div className="relative z-10 max-w-[90%] mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
+            <h2 className="text-3xl md:text-5xl p-1 bg-clip-text text-transparent bg-gradient-to-br from-gray-900 via-gray-700 to-gray-500 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
               From Raw Data to Compelling Reports
             </h2>
             <p className="text-base md:text-lg text-gray-600 mx-auto px-4 max-w-2xl">
@@ -138,7 +112,7 @@ export default function Home() {
             </p>
           </div>
           <div className="flex justify-center">
-            <div className="w-full max-w-5xl shadow-2xl rounded-xl overflow-hidden border border-gray-200 bg-white">
+            <div className="w-full max-w-full shadow-2xl rounded-xl overflow-hidden border border-gray-200 bg-white">
               <BeforeAfterSlider
                 beforeImage="/before.png"
                 afterImage="/after.png"

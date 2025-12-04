@@ -57,7 +57,7 @@ export default function BeforeAfterSlider({
     return (
         <div
             ref={containerRef}
-            className={`relative w-full h-[600px] md:h-[600px] overflow-hidden rounded-sm p-4 cursor-ew-resize select-none touch-none ${className}`}
+            className={`relative w-full h-[600px] md:h-[800px] overflow-hidden rounded-sm p-4 cursor-ew-resize select-none touch-none ${className}`}
             onMouseMove={handleMouseMove}
             onTouchMove={handleTouchMove}
             onMouseDown={handleMouseDown}
@@ -69,7 +69,7 @@ export default function BeforeAfterSlider({
                     src={afterImage}
                     alt={afterLabel}
                     fill
-                    className="object-cover object-left"
+                    className="object-cover object-top"
                     draggable={false}
                 />
                 <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium z-10">
@@ -86,7 +86,7 @@ export default function BeforeAfterSlider({
                     src={beforeImage}
                     alt={beforeLabel}
                     fill
-                    className="object-cover object-left"
+                    className="object-cover object-top"
                     draggable={false}
                 />
                 <div className="absolute top-4 left-4 bg-black backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium z-10">
