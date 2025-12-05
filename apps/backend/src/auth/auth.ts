@@ -55,7 +55,7 @@ export const auth = betterAuth({
       },
       tokens: {
         type: "number",
-        defaultValue: 0
+        defaultValue: 30
       },
       subscriptionStatus: {
         type: "string",
