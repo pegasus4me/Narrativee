@@ -76,13 +76,13 @@ export default function IntegrationsPage() {
 
             <div className="grid gap-4">
                 {/* PowerBI Integration Card */}
-                <div className={`flex items-center justify-between p-6 border rounded-xl transition-colors ${isPowerBIConnected ? "border-green-200 bg-green-50" : "border-gray-200 hover:border-amber-200"}`}>
+                <div className={`flex items-center justify-between p-6 border rounded-xl transition-colors"}`}>
                     <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${isPowerBIConnected ? "bg-green-100" : "bg-yellow-100"}`}>
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center`}>
                             {isPowerBIConnected ? (
-                                <Tick size={24} className="text-green-600" />
+                               <Image src={PowebiLogo} alt="PowerBI Logo" width={50} height={50} />
                             ) : (
-                                <Image src={PowebiLogo} alt="PowerBI Logo" width={24} height={24} />
+                                <Image src={PowebiLogo} alt="PowerBI Logo" width={50} height={50} />
                             )}
                         </div>
                         <div>
@@ -96,7 +96,7 @@ export default function IntegrationsPage() {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setIsDatasetSelectorOpen(true)}
-                                className="px-4 py-2 bg-white border border-green-200 text-green-700 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-green-50 transition-colors"
+                                className="px-4 py-2 bg-white border rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-green-50 transition-colors"
                             >
                                 Select Dataset
                             </button>

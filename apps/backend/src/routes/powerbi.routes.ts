@@ -147,4 +147,30 @@ router.get('/test-parsing', verifyAuth, async (req: AuthRequest, res: Response) 
     }
 });
 
+// List reports
+router.get('/reports', verifyAuth, async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+        const workspaceId = req.query.workspaceId as string | undefined;
+        const reports = await powerBIService.listReports(req.user.id, workspaceId);
+        res.json(reports);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get report embed config
+router.get('/reports/:reportId/config', verifyAuth, async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+        const { reportId } = req.params;
+        const workspaceId = req.query.workspaceId as string | undefined;
+
+        const config = await powerBIService.getReportConfig(req.user.id, reportId, workspaceId);
+        res.json(config);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;

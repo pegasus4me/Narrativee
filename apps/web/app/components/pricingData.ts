@@ -40,7 +40,6 @@ export const PricingPlans = [
             { text: "Export to PDF (no watermark)", included: true },
             { text: "Upload up to 20MB files and 10,000 rows", included: true },
             { text: "Up to 2 collaborators per report", included: true, highlight: true },
-            { text: "Custom branding & templates", included: true, highlight: true },
             { text: "Priority email support (24h response)", included: true },
             { text: "Custom expiration for share links", included: true }
         ],

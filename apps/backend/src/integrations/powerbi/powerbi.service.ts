@@ -480,6 +480,50 @@ export class PowerBIService {
         }
     }
 
+    async listReports(userId: string, workspaceId?: string) {
+        const token = await this.getAccessToken(userId);
+        const url = workspaceId
+            ? `${PowerBIService.API_BASE_URL}/groups/${workspaceId}/reports`
+            : `${PowerBIService.API_BASE_URL}/reports`;
+
+        const response = await axios.get(url, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        return response.data.value;
+    }
+
+    async getReportConfig(userId: string, reportId: string, workspaceId?: string) {
+        const token = await this.getAccessToken(userId);
+        const url = workspaceId
+            ? `${PowerBIService.API_BASE_URL}/groups/${workspaceId}/reports/${reportId}`
+            : `${PowerBIService.API_BASE_URL}/reports/${reportId}`;
+
+        const response = await axios.get(url, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const report = response.data;
+
+        return {
+            type: 'report',
+            id: report.id,
+            embedUrl: report.embedUrl,
+            accessToken: token, // For "User Owns Data", we use the user's access token
+            tokenType: 1, // Aad (Azure Active Directory) = 1
+            settings: {
+                panes: {
+                    filters: {
+                        visible: false
+                    },
+                    pageNavigation: {
+                        visible: false
+                    }
+                }
+            }
+        };
+    }
+
     async getDataForLLM(userId: string, datasetId: string, tableName: string, workspaceId?: string, format: 'csv' | 'markdown' = 'csv') {
         const query = `EVALUATE '${tableName}'`;
         const result = await this.executeDAX(userId, datasetId, query, workspaceId);

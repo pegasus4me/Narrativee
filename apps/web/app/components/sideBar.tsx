@@ -13,8 +13,9 @@ import { usePathname, useRouter } from "next/navigation";
 import PrimaryButton from "./PrimaryButton";
 import { IoAddCircle, IoFileTrayStacked, IoHomeSharp, IoSettingsSharp, IoLogoSlack, IoChatbubbles } from "react-icons/io5";
 import { FaDatabase } from "react-icons/fa";
-import { MdKeyboardDoubleArrowLeft } from "react-icons/md";
+import { MdKeyboardDoubleArrowLeft, MdKeyboardArrowDown } from "react-icons/md";
 import SidebarProfile from "./SidebarProfile";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface Template {
   id: string;
@@ -61,7 +62,9 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const nameTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [editingReportId, setEditingReportId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+
   const [credits, setCredits] = useState<number | null>(null);
+  const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(true);
 
   // Check if reportId is a valid UUID
   const isValidUUID = (id: string) => {
@@ -285,68 +288,84 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               </button>
             )}
             {isSidebarOpen && (
-              <div className="w-full px-4 py-2 text-left text-sm text-gray-700 flex items-center gap-2">
-                <IoFileTrayStacked size={14} />
-                Workspace
-              </div>
+              <button
+                onClick={() => setIsWorkspaceOpen(!isWorkspaceOpen)}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 flex items-center justify-between hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <IoFileTrayStacked size={14} />
+                  Workspace
+                </div>
+                <MdKeyboardArrowDown className={`transition-transform duration-200 ${isWorkspaceOpen ? '' : '-rotate-90'}`} />
+              </button>
             )}
             {isSidebarOpen && (
-              <section className="mt-2 h-[calc(100vh-450px)]">
-                <div className="space-y-1 h-full overflow-y-auto ml-3 border-l border-gray-200">
-                  {/* Loop through created reports */}
-                  {savedReports.length > 0 ? (
-                    savedReports.map((report) => (
-                      <div
-                        key={report.id}
-                        className={`px-4 py-2 text-left text-sm rounded-md transition-colors ${reportId === report.id
-                          ? 'text-natural-500 font-medium bg-neutral-100'
-                          : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                      >
-                        {editingReportId === report.id ? (
-                          <div className="flex items-center gap-2">
-                            <File className="size-4" strokeWidth={1.5} />
-                            <input
-                              type="text"
-                              value={editingName}
-                              onChange={(e) => setEditingName(e.target.value)}
-                              onBlur={() => handleWorkspaceNameUpdate(report.id, editingName)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  handleWorkspaceNameUpdate(report.id, editingName);
-                                } else if (e.key === 'Escape') {
-                                  setEditingReportId(null);
-                                }
-                              }}
-                              autoFocus
-                              className="flex-1 px-1 py-0.5 border border-amber-400 rounded focus:outline-none"
-                            />
+              <AnimatePresence>
+                {isWorkspaceOpen && (
+                  <motion.section
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "calc(100vh - 450px)", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="mt-2 overflow-hidden"
+                  >
+                    <div className="space-y-1 h-full overflow-y-auto ml-3 border-l border-gray-200">
+                      {/* Loop through created reports */}
+                      {savedReports.length > 0 ? (
+                        savedReports.map((report) => (
+                          <div
+                            key={report.id}
+                            className={`px-4 py-2 text-left text-sm rounded-md transition-colors ${reportId === report.id
+                              ? 'text-natural-500 font-medium bg-neutral-100'
+                              : 'text-gray-700 hover:bg-gray-100'
+                              }`}
+                          >
+                            {editingReportId === report.id ? (
+                              <div className="flex items-center gap-2">
+                                <File className="size-4" strokeWidth={1.5} />
+                                <input
+                                  type="text"
+                                  value={editingName}
+                                  onChange={(e) => setEditingName(e.target.value)}
+                                  onBlur={() => handleWorkspaceNameUpdate(report.id, editingName)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleWorkspaceNameUpdate(report.id, editingName);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingReportId(null);
+                                    }
+                                  }}
+                                  autoFocus
+                                  className="flex-1 px-1 py-0.5 border border-amber-400 rounded focus:outline-none"
+                                />
+                              </div>
+                            ) : (
+                              <Link href={`/workspace/${report.id}`} className="flex items-center gap-2">
+                                <File className="size-4" strokeWidth={1.5} />
+                                <span
+                                  className="truncate flex-1 text-sm"
+                                  onDoubleClick={(e) => {
+                                    e.preventDefault();
+                                    if (session?.user && isValidUUID(report.id)) {
+                                      setEditingReportId(report.id);
+                                      setEditingName(report.name);
+                                    }
+                                  }}
+                                  style={{ fontFamily: 'var(--font-noto)' }}
+                                >
+                                  {report.name}
+                                </span>
+                              </Link>
+                            )}
                           </div>
-                        ) : (
-                          <Link href={`/workspace/${report.id}`} className="flex items-center gap-2">
-                            <File className="size-4" strokeWidth={1.5} />
-                            <span
-                              className="truncate flex-1 text-sm"
-                              onDoubleClick={(e) => {
-                                e.preventDefault();
-                                if (session?.user && isValidUUID(report.id)) {
-                                  setEditingReportId(report.id);
-                                  setEditingName(report.name);
-                                }
-                              }}
-                              style={{ fontFamily: 'var(--font-noto)' }}
-                            >
-                              {report.name}
-                            </span>
-                          </Link>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="px-4 py-2 text-xs text-gray-500 italic">No reports yet</p>
-                  )}
-                </div>
-              </section>
+                        ))
+                      ) : (
+                        <p className="px-4 py-2 text-xs text-gray-500 italic">No reports yet</p>
+                      )}
+                    </div>
+                  </motion.section>
+                )}
+              </AnimatePresence>
             )}
           </div>
 

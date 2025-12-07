@@ -49,7 +49,6 @@ export const auth = betterAuth({
         "User.Read"
       ],
       tenantId: "common",
-      prompt: "consent",
     },
   },
   account: {

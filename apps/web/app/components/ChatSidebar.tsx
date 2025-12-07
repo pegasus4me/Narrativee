@@ -7,7 +7,7 @@ import { authClient } from "../../lib/auth-client";
 import { reportApi } from "../../lib/apis";
 import Markdown from "markdown-to-jsx";
 import { sendGTMEvent } from "../../lib/gtm";
-
+import { MdKeyboardDoubleArrowLeft } from "react-icons/md";
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -191,31 +191,21 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
       style={{ overflow: isOpen ? "visible" : "hidden" }}
     >
 
-      <header className="p-2 mt-3 border-b border-gray-200">
+      <header className="p-2 mt-3 border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2" >
           <Sparkles strokeWidth={1.5} size={19} className="text-amber-600" />
           <p style={{ fontFamily: 'var(--font-petrona)' }} className="text-xl">Assistant</p>
         </div>
+        <button
+          onClick={onClose}
+          className="hover:bg-gray-200 rounded-md transition-colors p-1"
+          aria-label="Close chat"
+        >
+          <MdKeyboardDoubleArrowLeft className="w-5 h-5 text-gray-600 rotate-180" />
+        </button>
       </header>
       {/* Collapse/Expand Button */}
-      <button
-        onClick={onClose}
-        className={`
-          fixed top-1/2 -translate-y-1/2 z-50
-          transition-all duration-300 bg-neutral-100 h-20 rounded-l-md
-          ${isOpen ? 'right-96' : 'right-0 hidden'}
-        `}
-        aria-label="Close chat"
-      >
-        <svg
-          className="w-4 h-4 text-gray-600 transition-transform duration-300"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+
 
       {isOpen && (
         <>

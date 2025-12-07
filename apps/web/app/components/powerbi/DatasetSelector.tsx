@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { authClient } from "../../../lib/auth-client";
-import { Database, Folder, ChevronRight, Loader2 } from "clicons-react";
+import { Database, Folder, ChevronRight, Loader2, File } from "clicons-react";
+import PowerBIEmbed from "./PowerBIEmbed";
 
 interface DatasetSelectorProps {
     isOpen: boolean;
@@ -29,14 +30,17 @@ interface Dataset {
 }
 
 export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorProps) {
-    const [step, setStep] = useState<"workspaces" | "datasets" | "tables" | "preview">("workspaces");
+    const [step, setStep] = useState<"workspaces" | "datasets" | "tables" | "preview" | "embed">("workspaces");
+    const [tab, setTab] = useState<"datasets" | "reports">("datasets");
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [datasets, setDatasets] = useState<Dataset[]>([]);
+    const [reports, setReports] = useState<any[]>([]);
     const [tables, setTables] = useState<any[]>([]);
     const [previewData, setPreviewData] = useState<any[]>([]);
 
     const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
     const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
+    const [selectedReport, setSelectedReport] = useState<any>(null);
     const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
     const [isLoading, setIsLoading] = useState(false);
@@ -53,6 +57,7 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
     useEffect(() => {
         if (selectedWorkspace) {
             fetchDatasets(selectedWorkspace.id);
+            fetchReports(selectedWorkspace.id);
         }
     }, [selectedWorkspace]);
 
@@ -94,6 +99,19 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
             setError(err.message);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchReports = async (workspaceId: string) => {
+        // Don't set global loading here to avoid flickering if datasets load fast
+        try {
+            const response = await fetch(`http://localhost:3002/api/powerbi/reports?workspaceId=${workspaceId}`, { credentials: "include" });
+            if (response.ok) {
+                const data = await response.json();
+                setReports(data as any[]);
+            }
+        } catch (err) {
+            console.error("Failed to fetch reports", err);
         }
     };
 
@@ -163,14 +181,19 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
             setStep("workspaces");
             setDatasets([]);
             setSelectedWorkspace(null);
+        } else if (step === "embed") {
+            setStep("datasets");
+            setSelectedReport(null);
         }
     };
 
     const handleImport = () => {
+        console.log("handleImport called. Selected:", { dataset: selectedDataset, table: selectedTable });
         onSelect({
             dataset: selectedDataset,
             table: selectedTable,
-            preview: previewData
+            preview: previewData,
+            workspaceId: selectedWorkspace?.id // Added workspaceId
         });
         onClose();
     };
@@ -190,6 +213,7 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
                         <h3 className="text-xl font-bold text-gray-900">
                             {step === "workspaces" && "Select Workspace"}
                             {step === "datasets" && selectedWorkspace?.name}
+                            {step === "embed" && selectedReport?.name}
                             {step === "tables" && selectedDataset?.name}
                             {step === "preview" && `Preview: ${selectedTable}`}
                         </h3>
@@ -198,7 +222,10 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
                         <button
                             onClick={() => {
                                 if (step === "workspaces") fetchWorkspaces();
-                                else if (step === "datasets" && selectedWorkspace) fetchDatasets(selectedWorkspace.id);
+                                else if (step === "datasets" && selectedWorkspace) {
+                                    fetchDatasets(selectedWorkspace.id);
+                                    fetchReports(selectedWorkspace.id);
+                                }
                                 else if (step === "tables" && selectedDataset) fetchTables(selectedDataset.id);
                             }}
                             className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-colors"
@@ -232,13 +259,44 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
                                 </button>
                             ))}
 
-                            {step === "datasets" && datasets.map((ds) => (
+
+
+                            {step === "datasets" && (
+                                <div className="mb-4 flex gap-4 border-b border-gray-100">
+                                    <button
+                                        onClick={() => setTab("datasets")}
+                                        className={`pb-2 px-1 text-sm font-medium transition-colors relative ${tab === "datasets" ? "text-amber-600" : "text-gray-500 hover:text-gray-700"}`}
+                                    >
+                                        Datasets
+                                        {tab === "datasets" && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-amber-600 rounded-full" />}
+                                    </button>
+                                    <button
+                                        onClick={() => setTab("reports")}
+                                        className={`pb-2 px-1 text-sm font-medium transition-colors relative ${tab === "reports" ? "text-amber-600" : "text-gray-500 hover:text-gray-700"}`}
+                                    >
+                                        Reports
+                                        {tab === "reports" && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-amber-600 rounded-full" />}
+                                    </button>
+                                </div>
+                            )}
+
+                            {step === "datasets" && tab === "datasets" && datasets.map((ds) => (
                                 <button key={ds.id} onClick={() => setSelectedDataset(ds)} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg border border-transparent hover:border-gray-200 transition-all group text-left">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center group-hover:bg-amber-100 transition-colors"><Database size={20} /></div>
                                         <div><p className="font-medium text-gray-900">{ds.name}</p></div>
                                     </div>
                                     <ChevronRight className="text-gray-300 group-hover:text-gray-500 transition-colors" size={20} />
+                                </button>
+                            ))}
+
+                            {step === "datasets" && tab === "reports" && reports.map((rpt) => (
+                                <button key={rpt.id} onClick={() => { setSelectedReport(rpt); setStep("embed"); }} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg border border-transparent hover:border-gray-200 transition-all group text-left">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors"><File size={20} /></div>
+                                        <div><p className="font-medium text-gray-900">{rpt.name}</p></div>
+                                    </div>
+                                    <div className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors">View Report</div>
                                 </button>
                             ))}
 
@@ -282,6 +340,9 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
 
                             {step === "preview" && (
                                 <div>
+                                    <div className="mb-4 flex justify-end">
+                                        <button onClick={handleImport} className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors font-medium">Import Data</button>
+                                    </div>
                                     <div className="overflow-x-auto border rounded-lg">
                                         <table className="min-w-full divide-y divide-gray-200">
                                             <thead className="bg-gray-50">
@@ -302,10 +363,15 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div className="mt-4 flex justify-end">
-                                        <button onClick={handleImport} className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors font-medium">Import Data</button>
-                                    </div>
                                 </div>
+                            )}
+
+
+                            {step === "embed" && selectedReport && (
+                                <PowerBIEmbed
+                                    reportId={selectedReport.id}
+                                    workspaceId={selectedWorkspace?.id}
+                                />
                             )}
                         </div>
                     )}
