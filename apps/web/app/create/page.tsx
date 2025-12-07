@@ -9,7 +9,12 @@ import useLocalStorage from "../hooks/useLocalStorage";
 import { authClient } from "../../lib/auth-client";
 import { ReportAPI } from "../../lib/apis";
 import PrimaryButton from "../components/PrimaryButton";
+
 import { sendGTMEvent } from "../../lib/gtm";
+
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://api.narrativee.com'
+  : 'http://localhost:3002';
 export default function CreatePage() {
   const router = useRouter();
   const apis = new ReportAPI();
@@ -21,6 +26,11 @@ export default function CreatePage() {
     fileName?: string;
     fileSize?: number;
     fileData?: string; // Base64 encoded file
+    powerbi?: {
+      dataset: { id: string; name: string };
+      table: string;
+      workspaceId: string;
+    };
   }>("narrativee-session", {});
 
   const [story, setStory] = useState("");
@@ -45,39 +55,58 @@ export default function CreatePage() {
       return;
     }
 
-    // Get the file from localStorage
-    const fileData = sessionData.fileData;
-    const fileName = sessionData.fileName;
-
-    if (!fileData || !fileName) {
-      alert("File data not found. Please upload a file again.");
-      router.push('/');
-      return;
-    }
-
     setIsGenerating(true);
 
     try {
-      // Convert base64 back to File object
-      const base64Parts = fileData.split(',');
-      if (base64Parts.length < 2 || !base64Parts[1]) {
-        throw new Error('Invalid file data format');
-      }
-      const byteString = atob(base64Parts[1]);
+      let file: File;
 
-      const mimeTypePart = base64Parts[0]?.split(':')[1];
-      if (!mimeTypePart) {
-        throw new Error('Invalid MIME type format');
+      // Check for Power BI data
+      if (sessionData.powerbi) {
+        console.log("Generating from Power BI dataset:", sessionData.powerbi);
+        const { dataset, table, workspaceId } = sessionData.powerbi;
+
+        // Fetch CSV data
+        const response = await fetch(`${API_BASE_URL}/api/powerbi/test-parsing?datasetId=${dataset.id}&tableName=${table}&workspaceId=${workspaceId}&format=csv`, {
+          credentials: 'include'
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch Power BI data");
+
+        const csvContent = await response.text();
+        file = new File([csvContent], `${dataset.name}-${table}.csv`, { type: 'text/csv' });
+
+      } else {
+        // Existing file logic
+        const fileData = sessionData.fileData;
+        const fileName = sessionData.fileName;
+
+        if (!fileData || !fileName) {
+          alert("File data not found. Please upload a file again.");
+          router.push('/');
+          return;
+        }
+
+        // Convert base64 back to File object
+        const base64Parts = fileData.split(',');
+        if (base64Parts.length < 2 || !base64Parts[1]) {
+          throw new Error('Invalid file data format');
+        }
+        const byteString = atob(base64Parts[1]);
+
+        const mimeTypePart = base64Parts[0]?.split(':')[1];
+        if (!mimeTypePart) {
+          throw new Error('Invalid MIME type format');
+        }
+        const mimeParts = mimeTypePart.split(';');
+        const mimeString = mimeParts[0] || 'application/octet-stream';
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        const blob = new Blob([ab], { type: mimeString });
+        file = new File([blob], fileName, { type: mimeString });
       }
-      const mimeParts = mimeTypePart.split(';');
-      const mimeString = mimeParts[0] || 'application/octet-stream';
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-      }
-      const blob = new Blob([ab], { type: mimeString });
-      const file = new File([blob], fileName, { type: mimeString });
 
       // Generate temporary reportId
       const tempReportId = Math.random().toString(36).substring(7);

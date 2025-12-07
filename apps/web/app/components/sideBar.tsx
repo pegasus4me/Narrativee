@@ -4,14 +4,18 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import logo from "../../public/logo.png";
-import { Add, Setting7, File, Home4, Slack} from "clicons-react";
+import { Add, Setting7, File, Home4, Slack, Database, Sparkles } from "clicons-react";
 import Link from "next/link";
 import { useSideBarStore } from "../state/logo-transition/SideBar.store";
 import { authClient } from "../../lib/auth-client";
 import { reportApi } from "../../lib/apis";
 import { usePathname, useRouter } from "next/navigation";
 import PrimaryButton from "./PrimaryButton";
-
+import { IoAddCircle, IoFileTrayStacked, IoHomeSharp, IoSettingsSharp, IoLogoSlack, IoChatbubbles } from "react-icons/io5";
+import { FaDatabase } from "react-icons/fa";
+import { MdKeyboardDoubleArrowLeft, MdKeyboardArrowDown } from "react-icons/md";
+import SidebarProfile from "./SidebarProfile";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface Template {
   id: string;
@@ -49,6 +53,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const reportId = params.reportID as string;
   const isSidebarOpen = useSideBarStore((state) => state.opened);
   const toggleSidebar = useSideBarStore((state) => state.toggleSidebar);
+  const toggleChat = useSideBarStore((state) => state.toggleChat);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [savedReports, setSavedReports] = useState<SavedReport[]>([]);
@@ -57,7 +62,9 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const nameTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [editingReportId, setEditingReportId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+
   const [credits, setCredits] = useState<number | null>(null);
+  const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(true);
 
   // Check if reportId is a valid UUID
   const isValidUUID = (id: string) => {
@@ -226,30 +233,12 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
 
   return (
     <>
-      {/* Collapse/Expand Button */}
-      <button
-        onClick={toggleSidebar}
-        className={`
-          fixed top-1/2 -translate-y-1/2 z-50 
-           transition-all duration-300 bg-neutral-100 h-20 rounded-r-md
-          ${isSidebarOpen ? 'left-80' : 'left-0'}
-        `}
-        aria-label={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-      >
-        <svg
-          className={`w-4 h-4 text-gray-600 transition-transform duration-300 ${isSidebarOpen ? '' : 'rotate-180'}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
+
 
       <aside
         className={`
-          h-screen bg-white border-r border-gray-200 transition-all duration-300
-          ${isSidebarOpen ? "w-80" : "w-0"}
+          h-screen  border-r border-gray-200 bg-white
+          ${isSidebarOpen ? "w-67" : "w-16"}
           overflow-hidden
         `}
         style={{ fontFamily: 'var(--font-noto)' }}
@@ -257,174 +246,150 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
         {/* 1. h-full: Makes the container take full height 
            2. flex-col: Stacks children vertically
         */}
-        <div className="p-6 h-full overflow-y-auto flex flex-col">
+        <div className="p-3 h-full overflow-y-auto flex flex-col">
+          <div className="flex items-center justify-between mb-2" >
+            {isSidebarOpen && session?.user ? (
+              <SidebarProfile isCollapsed={!isSidebarOpen} />
+            ) : (
+              null
+            )}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
 
-          {/* --- Top Section (Report Status) --- */}
-          <div className="mb-6">
-            <div className="mb-5">
-              <Image src={logo} alt="logo" width={140} />
+              </div>
+              <button
+                onClick={toggleSidebar}
+                className={`hover:bg-gray-200 rounded-md transition-colors p-1 ${!isSidebarOpen ? 'mx-auto' : ''}`}
+                aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+              >
+                <MdKeyboardDoubleArrowLeft className={`w-5 h-5 text-gray-600 transition-transform ${!isSidebarOpen ? 'rotate-180' : ''}`} />
+              </button>
             </div>
-
-            {reportData && !path.endsWith('/workspace') && (
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs text-gray-500 uppercase tracking-wide">
-                    Data Name
-                  </label>
-                  <p className="text-sm font-medium text-gray-900 mt-1 wrap-break-words overflow-hidden" style={{ fontFamily: "var(--font-mono)" }}>
-                    {reportData.metadata.fileName}
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-gray-200">
-                  <label className="text-xs text-gray-500 uppercase tracking-wide">
-                    Data Summary
-                  </label>
-                  <div className="mt-2 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Rows:</span>
-                      <span className="font-medium text-gray-900" style={{ fontFamily: "var(--font-mono)" }}>
-                        {reportData.metadata.rowCount}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 text-md">Columns:</span>
-                      <span className="font-medium text-gray-900" style={{ fontFamily: "var(--font-mono)" }}>
-                        {reportData.metadata.columns.length}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {!path.endsWith('/workspace') && isLoading && (
-              <div className="space-y-3 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-              </div>
-            )}
           </div>
-
           {/* --- Actions (New Report) --- */}
-          <div className="space-y-2 pt-4 border-t border-gray-200">
-            <Link href="/" className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-amber-100 rounded-lg transition-colors flex items-center gap-2">
-              <Add size={20} />
-              New Report
+          <div className="space-y-1 pt-4">
+            <Link href="/workspace/new" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <IoAddCircle size={18} className="shrink-0" />
+              {isSidebarOpen && <span>New</span>}
             </Link>
-            <section>
-              <h4 className="px-4 text-sm font-medium text-gray-900 mb-2">Workspace</h4>
-              <div className="">
-                {/* Loop through created reports */}
-                {savedReports.length > 0 ? (
-                  savedReports.map((report) => (
-                    <div
-                      key={report.id}
-                      className={`px-4 py-2 text-left text-sm rounded-md transition-colors ${reportId === report.id
-                        ? 'text-natural-500 font-medium bg-neutral-100'
-                        : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                    >
-                      {editingReportId === report.id ? (
-                        <div className="flex items-center gap-2">
-                          <File className="size-4" strokeWidth={1.5} />
-                          <input
-                            type="text"
-                            value={editingName}
-                            onChange={(e) => setEditingName(e.target.value)}
-                            onBlur={() => handleWorkspaceNameUpdate(report.id, editingName)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleWorkspaceNameUpdate(report.id, editingName);
-                              } else if (e.key === 'Escape') {
-                                setEditingReportId(null);
-                              }
-                            }}
-                            autoFocus
-                            className="flex-1 px-1 py-0.5 border border-amber-400 rounded focus:outline-none"
-                          />
-                        </div>
-                      ) : (
-                        <Link href={`/workspace/${report.id}`} className="flex items-center gap-2">
-                          <File className="size-4" strokeWidth={1.5} />
-                          <span
-                            className="truncate flex-1"
-                            onDoubleClick={(e) => {
-                              e.preventDefault();
-                              if (session?.user && isValidUUID(report.id)) {
-                                setEditingReportId(report.id);
-                                setEditingName(report.name);
-                              }
-                            }}
+            <Link href="/workspace/integrations" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <FaDatabase size={15
+
+              } className="shrink-0" />
+              {isSidebarOpen && <span>Integrations</span>}
+            </Link>
+            {reportId && !path.endsWith('/workspace') && (
+              <button
+                onClick={toggleChat}
+                className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}
+              >
+                <IoChatbubbles size={18} className="shrink-0" />
+                {isSidebarOpen && <span>Ask AI</span>}
+              </button>
+            )}
+            {isSidebarOpen && (
+              <button
+                onClick={() => setIsWorkspaceOpen(!isWorkspaceOpen)}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 flex items-center justify-between hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <IoFileTrayStacked size={14} />
+                  Workspace
+                </div>
+                <MdKeyboardArrowDown className={`transition-transform duration-200 ${isWorkspaceOpen ? '' : '-rotate-90'}`} />
+              </button>
+            )}
+            {isSidebarOpen && (
+              <AnimatePresence>
+                {isWorkspaceOpen && (
+                  <motion.section
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "calc(100vh - 450px)", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="mt-2 overflow-hidden"
+                  >
+                    <div className="space-y-1 h-full overflow-y-auto ml-3 border-l border-gray-200">
+                      {/* Loop through created reports */}
+                      {savedReports.length > 0 ? (
+                        savedReports.map((report) => (
+                          <div
+                            key={report.id}
+                            className={`px-4 py-2 text-left text-sm rounded-md transition-colors ${reportId === report.id
+                              ? 'text-natural-500 font-medium bg-neutral-100'
+                              : 'text-gray-700 hover:bg-gray-100'
+                              }`}
                           >
-                            {report.name}
-                          </span>
-                        </Link>
+                            {editingReportId === report.id ? (
+                              <div className="flex items-center gap-2">
+                                <File className="size-4" strokeWidth={1.5} />
+                                <input
+                                  type="text"
+                                  value={editingName}
+                                  onChange={(e) => setEditingName(e.target.value)}
+                                  onBlur={() => handleWorkspaceNameUpdate(report.id, editingName)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleWorkspaceNameUpdate(report.id, editingName);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingReportId(null);
+                                    }
+                                  }}
+                                  autoFocus
+                                  className="flex-1 px-1 py-0.5 border border-amber-400 rounded focus:outline-none"
+                                />
+                              </div>
+                            ) : (
+                              <Link href={`/workspace/${report.id}`} className="flex items-center gap-2">
+                                <File className="size-4" strokeWidth={1.5} />
+                                <span
+                                  className="truncate flex-1 text-sm"
+                                  onDoubleClick={(e) => {
+                                    e.preventDefault();
+                                    if (session?.user && isValidUUID(report.id)) {
+                                      setEditingReportId(report.id);
+                                      setEditingName(report.name);
+                                    }
+                                  }}
+                                  style={{ fontFamily: 'var(--font-noto)' }}
+                                >
+                                  {report.name}
+                                </span>
+                              </Link>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="px-4 py-2 text-xs text-gray-500 italic">No reports yet</p>
                       )}
                     </div>
-                  ))
-                ) : (
-                  <p className="px-4 py-2 text-xs text-gray-500 italic">No reports yet</p>
+                  </motion.section>
                 )}
-              </div>
-            </section>
+              </AnimatePresence>
+            )}
           </div>
 
           {/* --- Bottom Section ---
               Added `mt-auto` to push this to the bottom
               Added `space-y-2` for spacing between buttons
           */}
-          <div className="mt-auto pt-4 border-t border-gray-200 space-y-2">
-            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2"
+          <div className="mt-auto pt-4 border-gray-200 space-y-1">
+            <button className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}
               onClick={() => router.push("/workspace")}
             >
-              <Home4 size={20} />
-              Your workspace
+              <IoHomeSharp size={18} className="shrink-0" />
+              {isSidebarOpen && <span>Home</span>}
             </button>
 
-            <Link href="/setting" className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
-              <Setting7 size={20} />
-              Settings
+            <Link href="/setting" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <IoSettingsSharp size={18} className="shrink-0" />
+              {isSidebarOpen && <span>Settings</span>}
             </Link>
-            <a href="https://narrativecommunity.slack.com" target="_blank" className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
-              <Slack size={20} />
-              Join Narrativee slack 
+            <a href="https://narrativecommunity.slack.com" target="_blank" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <IoLogoSlack size={18} className="shrink-0" />
+              {isSidebarOpen && <span>Join slack</span>}
             </a>
 
-
-            <div suppressHydrationWarning>
-
-              {session?.user ? (
-                <div className="pt-2">
-                  <div className="flex items-center gap-2 px-3 py-2 ">
-                    <Image
-                      src={session.user.image || '/default-avatar.png'}
-                      alt={session.user.name || 'User'}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate" style={{ fontFamily: 'var(--font-petrona)' }}>{session.user.name}</p>
-                      <div className="flex justify-between items-center">
-                        <p className="text-xs text-gray-900">
-                          {(session.user as any).plan ? (session.user as any).plan.charAt(0).toUpperCase() + (session.user as any).plan.slice(1) : 'Free'} plan
-                        </p>
-                        {credits !== null && (
-                          <span className="text-xs text-black font-medium ml-2" style={{ fontFamily: 'var(--font-noto)' }}>{credits} credits</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <PrimaryButton className="w-full font-semibold"
-                  onClick={() => router.push("/auth/signin")}
-                >
-                  Login to save your work
-                </PrimaryButton>
-              )}
-            </div>
           </div>
         </div>
       </aside>

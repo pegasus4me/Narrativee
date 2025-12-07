@@ -8,8 +8,8 @@ import dotenv from 'dotenv';
 import reportRouter from './routes/report';
 import chatRouter from './routes/chat';
 import pricingRouter from './routes/pricing';
-
 import userRouter from './routes/user';
+import powerbiRouter from './routes/powerbi.routes';
 import cookieParser from 'cookie-parser';
 import { auth } from "./auth/auth"
 import { toNodeHandler } from "better-auth/node";
@@ -54,6 +54,7 @@ app.get('/health', (req, res) => {
 app.use('/api/report', reportRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/user', userRouter);
+app.use('/api/powerbi', powerbiRouter);
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

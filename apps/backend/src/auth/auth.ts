@@ -8,6 +8,11 @@ import dns from 'node:dns';
 
 dotenv.config()
 
+console.log("Auth Config Debug:");
+console.log("MICROSOFT_CLIENT_ID present:", !!process.env.MICROSOFT_CLIENT_ID);
+console.log("MICROSOFT_CLIENT_SECRET present:", !!process.env.MICROSOFT_CLIENT_SECRET);
+console.log("BETTER_AUTH_URL:", process.env.BETTER_AUTH_URL);
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   allowExitOnIdle: true,
@@ -21,6 +26,7 @@ pool.on('error', (err) => {
 export const db = drizzle(pool, { schema: schema });
 
 export const auth = betterAuth({
+  debug: true,
   baseURL: process.env.BETTER_AUTH_URL,
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -35,6 +41,27 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       enabled: true,
     },
+    microsoft: {
+      clientId: process.env.MICROSOFT_CLIENT_ID!,
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
+      enabled: true,
+      scope: [
+        "offline_access",
+        "https://analysis.windows.net/powerbi/api/Dataset.Read.All",
+        "https://analysis.windows.net/powerbi/api/Dataset.ReadWrite.All",
+        "https://analysis.windows.net/powerbi/api/Report.Read.All",
+        "https://analysis.windows.net/powerbi/api/Workspace.Read.All",
+        "User.Read"
+      ],
+      tenantId: "common",
+    },
+  },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google", "microsoft"],
+      allowDifferentEmails: true
+    },
   },
   secret: process.env.BETTER_AUTH_SECRET,
   trustedOrigins: [
@@ -45,7 +72,7 @@ export const auth = betterAuth({
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
     // REMOVE THIS IN LOCAL DEVELOPEMENT
-  
+
   },
   user: {
     additionalFields: {

@@ -4,11 +4,16 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { authClient } from "../../lib/auth-client";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { DatasetSelector } from "./powerbi/DatasetSelector";
+import { File as FileIcon, BarChart, X, Link } from "clicons-react";
 
 export default function FileUploadPrompt() {
   const [message, setMessage] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [powerBIDataset, setPowerBIDataset] = useState<any | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -18,6 +23,7 @@ export default function FileUploadPrompt() {
     fileName?: string;
     fileSize?: number;
     fileData?: string; // Base64 encoded file
+    powerbi?: any; // Power BI dataset info
   }>("narrativee-session", {});
 
   const { data: session } = authClient.useSession();
@@ -65,14 +71,24 @@ export default function FileUploadPrompt() {
       }
 
       setFile(selectedFile);
+      setPowerBIDataset(null); // Only allow one attachment type for now for simplicity, or allow both?
+      // Let's allow replacing for now to keep UI simple, or we can support multiple later.
       calculateCost(selectedFile);
     }
+  };
+
+  const handlePowerBISelect = (data: any) => {
+    console.log("handlePowerBISelect called with:", data);
+    setPowerBIDataset(data);
+    setFile(null); // Clear file if PBI selected
+    // TODO: Calculate cost for Power BI?
+    setEstimatedCost(5); // Base cost for now
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!file && !message) return;
+    if (!file && !powerBIDataset && !message) return;
 
     setUploading(true);
 
@@ -98,6 +114,7 @@ export default function FileUploadPrompt() {
         fileName: file?.name || undefined,
         fileSize: file?.size || undefined,
         fileData: fileData || undefined,
+        powerbi: powerBIDataset || undefined
       });
 
       // Redirect to intent page
@@ -109,8 +126,9 @@ export default function FileUploadPrompt() {
     }
   };
 
-  const removeFile = () => {
+  const removeAttachment = () => {
     setFile(null);
+    setPowerBIDataset(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -119,32 +137,27 @@ export default function FileUploadPrompt() {
   return (
     <div className="w-full max-w-3xl mx-auto">
       <form onSubmit={handleSubmit} className="relative">
-        {/* File attachment preview */}
-        {file && (
-          <div className="mb-3 flex flex-col gap-2 px-4 py-2 bg-amber-50 rounded-lg text-sm">
+        {/* Attachment preview */}
+        {(file || powerBIDataset) && (
+          <div className={`mb-3 flex flex-col gap-2 px-4 py-2 rounded-lg text-sm ${powerBIDataset ? 'bg-amber-50 text-amber-800' : 'bg-blue-50 text-blue-800'}`}>
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="flex-1 text-gray-700 font-medium truncate">{file.name}</span>
-              <span className="text-gray-500 text-xs">{(file.size / 1024).toFixed(1)} KB</span>
+              {powerBIDataset ? <BarChart size={16} /> : <FileIcon size={16} />}
+              <span className="flex-1 font-medium truncate">
+                {file ? file.name : `${powerBIDataset.dataset.name} - ${powerBIDataset.table}`}
+              </span>
+              {file && <span className="text-xs opacity-70">{(file.size / 1024).toFixed(1)} KB</span>}
               <button
                 type="button"
-                onClick={removeFile}
-                className="text-gray-400 hover:text-gray-600"
+                onClick={removeAttachment}
+                className="hover:opacity-70"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X size={16} />
               </button>
             </div>
 
             {/* Cost Estimate */}
             {estimatedCost !== null && session?.user && (
-              <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-100/50 px-2 py-1 rounded">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+              <div className="flex items-center gap-2 text-xs opacity-80 bg-white/50 px-2 py-1 rounded w-fit">
                 <span>Estimated cost: <strong>{estimatedCost} credits</strong></span>
               </div>
             )}
@@ -153,18 +166,29 @@ export default function FileUploadPrompt() {
 
         {/* Input container */}
         <div className="relative flex items-end gap-2 p-3 bg-white border border-gray-200 rounded-2xl hover:border-gray-300 focus-within:border-amber-400 focus-within:shadow-md transition-all">
-          {/* Attachment button */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-            title="Attach file"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-            </svg>
-          </button>
+          {/* Attachment Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                disabled={uploading}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                title="Attach data"
+              >
+                <Link size={20} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                <FileIcon className="mr-2 h-4 w-4" />
+                <span>Import File</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsSelectorOpen(true)}>
+                <BarChart className="mr-2 h-4 w-4 text-amber-600" />
+                <span>Power BI</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <input
             ref={fileInputRef}
@@ -187,7 +211,7 @@ export default function FileUploadPrompt() {
           {/* Send button */}
           <button
             type="submit"
-            disabled={uploading || (!file && !message)}
+            disabled={uploading || (!file && !powerBIDataset && !message)}
             className="p-2 bg-amber-400 text-white rounded-lg hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             {uploading ? (
@@ -205,9 +229,15 @@ export default function FileUploadPrompt() {
 
         {/* Helper text */}
         <p className="mt-2 text-xs text-gray-500 px-2">
-          Upload CSV or Excel files
+          Upload CSV/Excel files or connect Power BI
         </p>
       </form>
+
+      <DatasetSelector
+        isOpen={isSelectorOpen}
+        onClose={() => setIsSelectorOpen(false)}
+        onSelect={handlePowerBISelect}
+      />
     </div>
   );
 }
