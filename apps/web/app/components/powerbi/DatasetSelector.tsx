@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { authClient } from "../../../lib/auth-client";
 import { Database, Folder, ChevronRight, Loader2, File } from "clicons-react";
-import PowerBIEmbed from "./PowerBIEmbed";
+import dynamic from "next/dynamic";
+
+const PowerBIEmbed = dynamic(() => import("./PowerBIEmbed"), { ssr: false });
 
 const API_BASE_URL = process.env.NODE_ENV === 'production'
     ? 'https://api.narrativee.com'
