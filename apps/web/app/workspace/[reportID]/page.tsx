@@ -7,6 +7,7 @@ import { authClient } from "../../../lib/auth-client";
 import { reportApi } from "../../../lib/apis";
 import Image from "next/image";
 import logo from "../../../public/sidelogo.png"
+import ReportFooter from "../../components/ReportFooter";
 interface Template {
   id: string;
   name: string;
@@ -106,28 +107,34 @@ export default function WorkspacePage() {
     <div className="h-screen flex bg-gray-50">
 
       {/* Main Editor Area */}
-      <main className="flex-1 overflow-hidden bg-[#ffffff]">
-        {isLoading ? (
-          <div className="flex items-center justify-center flex-col py-20">
-            <div>
-              <Image src={logo} alt="logo" width={170} className="animate-pulse"/>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2" >
-              Generating Your Report
-            </h2>
+      <main className="flex-1 flex flex-col overflow-hidden bg-[#ffffff]">
+        <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center flex-col py-20">
+              <div>
+                <Image src={logo} alt="logo" width={170} className="animate-pulse" />
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2" >
+                  Generating Your Report
+                </h2>
+              </div>
+              <p className="text-gray-600">
+                Our AI is analyzing your data and creating your narrative report...
+              </p>
             </div>
-            <p className="text-gray-600">
-              Our AI is analyzing your data and creating your narrative report...
-            </p>
-          </div>
-        ) : reportData && reportData.template ? (
-          <ReportEditor
-            template={reportData.template}
-            reportId={reportId}
-          />
-        ) : (
-          <div className="text-center py-20">
-            <p className="text-gray-600">Failed to load report data</p>
-          </div>
+          ) : reportData && reportData.template ? (
+            <ReportEditor
+              template={reportData.template}
+              reportId={reportId}
+            />
+          ) : (
+            <div className="text-center py-20">
+              <p className="text-gray-600">Failed to load report data</p>
+            </div>
+          )}
+        </div>
+
+        {reportData && !isLoading && (
+          <ReportFooter reportData={reportData} />
         )}
       </main>
     </div>

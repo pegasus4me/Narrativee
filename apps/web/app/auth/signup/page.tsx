@@ -24,7 +24,7 @@ export default function SignUp() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: window.location.origin ,
       });
     } catch (err) {
       setError("Failed to connect with Google");

@@ -3,20 +3,27 @@
 import { useState, useEffect } from "react";
 import { authClient } from "../../lib/auth-client";
 import { reportApi } from "../../lib/apis";
-import { User, CreditCard, Settings as SettingsIcon, Logout, Delete, Moon, Sun, Globe, Tick } from "clicons-react";
+import { User, CreditCard, Settings as SettingsIcon, Logout, Delete, Moon, Sun, Globe, Tick, Share } from "clicons-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
     const { data: session } = authClient.useSession();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"profile" | "billing" | "preferences">("profile");
+    const [activeTab, setActiveTab] = useState<"profile" | "billing" | "preferences" | "integrations">("profile");
     const [credits, setCredits] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-
+    const [linkedAccounts, setLinkedAccounts] = useState<any[]>([]);
+    console.log("session", session);
     useEffect(() => {
         if (session?.user) {
             reportApi.getUserCredits().then(setCredits).catch(console.error);
+            console.log(session.user);
+            authClient.listAccounts().then((res) => {
+                if (res.data) {
+                    setLinkedAccounts(res.data);
+                }
+            });
         }
     }, [session]);
 
@@ -41,6 +48,20 @@ export default function SettingsPage() {
         await authClient.signOut();
         router.push("/");
     };
+
+    const handleConnectPowerBI = async () => {
+        try {
+            await authClient.linkSocial({
+                provider: "microsoft",
+                callbackURL: window.location.origin + "/setting",
+            });
+        } catch (error) {
+            console.error("Failed to link PowerBI:", error);
+            alert("Failed to connect PowerBI account");
+        }
+    };
+
+    const isPowerBIConnected = linkedAccounts.some(acc => acc.provider === "microsoft");
 
     if (!session?.user) {
         return (
@@ -73,6 +94,14 @@ export default function SettingsPage() {
                         >
                             <CreditCard size={18} />
                             Billing & Plans
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("integrations")}
+                            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "integrations" ? "bg-amber-100 text-amber-900" : "text-gray-600 hover:bg-gray-100"
+                                }`}
+                        >
+                            <Share size={18} />
+                            Integrations
                         </button>
                         <button
                             onClick={() => setActiveTab("preferences")}
@@ -217,6 +246,36 @@ export default function SettingsPage() {
                                     </table>
                                     <div className="p-4 text-center text-gray-500 text-sm bg-gray-50 border-t border-gray-200">
                                         No more history available
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === "integrations" && (
+                        <div className="space-y-8">
+                            <div>
+                                <h2 className="text-xl font-semibold mb-4">Data Sources</h2>
+                                <p className="text-gray-600 mb-6">Connect your data sources to automatically generate reports.</p>
+
+                                <div className="grid gap-4">
+                                    {/* PowerBI Integration Card */}
+                                    {/* Placeholder for future integrations */}
+                                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl opacity-60">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                                <svg className="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold text-gray-900">Google Sheets</h3>
+                                                <p className="text-sm text-gray-500">Coming soon</p>
+                                            </div>
+                                        </div>
+                                        <button disabled className="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed">
+                                            Soon
+                                        </button>
                                     </div>
                                 </div>
                             </div>
