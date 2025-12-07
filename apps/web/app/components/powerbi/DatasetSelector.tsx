@@ -5,6 +5,10 @@ import { authClient } from "../../../lib/auth-client";
 import { Database, Folder, ChevronRight, Loader2, File } from "clicons-react";
 import PowerBIEmbed from "./PowerBIEmbed";
 
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+    ? 'https://api.narrativee.com'
+    : 'http://localhost:3002';
+
 interface DatasetSelectorProps {
     isOpen: boolean;
     onClose: () => void;
@@ -72,7 +76,7 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch("http://localhost:3002/api/powerbi/workspaces", { credentials: "include" });
+            const response = await fetch(`${API_BASE_URL}/api/powerbi/workspaces`, { credentials: "include" });
             if (!response.ok) throw new Error("Failed to fetch workspaces");
             const data = await response.json() as { success: boolean; workspaces: Workspace[]; error?: string };
             if (data.success) setWorkspaces(data.workspaces);
@@ -88,7 +92,7 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`http://localhost:3002/api/powerbi/datasets?workspaceId=${workspaceId}`, { credentials: "include" });
+            const response = await fetch(`${API_BASE_URL}/api/powerbi/datasets?workspaceId=${workspaceId}`, { credentials: "include" });
             if (!response.ok) throw new Error("Failed to fetch datasets");
             const data = await response.json() as { success: boolean; datasets: Dataset[]; error?: string };
             if (data.success) {
@@ -105,7 +109,7 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
     const fetchReports = async (workspaceId: string) => {
         // Don't set global loading here to avoid flickering if datasets load fast
         try {
-            const response = await fetch(`http://localhost:3002/api/powerbi/reports?workspaceId=${workspaceId}`, { credentials: "include" });
+            const response = await fetch(`${API_BASE_URL}/api/powerbi/reports?workspaceId=${workspaceId}`, { credentials: "include" });
             if (response.ok) {
                 const data = await response.json();
                 setReports(data as any[]);
@@ -120,7 +124,7 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
         setError(null);
         try {
             const workspaceQuery = selectedWorkspace?.id ? `?workspaceId=${selectedWorkspace.id}` : "";
-            const response = await fetch(`http://localhost:3002/api/powerbi/datasets/${datasetId}/tables${workspaceQuery}`, { credentials: "include" });
+            const response = await fetch(`${API_BASE_URL}/api/powerbi/datasets/${datasetId}/tables${workspaceQuery}`, { credentials: "include" });
             const data = await response.json() as any;
 
             if (!response.ok) {
@@ -142,7 +146,7 @@ export function DatasetSelector({ isOpen, onClose, onSelect }: DatasetSelectorPr
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch("http://localhost:3002/api/powerbi/query", {
+            const response = await fetch(`${API_BASE_URL}/api/powerbi/query`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

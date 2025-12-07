@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { PowerBIEmbed as PowerBIEmbedReact } from 'powerbi-client-react';
 import { models } from 'powerbi-client';
 
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+    ? 'https://api.narrativee.com'
+    : 'http://localhost:3002';
+
 interface PowerBIEmbedProps {
     reportId: string;
     workspaceId?: string;
@@ -18,7 +22,7 @@ export default function PowerBIEmbed({ reportId, workspaceId, onBack }: PowerBIE
             try {
                 setIsLoading(true);
                 const workspaceQuery = workspaceId ? `?workspaceId=${workspaceId}` : '';
-                const response = await fetch(`http://localhost:3002/api/powerbi/reports/${reportId}/config${workspaceQuery}`, {
+                const response = await fetch(`${API_BASE_URL}/api/powerbi/reports/${reportId}/config${workspaceQuery}`, {
                     credentials: 'include'
                 });
 

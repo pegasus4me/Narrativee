@@ -9,7 +9,12 @@ import useLocalStorage from "../hooks/useLocalStorage";
 import { authClient } from "../../lib/auth-client";
 import { ReportAPI } from "../../lib/apis";
 import PrimaryButton from "../components/PrimaryButton";
+
 import { sendGTMEvent } from "../../lib/gtm";
+
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://api.narrativee.com'
+  : 'http://localhost:3002';
 export default function CreatePage() {
   const router = useRouter();
   const apis = new ReportAPI();
@@ -21,6 +26,11 @@ export default function CreatePage() {
     fileName?: string;
     fileSize?: number;
     fileData?: string; // Base64 encoded file
+    powerbi?: {
+      dataset: { id: string; name: string };
+      table: string;
+      workspaceId: string;
+    };
   }>("narrativee-session", {});
 
   const [story, setStory] = useState("");
@@ -56,7 +66,7 @@ export default function CreatePage() {
         const { dataset, table, workspaceId } = sessionData.powerbi;
 
         // Fetch CSV data
-        const response = await fetch(`http://localhost:3002/api/powerbi/test-parsing?datasetId=${dataset.id}&tableName=${table}&workspaceId=${workspaceId}&format=csv`, {
+        const response = await fetch(`${API_BASE_URL}/api/powerbi/test-parsing?datasetId=${dataset.id}&tableName=${table}&workspaceId=${workspaceId}&format=csv`, {
           credentials: 'include'
         });
 
