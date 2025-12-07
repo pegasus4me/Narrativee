@@ -8,6 +8,11 @@ import dns from 'node:dns';
 
 dotenv.config()
 
+console.log("Auth Config Debug:");
+console.log("MICROSOFT_CLIENT_ID present:", !!process.env.MICROSOFT_CLIENT_ID);
+console.log("MICROSOFT_CLIENT_SECRET present:", !!process.env.MICROSOFT_CLIENT_SECRET);
+console.log("BETTER_AUTH_URL:", process.env.BETTER_AUTH_URL);
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   allowExitOnIdle: true,
