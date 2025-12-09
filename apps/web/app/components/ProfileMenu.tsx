@@ -75,6 +75,7 @@ export default function ProfileMenu() {
                         <p className="text-xs text-gray-500 truncate">{session.data.user.email}</p>
                     </div>
 
+
                     <Link
                         href="/workspace"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
