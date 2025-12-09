@@ -1,182 +1,92 @@
 "use client"
 import Image from "next/image";
-import { Button } from "@repo/ui/button";
 import logo from "../public/logo.png";
 import FileUploadPrompt from "./components/FileUploadPrompt";
-import { useEffect, useState } from "react";
 import { authClient } from "../lib/auth-client";
 import { useMigrateReports } from "./hooks/useMigrateReports";
-import template from "../public/example.png"
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "./components/Header";
-import { ChevronRight } from "clicons-react";
 import BeforeAfterSlider from "./components/BeforeAfterSlider";
+import PrimaryButton from "./components/PrimaryButton";
+import workspace from "../public/workspace.png";
 export default function Home() {
   const router = useRouter();
-  const words = ["csv", "sheet", "excel"];
-  const words2 = ["narrative", "interactive"];
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentIndex2, setCurrentIndex2] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
   const { data: session } = authClient.useSession();
-
-  // Auto-migrate localStorage reports when user logs in
   const { isMigrating, migratedCount } = useMigrateReports();
-  console.log('dddd', session)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % words.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [words.length]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex2((prev) => (prev + 1) % words2.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [words2.length]);
 
   return (
-    <div className="to-gray-50 overflow-x-hidden">
-      {/* Header */}
+    <div className="min-h-screen bg-white overflow-x-hidden relative">
+      {/* Background Stripes */}
+      <div className="absolute top-0 left-0 w-full h-[550px] z-0 flex">
+        <div className="h-full flex-1 bg-[#FF5C00]"></div>
+        <div className="h-full flex-1 bg-[#FF7A00]"></div>
+        <div className="h-full flex-1 bg-[#FF9900]"></div>
+        <div className="h-full flex-1 bg-[#FFAD33]"></div>
+        <div className="h-full flex-1 bg-[#FF9900]"></div>
+        <div className="h-full flex-1 bg-[#FF7A00]"></div>
+        <div className="h-full flex-1 bg-[#FF5C00]"></div>
+      </div>
 
-      <Header />
-      {/* Hero Section */}
-      <main className="p-4 md:p-5 mt-5 max-w-[95%] md:max-w-[90%] mx-auto z-10">
-        <div className="absolute inset-0 z-[-1]">
-          <Image
-            src="/backgroundimg.png"
-            alt="Background"
-            fill
-            className="object-cover opacity-10"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white"></div>
-        </div>
-        <div className="text-center">
-          <h1 className="text-6xl bg-clip-text text-transparent bg-gradient-to-br from-gray-900 via-gray-700 to-gray-500 mb-4 max-w-3xl mx-auto pb-2" style={{ fontFamily: 'var(--font-petrona)' }}>
-            Turn your spreadsheet data into narrative reports
-          </h1>
-          <p className="text-base md:text-md text-gray-500 max-w-xl mx-auto px-4" style={{ fontFamily: 'var(--font-noto)' }}>
-            The AI-powered workspace that transform your raw data into compelling and collaborative reports, in minutes.
-          </p>
-        </div>
-        <div className="flex-1 flex items-center justify-center p-2 md:p-6 flex-col">
-          <p className="font-normal text-slate-700 p-2 text-base md:text-lg leading-relaxed text-center" style={{ fontFamily: 'var(--font-petrona)' }}>Get started — no account needed</p>
-          <div className="w-full max-w-md md:max-w-xl">
-            <FileUploadPrompt />
-          </div>
-          <div className="w-full max-w-md md:max-w-xl">
-            <button
-              className="w-full py-6 flex items-center justify-between text-left focus:outline-none group"
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              <h3 className="text-sm font-medium text-gray-900 transition-colors" >
-                Privacy first concerning your data
-              </h3>
-              <span className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
-                <ChevronRight />
-              </span>
-            </button>
-            <div
-              className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mb-6' : 'grid-rows-[0fr] opacity-0'
-                }`}
-            >
-              <div className="overflow-hidden p-1">
-                <p className="text-gray-600 leading-relaxed text-xs">
-                  We are deeply concerned about privacy and security, this is why your uploaded data is strictly processed in your browser and never sent to the server or any third party,
-                  The data driven reports you create are Encrypted using AES-256 encryption before being stored
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+      <div className="relative z-10">
+        <Header />
 
-      {/* Before/After Comparison Section */}
-      <section className="relative mx-auto px-4 w-full overflow-hidden">
-        {/* Background Image */}
-
-
-        <div className="relative z-10 max-w-[90%] mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl p-1 bg-clip-text text-transparent bg-gradient-to-br from-gray-900 via-gray-700 to-gray-500 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
-              From Raw Data to Compelling Reports
-            </h2>
-            <p className="text-base md:text-lg text-gray-600 mx-auto px-4 max-w-2xl">
-              See how Narrativee transforms your spreadsheet into a professional, story-driven and interactive report.
+        {/* Hero Content */}
+        <main className="max-w-7xl mx-auto px-4 md:px-8 pt-20 pb-32">
+          <div className="flex flex-col items-center justify-center text-center">
+            <h1 className="text-5xl md:text-6xl xl:text-[6rem] max-w-4xl font-semibold text-white " style={{ fontFamily: 'var(--font-urbanist)' }}>
+              <span className="font-medium">turn your data into </span> <span className="font-medium" style={{ fontFamily: 'var(--font-petrona)' }}>narrative reports</span>
+            </h1>
+            <p className="text-white/90 text-xl md:text-2xl mt-6 max-w-2xl font-light" style={{ fontFamily: 'var(--font-urbanist)' }}>
+              The AI-powered workspace that transforms data into compelling, interactive reports in minutes.
             </p>
-          </div>
-          <div className="flex justify-center">
-            <div className="w-full max-w-full shadow-2xl rounded-xl overflow-hidden border border-gray-200 bg-white">
-              <BeforeAfterSlider
-                beforeImage="/before.png"
-                afterImage="/after.png"
-                beforeLabel="20k rows Raw CSV Data"
-                afterLabel="Narrativee Report"
-              />
+
+            <div className="mt-12 w-full max-w-xl rounded-lg p-2 ">
+              <div className="flex items-center text-white mb-2 justify-center" >
+                <p style={{ fontFamily: 'var(--font-urbanist)' }}>get started for free no account required</p>
+              </div>
+              <FileUploadPrompt />
             </div>
           </div>
+        </main>
+      </div>
+
+      <section className="py-16 md:py-24 bg-gradient-to-b from-[#FFF0E0] to-white max-w-[95%] mx-auto px-4 md:px-8 rounded-3xl mt-12">
+      <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-6xl font-medium text-black mb-4 tracking-tight" style={{ fontFamily: 'var(--font-urbanist)' }}>
+              A workspace designed for simplicity and collaboration
+            </h2>
+          </div>
+      <div>
+            <Image
+              src={workspace}
+              alt="Narrativee Workspace"
+              width={2000}
+              height={2000}
+              className="w-full h-auto object-cover rounded-2xl border"
+            />
         </div>
       </section>
 
-      {/* Template Preview Section */}
-      <section className="mx-auto my-10 md:my-16 p-2">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
-            Create, Edit and Publish
-          </h2>
-          <p className="text-base md:text-lg text-gray-600 mx-auto px-4">
-            Interactive reports with charts, insights, and professional formatting
-          </p>
-        </div>
-        <div className="flex justify-center">
-          <div className="w-full relative rounded-2xl overflow-hidden border border-gray-200 max-w-[80%] md:max-w-[80%] shadow-xs [mask-image:linear-gradient(to_bottom,black_85%,transparent)]">
-            <div style={{ position: 'relative', paddingTop: '62.21198156682027%' }}>
-              <iframe
-                src="https://customer-qusdy8i1rves1ask.cloudflarestream.com/76cb163ce2351fe40fce075ffe4f211d/iframe?autoplay=true&poster=https%3A%2F%2Fcustomer-qusdy8i1rves1ask.cloudflarestream.com%2F76cb163ce2351fe40fce075ffe4f211d%2Fthumbnails%2Fthumbnail.jpg%3Ftime%3D%26height%3D600"
-                loading="lazy"
-                style={{ border: 'none', position: 'absolute', top: 0, left: 0, height: '100%', width: '100%' }}
-                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-                allowFullScreen={true}
-              ></iframe>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      {/* Final CTA */}
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white mt-auto">
-        <div className="max-w-[90%] mx-auto py-8 md:py-12 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center">
-            <Image src={logo} alt="Narrativee Logo" width={120} />
-          </div>
-          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
-            <a href="mailto:contact@narrativee.com" className="text-gray-600 hover:text-amber-600 transition-colors text-sm font-medium">
-              contact@narrativee.com
-            </a>
+      <footer className="border-t border-gray-100 bg-white">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+          <Image src={logo} alt="Narrativee Logo" width={100} />
+          <div className="flex items-center gap-6 text-sm text-gray-400">
+            <a href="/privacy" className="hover:text-black transition-colors">Privacy</a>
+            <a href="/terms" className="hover:text-black transition-colors">Terms</a>
+            <a href="mailto:contact@narrativee.com" className="hover:text-black transition-colors">Contact</a>
             <a
               href="https://x.com/narrativee_io"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-500 hover:text-black transition-colors"
-              aria-label="Follow us on X"
+              className="hover:text-black transition-colors"
             >
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-current">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
+              Twitter
             </a>
           </div>
         </div>
       </footer>
-
-
     </div>
   );
 }
-
-

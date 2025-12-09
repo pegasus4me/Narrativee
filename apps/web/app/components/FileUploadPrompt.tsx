@@ -135,7 +135,7 @@ export default function FileUploadPrompt() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto ">
       <form onSubmit={handleSubmit} className="relative">
         {/* Attachment preview */}
         {(file || powerBIDataset) && (
@@ -165,7 +165,7 @@ export default function FileUploadPrompt() {
         )}
 
         {/* Input container */}
-        <div className="relative flex items-end gap-2 p-3 bg-white border border-gray-200 rounded-2xl hover:border-gray-300 focus-within:border-amber-400 focus-within:shadow-md transition-all">
+        <div className="relative shadow-xl flex items-end gap-2 p-3 bg-white border border-gray-200 rounded-2xl hover:border-gray-300 focus-within:border-amber-400 focus-within:shadow-md transition-all">
           {/* Attachment Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -226,11 +226,6 @@ export default function FileUploadPrompt() {
             )}
           </button>
         </div>
-
-        {/* Helper text */}
-        <p className="mt-2 text-xs text-gray-500 px-2">
-          Upload CSV/Excel files or connect Power BI
-        </p>
       </form>
 
       <DatasetSelector

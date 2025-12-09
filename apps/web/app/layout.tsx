@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Story_Script, Petrona, DM_Mono, Noto_Sans } from 'next/font/google'
+import { Story_Script, Petrona, DM_Mono, Noto_Sans, Urbanist } from 'next/font/google'
 import { GoogleTagManager } from '@next/third-parties/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 
@@ -13,6 +13,11 @@ const story = Story_Script({
 const dmMono = DM_Mono({
   variable: "--font-mono",
   weight: ["400"]
+})
+const urbanist = Urbanist({
+  variable: "--font-urbanist",
+  weight: ["400", '500', '600', '700', '800', '900'],
+  subsets: ['latin']
 })
 const noto = Noto_Sans({
   variable: "--font-noto",
@@ -35,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${petrona.variable} ${dmMono.variable} ${story.variable} ${noto.variable}`}>
+      <body className={`${petrona.variable} ${dmMono.variable} ${story.variable} ${noto.variable} ${urbanist.variable}`}>
         <GoogleTagManager gtmId="GTM-5BCN3HMQ" />
         <GoogleAnalytics gaId="G-L8W7KEVHQ4" />
         {children}
