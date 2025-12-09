@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "../../lib/auth-client";
-import logo from "../../public/logo.png";
+import logo from "../../public/logo_white.png";
 import PrimaryButton from "./PrimaryButton";
 import ProfileMenu from "./ProfileMenu";
 
@@ -18,7 +18,7 @@ export default function Header() {
                 <div className="flex h-16 items-center justify-between">
                     {/* Logo */}
                     <Link href="/" className="flex items-center">
-                        <Image src={logo} alt="Narrativee" width={130} priority />
+                        <Image src={logo} alt="Narrativee" width={150} priority />
                     </Link>
 
                     {/* Auth Buttons */}
