@@ -47,23 +47,32 @@ export default function Home() {
               <FileUploadPrompt />
             </div>
           </div>
+          <div className="text-center text-xl font-medium text-gray-500 mt-5" style={{ fontFamily: 'var(--font-urbanist)' }}>
+            <p>currently supporting</p>
+            <div className="flex items-center justify-center gap-6 mt-4">
+              <Image src='/excel.webp' alt="Excel" width={40} height={40} />
+              <Image src='/powerbi.webp' alt="Power BI" width={60} height={40} />
+              <Image src='/csv.png' alt="CSV" width={40} height={40} />
+            </div>
+          </div>
         </main>
+
       </div>
 
-      <section className="py-16 md:py-24 bg-gradient-to-b from-[#FFF0E0] to-white max-w-[95%] mx-auto px-4 md:px-8 rounded-3xl mt-12">
-      <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-6xl font-medium text-black mb-4 tracking-tight" style={{ fontFamily: 'var(--font-urbanist)' }}>
-              A workspace designed for simplicity and collaboration
-            </h2>
-          </div>
-      <div>
-            <Image
-              src={workspace}
-              alt="Narrativee Workspace"
-              width={2000}
-              height={2000}
-              className="w-full h-auto object-cover rounded-2xl border"
-            />
+      <section className="py-16 md:py-24 bg-gradient-to-b from-[#FFF0E0] to-white max-w-[95%] mx-auto px-4 md:px-8 rounded-3xl">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-6xl font-medium text-black mb-4 tracking-tight" style={{ fontFamily: 'var(--font-urbanist)' }}>
+            A workspace designed for simplicity and collaboration
+          </h2>
+        </div>
+        <div>
+          <Image
+            src={workspace}
+            alt="Narrativee Workspace"
+            width={2000}
+            height={2000}
+            className="w-full h-auto object-cover rounded-2xl border"
+          />
         </div>
       </section>
 
