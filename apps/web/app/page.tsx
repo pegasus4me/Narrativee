@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white overflow-x-hidden relative">
       {/* Background Stripes */}
-      <div className="absolute top-0 left-0 w-full h-[550px] z-0 flex">
+      <div className="absolute top-0 left-0 w-full h-[580px] z-0 flex">
         <div className="h-full flex-1 bg-[#FF5C00]"></div>
         <div className="h-full flex-1 bg-[#FF7A00]"></div>
         <div className="h-full flex-1 bg-[#FF9900]"></div>
@@ -25,6 +25,7 @@ export default function Home() {
         <div className="h-full flex-1 bg-[#FF9900]"></div>
         <div className="h-full flex-1 bg-[#FF7A00]"></div>
         <div className="h-full flex-1 bg-[#FF5C00]"></div>
+        
       </div>
 
       <div className="relative z-10">
@@ -37,7 +38,8 @@ export default function Home() {
               <span className="font-medium">turn your data into </span> <span className="font-medium" style={{ fontFamily: 'var(--font-petrona)' }}>narrative reports</span>
             </h1>
             <p className="text-white/90 text-xl md:text-2xl mt-6 max-w-2xl font-light" style={{ fontFamily: 'var(--font-urbanist)' }}>
-              The AI-powered workspace that transforms data into compelling, interactive reports in minutes.
+              The AI-powered workspace that transforms your data into clear narrative reports so teams instantly understand what happened, why it matters, and what to do next.
+
             </p>
 
             <div className="mt-12 w-full max-w-xl rounded-lg p-2 ">
