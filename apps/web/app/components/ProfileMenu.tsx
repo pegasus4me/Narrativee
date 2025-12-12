@@ -61,7 +61,7 @@ export default function ProfileMenu() {
                         height={32}
                         className="rounded-full"
                     />
-                    <span className="text-sm font-medium text-white">{session?.data?.user.name}</span>
+                    <span className="text-sm font-medium text-gray-600">{session?.data?.user.name}</span>
                     <Badge variant="secondary" style={{ fontFamily: 'var(--font-urbanist)' }}>
                         {(session.data.user as any).plan ? (session.data.user as any).plan.charAt(0).toUpperCase() + (session.data.user as any).plan.slice(1) : 'Free'}
                     </Badge>            

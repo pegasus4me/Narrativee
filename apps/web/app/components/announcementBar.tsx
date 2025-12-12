@@ -1,26 +1,24 @@
-"use client"
+"use client";
+
+import { ArrowRight } from "clicons-react";
 import Link from "next/link";
-import { authClient } from "../../lib/auth-client";
 
-// 1. Fixed typo in component name
 export default function AnnouncementBar() {
-    // 2. Destructure 'isPending' to prevent the bar from flashing briefly while checking auth
-    const { data: session, isPending } = authClient.useSession();
-
-    // 3. Early return: If loading or user is logged in, render nothing (null is cleaner than <></>)
-    if (isPending || session?.user) return null;
-
     return (
-        // 4. Improved Color Contrast: Amber-400 with white text is hard to read. 
-        //    Using Amber-100 background with Amber-900 text is much more readable (WCAG compliant).
-        <div className="bg-amber-100 p-2 text-center text-sm text-amber-900">
-            <p className="font-medium">
-                You are currently working as a guest.{" "}
-                {/* 5. Added a Call to Action (CTA) link */}
-                <Link href="/auth/signin" className="underline hover:text-amber-700 transition-colors">
-                    Sign in to save your work
-                </Link>
-            </p>
+        <div className="w-full flex justify-center">
+            <Link
+                href="#"
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 border border-amber-200/50 hover:bg-white hover:border-amber-300 backdrop-blur-sm transition-all duration-300 group cursor-pointer"
+            >
+                <span className="flex h-2 w-2 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <span className="text-xs font-medium text-gray-600 group-hover:text-gray-900" style={{ fontFamily: 'var(--font-urbanist)' }}>
+                    Introducing Narrativee 1.0
+                </span>
+                <ArrowRight size={12} className="text-gray-400 group-hover:text-amber-600 transition-colors" />
+            </Link>
         </div>
     );
 }

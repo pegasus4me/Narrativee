@@ -6,7 +6,8 @@ import useLocalStorage from "../hooks/useLocalStorage";
 import { authClient } from "../../lib/auth-client";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { DatasetSelector } from "./powerbi/DatasetSelector";
-import { File as FileIcon, BarChart, X, Link } from "clicons-react";
+import { File as FileIcon, BarChart, X, Link, Upload } from "clicons-react";
+import { IoCloudUpload } from "react-icons/io5";
 
 export default function FileUploadPrompt() {
   const [message, setMessage] = useState("");
@@ -14,6 +15,7 @@ export default function FileUploadPrompt() {
   const [powerBIDataset, setPowerBIDataset] = useState<any | null>(null);
   const [uploading, setUploading] = useState(false);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -50,30 +52,56 @@ export default function FileUploadPrompt() {
     setEstimatedCost(baseCost + variableCost);
   };
 
+  const processFile = (selectedFile: File) => {
+    // Validate file type
+    const validTypes = [
+      "text/csv",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.oasis.opendocument.spreadsheet", // .ods
+      "application/vnd.ms-excel.sheet.binary.macroEnabled.12" // .xlsb
+    ];
+
+    const validExtensions = ['.csv', '.xlsx', '.xls', '.ods', '.xlsb'];
+    const fileExtension = selectedFile.name.toLowerCase().substring(selectedFile.name.lastIndexOf('.'));
+
+    if (!validTypes.includes(selectedFile.type) && !validExtensions.includes(fileExtension)) {
+      alert("Please upload a CSV, Excel, or ODS file");
+      return;
+    }
+
+    setFile(selectedFile);
+    setPowerBIDataset(null);
+    calculateCost(selectedFile);
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // Validate file type
-      const validTypes = [
-        "text/csv",
-        "application/vnd.ms-excel",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "application/vnd.oasis.opendocument.spreadsheet", // .ods
-        "application/vnd.ms-excel.sheet.binary.macroEnabled.12" // .xlsb
-      ];
+      processFile(selectedFile);
+    }
+  };
 
-      const validExtensions = ['.csv', '.xlsx', '.xls', '.ods', '.xlsb'];
-      const fileExtension = selectedFile.name.toLowerCase().substring(selectedFile.name.lastIndexOf('.'));
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(true);
+  };
 
-      if (!validTypes.includes(selectedFile.type) && !validExtensions.includes(fileExtension)) {
-        alert("Please upload a CSV, Excel, or ODS file");
-        return;
-      }
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+  };
 
-      setFile(selectedFile);
-      setPowerBIDataset(null); // Only allow one attachment type for now for simplicity, or allow both?
-      // Let's allow replacing for now to keep UI simple, or we can support multiple later.
-      calculateCost(selectedFile);
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      processFile(droppedFile);
     }
   };
 
@@ -136,59 +164,62 @@ export default function FileUploadPrompt() {
 
   return (
     <div className="w-full max-w-3xl mx-auto ">
-      <form onSubmit={handleSubmit} className="relative">
+      <form onSubmit={handleSubmit} className="relative group pt-6"> {/* Added pt-6 to push content down for shadow/tab effect */}
+
+        {/* Drop Zone / Back Layer */}
+        {!file && !powerBIDataset && (
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`absolute inset-x-0 bottom-0 top-0 z-0 rounded-2xl mb-2 transition-all duration-200 cursor-pointer flex items-start justify-center pt-2 ${dragOver
+              ? 'bg-amber-500 border-amber-400 -top-8 shadow-lg'
+              : 'bg-amber-300 -top-10 hover:-top-11 hover:border-gray-400'
+              }`}
+          >
+            <div className={`flex items-center gap-2 text-[10px] mb-4 font-medium transition-colors duration-200  ${dragOver ? 'text-amber-600' : 'text-gray-500'}`}>
+              <IoCloudUpload size={18} />
+              <span>{dragOver ? 'Drop files here' : 'Upload files'}</span>
+            </div>
+          </div>
+        )}
+
         {/* Attachment preview */}
         {(file || powerBIDataset) && (
-          <div className={`mb-3 flex flex-col gap-2 px-4 py-2 rounded-lg text-sm ${powerBIDataset ? 'bg-amber-50 text-amber-800' : 'bg-blue-50 text-blue-800'}`}>
+          <div className={`mb-1 flex flex-row justify-between gap-2 px-2 py-2 rounded-xl text-sm border ${powerBIDataset ? 'bg-gray-50 border-gray-200 text-gray-800' : 'bg-gray-50 border-gray-200 text-gray-800'}`}>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-lg shadow-sm">
+                {powerBIDataset ? <BarChart size={18} className="text-gray-700" /> : <FileIcon size={18} className="text-gray-700" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate text-gray-900">
+                  {file ? file.name : `${powerBIDataset.dataset.name} - ${powerBIDataset.table}`}
+                </p>
+                {file && <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>}
+              </div>
+            </div>
+
             <div className="flex items-center gap-2">
-              {powerBIDataset ? <BarChart size={16} /> : <FileIcon size={16} />}
-              <span className="flex-1 font-medium truncate">
-                {file ? file.name : `${powerBIDataset.dataset.name} - ${powerBIDataset.table}`}
-              </span>
-              {file && <span className="text-xs opacity-70">{(file.size / 1024).toFixed(1)} KB</span>}
+              {/* Cost Estimate */}
+              {estimatedCost !== null && session?.user && (
+                <div className="flex items-center gap-2 text-xs text-gray-500 bg-white/50 px-2 rounded w-fit mt-1">
+                  <span>Estimated cost: <strong>{estimatedCost} credits</strong></span>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={removeAttachment}
-                className="hover:opacity-70"
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors text-gray-500 hover:text-red-500"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
-
-            {/* Cost Estimate */}
-            {estimatedCost !== null && session?.user && (
-              <div className="flex items-center gap-2 text-xs opacity-80 bg-white/50 px-2 py-1 rounded w-fit">
-                <span>Estimated cost: <strong>{estimatedCost} credits</strong></span>
-              </div>
-            )}
           </div>
         )}
 
         {/* Input container */}
-        <div className="relative shadow-xl flex items-end gap-2 p-3 bg-white border border-gray-200 rounded-2xl hover:border-gray-300 focus-within:border-amber-400 focus-within:shadow-md transition-all">
-          {/* Attachment Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                disabled={uploading}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-                title="Attach data"
-              >
-                <Link size={20} />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-                <FileIcon className="mr-2 h-4 w-4" />
-                <span>Import File</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsSelectorOpen(true)}>
-                <BarChart className="mr-2 h-4 w-4 text-amber-600" />
-                <span>Power BI</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="relative shadow-sm hover:shadow-md flex items-end gap-3 p-2 pl-4 bg-white border border-gray-200 rounded-2xl focus-within:border-black focus-within:ring-1 focus-within:ring-black/5 transition-all z-20">
 
           <input
             ref={fileInputRef}
@@ -203,16 +234,40 @@ export default function FileUploadPrompt() {
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Describe what story you want to tell with your data..."
+            placeholder="Describe the story you want to tell..."
             disabled={uploading}
-            className="flex-1 px-2 py-2 text-gray-900 placeholder-gray-400 bg-transparent outline-none resize-none disabled:opacity-50"
+            className="flex-1 py-3 text-gray-900 placeholder-gray-400 bg-transparent outline-none resize-none disabled:opacity-50 text-base"
           />
+
+          {/* Attachment Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                disabled={uploading}
+                className="p-2.5 mb-0.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-xl transition-all disabled:opacity-50"
+                title="Attach data"
+              >
+                <Link size={20} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 p-1 rounded-xl shadow-lg border-gray-100">
+              <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-lg cursor-pointer py-2.5">
+                <FileIcon className="mr-2 h-4 w-4" />
+                <span>Import File</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsSelectorOpen(true)} className="rounded-lg cursor-pointer py-2.5">
+                <BarChart className="mr-2 h-4 w-4" />
+                <span>Power BI</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Send button */}
           <button
             type="submit"
             disabled={uploading || (!file && !powerBIDataset && !message)}
-            className="p-2 bg-amber-400 text-white rounded-lg hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="p-2.5 mb-0.5 bg-black text-white rounded-xl hover:bg-gray-800 disabled:opacity-20 disabled:cursor-not-allowed transition-all shadow-sm"
           >
             {uploading ? (
               <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
