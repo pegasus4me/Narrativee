@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { authClient } from "../../lib/auth-client";
@@ -15,7 +15,6 @@ export default function FileUploadPrompt() {
   const [powerBIDataset, setPowerBIDataset] = useState<any | null>(null);
   const [uploading, setUploading] = useState(false);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -82,28 +81,6 @@ export default function FileUploadPrompt() {
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragOver(false);
-
-    const droppedFile = e.dataTransfer.files?.[0];
-    if (droppedFile) {
-      processFile(droppedFile);
-    }
-  };
 
   const handlePowerBISelect = (data: any) => {
     console.log("handlePowerBISelect called with:", data);
@@ -162,34 +139,57 @@ export default function FileUploadPrompt() {
     }
   };
 
+  const [placeholderText, setPlaceholderText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [loopNum, setLoopNum] = useState(0);
+  const [typingSpeed, setTypingSpeed] = useState(150);
+
+  const examples = [
+    "Marketing Report",
+    "Sales Tracker",
+    "Meeting Notes",
+    "Student Survey"
+  ];
+
+  useEffect(() => {
+    const handleTyping = () => {
+      const i = loopNum % examples.length;
+      const fullText = `Give me the narrative of my ${examples[i]}`;
+
+      setPlaceholderText(
+        isDeleting
+          ? fullText.substring(0, placeholderText.length - 1)
+          : fullText.substring(0, placeholderText.length + 1)
+      );
+
+      setTypingSpeed(isDeleting ? 30 : 150);
+
+      if (!isDeleting && placeholderText === fullText) {
+        setTimeout(() => setIsDeleting(true), 2000); // Pause at end
+      } else if (isDeleting && placeholderText === "") {
+        setIsDeleting(false);
+        setLoopNum(loopNum + 1);
+      }
+    };
+
+    const timer = setTimeout(handleTyping, typingSpeed);
+    return () => clearTimeout(timer);
+  }, [placeholderText, isDeleting, loopNum, typingSpeed]);
+
+  const handleTagClick = (tag: string) => {
+    setMessage(`Give me the narrative for a ${tag}`);
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto ">
       <form onSubmit={handleSubmit} className="relative group pt-6"> {/* Added pt-6 to push content down for shadow/tab effect */}
 
-        {/* Drop Zone / Back Layer */}
-        {!file && !powerBIDataset && (
-          <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`absolute inset-x-0 bottom-0 top-0 z-0 rounded-2xl mb-2 transition-all duration-200 cursor-pointer flex items-start justify-center pt-2 ${dragOver
-              ? 'bg-amber-500 border-amber-400 -top-8 shadow-lg'
-              : 'bg-amber-300 -top-10 hover:-top-11 hover:border-gray-400'
-              }`}
-          >
-            <div className={`flex items-center gap-2 text-[10px] mb-4 font-medium transition-colors duration-200  ${dragOver ? 'text-amber-600' : 'text-gray-500'}`}>
-              <IoCloudUpload size={18} />
-              <span>{dragOver ? 'Drop files here' : 'Upload files'}</span>
-            </div>
-          </div>
-        )}
 
         {/* Attachment preview */}
         {(file || powerBIDataset) && (
           <div className={`mb-1 flex flex-row justify-between gap-2 px-2 py-2 rounded-xl text-sm border ${powerBIDataset ? 'bg-gray-50 border-gray-200 text-gray-800' : 'bg-gray-50 border-gray-200 text-gray-800'}`}>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white rounded-lg shadow-sm">
+              <div className="p-2 bg-white rounded-lg">
                 {powerBIDataset ? <BarChart size={18} className="text-gray-700" /> : <FileIcon size={18} className="text-gray-700" />}
               </div>
               <div className="flex-1 min-w-0">
@@ -219,7 +219,7 @@ export default function FileUploadPrompt() {
         )}
 
         {/* Input container */}
-        <div className="relative shadow-sm hover:shadow-md flex items-end gap-3 p-2 pl-4 bg-white border border-gray-200 rounded-2xl focus-within:border-black focus-within:ring-1 focus-within:ring-black/5 transition-all z-20">
+        <div className="relative hover:shadow-md flex items-end gap-3 p-2 pl-4 bg-white border border-gray-200 rounded-2xl focus-within:border-black focus-within:ring-1 focus-within:ring-black/5 transition-all z-20">
 
           <input
             ref={fileInputRef}
@@ -234,7 +234,7 @@ export default function FileUploadPrompt() {
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Describe the story you want to tell..."
+            placeholder={placeholderText}
             disabled={uploading}
             className="flex-1 py-3 text-gray-900 placeholder-gray-400 bg-transparent outline-none resize-none disabled:opacity-50 text-base"
           />
@@ -282,6 +282,23 @@ export default function FileUploadPrompt() {
           </button>
         </div>
       </form>
+
+      {/* Suggested Tags */}
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-sm animate-in fade-in slide-in-from-top-2 duration-700">
+        <p className="text-gray-400">attach your data and try with:</p>
+        <div className="flex flex-wrap gap-2">
+          {examples.map((ex, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => handleTagClick(ex)}
+              className="px-3 py-1 bg-white border border-gray-200 hover:border-orange-500 hover:text-orange-600 rounded-full text-gray-600 transition-all text-xs font-medium cursor-pointer shadow-sm hover:shadow-orange-100"
+            >
+              {ex}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <DatasetSelector
         isOpen={isSelectorOpen}

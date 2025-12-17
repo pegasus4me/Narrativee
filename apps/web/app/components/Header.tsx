@@ -52,7 +52,7 @@ export default function Header() {
                                     Log in
                                 </Link>
                                 <PrimaryButton onClick={() => router.push('/auth/signup')}>
-                                    Get started
+                                    Sign up
                                 </PrimaryButton>
                             </>
                         )}
