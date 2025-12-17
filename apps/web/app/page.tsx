@@ -11,6 +11,9 @@ import workspace from "../public/workspace.png";
 import before from "../public/before.png";
 import after from "../public/after.png";
 import BeforeAfterSlider from "./components/BeforeAfterSlider";
+import user1 from "../public/1.png";
+import user2 from "../public/2.png";
+import user3 from "../public/3.png";
 export default function Home() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
@@ -24,6 +27,28 @@ export default function Home() {
         <main className="max-w-7xl mx-auto px-4 md:px-8 pt-20 pb-32">
 
           <div className="flex flex-col items-center justify-center text-center">
+
+            {/* Social Proof */}
+            <div className="flex items-center gap-3 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="flex -space-x-3">
+                {[user1, user2, user3].map((img, i) => (
+                  <div key={i} className="relative w-10 h-10 rounded-full border-2 border-white overflow-hidden shadow-sm">
+                    <Image src={img} alt={`User ${i + 1}`} fill className="object-cover" />
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col items-start">
+                <div className="flex gap-0.5 text-amber-500">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <span className="text-sm font-light text-gray-600">Used by <span className="font-medium text-gray-900 font-semibold">100+</span> happy customers</span>
+              </div>
+            </div>
+
             {/* Nouveau Titre : Plus universel et orienté bénéfice immédiat */}
             <h1 className="text-4xl md:text-6xl xl:text-[6.5rem] leading-[1.1] max-w-5xl text-gray-900 tracking-tight font-medium" style={{ fontFamily: 'var(--font-urbanist)' }}>
               Make sense of your data in minutes
