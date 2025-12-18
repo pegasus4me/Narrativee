@@ -145,10 +145,10 @@ export default function FileUploadPrompt() {
   const [typingSpeed, setTypingSpeed] = useState(150);
 
   const examples = [
-    "Marketing Report",
-    "Sales Tracker",
-    "Meeting Notes",
-    "Student Survey"
+    "Marketing spreadsheet",
+    "Sales spreadsheet",
+    "Meeting informations",
+    "Student data"
   ];
 
   useEffect(() => {
