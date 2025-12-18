@@ -59,7 +59,7 @@ export default function Home() {
 
             {/* Nouvelle Description : On enlève le mot "Comprehensive Analysis" qui fait trop lourd */}
             <p className="text-black text-xl md:text-2xl mt-8 max-w-2xl font-light" style={{ fontFamily: 'var(--font-urbanist)' }}>
-              Stop staring at spreadsheets. Paste your data and get a clear narrative you can actually read, chat with, and share.
+              Stop staring at spreadsheets. Upload your data and get a clear narrative you can actually read, chat with, and share.
             </p>
           </div>
 
