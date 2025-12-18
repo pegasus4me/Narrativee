@@ -1,19 +1,27 @@
 "use client";
 
 import { authClient } from "../../lib/auth-client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tick2 } from "clicons-react";
 import PrimaryButton from "../components/PrimaryButton";
 import { PricingPlans } from "../components/pricingData";
 import Header from "../components/Header";
 
 import { useRouter } from "next/navigation";
-import { sendGTMEvent } from "../../lib/gtm";
+import { useGTMTracking } from "../hooks/useGTMTracking";
 
 export default function PricingPage() {
     const { data: session } = authClient.useSession();
     const [isAnnual, setIsAnnual] = useState(true);
     const router = useRouter();
+    const { trackItemSelection, trackPageView } = useGTMTracking();
+
+    useEffect(() => {
+        trackPageView({
+            pageTitle: 'Pricing',
+            pagePath: '/pricing'
+        });
+    }, [trackPageView]);
 
     const handleCheckout = async (plan: typeof PricingPlans[number]) => {
         if (!session?.user) {
@@ -129,7 +137,12 @@ export default function PricingPage() {
                                 <span className="text-gray-500">/month</span>
                             </div>
                             <PrimaryButton className="w-full mb-8" onClick={() => {
-                                sendGTMEvent('click_pricing', { plan: plan.name, price: isAnnual ? plan.annualPrice : plan.monthlyPrice });
+                                trackItemSelection(
+                                    plan.name,
+                                    isAnnual ? plan.annualPrice : plan.monthlyPrice,
+                                    'USD',
+                                    'Subscription'
+                                );
                                 handleCheckout(plan);
                             }}>
                                 {plan.cta}

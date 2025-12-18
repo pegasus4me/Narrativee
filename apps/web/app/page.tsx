@@ -14,8 +14,11 @@ import BeforeAfterSlider from "./components/BeforeAfterSlider";
 import user1 from "../public/1.png";
 import user2 from "../public/2.png";
 import user3 from "../public/3.png";
+import { useGTMTracking } from "./hooks/useGTMTracking";
+
 export default function Home() {
   const router = useRouter();
+  const { trackEvent } = useGTMTracking();
   const { data: session } = authClient.useSession();
 
   return (
@@ -63,7 +66,10 @@ export default function Home() {
           <div className="text-center mt-16 max-w-2xl mx-auto">
             {/* On insiste sur la vie privée (Cheval de Troie) */}
             <p style={{ fontFamily: 'var(--font-urbanist)' }} className="text-xs font-light text-gray-400 tracking-wider">
-              INSTANT START • NO ACCOUNT REQUIRED • YOUR DATA STAYS PRIVATE • <span onClick={() => window.open("https://narrativee.com/privacy", "_blank")} className="text-black cursor-pointer hover:underline">PRIVACY TERMS</span>
+              INSTANT START • NO ACCOUNT REQUIRED • YOUR DATA STAYS PRIVATE • <span onClick={() => {
+                trackEvent({ eventName: 'click_privacy_terms' });
+                window.open("https://narrativee.com/privacy", "_blank");
+              }} className="text-black cursor-pointer hover:underline">PRIVACY TERMS</span>
             </p>
             <FileUploadPrompt />
           </div>

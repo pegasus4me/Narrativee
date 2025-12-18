@@ -7,8 +7,11 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Logo from "../../../public/sidelogo.png"
 import PrimaryButton from "../../components/PrimaryButton";
+import { useGTMTracking } from "../../hooks/useGTMTracking";
+
 export default function SignIn() {
   const router = useRouter();
+  const { trackEvent } = useGTMTracking();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -53,6 +56,7 @@ export default function SignIn() {
         password,
       }, {
         onSuccess: () => {
+          trackEvent({ eventName: 'login', eventData: { method: 'email' } });
           router.push("/");
         },
         onError: (ctx) => {
@@ -178,7 +182,7 @@ export default function SignIn() {
               <PrimaryButton
                 type="submit"
                 disabled={isLoading}
-              className="w-full h-12 flex items-center justify-center"
+                className="w-full h-12 flex items-center justify-center"
               >
                 {isLoading ? (
                   <Loader className="w-5 h-5 animate-spin" />
@@ -192,7 +196,7 @@ export default function SignIn() {
             <div className="text-center mt-8">
               <p className="text-gray-500 text-sm">
                 Don't have an account?{" "}
-            <a href="/auth/signup" className="text-amber-500 font-medium hover:underline transition-colors">
+                <a href="/auth/signup" className="text-amber-500 font-medium hover:underline transition-colors">
                   Sign up
                 </a>
               </p>

@@ -7,10 +7,11 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Logo from "../../../public/sidelogo.png";
 import PrimaryButton from "../../components/PrimaryButton";
-import { sendGTMEvent } from "../../../lib/gtm";
+import { useGTMTracking } from "../../hooks/useGTMTracking";
 
 export default function SignUp() {
   const router = useRouter();
+  const { trackSignUp } = useGTMTracking();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,7 +46,7 @@ export default function SignUp() {
         name,
       }, {
         onSuccess: () => {
-          sendGTMEvent('create_account', { method: 'email' });
+          trackSignUp('email');
           router.push("/create");
         },
         onError: (ctx) => {
