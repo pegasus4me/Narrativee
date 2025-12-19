@@ -148,7 +148,8 @@ export default function FileUploadPrompt() {
     "Marketing spreadsheet",
     "Sales spreadsheet",
     "Meeting informations",
-    "Student data"
+    "research data",
+    "thesis data"
   ];
 
   useEffect(() => {

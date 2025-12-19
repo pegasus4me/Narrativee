@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Story_Script, Petrona, DM_Mono, Noto_Sans, Urbanist } from 'next/font/google'
 import { GoogleTagManager } from '@next/third-parties/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
+import FeedbackPopup from "./components/FeedbackPopup";
 
 import "./globals.css";
 
@@ -44,6 +45,7 @@ export default function RootLayout({
         <GoogleTagManager gtmId="GTM-5BCN3HMQ" />
         <GoogleAnalytics gaId="G-L8W7KEVHQ4" />
         {children}
+        <FeedbackPopup />
       </body>
     </html>
   );

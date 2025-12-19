@@ -27,7 +27,7 @@ export default function Home() {
        mx-3">
         <Header />
 
-        <main className="max-w-7xl mx-auto px-4 md:px-8 pt-20 pb-32">
+        <main className="max-w-7xl mx-auto px-4 md:px-8  pb-10">
 
           <div className="flex flex-col items-center justify-center text-center">
 
