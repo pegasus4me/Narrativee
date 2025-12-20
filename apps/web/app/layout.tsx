@@ -30,8 +30,8 @@ const petrona = Petrona({
   subsets: ["latin"],
 })
 export const metadata: Metadata = {
-  title: "Narrativee",
-  description: "Turn data into narrative & detaileds reports in minutes",
+  title: "Narrativee - Turn Excel Data into Narrative Reports",
+  description: "Automated data storytelling tool. Convert spreadsheets (Excel/CSV) into detailed narrative reports in seconds. AI data reporting without the hassle.",
 };
 
 export default function RootLayout({

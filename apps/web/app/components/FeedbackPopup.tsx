@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { IoChatboxEllipsesOutline, IoClose, IoSend, IoCheckmarkCircle } from 'react-icons/io5';
 import PrimaryButton from './PrimaryButton';
-import { useGTMTracking } from '../hooks/useGTMTracking';
 
 const MOODS = [
     { emoji: '🤩', label: 'Excellent', value: 'excellent' },
@@ -13,7 +12,6 @@ const MOODS = [
 ];
 
 export default function FeedbackPopup() {
-    const { trackEvent } = useGTMTracking();
     const [isOpen, setIsOpen] = useState(false);
     const [mood, setMood] = useState<string | null>(null);
     const [feedback, setFeedback] = useState('');
@@ -25,18 +23,32 @@ export default function FeedbackPopup() {
         e.preventDefault();
         setIsSending(true);
 
-        // Track feedback in GTM
-        trackEvent({
-            eventName: 'user_feedback',
-            eventData: {
-                mood,
-                feedback_text: feedback,
-                user_email: email || 'anonymous'
-            }
-        });
+        // Get the selected mood emoji
+        const moodData = MOODS.find(m => m.value === mood);
+        const moodEmoji = moodData?.emoji || '❓';
+        const moodLabel = moodData?.label || 'Unknown';
 
-        // Mock the submission delay
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // Send to Discord webhook
+        try {
+            await fetch('https://discord.com/api/webhooks/1451951712326779195/BnSQIdpiUOXJDaJWhGn-t6kGif843XxXqeppfKit_4VbY5lBAFEUp0znAkxSDELQyDTn', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    embeds: [{
+                        title: `${moodEmoji} New Feedback: ${moodLabel}`,
+                        color: mood === 'excellent' ? 0x22c55e : mood === 'good' ? 0x3b82f6 : mood === 'neutral' ? 0xeab308 : 0xef4444,
+                        fields: [
+                            { name: '💬 Message', value: feedback || 'No message provided', inline: false },
+                            { name: '📧 Email', value: email || 'Anonymous', inline: true },
+                            { name: '🕐 Time', value: new Date().toLocaleString(), inline: true }
+                        ],
+                        footer: { text: 'Narrativee Feedback' }
+                    }]
+                })
+            });
+        } catch (error) {
+            console.error('Failed to send feedback to Discord:', error);
+        }
 
         setIsSending(false);
         setIsSubmitted(true);
