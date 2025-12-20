@@ -71,13 +71,13 @@ export default function Home() {
                 {/* Animated CTA Button */}
                 <div className="mb-4 flex justify-center lg:justify-start">
                   <button
-                    onClick={() => document.getElementById('file-upload-area')?.scrollIntoView({ behavior: 'smooth' })}
+                    onClick={() => router.push('/auth/signup')}
                     className="group relative px-8 py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-black font-semibold rounded-2xl shadow-lg shadow-amber-200/50 hover:shadow-xl hover:shadow-amber-300/50 transition-all duration-300 hover:scale-105 overflow-hidden"
                     style={{ fontFamily: 'var(--font-urbanist)' }}
                   >
                     <span className="relative z-10 flex items-center gap-2 text-lg">
                       <IoSparkles className="animate-pulse" size={20} />
-                      Get started -<span className="font-light"> No Sign Up Required</span>
+                      Get started -<span className="font-light">it's free</span>
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-r from-amber-300 to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </button>
@@ -113,6 +113,7 @@ export default function Home() {
 
           {/* File Upload Area - Below Hero */}
           <div id="file-upload-area" className="mt-16 max-w-2xl mx-auto">
+            <p style={{ fontFamily: 'var(--font-urbanist)' }} className="text-xs font-light text-gray-400 tracking-wider text-center lg:text-left">Upload your data and get a clear narrative you can actually read, chat with, and share.</p>
             <FileUploadPrompt />
           </div>
 
