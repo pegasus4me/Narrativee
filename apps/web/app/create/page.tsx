@@ -11,6 +11,7 @@ import { ReportAPI } from "../../lib/apis";
 import PrimaryButton from "../components/PrimaryButton";
 
 import { sendGTMEvent } from "../../lib/gtm";
+import posthog from 'posthog-js';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://api.narrativee.com'
@@ -143,6 +144,17 @@ export default function CreatePage() {
         style: reportStyle,
         hasStory: hasStory || !!story
       });
+
+      // PostHog: Capture report_generated event
+      posthog.capture('report_generated', {
+        report_id: reportId,
+        audience: audience,
+        report_style: reportStyle,
+        has_story: hasStory || !!story,
+        source: sessionData.powerbi ? 'powerbi' : 'file_upload',
+        file_name: sessionData.fileName || sessionData.powerbi?.dataset.name,
+      });
+
       router.push(`/workspace/${reportId}`);
 
     } catch (error: any) {
@@ -162,6 +174,7 @@ export default function CreatePage() {
         return;
       }
 
+      posthog.captureException(error instanceof Error ? error : new Error(error.message || 'Report generation failed'));
       alert('Failed to generate report. Please try again.');
       setIsGenerating(false);
     }

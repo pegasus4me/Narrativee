@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import PowebiLogo from "../../../public/powerbi.webp";
 import Image from "next/image";
 import { DatasetSelector } from "../../components/powerbi/DatasetSelector";
+import posthog from 'posthog-js';
 export default function IntegrationsPage() {
     const { data: session } = authClient.useSession();
     const [linkedAccounts, setLinkedAccounts] = useState<any[]>([]);
@@ -34,12 +35,18 @@ export default function IntegrationsPage() {
 
     const handleConnectPowerBI = async () => {
         try {
+            // PostHog: Capture powerbi_connected event before redirect
+            posthog.capture('powerbi_connected', {
+                action: 'connect_initiated',
+                source: 'integrations_page',
+            });
             await authClient.linkSocial({
                 provider: "microsoft",
                 callbackURL: window.location.origin + "/workspace/integrations",
             });
         } catch (error) {
             console.error("Failed to link PowerBI:", error);
+            posthog.captureException(error instanceof Error ? error : new Error('Failed to connect PowerBI'));
             alert("Failed to connect PowerBI account");
         }
     };

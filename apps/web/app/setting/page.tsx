@@ -6,6 +6,7 @@ import { reportApi } from "../../lib/apis";
 import { User, CreditCard, Settings as SettingsIcon, Logout, Delete, Moon, Sun, Globe, Tick, Share } from "clicons-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import posthog from 'posthog-js';
 
 export default function SettingsPage() {
     const { data: session } = authClient.useSession();
@@ -45,6 +46,10 @@ export default function SettingsPage() {
     };
 
     const handleSignOut = async () => {
+        // PostHog: Capture logout event and reset user identification
+        posthog.capture('user_logged_out');
+        posthog.reset();
+
         await authClient.signOut();
         router.push("/");
     };

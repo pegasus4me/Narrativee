@@ -8,6 +8,7 @@ import Image from 'next/image';
 import Logo from "../../../public/sidelogo.png"
 import PrimaryButton from "../../components/PrimaryButton";
 import { useGTMTracking } from "../../hooks/useGTMTracking";
+import posthog from 'posthog-js';
 
 export default function SignIn() {
   const router = useRouter();
@@ -23,12 +24,18 @@ export default function SignIn() {
     setIsLoading(true);
     setError(null);
     try {
+      // Capture PostHog event before redirect
+      posthog.capture('user_signed_in', {
+        method: 'google',
+        source: 'signin_page',
+      });
       await authClient.signIn.social({
         provider: "google",
         callbackURL: window.location.origin,
       });
     } catch (err) {
       setError("Failed to connect with Google");
+      posthog.captureException(err instanceof Error ? err : new Error("Google signin failed"));
       setIsLoading(false);
     }
   };
@@ -57,15 +64,25 @@ export default function SignIn() {
       }, {
         onSuccess: () => {
           trackEvent({ eventName: 'login', eventData: { method: 'email' } });
+          // PostHog: Identify user and capture signin event
+          posthog.identify(email, {
+            email: email,
+          });
+          posthog.capture('user_signed_in', {
+            method: 'email',
+            source: 'signin_page',
+          });
           router.push("/");
         },
         onError: (ctx) => {
           setError(ctx.error.message);
+          posthog.captureException(new Error(ctx.error.message));
           setIsLoading(false);
         }
       });
     } catch (err: any) {
       setError(err.message || "Failed to sign in");
+      posthog.captureException(err instanceof Error ? err : new Error(err.message || "Email signin failed"));
       setIsLoading(false);
     }
   };

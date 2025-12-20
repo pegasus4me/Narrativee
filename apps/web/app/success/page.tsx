@@ -1,14 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Tick2 } from "clicons-react";
+import posthog from 'posthog-js';
 
 export default function SuccessPage() {
     const router = useRouter();
     const [countdown, setCountdown] = useState(3);
+    const hasTrackedCheckout = useRef(false);
 
     useEffect(() => {
+        // PostHog: Capture checkout_completed event (only once)
+        if (!hasTrackedCheckout.current) {
+            hasTrackedCheckout.current = true;
+            posthog.capture('checkout_completed', {
+                source: 'success_page',
+            });
+        }
+
         const timer = setInterval(() => {
             setCountdown((prev) => prev - 1);
         }, 1000);

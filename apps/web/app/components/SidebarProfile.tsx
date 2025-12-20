@@ -9,6 +9,7 @@ import { reportApi } from "../../lib/apis";
 import { IoSettingsSharp, IoLogOutOutline } from "react-icons/io5";
 import { FaCoins } from "react-icons/fa";
 import { HiChevronUpDown } from "react-icons/hi2";
+import posthog from 'posthog-js';
 
 interface SidebarProfileProps {
     isCollapsed: boolean;
@@ -42,6 +43,10 @@ export default function SidebarProfile({ isCollapsed }: SidebarProfileProps) {
     }, [session?.user]);
 
     const handleLogout = async () => {
+        // PostHog: Capture logout event and reset user identification
+        posthog.capture('user_logged_out');
+        posthog.reset();
+
         await authClient.signOut({
             fetchOptions: {
                 onSuccess: () => {

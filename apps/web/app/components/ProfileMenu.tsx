@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { reportApi } from "../../lib/apis";
 import { Badge } from "@/components/ui/badge"
+import posthog from 'posthog-js';
 
 export default function ProfileMenu() {
     const session = authClient.useSession();
@@ -34,6 +35,10 @@ export default function ProfileMenu() {
     }, [session.data?.user]);
 
     const handleLogout = async () => {
+        // PostHog: Capture logout event and reset user identification
+        posthog.capture('user_logged_out');
+        posthog.reset();
+
         await authClient.signOut({
             fetchOptions: {
                 onSuccess: () => {

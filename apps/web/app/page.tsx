@@ -16,6 +16,7 @@ import user2 from "../public/2.png";
 import user3 from "../public/3.png";
 import { useGTMTracking } from "./hooks/useGTMTracking";
 import { IoSparkles, IoDocumentText, IoChatbubbles, IoShareSocial, IoFlash, IoShieldCheckmark, IoTime } from "react-icons/io5";
+import posthog from 'posthog-js';
 
 export default function Home() {
   const router = useRouter();
@@ -71,7 +72,15 @@ export default function Home() {
                 {/* Animated CTA Button */}
                 <div className="mb-4 flex justify-center lg:justify-start">
                   <button
-                    onClick={() => router.push('/auth/signup')}
+                    onClick={() => {
+                      // PostHog: Capture cta_clicked event
+                      posthog.capture('cta_clicked', {
+                        cta_location: 'hero_section',
+                        cta_text: 'Get started - it\'s free',
+                        destination: '/auth/signup',
+                      });
+                      router.push('/auth/signup');
+                    }}
                     className="group relative px-8 py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-black font-semibold rounded-2xl shadow-lg shadow-amber-200/50 hover:shadow-xl hover:shadow-amber-300/50 transition-all duration-300 hover:scale-105 overflow-hidden"
                     style={{ fontFamily: 'var(--font-urbanist)' }}
                   >
@@ -260,7 +269,15 @@ export default function Home() {
             Upload your first file and see the magic. No account needed.
           </p>
           <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={() => {
+              // PostHog: Capture cta_clicked event
+              posthog.capture('cta_clicked', {
+                cta_location: 'footer_section',
+                cta_text: 'Get Started Free',
+                destination: 'scroll_to_top',
+              });
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             className="px-10 py-5 bg-amber-400 text-white font-semibold rounded-2xl shadow-lg hover:bg-gray-900 transition-all duration-300 hover:scale-105 text-lg"
             style={{ fontFamily: 'var(--font-urbanist)' }}
           >

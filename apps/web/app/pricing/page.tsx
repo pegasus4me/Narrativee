@@ -9,6 +9,7 @@ import Header from "../components/Header";
 
 import { useRouter } from "next/navigation";
 import { useGTMTracking } from "../hooks/useGTMTracking";
+import posthog from 'posthog-js';
 
 export default function PricingPage() {
     const { data: session } = authClient.useSession();
@@ -70,6 +71,7 @@ export default function PricingPage() {
             }
         } catch (error) {
             console.error("Checkout error:", error);
+            posthog.captureException(error instanceof Error ? error : new Error('Checkout error'));
             alert("An error occurred. Please try again.");
         }
     };
@@ -143,6 +145,13 @@ export default function PricingPage() {
                                     'USD',
                                     'Subscription'
                                 );
+                                // PostHog: Capture pricing_plan_selected event
+                                posthog.capture('pricing_plan_selected', {
+                                    plan_name: plan.name,
+                                    plan_price: isAnnual ? plan.annualPrice : plan.monthlyPrice,
+                                    billing_cycle: isAnnual ? 'annual' : 'monthly',
+                                    is_popular: plan.popular || false,
+                                });
                                 handleCheckout(plan);
                             }}>
                                 {plan.cta}

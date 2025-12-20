@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import posthog from 'posthog-js';
 
 interface Props {
   children: React.ReactNode;
@@ -23,6 +24,11 @@ export class ChartErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Chart Error Boundary caught:', error, errorInfo);
+    // PostHog: Capture chart rendering errors
+    posthog.captureException(error, {
+      component_stack: errorInfo.componentStack,
+      error_boundary: 'ChartErrorBoundary',
+    });
   }
 
   render() {

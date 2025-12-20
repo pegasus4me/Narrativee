@@ -1,6 +1,7 @@
 "use client";
 
 import { Eye } from "clicons-react";
+import posthog from 'posthog-js';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -55,7 +56,14 @@ export function ShareModal({
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm font-mono"
                 />
                 <button
-                  onClick={onCopy}
+                  onClick={() => {
+                    onCopy();
+                    // PostHog: Capture report_shared event
+                    posthog.capture('report_shared', {
+                      share_url: shareUrl,
+                      view_count: viewCount,
+                    });
+                  }}
                   className="px-4 py-2 bg-amber-500 text-black rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
                 >
                   Copy

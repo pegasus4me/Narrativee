@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReportEditor from "../../workspace/components/lexical/ReportEditor";
 import { reportApi } from "../../../lib/apis";
 import Image from "next/image";
@@ -10,6 +10,7 @@ import { Eye } from "clicons-react";
 import Link from "next/link";
 import PrimaryButton from "../../components/PrimaryButton";
 import { useRouter } from "next/navigation";
+import posthog from 'posthog-js';
 interface Template {
   id: string;
   name: string;
@@ -24,6 +25,7 @@ export default function SharedReportPage() {
   const [reportData, setReportData] = useState<Template | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasTrackedView = useRef(false);
 
   useEffect(() => {
     const fetchSharedReport = async () => {
@@ -43,10 +45,21 @@ export default function SharedReportPage() {
 
         setReportData(template);
         setIsLoading(false);
+
+        // PostHog: Capture shared_report_viewed event (only once)
+        if (!hasTrackedView.current) {
+          hasTrackedView.current = true;
+          posthog.capture('shared_report_viewed', {
+            share_id: shareId,
+            report_id: report.id,
+            report_name: report.name,
+          });
+        }
       } catch (error) {
         console.error('❌ Error fetching shared report:', error);
         setError('Report not found or has been unshared.');
         setIsLoading(false);
+        posthog.captureException(error instanceof Error ? error : new Error('Shared report fetch failed'));
       }
     };
 

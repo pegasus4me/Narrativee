@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { IoChatboxEllipsesOutline, IoClose, IoSend, IoCheckmarkCircle } from 'react-icons/io5';
 import PrimaryButton from './PrimaryButton';
+import posthog from 'posthog-js';
 
 const MOODS = [
     { emoji: '🤩', label: 'Excellent', value: 'excellent' },
@@ -52,6 +53,14 @@ export default function FeedbackPopup() {
 
         setIsSending(false);
         setIsSubmitted(true);
+
+        // PostHog: Capture feedback_submitted event
+        posthog.capture('feedback_submitted', {
+            mood: mood,
+            mood_label: moodLabel,
+            has_email: !!email,
+            feedback_length: feedback.length,
+        });
 
         // Auto close after 2 seconds on success
         setTimeout(() => {

@@ -8,6 +8,7 @@ import { reportApi } from "../../lib/apis";
 import Markdown from "markdown-to-jsx";
 import { sendGTMEvent } from "../../lib/gtm";
 import { MdKeyboardDoubleArrowLeft } from "react-icons/md";
+import posthog from 'posthog-js';
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -120,6 +121,14 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
       hasFile: !!uploadedFile
     });
 
+    // PostHog: Capture chat_message_sent event
+    posthog.capture('chat_message_sent', {
+      message_type: requestType,
+      has_file: !!currentFile,
+      report_id: reportId,
+      message_length: currentInput.length,
+    });
+
     try {
       let data: any;
 
@@ -172,6 +181,7 @@ export function ChatSidebar({ isOpen, onClose, reportContent, reportId, editor, 
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
+      posthog.captureException(error instanceof Error ? error : new Error('Chat error'));
     } finally {
       setIsLoading(false);
     }

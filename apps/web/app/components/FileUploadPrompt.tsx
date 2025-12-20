@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { DatasetSelector } from "./powerbi/DatasetSelector";
 import { File as FileIcon, BarChart, X, Link, Upload } from "clicons-react";
 import { IoCloudUpload } from "react-icons/io5";
+import posthog from 'posthog-js';
 
 export default function FileUploadPrompt() {
   const [message, setMessage] = useState("");
@@ -72,6 +73,14 @@ export default function FileUploadPrompt() {
     setFile(selectedFile);
     setPowerBIDataset(null);
     calculateCost(selectedFile);
+
+    // PostHog: Capture file upload event
+    posthog.capture('file_uploaded', {
+      file_name: selectedFile.name,
+      file_type: selectedFile.type || fileExtension,
+      file_size_kb: Math.round(selectedFile.size / 1024),
+      source: 'file_upload_prompt',
+    });
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
