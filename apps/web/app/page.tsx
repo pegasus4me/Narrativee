@@ -58,7 +58,7 @@ export default function Home() {
 
               {/* Headline */}
               <h1 className="text-4xl md:text-5xl xl:text-8xl leading-[1.1] text-gray-900 tracking-tight font-medium" style={{ fontFamily: 'var(--font-urbanist)' }}>
-                Make sense of your data in minute
+                Make sense of your data in 
               </h1>
 
               {/* Description */}
