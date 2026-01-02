@@ -10,11 +10,17 @@ services:
     # Add depends_on if external services are added below
     # networks:
     #   - appnet
-    # Add comments for any non-obvious configuration
 
-# No external services detected from the provided context.
-# If your app requires a database or other services, add them below.
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
-# networks:
-#   appnet:
-#     driver: bridge
+volumes:
+  postgres_data:

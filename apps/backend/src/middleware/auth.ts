@@ -1,6 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { betterAuth } from 'better-auth';
-import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import { auth } from '../auth/auth';
 dotenv.config();

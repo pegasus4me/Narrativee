@@ -5,8 +5,8 @@ import { authClient } from '../../../lib/auth-client';
 import { ViewOff, View, Sparkles, Loader } from "clicons-react";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Logo from "../../../public/sidelogo.png";
-import PrimaryButton from "../../components/PrimaryButton";
+import Logo from "../../../public/logo.png";
+import PrimaryButton from "../../components/commons/PrimaryButton";
 import { useGTMTracking } from "../../hooks/useGTMTracking";
 
 export default function SignUp() {
@@ -206,19 +206,14 @@ export default function SignUp() {
       </div>
 
       {/* Right Side: Gradient - Matching SignIn Page */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-orange-50 to-orange-100 relative items-center justify-center overflow-hidden">
+      <div className="hidden lg:flex w-1/2 rounded-l-full bg-gradient-to-br from-primary to-secondary relative items-center justify-center overflow-hidden">
         {/* Abstract Shapes */}
-        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-orange-300 to-amber-400 rounded-full blur-[100px] opacity-40 animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-gradient-to-tr from-orange-200 to-amber-300 rounded-full blur-[120px] opacity-40" />
+        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-contrast to-contrast/50 rounded-full blur-[100px] opacity-40 animate-pulse" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-gradient-to-tr from-contrast to-contrast/50 rounded-full blur-[120px] opacity-40" />
 
-        {/* Content */}
+        {/* Content in the gradient side - optional, maybe a quote or feature highlight */}
         <div className="relative z-10 max-w-md text-center p-8">
-          <h2 className="text-3xl font-medium text-amber-900 mb-4" style={{ fontFamily: 'var(--font-urbanist)' }}>
-            Turn your data into stories :)
-          </h2>
-          <p className="text-amber-800/70 font-light">
-            Narrativee transforms complex spreadsheets into clear, readable reports in minutes.
-          </p>
+
         </div>
       </div>
     </div>

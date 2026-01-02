@@ -1,6 +1,11 @@
 import { Router, Response } from 'express';
 import { verifyAuth, AuthRequest } from '../middleware/auth';
-import { getUserTokenBalance } from '../services/database/tokenDB';
+// import { getUserTokenBalance } from '../services/database/tokenDB';
+
+// Mock function until tokenDB is implemented
+async function getUserTokenBalance(userId: string) {
+    return 100; // Default credits
+}
 
 const router = Router();
 

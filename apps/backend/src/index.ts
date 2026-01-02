@@ -5,11 +5,8 @@ if (!global.crypto) {
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import reportRouter from './routes/report';
-import chatRouter from './routes/chat';
 import pricingRouter from './routes/pricing';
 import userRouter from './routes/user';
-import powerbiRouter from './routes/powerbi.routes';
 import cookieParser from 'cookie-parser';
 import { auth } from "./auth/auth"
 import { toNodeHandler } from "better-auth/node";
@@ -51,10 +48,23 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Narrativee API is running' });
 });
 
-app.use('/api/report', reportRouter);
-app.use('/api/chat', chatRouter);
+import eventsRouter from './routes/events';
+
+// ... (imports)
+
+// ...
+
+import apiKeysRouter from './routes/api-keys';
+import saasUsersRouter from './routes/saas-users';
+import scoringRouter from './routes/scoring';
+import workflowsRouter from './routes/workflows';
+
 app.use('/api/user', userRouter);
-app.use('/api/powerbi', powerbiRouter);
+app.use('/api/events', eventsRouter);
+app.use('/api/api-keys', apiKeysRouter);
+app.use('/api/saas-users', saasUsersRouter);
+app.use('/api/scoring', scoringRouter);
+app.use('/api/workflows', workflowsRouter);
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
