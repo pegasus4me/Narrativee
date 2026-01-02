@@ -8,13 +8,8 @@ import dns from 'node:dns';
 
 dotenv.config()
 
-console.log("Auth Config Debug:");
-console.log("MICROSOFT_CLIENT_ID present:", !!process.env.MICROSOFT_CLIENT_ID);
-console.log("MICROSOFT_CLIENT_SECRET present:", !!process.env.MICROSOFT_CLIENT_SECRET);
-console.log("BETTER_AUTH_URL:", process.env.BETTER_AUTH_URL);
-
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.LOCAL_DATABASE_URL || process.env.DATABASE_URL,
   allowExitOnIdle: true,
 });
 
@@ -40,20 +35,6 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       enabled: true,
-    },
-    microsoft: {
-      clientId: process.env.MICROSOFT_CLIENT_ID!,
-      clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
-      enabled: true,
-      scope: [
-        "offline_access",
-        "https://analysis.windows.net/powerbi/api/Dataset.Read.All",
-        "https://analysis.windows.net/powerbi/api/Dataset.ReadWrite.All",
-        "https://analysis.windows.net/powerbi/api/Report.Read.All",
-        "https://analysis.windows.net/powerbi/api/Workspace.Read.All",
-        "User.Read"
-      ],
-      tenantId: "common",
     },
   },
   account: {

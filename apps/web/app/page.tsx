@@ -1,182 +1,304 @@
 "use client"
 import Image from "next/image";
-import { Button } from "@repo/ui/button";
 import logo from "../public/logo.png";
-import FileUploadPrompt from "./components/FileUploadPrompt";
-import { useEffect, useState } from "react";
 import { authClient } from "../lib/auth-client";
-import { useMigrateReports } from "./hooks/useMigrateReports";
-import template from "../public/example.png"
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Header from "./components/Header";
-import { ChevronRight } from "clicons-react";
-import BeforeAfterSlider from "./components/BeforeAfterSlider";
+import Header from "./components/commons/Header";
+import { useGTMTracking } from "./hooks/useGTMTracking";
+import PrimaryButton from "./components/commons/PrimaryButton";
+import { Target, TrendingUp, Zap, Users, BarChart3, Bell, ArrowRight } from "lucide-react";
+import { ROICalculator } from "./components/pricing/ROICalculator";
+
 export default function Home() {
   const router = useRouter();
-  const words = ["csv", "sheet", "excel"];
-  const words2 = ["narrative", "interactive"];
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentIndex2, setCurrentIndex2] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
+  const { trackEvent } = useGTMTracking();
   const { data: session } = authClient.useSession();
 
-  // Auto-migrate localStorage reports when user logs in
-  const { isMigrating, migratedCount } = useMigrateReports();
-  console.log('dddd', session)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % words.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [words.length]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex2((prev) => (prev + 1) % words2.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [words2.length]);
-
   return (
-    <div className="to-gray-50 overflow-x-hidden">
-      {/* Header */}
+    <div className="min-h-screen max-w-7xl mx-auto border border-neutral-200 mx-auto">
+      <div className="">
+        <Header />
 
-      <Header />
-      {/* Hero Section */}
-      <main className="p-4 md:p-5 mt-5 max-w-[95%] md:max-w-[90%] mx-auto z-10">
-        <div className="absolute inset-0 z-[-1]">
-          <Image
-            src="/backgroundimg.png"
-            alt="Background"
-            fill
-            className="object-cover opacity-10"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white"></div>
-        </div>
-        <div className="text-center">
-          <h1 className="text-6xl bg-clip-text text-transparent bg-gradient-to-br from-gray-900 via-gray-700 to-gray-500 mb-4 max-w-3xl mx-auto pb-2" style={{ fontFamily: 'var(--font-petrona)' }}>
-            Turn your spreadsheet data into narrative reports
-          </h1>
-          <p className="text-base md:text-md text-gray-500 max-w-xl mx-auto px-4" style={{ fontFamily: 'var(--font-noto)' }}>
-            The AI-powered workspace that transform your raw data into compelling and collaborative reports, in minutes.
-          </p>
-        </div>
-        <div className="flex-1 flex items-center justify-center p-2 md:p-6 flex-col">
-          <p className="font-normal text-slate-700 p-2 text-base md:text-lg leading-relaxed text-center" style={{ fontFamily: 'var(--font-petrona)' }}>Get started — no account needed</p>
-          <div className="w-full max-w-md md:max-w-xl">
-            <FileUploadPrompt />
-          </div>
-          <div className="w-full max-w-md md:max-w-xl">
-            <button
-              className="w-full py-6 flex items-center justify-between text-left focus:outline-none group"
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              <h3 className="text-sm font-medium text-gray-900 transition-colors" >
-                Privacy first concerning your data
-              </h3>
-              <span className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
-                <ChevronRight />
-              </span>
-            </button>
+        {/* Hero Section */}
+        <main className="mt-16 lg:mt-24 border-b border-t border-neutral-200 ">
+          <div className="flex flex-col lg:flex-row lg:items-stretch items-center lg:gap-0 gap-12">
+
+            {/* Text Content */}
+            <div className="flex-1 text-center lg:text-left p-6 lg:py-20 lg:pl-6 lg:pr-12">
+              {/* Badge */}
+
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
+                Someone signed up to a trial. Now what?
+              </h1>
+
+              <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto lg:mx-0">
+                You're bleeding revenue and you don't even see it. Narrativee tracks <span className="text-gray-900 font-medium">who's engaged vs. who's a tourist</span>, pinpoints the <span className="text-gray-900 font-medium">aha moment</span>, and <span className="text-gray-900 font-medium">converts it before the trial ends</span>.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start text-sm font-semibold">
+                <PrimaryButton
+                  onClick={() => router.push('/auth/signup')}
+                >
+                  Get started – <span className="text-white/70">7 day free trial</span>
+                </PrimaryButton>
+              {/* <button className="px-8 py-4 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all active:scale-95">
+                View Interactive Demo
+              </button> */}
+              </div>
+            </div>
+
+            {/* Visual Content */}
             <div
-              className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mb-6' : 'grid-rows-[0fr] opacity-0'
-                }`}
+              className="flex-1 w-full min-h-[400px] lg:min-h-0 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: "url('/backgroundHero.png')" }}
             >
-              <div className="overflow-hidden p-1">
-                <p className="text-gray-600 leading-relaxed text-xs">
-                  We are deeply concerned about privacy and security, this is why your uploaded data is strictly processed in your browser and never sent to the server or any third party,
-                  The data driven reports you create are Encrypted using AES-256 encryption before being stored
+            </div>
+
+          </div>
+        </main>
+
+        {/* Problem Section */}
+        <section id="problem" className="border-b border-neutral-200 py-20 px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <span className="text-primary font-manrope font-semibold text-sm uppercase tracking-wider mb-4 block">
+              The Problem
+            </span>
+            <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-6">
+              You're losing 70% of trial users. <br />
+              <span className="text-gray-400">And you have no idea why.</span>
+            </h2>
+            <p className="text-xl text-gray-500 font-urbanist leading-relaxed max-w-3xl mx-auto mb-12">
+              Most SaaS companies treat all trial users the same. But the truth is: some are ready to buy, some need a nudge, and some were never going to convert. Without knowing which is which, you're flying blind.
+            </p>
+
+            {/* Problem Cards */}
+            <div className="grid md:grid-cols-3 gap-6 text-left">
+              <div className="border border-neutral-200 rounded-lg p-6">
+                <div className="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center mb-4">
+                  <Users className="text-red-500" size={24} />
+                </div>
+                <h3 className="font-semibold text-gray-900 font-manrope mb-2">No visibility</h3>
+                <p className="text-gray-500 text-sm font-manrope">
+                  You don't know who's exploring vs. who's stuck at the paywall.
+                </p>
+              </div>
+              <div className="border border-neutral-200 rounded-lg p-6">
+                <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center mb-4">
+                  <BarChart3 className="text-orange-500" size={24} />
+                </div>
+                <h3 className="font-semibold text-gray-900 font-manrope mb-2">Generic messaging</h3>
+                <p className="text-gray-500 text-sm font-manrope">
+                  Same emails, same popups for everyone. Low engagement, low conversions.
+                </p>
+              </div>
+              <div className="border border-neutral-200 rounded-lg p-6">
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                  <Bell className="text-gray-500" size={24} />
+                </div>
+                <h3 className="font-semibold text-gray-900 font-manrope mb-2">Missed timing</h3>
+                <p className="text-gray-500 text-sm font-manrope">
+                  By the time you reach out, they've already churned.
                 </p>
               </div>
             </div>
           </div>
-        </div>
-      </main>
+        </section>
 
-      {/* Before/After Comparison Section */}
-      <section className="relative mx-auto px-4 w-full overflow-hidden">
-        {/* Background Image */}
+        {/* Solution Section */}
+        <section id="solution" className="border-b border-neutral-200 py-20 px-6 bg-gray-50">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-16">
+              <span className="text-primary font-manrope font-semibold text-sm uppercase tracking-wider mb-4 block">
+                The Solution
+              </span>
+              <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-6">
+                Turn trial users into paying customers. <br />
+                <span className="text-primary">Automatically.</span>
+              </h2>
+              <p className="text-xl text-gray-500 font-urbanist leading-relaxed max-w-3xl mx-auto">
+                Narrativee tracks user behavior, calculates engagement scores, and triggers personalized nudges at the perfect moment—so you convert more trials without lifting a finger.
+              </p>
+            </div>
 
+            {/* Solution Steps */}
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-white border border-neutral-200 rounded-xl p-8 text-center">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Target className="text-primary" size={28} />
+                </div>
+                <div className="text-5xl font-bold font-urbanist text-gray-900 mb-2">1</div>
+                <h3 className="text-xl font-semibold text-gray-900 font-manrope mb-3">Track Engagement</h3>
+                <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                  Install our lightweight SDK. Define your "aha moments" (pricing page view, feature use, etc.). We score every user automatically.
+                </p>
+              </div>
 
-        <div className="relative z-10 max-w-[90%] mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl p-1 bg-clip-text text-transparent bg-gradient-to-br from-gray-900 via-gray-700 to-gray-500 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
-              From Raw Data to Compelling Reports
+              <div className="bg-white border border-neutral-200 rounded-xl p-8 text-center">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <TrendingUp className="text-primary" size={28} />
+                </div>
+                <div className="text-5xl font-bold font-urbanist text-gray-900 mb-2">2</div>
+                <h3 className="text-xl font-semibold text-gray-900 font-manrope mb-3">Build Workflows</h3>
+                <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                  Create visual workflows: "When score {">"} 50, show upgrade popup". "When user visits pricing 3x, send discount email".
+                </p>
+              </div>
+
+              <div className="bg-white border border-neutral-200 rounded-xl p-8 text-center">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Zap className="text-primary" size={28} />
+                </div>
+                <div className="text-5xl font-bold font-urbanist text-gray-900 mb-2">3</div>
+                <h3 className="text-xl font-semibold text-gray-900 font-manrope mb-3">Convert More</h3>
+                <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                  Watch your conversion rate climb. See exactly which triggers work. Iterate and grow.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="border-b border-neutral-200 py-20 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-16">
+              <span className="text-primary font-manrope font-semibold text-sm uppercase tracking-wider mb-4 block">
+                Features
+              </span>
+              <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-6">
+                Everything you need to convert trials
+              </h2>
+            </div>
+
+            {/* Feature Grid */}
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Feature 1 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                  <BarChart3 className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Engagement Scoring</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    Assign points to user actions. See at a glance who's hot and who's cold.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                  <Zap className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Visual Workflows</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    Drag-and-drop workflow builder. No code required. Trigger popups, emails, or webhooks.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                  <Target className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Smart Popups</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    Show the right message at the right time. Personalized CTAs that convert.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 4 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                  <TrendingUp className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Conversion Analytics</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    Track popup clicks, conversion rates, and ROI. Know exactly what's working.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 5 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                  <Users className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">User Profiles</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    See every user's journey: events, scores, plan, and metadata in one place.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 6 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                  <Bell className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Lightweight SDK</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    2-minute integration. Works with React, Next.js, and vanilla JS. No performance hit.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Calculator Section */}
+        <section id="calculator" className="border-b border-neutral-200 py-20 px-6 bg-gray-50">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <span className="text-primary font-manrope font-semibold text-sm uppercase tracking-wider mb-4 block">
+                ROI Calculator
+              </span>
+              <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-4">
+                See your potential revenue lift
+              </h2>
+              <p className="text-xl text-gray-500 font-urbanist">
+                Calculate how much more you could earn by converting just a few more trial users
+              </p>
+            </div>
+            <ROICalculator />
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 px-6 bg-tertiary text-white">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-4xl md:text-5xl font-medium font-urbanist mb-6">
+              Stop losing trial users
             </h2>
-            <p className="text-base md:text-lg text-gray-600 mx-auto px-4 max-w-2xl">
-              See how Narrativee transforms your spreadsheet into a professional, story-driven and interactive report.
+            <p className="text-xl text-white/70 font-urbanist mb-8">
+              Start converting more trials today. Setup takes 5 minutes.
             </p>
-          </div>
-          <div className="flex justify-center">
-            <div className="w-full max-w-full shadow-2xl rounded-xl overflow-hidden border border-gray-200 bg-white">
-              <BeforeAfterSlider
-                beforeImage="/before.png"
-                afterImage="/after.png"
-                beforeLabel="20k rows Raw CSV Data"
-                afterLabel="Narrativee Report"
-              />
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <PrimaryButton
+                onClick={() => router.push('/auth/signup')}
+                className="text-tertiary font-bold py-4 px-8 rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center justify-center gap-2"
+              >
+                Get Started Free
+                <ArrowRight size={18} />
+              </PrimaryButton>
+              <button
+                onClick={() => router.push('/pricing')}
+                className="border border-white/30 text-white font-semibold py-4 px-8 rounded-xl hover:bg-white/10 transition-colors"
+              >
+                View Pricing
+              </button>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Template Preview Section */}
-      <section className="mx-auto my-10 md:my-16 p-2">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
-            Create, Edit and Publish
-          </h2>
-          <p className="text-base md:text-lg text-gray-600 mx-auto px-4">
-            Interactive reports with charts, insights, and professional formatting
-          </p>
-        </div>
-        <div className="flex justify-center">
-          <div className="w-full relative rounded-2xl overflow-hidden border border-gray-200 max-w-[80%] md:max-w-[80%] shadow-xs [mask-image:linear-gradient(to_bottom,black_85%,transparent)]">
-            <div style={{ position: 'relative', paddingTop: '62.21198156682027%' }}>
-              <iframe
-                src="https://customer-qusdy8i1rves1ask.cloudflarestream.com/76cb163ce2351fe40fce075ffe4f211d/iframe?autoplay=true&poster=https%3A%2F%2Fcustomer-qusdy8i1rves1ask.cloudflarestream.com%2F76cb163ce2351fe40fce075ffe4f211d%2Fthumbnails%2Fthumbnail.jpg%3Ftime%3D%26height%3D600"
-                loading="lazy"
-                style={{ border: 'none', position: 'absolute', top: 0, left: 0, height: '100%', width: '100%' }}
-                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-                allowFullScreen={true}
-              ></iframe>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white mt-auto">
-        <div className="max-w-[90%] mx-auto py-8 md:py-12 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center">
-            <Image src={logo} alt="Narrativee Logo" width={120} />
-          </div>
-          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
-            <a href="mailto:contact@narrativee.com" className="text-gray-600 hover:text-amber-600 transition-colors text-sm font-medium">
-              contact@narrativee.com
-            </a>
-            <a
-              href="https://x.com/narrativee_io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-500 hover:text-black transition-colors"
-              aria-label="Follow us on X"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-current">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </footer>
-
-
+      </div>
     </div>
   );
 }
-
-

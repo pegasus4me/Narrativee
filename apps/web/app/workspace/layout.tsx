@@ -1,20 +1,36 @@
-import { SideBar } from "../components/sideBar";
-import AnnouncemebtBar from "../components/announcementBar";
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    // 1. Changed 'flex-col' to 'flex-row' (or just 'flex') to align items horizontally
-    // 2. Added 'overflow-hidden' to prevent body scrollbars if content overflows
+"use client"
+import { useEffect, useState } from "react";
+import { SideBar } from "../components/commons/sideBar"
+import { WelcomeModal } from "../components/workspaceComponents/WelcomeModal";
+import { authClient } from "@/lib/auth-client";
+import WorkspaceHeader from "../components/workspaceComponents/Header";
 
-    <>
-      <AnnouncemebtBar />
-      <section className="h-screen flex flex-row overflow-hidden bg-white">
-        <SideBar />
-        <main className="flex-1 h-full relative">{children}</main>
-      </section>
-    </>
-  );
+export default function LayoutDashboard({ children }: { children: React.ReactNode }) {
+    const { data: session } = authClient.useSession();
+    const [showWelcome, setShowWelcome] = useState(false);
+
+    useEffect(() => {
+        // Check if user has been onboarded
+        const onboarded = localStorage.getItem('narrativee_onboarded');
+        if (!onboarded && session?.user?.id) {
+            setShowWelcome(true);
+        }
+    }, [session]);
+
+    const handleWelcomeComplete = () => {
+        setShowWelcome(false);
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <WelcomeModal open={showWelcome} onComplete={handleWelcomeComplete} />
+            <WorkspaceHeader />
+            <div className="flex pt-16"> {/* pt-16 to offset fixed header */}
+                <SideBar />
+                <main className="flex-1 overflow-y-auto h-[calc(100vh-64px)]">
+                    {children}
+                </main>
+            </div>
+        </div>
+    );
 }

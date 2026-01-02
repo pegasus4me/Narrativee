@@ -24,6 +24,7 @@ export interface GenerateReportParams {
   story: string;
   audience: string;
   reportStyle: string;
+  ownerId?: string; // Optional if needed
 }
 
 export interface GenerateResponse {
@@ -68,141 +69,6 @@ export class ReportAPI {
   }
 
   /**
-   * POST /report/generate
-   */
-  async generateReport(params: GenerateReportParams): Promise<GenerateResponse> {
-    const formData = new FormData();
-    formData.append("file", params.file);
-    formData.append("story", params.story);
-    formData.append("audience", params.audience);
-    formData.append("reportStyle", params.reportStyle);
-
-    // 3. Improvement: Do NOT manually set Content-Type for FormData. 
-    // Axios/Browser detects it automatically and adds the required 'boundary' string.
-    const { data } = await this.client.post<GenerateResponse>("/report/generate", formData);
-    return data;
-  }
-
-  /**
-   * GET /report/my-reports
-   */
-  async getAllReports(): Promise<Report[]> {
-    const { data } = await this.client.get<{ success: boolean; reports: Report[] }>(
-      "/report/my-reports"
-    );
-    return data.reports;
-  }
-
-  /**
-   * GET /report/:reportId
-   */
-  async getReportById(reportId: string): Promise<Report> {
-    const { data } = await this.client.get<{ success: boolean; report: Report }>(
-      `/report/${reportId}`
-    );
-    return data.report;
-  }
-
-  /**
-   * PUT /report/:reportId
-   */
-  async updateReport(
-    reportId: string,
-    updates: {
-      name?: string;
-      markdownContent?: string;
-      reportStyle?: 'executive' | 'story' | 'detailed';
-    }
-  ): Promise<Report> {
-    const { data } = await this.client.put<{ success: boolean; report: Report }>(
-      `/report/${reportId}`,
-      updates
-    );
-    return data.report;
-  }
-
-  /**
-   * DELETE /report/:reportId
-   */
-  async deleteReport(reportId: string): Promise<void> {
-    await this.client.delete(`/report/${reportId}`);
-  }
-
-  /**
-   * POST /report/migrate
-   */
-  async migrateLocalReport(data: {
-    name: string;
-    fileName: string;
-    markdownContent: string;
-    metadata: any;
-  }): Promise<Report> {
-    const { data: response } = await this.client.post<{ success: boolean; report: Report }>(
-      '/report/migrate',
-      data
-    );
-    return response.report;
-  }
-
-  /**
-   * POST /report/:reportId/share
-   */
-  async generateShareLink(reportId: string): Promise<{ shareUrl: string; shareId: string }> {
-    const { data } = await this.client.post<{ success: boolean; shareUrl: string; shareId: string }>(
-      `/report/${reportId}/share`
-    );
-    return { shareUrl: data.shareUrl, shareId: data.shareId };
-  }
-
-  /**
-   * GET /report/share/:shareId
-   */
-  async getSharedReport(shareId: string): Promise<Report> {
-    const { data } = await this.client.get<{ success: boolean; report: Report }>(
-      `/report/share/${shareId}`
-    );
-    return data.report;
-  }
-
-  /**
-   * POST /chat
-   */
-  async chat(params: {
-    question: string;
-    reportContent: string;
-    reportId: string;
-    requestType: "question" | "edit";
-  }): Promise<{ answer: string; generatedContent?: string }> {
-    const { data } = await this.client.post<{ answer: string; generatedContent?: string }>(
-      "/chat",
-      params
-    );
-    return data;
-  }
-
-  /**
-   * POST /chat/regenerate
-   */
-  async regenerateReport(params: {
-    file: File;
-    question: string;
-    reportId: string;
-    reportContent: string;
-  }): Promise<{ success: boolean; newContent: string }> {
-    const formData = new FormData();
-    formData.append("file", params.file);
-    formData.append("question", params.question);
-    formData.append("reportId", params.reportId);
-    formData.append("reportContent", params.reportContent);
-
-    const { data } = await this.client.post<{ success: boolean; newContent: string }>(
-      "/chat/regenerate",
-      formData
-    );
-    return data;
-  }
-
-  /**
    * GET /user/credits
    */
   async getUserCredits(): Promise<number> {
@@ -222,6 +88,52 @@ export class ReportAPI {
     return data;
   }
 
+  /**
+   * GET /scoring
+   */
+  async getScoringConfigs(): Promise<any[]> {
+    const { data } = await this.client.get<{ configs: any[] }>("/scoring");
+    return data.configs;
+  }
+
+  /**
+   * POST /scoring
+   */
+  async createScoringConfig(eventName: string, scoreValue: number): Promise<void> {
+    await this.client.post("/scoring", { eventName, scoreValue });
+  }
+
+  /**
+   * DELETE /scoring/:id
+   */
+  async deleteScoringConfig(id: string): Promise<void> {
+    await this.client.delete(`/scoring/${id}`);
+  }
+
+  // --- Workflows ---
+
+  /**
+   * GET /workflows
+   */
+  async getWorkflows(): Promise<any[]> {
+    const { data } = await this.client.get<{ workflows: any[] }>("/workflows");
+    return data.workflows;
+  }
+
+  /**
+   * POST /workflows (Create or Update)
+   */
+  async saveWorkflow(workflow: any): Promise<any> {
+    const { data } = await this.client.post<{ workflow: any }>("/workflows", workflow);
+    return data.workflow;
+  }
+
+  /**
+   * DELETE /workflows/:id
+   */
+  async deleteWorkflow(id: string): Promise<void> {
+    await this.client.delete(`/workflows/${id}`);
+  }
 }
 
 export const reportApi = new ReportAPI();

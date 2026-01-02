@@ -1,6 +1,6 @@
 "use client"
 import { AlertCircle } from "clicons-react";
-import PrimaryButton from "./components/PrimaryButton";
+import PrimaryButton from "./components/commons/PrimaryButton";
 import { useRouter } from "next/navigation";
 
 export default function NotFound() {
