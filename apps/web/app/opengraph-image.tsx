@@ -3,7 +3,7 @@ import { ImageResponse } from 'next/og'
 export const runtime = 'edge'
 
 // Image metadata
-export const alt = 'Narrativee - Turn Excel data into narrative reports'
+export const alt = 'Narrativee -  '
 export const size = {
     width: 1200,
     height: 630,
