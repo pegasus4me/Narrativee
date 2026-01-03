@@ -7,6 +7,7 @@ import PrimaryButton from "../components/commons/PrimaryButton";
 import { PricingPlans } from "../../lib/pricingData";
 import Header from "../components/commons/Header";
 import { ROICalculator } from "../components/pricing/ROICalculator";
+import { API_URL } from "@/lib/api-config";
 
 import { useRouter } from "next/navigation";
 import { useGTMTracking } from "../hooks/useGTMTracking";
@@ -43,8 +44,7 @@ export default function PricingPage() {
                 return;
             }
 
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (process.env.NODE_ENV === 'production' ? "https://api.narrativee.com" : "http://localhost:3002");
-            const response = await fetch(`${backendUrl}/api/pricing/create-checkout-session`, {
+            const response = await fetch(`${API_URL}/pricing/create-checkout-session`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -89,10 +89,10 @@ export default function PricingPage() {
                         Grow as your business grows
                     </h1>
 
-                {/* ROI Calculator */}
-                <div className="mt-20 mb-12 px-4">
-                    <ROICalculator />
-                </div>
+                    {/* ROI Calculator */}
+                    <div className="mt-20 mb-12 px-4">
+                        <ROICalculator />
+                    </div>
 
                     {/* Toggle */}
                     <div className="flex items-center justify-center gap-4 mb-12">

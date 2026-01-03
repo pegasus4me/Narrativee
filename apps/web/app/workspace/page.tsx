@@ -5,6 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import GenerateApiKey from "../components/workspaceComponents/generateApiKey.component";
 import GetStarted from "../components/workspaceComponents/GetStarted";
 import DashboardStats from "../components/workspaceComponents/DashboardStats";
+import { API_URL } from "@/lib/api-config";
 
 export default function DashboardPage() {
     const { data: session } = authClient.useSession();
@@ -20,7 +21,7 @@ export default function DashboardPage() {
 
     const fetchSdkStatus = async () => {
         try {
-            const res = await fetch('http://localhost:3002/api/api-keys', {
+            const res = await fetch(`${API_URL}/api-keys`, {
                 headers: {
                     'x-user-id': session?.user?.id || ''
                 }
@@ -40,10 +41,10 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-4 max-w-7xl mx-auto mt-10">
             <div className="flex flex-col gap-4 flex-row justify-between">
                 <div>
-                <h2 className="text-4xl font-manrope text-tertiary">Nice to see you, {session?.user?.name}</h2>
-                <p className="text-text font-manrope text-neutral-600">Here's a quick overview of your metrics</p>
+                    <h2 className="text-4xl font-manrope text-tertiary">Nice to see you, {session?.user?.name}</h2>
+                    <p className="text-text font-manrope text-neutral-600">Here's a quick overview of your metrics</p>
                 </div>
-                 {!loading && sdkStatus === 'connected' && (
+                {!loading && sdkStatus === 'connected' && (
                     <div className=" rounded-lg p-4 flex items-center gap-3">
                         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                         <div>
@@ -54,9 +55,9 @@ export default function DashboardPage() {
                 )}
             </div>
 
-            <br className=""/>
+            <br className="" />
 
-                        <section className="flex flex-col gap-4">
+            <section className="flex flex-col gap-4">
                 {/* Show connected status if SDK is working */}
                 <GenerateApiKey />
 

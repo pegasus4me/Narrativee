@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth-client"
 import PrimaryButton from "@/app/components/commons/PrimaryButton"
 import DashboardStats from "../../components/workspaceComponents/DashboardStats"
 import { ScoringDialog } from "./scoring-dialog"
+import { API_URL } from "@/lib/api-config"
 
 export default function DashboardPage() {
     const { data: session } = authClient.useSession();
@@ -20,7 +21,7 @@ export default function DashboardPage() {
 
             try {
                 // Fetch from our new backend route
-                const res = await fetch('http://localhost:3002/api/saas-users', {
+                const res = await fetch(`${API_URL}/saas-users`, {
                     headers: {
                         'x-user-id': session.user.id
                     }

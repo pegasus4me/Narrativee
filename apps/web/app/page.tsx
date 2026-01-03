@@ -41,7 +41,7 @@ export default function Home() {
                 >
                   Get started – <span className="text-white/70">7 day free trial</span>
                 </PrimaryButton>
-              {/* <button className="px-8 py-4 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all active:scale-95">
+                {/* <button className="px-8 py-4 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all active:scale-95">
                 View Interactive Demo
               </button> */}
               </div>
@@ -105,9 +105,9 @@ export default function Home() {
         </section>
 
         {/* Solution Section */}
-        <section id="solution" className="border-b border-neutral-200 py-20 px-6 bg-gray-50">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-16">
+        <section id="solution" className="border-b border-neutral-200 py-24 px-6 bg-gray-50">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-20">
               <span className="text-primary font-manrope font-semibold text-sm uppercase tracking-wider mb-4 block">
                 The Solution
               </span>
@@ -116,143 +116,124 @@ export default function Home() {
                 <span className="text-primary">Automatically.</span>
               </h2>
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed max-w-3xl mx-auto">
-                Narrativee tracks user behavior, calculates engagement scores, and triggers personalized nudges at the perfect moment—so you convert more trials without lifting a finger.
+                Narrativee tracks user behavior, calculates engagement scores, and triggers personalized nudges at the perfect moment.
               </p>
             </div>
 
-            {/* Solution Steps */}
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-white border border-neutral-200 rounded-xl p-8 text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Target className="text-primary" size={28} />
-                </div>
-                <div className="text-5xl font-bold font-urbanist text-gray-900 mb-2">1</div>
-                <h3 className="text-xl font-semibold text-gray-900 font-manrope mb-3">Track Engagement</h3>
-                <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                  Install our lightweight SDK. Define your "aha moments" (pricing page view, feature use, etc.). We score every user automatically.
+            {/* Step 1: Track */}
+            <div className="flex flex-col md:flex-row items-center gap-16 mb-24">
+              <div className="flex-1 space-y-6">
+                <h3 className="text-3xl font-manrope text-gray-900">Track Engagement</h3>
+                <p className="text-lg text-gray-600 font-manrope leading-relaxed">
+                  Install our lightweight SDK in minutes. It automatically identifies users and tracks their journey from trial sign-up to their "Aha!" moment.
                 </p>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3 text-gray-600 font-medium">
+                    <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-primary">✓</div>
+                    Single line initialization
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-600 font-medium">
+                    <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-primary">✓</div>
+                    Auto-capture user traits
+                  </li>
+                </ul>
               </div>
-
-              <div className="bg-white border border-neutral-200 rounded-xl p-8 text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <TrendingUp className="text-primary" size={28} />
-                </div>
-                <div className="text-5xl font-bold font-urbanist text-gray-900 mb-2">2</div>
-                <h3 className="text-xl font-semibold text-gray-900 font-manrope mb-3">Build Workflows</h3>
-                <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                  Create visual workflows: "When score {">"} 50, show upgrade popup". "When user visits pricing 3x, send discount email".
-                </p>
-              </div>
-
-              <div className="bg-white border border-neutral-200 rounded-xl p-8 text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Zap className="text-primary" size={28} />
-                </div>
-                <div className="text-5xl font-bold font-urbanist text-gray-900 mb-2">3</div>
-                <h3 className="text-xl font-semibold text-gray-900 font-manrope mb-3">Convert More</h3>
-                <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                  Watch your conversion rate climb. See exactly which triggers work. Iterate and grow.
-                </p>
+              <div className="flex-1 relative">
+                <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-3xl blur-2xl opacity-50"></div>
+                <Image
+                  src="/carbon-3.png"
+                  alt="SDK Initialization Code"
+                  width={600}
+                  height={400}
+                  className="relative rounded-xl shadow-2xl border border-gray-200/50"
+                />
               </div>
             </div>
+
+            {/* Step 2: Trigger */}
+            <div className="flex flex-col md:flex-row-reverse items-center gap-16 mb-24">
+              <div className="flex-1 space-y-6">
+                <h3 className="text-3xl font-manrope text-gray-900">Trigger Moments</h3>
+                <p className="text-lg text-gray-600 font-manrope leading-relaxed">
+                  Don't just watch, act. Pass custom events and metadata to Narrativee. We use this data to power your workflows.
+                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3 text-gray-600 font-medium">
+                    <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-primary">✓</div>
+                    Track any custom event
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-600 font-medium">
+                    <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-primary">✓</div>
+                    Pass rich metadata for segmentation
+                  </li>
+                </ul>
+              </div>
+              <div className="flex-1 relative">
+                <div className="absolute -inset-4 bg-gradient-to-l from-indigo-500/20 to-primary/20 rounded-3xl blur-2xl opacity-50"></div>
+                <Image
+                  src="/carbon-5.png"
+                  alt="SDK Event Tracking Code"
+                  width={600}
+                  height={400}
+                  className="relative rounded-xl shadow-2xl border border-gray-200/50"
+                />
+              </div>
+            </div>
+
+            {/* Step 3: Render (React Component) */}
+            <div className="flex flex-col md:flex-row items-center gap-16 ">
+              <div className="flex-1 space-y-6">
+                <h3 className="text-3xl font-manrope text-gray-900">Render Anywhere</h3>
+                <p className="text-lg text-gray-600 font-manrope leading-relaxed">
+                  The SDK handles the logic, you handle the UI. Use our <code className="text-primary font-geist-mono bg-primary/5 px-2 py-1 rounded">NarrativeeTrigger</code> component to conditionally render popups, banners, or any React component when a workflow fires.
+                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3 text-gray-600 font-medium">
+                    <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-primary">✓</div>
+                    Fully type-safe
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-600 font-medium">
+                    <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-primary">✓</div>
+                    Works with your existing components
+                  </li>
+                </ul>
+              </div>
+              <div className="flex-1 relative">
+                <div className="absolute -inset-4 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-3xl blur-2xl opacity-50"></div>
+                {/* Code Block since we don't have an image yet */}
+                <Image
+                  src="/component.png"
+                  alt="SDK Render Component"
+                  width={600}
+                  height={400}
+                  className="relative rounded-xl shadow-2xl border border-gray-200/50"
+                />
+              </div>
+            </div>
+
+            {/* Step 4: Dashboard Result */}
+            <div className="mt-32 text-center">
+              <div className="mb-12">
+                <h3 className="text-3xl font-manrope text-gray-900 mb-4">Track perfomances in your portail</h3>
+                <p className="text-xl text-gray-500 font-urbanist">
+                  Watch your dashboard light up with real-time user insights and revenue attribution.
+                </p>
+              </div>
+
+              <div className="relative w-full  mx-auto">
+                <Image
+                  src="/app.png"
+                  alt="Narrativee Dashboard"
+                  width={1200}
+                  height={800}
+                  className="relative border"
+                  priority
+                />
+              </div>
+            </div>
+
           </div>
         </section>
-
-        {/* Features Section */}
-        <section id="features" className="border-b border-neutral-200 py-20 px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-16">
-              <span className="text-primary font-manrope font-semibold text-sm uppercase tracking-wider mb-4 block">
-                Features
-              </span>
-              <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-6">
-                Everything you need to convert trials
-              </h2>
-            </div>
-
-            {/* Feature Grid */}
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Feature 1 */}
-              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-                  <BarChart3 className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Engagement Scoring</h3>
-                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                    Assign points to user actions. See at a glance who's hot and who's cold.
-                  </p>
-                </div>
-              </div>
-
-              {/* Feature 2 */}
-              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-                  <Zap className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Visual Workflows</h3>
-                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                    Drag-and-drop workflow builder. No code required. Trigger popups, emails, or webhooks.
-                  </p>
-                </div>
-              </div>
-
-              {/* Feature 3 */}
-              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-                  <Target className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Smart Popups</h3>
-                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                    Show the right message at the right time. Personalized CTAs that convert.
-                  </p>
-                </div>
-              </div>
-
-              {/* Feature 4 */}
-              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-                  <TrendingUp className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Conversion Analytics</h3>
-                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                    Track popup clicks, conversion rates, and ROI. Know exactly what's working.
-                  </p>
-                </div>
-              </div>
-
-              {/* Feature 5 */}
-              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-                  <Users className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">User Profiles</h3>
-                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                    See every user's journey: events, scores, plan, and metadata in one place.
-                  </p>
-                </div>
-              </div>
-
-              {/* Feature 6 */}
-              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-                  <Bell className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Lightweight SDK</h3>
-                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                    2-minute integration. Works with React, Next.js, and vanilla JS. No performance hit.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Calculator Section */}
         <section id="calculator" className="border-b border-neutral-200 py-20 px-6 bg-gray-50">
           <div className="max-w-5xl mx-auto">
@@ -270,6 +251,101 @@ export default function Home() {
             <ROICalculator />
           </div>
         </section>
+        {/* Features Section */}
+        <section id="features" className="border-b border-neutral-200 py-20 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-16">
+              <span className="text-primary font-manrope font-semibold text-sm uppercase tracking-wider mb-4 block">
+                Features
+              </span>
+              <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-6">
+                Everything you need to convert trials
+              </h2>
+            </div>
+
+            {/* Feature Grid */}
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Feature 1 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0">
+                  <BarChart3 className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Engagement Scoring</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    Assign points to user actions. See at a glance who's hot and who's cold.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0">
+                  <Zap className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Visual Workflows</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    Drag-and-drop workflow builder. No code required. Trigger popups, emails, or webhooks.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0">
+                  <Target className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Smart Popups</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    Show the right message at the right time. Personalized CTAs that convert.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 4 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0">
+                  <TrendingUp className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Conversion Analytics</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    Track popup clicks, conversion rates, and ROI. Know exactly what's working.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 5 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0">
+                  <Users className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">User Profiles</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    See every user's journey: events, scores, plan, and metadata in one place.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 6 */}
+              <div className="flex gap-5 p-6 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0">
+                  <Bell className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-2">Lightweight SDK</h3>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    2-minute integration. Works with React, Next.js, and vanilla JS. No performance hit.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
 
         {/* CTA Section */}
         <section className="py-20 px-6 bg-tertiary text-white">

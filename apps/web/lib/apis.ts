@@ -1,5 +1,5 @@
+import { API_URL } from "./api-config";
 import axios, { AxiosInstance } from "axios";
-
 // --- Types ---
 
 export interface Report {
@@ -48,11 +48,8 @@ export class ReportAPI {
   private client: AxiosInstance;
 
   constructor() {
-    // 1. Best Practice: Use Env Variables, fallback to localhost
-    const baseURL = (process.env.NODE_ENV === "production" ? "https://api.narrativee.com" : "http://localhost:3002") + "/api";
-
     this.client = axios.create({
-      baseURL,
+      baseURL: API_URL,
       withCredentials: true, // Crucial for Better-Auth
       timeout: 300000, // 5 minutes to match backend
     });

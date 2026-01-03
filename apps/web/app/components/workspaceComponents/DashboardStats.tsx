@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Users, Zap, Flame, DollarSign, Activity, TrendingUp, TrendingDown } from "lucide-react";
+import { API_URL } from "@/lib/api-config";
+import { CumulativeRevenueChart } from "./CumulativeRevenueChart";
 
 export default function DashboardStats() {
     const { data: session } = authClient.useSession();
@@ -15,11 +17,14 @@ export default function DashboardStats() {
         conversions: 0,
         conversionRate: 0,
         revenueAttributed: 0,
+        popupsClicked: 0,
+        clickThroughRate: 0,
         // Trends (percentage change)
         hotLeadsTrend: 0,
         activeUsersTrend: 0,
         conversionsTrend: 0,
-        revenueTrend: 0
+        revenueTrend: 0,
+        chartData: [] // For the area chart
     });
 
     const [loading, setLoading] = useState(true);
@@ -28,32 +33,17 @@ export default function DashboardStats() {
         if (!session?.user?.id) return;
 
         async function fetchStats() {
+
             try {
-                const res = await fetch('http://localhost:3002/api/saas-users/stats', {
+                const res = await fetch(`${API_URL}/saas-users/stats`, {
                     headers: {
                         'x-user-id': session?.user?.id || ''
                     }
                 });
-                const data = await res.json() as any 
+                const data = await res.json() as any
                 setStats(data);
             } catch (err) {
                 console.error("Failed to fetch stats", err);
-                // Mock data for demo
-                setStats({
-                    hotLeads: 47,
-                    activeUsers: 234,
-                    trialUsers: 89,
-                    freeUsers: 145,
-                    paidUsers: 52,
-                    workflowsTriggered: 1247,
-                    conversions: 23,
-                    conversionRate: 4.1,
-                    revenueAttributed: 1247,
-                    hotLeadsTrend: 12.5,
-                    activeUsersTrend: -3.2,
-                    conversionsTrend: 28.4,
-                    revenueTrend: 15.8
-                });
             } finally {
                 setLoading(false);
             }
@@ -62,7 +52,7 @@ export default function DashboardStats() {
         fetchStats();
     }, [session]);
 
-    const formatCurrency = (value) => {
+    const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD',
@@ -82,11 +72,11 @@ export default function DashboardStats() {
             highlight: true
         },
         {
-            title: "Revenue Attributed",
+            title: "Additional Revenue made with Narrativee",
             value: formatCurrency(stats.revenueAttributed),
             color: "text-green-600",
             bg: "bg-green-50",
-            desc: "via Narrativee workflows",
+            desc: "Directly attributed",
             trend: stats.revenueTrend,
             highlight: true
         },
@@ -139,7 +129,7 @@ export default function DashboardStats() {
         }
     ];
 
-    const TrendIndicator = ({ trend }) => {
+    const TrendIndicator = ({ trend } : { trend: number }) => {
         if (trend === null || trend === undefined || trend === 0) return null;
 
         const isPositive = trend > 0;
@@ -180,7 +170,7 @@ export default function DashboardStats() {
     return (
         <div className="space-y-6 mb-8 font-manrope">
             {/* Top Row - Highlight Conversion Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ">
                 {highlightCards.map((card, i) => {
                     const Icon = card.icon;
                     return (
@@ -191,7 +181,7 @@ export default function DashboardStats() {
                             <div className="flex items-start justify-between mb-3">
                                 <div className={`${card.color}`}>
                                 </div>
-                                <TrendIndicator trend={card.trend} />
+                                <TrendIndicator trend={card.trend || 0} />
                             </div>
 
                             <div>
@@ -210,6 +200,15 @@ export default function DashboardStats() {
                 })}
             </div>
 
+            {/* Cumulative Revenue Chart */}
+            <div className="grid grid-cols-1">
+                <CumulativeRevenueChart
+                    data={stats.chartData}
+                    totalRevenue={stats.revenueAttributed}
+                    trend={stats.revenueTrend}
+                />
+            </div>
+
             {/* Bottom Grid - Regular Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {regularCards.map((card, i) => {
@@ -221,7 +220,7 @@ export default function DashboardStats() {
                         >
                             <div className="flex items-start justify-between mb-3">
 
-                                <TrendIndicator trend={card.trend} />
+                                <TrendIndicator trend={card.trend || 0} />
                             </div>
 
                             <div>

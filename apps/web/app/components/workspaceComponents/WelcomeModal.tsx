@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Copy, Check, Rocket } from 'lucide-react';
 import { authClient } from "@/lib/auth-client";
+import { API_URL } from '@/lib/api-config';
 
 interface WelcomeModalProps {
     open: boolean;
@@ -24,7 +25,7 @@ export function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
 
     const fetchApiKey = async () => {
         try {
-            const res = await fetch('http://localhost:3002/api/api-keys', {
+            const res = await fetch(`${API_URL}/api-keys`, {
                 headers: {
                     'x-user-id': session?.user?.id || ''
                 }

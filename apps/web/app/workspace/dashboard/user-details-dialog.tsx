@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { SaasUser } from "./columns";
 import { authClient } from "@/lib/auth-client";
 import { formatDistanceToNow } from "date-fns";
+import { API_URL } from "@/lib/api-config";
 
 interface UserDetailsDialogProps {
     user: SaasUser;
@@ -32,7 +33,7 @@ export function UserDetailsDialog({ user, children }: UserDetailsDialogProps) {
     useEffect(() => {
         if (isOpen && session?.user?.id) {
             setLoading(true);
-            fetch(`http://localhost:3002/api/events/user/${user.id}`, {
+            fetch(`${API_URL}/events/user/${user.id}`, {
                 headers: {
                     'x-user-id': session.user.id,
                     'x-api-key': 'nr-live-a969db13-6a4e-42c4-825e-9101a32dffe8' // FIXME: Should get from context/session if possible, or just x-user-id is enough for backend to find key? 
