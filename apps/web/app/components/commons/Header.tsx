@@ -21,7 +21,7 @@ export default function Header() {
         <Link href="/pricing" className="hover:opacity-70">Pricing</Link>
         <Link href="#features" className="hover:opacity-70">Features</Link>
         <Link href="#solution" className="hover:opacity-70">Solution</Link>
-        <Link href="/pricing#calculator" className="hover:opacity-70">Calculator</Link>
+        <Link href="/pricing#calculator" className="hover:opacity-70 text-yellow-400 glow">ROI Calculator </Link>
       </nav>
       <div className="flex-1 flex justify-end gap-4 items-center">
         {session ? (

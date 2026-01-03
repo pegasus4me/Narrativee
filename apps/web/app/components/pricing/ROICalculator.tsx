@@ -63,7 +63,7 @@ export function ROICalculator() {
                 <div className="border border-neutral-200 rounded-xl p-5">
                     <label className="flex items-center gap-2 text-sm text-gray-500 mb-3 font-manrope">
                         <DollarSign size={16} />
-                        Average Customer LTV
+                        Avg. Monthly Plan Price
                     </label>
                     <input
                         type="range"
@@ -110,9 +110,16 @@ export function ROICalculator() {
                 </div>
             </div>
 
-            <p className="text-center text-tertiary text-sm mt-6 font-manrope">
-                Based on an average {expectedLift}% conversion rate lift with Narrativee's behavioral triggers
-            </p>
+            <div className="text-center mt-6 space-y-2">
+                <p className="text-tertiary text-sm font-manrope">
+                    Based on an average {expectedLift}% conversion rate lift with Narrativee's behavioral triggers
+                </p>
+                {roi.additionalMRR > 79 && (
+                    <p className="text-green-600 font-semibold font-manrope">
+                        with a $79/mo plan, that's a {Math.round(roi.additionalMRR / 79)}x ROI
+                    </p>
+                )}
+            </div>
         </div>
     );
 }

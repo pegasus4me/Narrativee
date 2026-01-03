@@ -102,7 +102,7 @@ export const ROI_DEFAULTS = {
     avgMonthlyTrialUsers: 500,
     currentConversionRate: 3, // 3%
     narrativeeConversionLift: 1.8, // 1.8% additional conversions
-    avgLTV: 200, // $200 average customer LTV
+    avgLTV: 200, // $200 average monthly plan price
 };
 
 // Calculate ROI based on inputs
