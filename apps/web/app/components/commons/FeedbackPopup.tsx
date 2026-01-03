@@ -75,13 +75,13 @@ export default function FeedbackPopup() {
             {/* Floating Button */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-white border border-amber-200 text-gray-700 rounded-md shadow-lg hover:shadow-xl hover:border-amber-400 transition-all duration-300 group overflow-hidden"
+                className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-white border text-gray-700 rounded-md hover:shadow-xl transition-all duration-300 group overflow-hidden"
             >
                 <div className="relative">
-                    <IoChatboxEllipsesOutline size={22} className="text-amber-500 group-hover:scale-110 transition-transform" />
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full animate-ping" />
+                    <IoChatboxEllipsesOutline size={22} className="text-primary group-hover:scale-110 transition-transform" />
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-ping" />
                 </div>
-                <span className="font-medium text-sm" style={{ fontFamily: 'var(--font-urbanist)' }}>Feedback</span>
+                <span className="font-medium text-sm font-manrope">Feedback</span>
             </button>
 
             {/* Modal Overlay */}

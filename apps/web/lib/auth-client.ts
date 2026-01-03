@@ -1,10 +1,10 @@
 import { createAuthClient } from "better-auth/react";
 import { inferAdditionalFields } from "better-auth/client/plugins";
 import { auth } from "../../backend/src/auth/auth";
+import { API_BASE_URL } from "./api-config";
 
-let url = process.env.NODE_ENV === 'development' ? "http://localhost:3002" : "https://api.narrativee.com"
 const client = createAuthClient({
-  baseURL: url,
+  baseURL: API_BASE_URL,
   plugins: [
     inferAdditionalFields<typeof auth>()
   ]

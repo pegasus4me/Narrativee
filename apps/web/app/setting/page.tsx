@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { authClient } from "../../lib/auth-client";
 import { reportApi } from "../../lib/apis";
 import { User, CreditCard, Settings as SettingsIcon, Logout, Delete, Moon, Sun, Globe, Tick, Share } from "clicons-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/api-config";
 
 export default function SettingsPage() {
     const { data: session } = authClient.useSession();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"profile" | "billing" | "preferences">("profile");
+    const [activeTab, setActiveTab] = useState<"profile" | "billing" | "preferences" | "scoring">("profile");
     const [credits, setCredits] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [linkedAccounts, setLinkedAccounts] = useState<any[]>([]);
@@ -33,63 +34,24 @@ export default function SettingsPage() {
     const [newScoreValue, setNewScoreValue] = useState(10);
     const [scoringLoading, setScoringLoading] = useState(false);
 
-    useEffect(() => {
-        if (activeTab === "scoring" && session?.user) {
-            setScoringLoading(true);
-            // Fetch from backend (Assuming user context handles API key selection on backend for 'live' key)
-            fetch("http://localhost:3002/api/scoring", {
-                headers: {
-                    // Need session cookie to be passed. 
-                    // 'authClient.fetch' handles headers/auth? better-auth client?
-                    // Let's us regular fetch but we need credentials.
-                    // Or if running on different port, credentials: include.
-                },
-            }).catch(console.error);
-
-            // Wait, standard fetch might not send cookies if on different port without credentials: include.
-            // Using authClient or axios with credentials is better.
-            // But let's try direct fetch assuming proxy or same domain or CORS allow.
-            // Actually, we should probably use a helper. 
-            // For now, let's use a simpler approach.
-
-            // Re-implement with explicit fetch for now:
-            const fetchScoring = async () => {
-                try {
-                    // Since better-auth is in place, we might rely on the token/cookie.
-                    // On client side, authClient usually manages auth.
-                    // But for custom API calls to express:
-                    // We need to pass headers manually if not same origin.
-                    // Let's try basic fetch first.
-                } catch (e) { }
-            };
-        }
-    }, [activeTab, session]);
-
-    // We will use a dedicated function to fetch/add
-    const fetchScoringConfigs = async () => {
+    const fetchScoringConfigs = useCallback(async () => {
+        if (!session?.user) return;
         setScoringLoading(true);
         try {
-            // Using session token in header if possible, or reliance on cookie.
-            // better-auth-client usually doesn't expose raw token easily for manual fetch 
-            // unless we grab it.
-            // HOWEVER, we are on localhost.
-            // Ideally use axios instance with credentials: true.
-            // Let's assume standard fetch for now.
-            const res = await fetch("http://localhost:3002/api/scoring", {
-                headers: {
-                    // Hack: passing user ID only for basic auth if cookie fails (Backend relies on session though)
-                    // Backend uses `req.session`. 
-                    // If we are cross-origin, we need credentials: 'include'.
-                },
-                // credentials: 'include' // Important for cookies!
-            });
-            // Wait, the previous `reportApi` calls use `axios`. Maybe use that?
-            // `reportApi` implementation is not visible here but imported.
+            const configs = await reportApi.getScoringConfigs();
+            setScoringConfigs(configs || []);
+        } catch (error) {
+            console.error("Failed to fetch scoring configs:", error);
+        } finally {
+            setScoringLoading(false);
+        }
+    }, [session]);
 
-            // Let's implement fetch with standard credentials
-            // If this fails, we debug.
-        } catch (e) { console.error(e) }
-    };
+    useEffect(() => {
+        if (activeTab === "scoring") {
+            fetchScoringConfigs();
+        }
+    }, [activeTab, fetchScoringConfigs]);
 
     // REWRITE: Just defining the logic inside the rendering or effect is messy.
     // Let's look at `activeTab` rendering.
@@ -171,6 +133,14 @@ export default function SettingsPage() {
                         >
                             <SettingsIcon size={18} />
                             Preferences
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("scoring")}
+                            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "scoring" ? "bg-primary text-primary-900" : "text-gray-600 hover:bg-gray-100"
+                                }`}
+                        >
+                            <Tick size={18} />
+                            Scoring Rules
                         </button>
 
                     </nav>
@@ -331,6 +301,77 @@ export default function SettingsPage() {
                             </div>
                         </div>
 
+                    )}
+
+                    {activeTab === "scoring" && (
+                        <div className="space-y-8">
+                            <div>
+                                <h2 className="text-xl font-semibold mb-4">Scoring Rules</h2>
+                                <p className="text-gray-500 mb-6">Configure how leads are scored based on events.</p>
+
+                                {/* List Configs */}
+                                <div className="space-y-4 mb-8">
+                                    {scoringLoading ? (
+                                        <p>Loading...</p>
+                                    ) : scoringConfigs.length === 0 ? (
+                                        <p className="text-sm text-gray-500">No scoring rules defined.</p>
+                                    ) : (
+                                        scoringConfigs.map((config: any) => (
+                                            <div key={config.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                                <div>
+                                                    <p className="font-medium">{config.eventName}</p>
+                                                    <p className="text-sm text-gray-500">Score: +{config.scoreValue}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => reportApi.deleteScoringConfig(config.id).then(fetchScoringConfigs)}
+                                                    className="text-red-600 text-sm hover:underline"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+
+                                {/* Add New Config */}
+                                <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                                    <h3 className="font-medium mb-4">Add New Rule</h3>
+                                    <div className="flex gap-4">
+                                        <div className="flex-1">
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Event Name</label>
+                                            <input
+                                                type="text"
+                                                value={newEventName}
+                                                onChange={(e) => setNewEventName(e.target.value)}
+                                                placeholder="e.g. page_view"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                                            />
+                                        </div>
+                                        <div className="w-24">
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">Score</label>
+                                            <input
+                                                type="number"
+                                                value={newScoreValue}
+                                                onChange={(e) => setNewScoreValue(Number(e.target.value))}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                                            />
+                                        </div>
+                                        <div className="flex items-end">
+                                            <button
+                                                onClick={() => reportApi.createScoringConfig(newEventName, newScoreValue).then(() => {
+                                                    setNewEventName("");
+                                                    fetchScoringConfigs();
+                                                })}
+                                                disabled={!newEventName}
+                                                className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+                                            >
+                                                Add Rule
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     )}
 
 

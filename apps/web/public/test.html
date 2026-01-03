@@ -90,6 +90,11 @@
     <script src="/services/sdk.js" data-api-key="nr-live-a969db13-6a4e-42c4-825e-9101a32dffe8"></script>
 
     <script>
+        // Dynamic API Configuration
+        const API_BASE = window.location.hostname === 'localhost'
+            ? 'http://localhost:3002/api'
+            : 'https://api.narrativee.com/api';
+
         function trackEvent(eventName) {
             const status = document.getElementById('status');
             status.innerText = "Sending...";
@@ -103,7 +108,7 @@
                 return;
             }
 
-            fetch('http://localhost:3002/api/events/track', {
+            fetch(`${API_BASE}/events/track`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -156,7 +161,7 @@
                 return;
             }
 
-            fetch(`http://localhost:3002/api/events/user/${userId}/reset`, {
+            fetch(`${API_BASE}/events/user/${userId}/reset`, {
                 method: 'POST',
                 headers: {
                     'x-api-key': apiKey

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Copy, Code, Terminal, Smartphone } from 'lucide-react';
 import { authClient } from "@/lib/auth-client";
 import { TwoCircleIcon } from 'clicons-react';
+import { API_URL } from '@/lib/api-config';
 
 export default function GetStarted() {
     const { data: session } = authClient.useSession();
@@ -19,7 +20,7 @@ export default function GetStarted() {
 
     const fetchApiKey = async () => {
         try {
-            const res = await fetch('http://localhost:3002/api/api-keys', {
+            const res = await fetch(`${API_URL}/api-keys`, {
                 headers: {
                     'x-user-id': session?.user?.id || ''
                 }
@@ -68,7 +69,7 @@ export function Dashboard() {
         return (
             <>
                 <NarrativeeTrigger
-                    id="vip-modal"
+                    id="pass the same ID as the one on the workflow "
                     component={<UpgradeModal />}
                 />
                 {/* ... rest of your app */}
@@ -194,7 +195,7 @@ export function Dashboard() {
                             <div className="flex items-center justify-between mb-2">
                                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                                     <Smartphone size={16} className="text-gray-400" />
-                                    3. Integrate Workflows (Optional)
+                                    3. Integrate Workflows
                                 </label>
                                 <button
                                     onClick={() => handleCopy(reactWorkflowCode, setCopiedEvent)}
