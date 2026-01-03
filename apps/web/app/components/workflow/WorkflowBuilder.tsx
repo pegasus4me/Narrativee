@@ -35,7 +35,7 @@ const defaultStartNode: Node = {
     type: 'start',
     data: {},
     deletable: false, // Cannot be deleted
-    
+
 };
 
 // Initial Nodes for demo
@@ -65,6 +65,7 @@ interface WorkflowBuilderProps {
         name: string;
         nodes: Node[];
         edges: Edge[];
+        isActive?: boolean;
     };
     onSave: (data: any) => Promise<void>;
     onBack: () => void;
