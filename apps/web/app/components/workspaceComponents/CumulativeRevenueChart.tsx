@@ -77,6 +77,7 @@ export function CumulativeRevenueChart({ data = [], totalRevenue, trend }: Cumul
                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                             formatter={(value: number | undefined) => [`$${value?.toLocaleString() ?? 0}`, 'Revenue']}
                         />
+                        
                         <Area
                             type="monotone"
                             dataKey="revenue"
