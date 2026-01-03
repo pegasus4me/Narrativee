@@ -170,7 +170,7 @@ export default function DashboardStats() {
     return (
         <div className="space-y-6 mb-8 font-manrope">
             {/* Top Row - Highlight Conversion Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
                 {highlightCards.map((card, i) => {
                     const Icon = card.icon;
                     return (
@@ -210,7 +210,7 @@ export default function DashboardStats() {
             </div>
 
             {/* Bottom Grid - Regular Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 {regularCards.map((card, i) => {
                     const Icon = card.icon;
                     return (

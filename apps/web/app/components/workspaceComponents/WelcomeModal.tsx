@@ -51,7 +51,7 @@ export function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
         onComplete();
     };
 
-    const snippet = `<script src="https://cdn.narrativee.com/sdk.js" data-api-key="${apiKey || 'YOUR_API_KEY'}"></script>`;
+    const snippet = `npm install @narrativee/sdk`;
 
     return (
         <Dialog open={open} onOpenChange={() => { }}>
@@ -70,13 +70,13 @@ export function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Your SaaS Name
+                                Your SaaS Url
                             </label>
                             <input
                                 type="text"
                                 value={saasName}
                                 onChange={(e) => setSaasName(e.target.value)}
-                                placeholder="e.g. Leadverse, Acme App"
+                                placeholder="e.g. https://acmeapp.com"
                                 className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             />
                         </div>
@@ -90,25 +90,67 @@ export function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
                         </button>
                     </div>
                 ) : (
-                    <div className="space-y-6 py-4 overflow-x-auto">
+                    <div className="space-y-5 py-4 overflow-x-auto">
                         <p className="text-gray-600">
-                            Great! Now add this snippet to <strong>{saasName}</strong>'s <code className="bg-gray-100 px-1 rounded">{`<head>`}</code> tag:
+                            Great! Now integrate the SDK into <strong>{saasName}</strong> in 3 easy steps:
                         </p>
 
-                        <div className="relative">
-                            <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm overflow-x-auto">
-                                {snippet}
-                            </pre>
-                            <button
-                                onClick={handleCopy}
-                                className="absolute top-2 right-2 p-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition-colors"
-                            >
-                                {copied ? <Check size={16} /> : <Copy size={16} />}
-                            </button>
+                        {/* Step 1: Install */}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">1</span>
+                                <span className="text-sm font-medium text-gray-700">Install the package</span>
+                            </div>
+                            <div className="relative">
+                                <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-sm font-mono">
+                                    npm install @narrativee/sdk</pre>
+                                <button
+                                    onClick={() => { navigator.clipboard.writeText('npm install @narrativee/sdk'); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                                    className="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 rounded text-white transition-colors"
+                                >
+                                    {copied ? <Check size={14} /> : <Copy size={14} />}
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-                            <strong>Tip:</strong> Once installed, we'll automatically detect your SDK is connected and update your dashboard!
+                        {/* Step 2: Import */}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">2</span>
+                                <span className="text-sm font-medium text-gray-700">Import the SDK</span>
+                            </div>
+                            <div className="relative">
+                                <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-sm font-mono">
+                                    {`import { narrativee } from "@narrativee/sdk"`}</pre>
+                                <button
+                                    onClick={() => { navigator.clipboard.writeText('import { narrativee } from "@narrativee/sdk"'); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                                    className="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 rounded text-white transition-colors"
+                                >
+                                    {copied ? <Check size={14} /> : <Copy size={14} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Step 3: Initialize */}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">3</span>
+                                <span className="text-sm font-medium text-gray-700">Initialize with your API key</span>
+                            </div>
+                            <div className="relative">
+                                <pre className="bg-gray-900 text-green-400 p-3 rounded-lg text-sm font-mono overflow-x-auto">
+                                    {`narrativee.init("${apiKey || 'YOUR_API_KEY'}")`}</pre>
+                                <button
+                                    onClick={() => { navigator.clipboard.writeText(`narrativee.init("${apiKey || 'YOUR_API_KEY'}")`); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                                    className="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 rounded text-white transition-colors"
+                                >
+                                    {copied ? <Check size={14} /> : <Copy size={14} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                            <strong>Tip:</strong> Once installed, we'll automatically detect your SDK is connected!
                         </div>
 
                         <div className="flex gap-3">

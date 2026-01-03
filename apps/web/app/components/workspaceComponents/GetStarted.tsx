@@ -98,12 +98,6 @@ export function Dashboard() {
 
                 <div className="flex bg-gray-100 p-1 rounded-lg">
                     <button
-                        onClick={() => setActiveTab('html')}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === 'html' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
-                    >
-                        HTML Snippet
-                    </button>
-                    <button
                         onClick={() => setActiveTab('react')}
                         className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === 'react' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
                     >
@@ -113,103 +107,79 @@ export function Dashboard() {
             </div>
 
             <div className="space-y-6">
-                {activeTab === 'html' ? (
-                    <>
-                        {/* HTML Steps */}
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                    <Code size={16} className="text-gray-400" />
-                                    1. Add to &lt;head&gt;
-                                </label>
-                                <button
-                                    onClick={() => handleCopy(scriptCode, setCopiedScript)}
-                                    className="text-xs flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors"
-                                >
-                                    {copiedScript ? <span className="text-green-600">Copied!</span> : <><Copy size={12} /> Copy code</>}
-                                </button>
-                            </div>
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-xs text-gray-600 overflow-x-auto whitespace-pre-wrap">
-                                {scriptCode}
-                            </div>
+                <>
+                    {/* React Steps */}
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                <Code size={16} className="text-indigo-500" />
+                                1. Install Narrativee SDK
+                            </label>
+                            <button
+                                onClick={() => handleCopy(reactInstallCode, setCopiedScript)}
+                                className="text-xs flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors"
+                            >
+                                {copiedScript ? <span className="text-green-600">Copied!</span> : <><Copy size={12} /> Copy</>}
+                            </button>
                         </div>
+                        <pre className="bg-gray-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+                            <code className="text-green-400">{reactInstallCode}</code>
+                        </pre>
+                    </div>
 
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                    <Terminal size={16} className="text-gray-400" />
-                                    2. Track an Event
-                                </label>
-                                <button
-                                    onClick={() => handleCopy(eventCode, setCopiedEvent)}
-                                    className="text-xs flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors"
-                                >
-                                    {copiedEvent ? <span className="text-green-600">Copied!</span> : <><Copy size={12} /> Copy code</>}
-                                </button>
-                            </div>
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-xs text-gray-600 overflow-x-auto whitespace-pre-wrap">
-                                {eventCode}
-                            </div>
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                <Terminal size={16} className="text-purple-500" />
+                                2. Initialize & Track Events
+                            </label>
+                            <button
+                                onClick={() => handleCopy(reactUsageCode, setCopiedEvent)}
+                                className="text-xs flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors"
+                            >
+                                {copiedEvent ? <span className="text-green-600">Copied!</span> : <><Copy size={12} /> Copy</>}
+                            </button>
                         </div>
-                    </>
-                ) : (
-                    <>
-                        {/* React Steps */}
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                    <Code size={16} className="text-gray-400" />
-                                    1. install narrativee sdk
-                                </label>
-                                <button
-                                    onClick={() => handleCopy(reactInstallCode, setCopiedScript)}
-                                    className="text-xs flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors"
-                                >
-                                    {copiedScript ? <span className="text-green-600">Copied!</span> : <><Copy size={12} /> Copy code</>}
-                                </button>
-                            </div>
-                            <pre className="bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-xs text-gray-600 overflow-x-auto max-h-[200px]">
-                                {reactInstallCode}
-                            </pre>
-                        </div>
+                        <pre className="bg-gray-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+                            <code>
+                                <span className="text-purple-400">import</span> <span className="text-gray-300">{'{'}</span> <span className="text-yellow-300">narrativee</span> <span className="text-gray-300">{'}'}</span> <span className="text-purple-400">from</span> <span className="text-green-400">'@narrativee/sdk'</span><span className="text-gray-300">;</span>{'\n\n'}
+                                <span className="text-gray-500">// Initialize once (e.g. in your root layout)</span>{'\n'}
+                                <span className="text-yellow-300">narrativee</span><span className="text-gray-300">.</span><span className="text-blue-400">init</span><span className="text-gray-300">(</span><span className="text-green-400">'{apiKey || 'YOUR_API_KEY'}'</span><span className="text-gray-300">);</span>{'\n\n'}
+                                <span className="text-gray-500">// Track Events anywhere</span>{'\n'}
+                                <span className="text-yellow-300">narrativee</span><span className="text-gray-300">.</span><span className="text-blue-400">event</span><span className="text-gray-300">(</span><span className="text-green-400">'view_dashboard'</span><span className="text-gray-300">, {'{'}</span>{'\n'}
+                                <span className="text-gray-300">  userId: </span><span className="text-green-400">'user_123'</span>{'\n'}
+                                <span className="text-gray-300">{'}'})</span><span className="text-gray-300">;</span>
+                            </code>
+                        </pre>
+                    </div>
 
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                    <Terminal size={16} className="text-gray-400" />
-                                    2. Usage
-                                </label>
-                                <button
-                                    onClick={() => handleCopy(reactUsageCode, setCopiedEvent)}
-                                    className="text-xs flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors"
-                                >
-                                    {copiedEvent ? <span className="text-green-600">Copied!</span> : <><Copy size={12} /> Copy code</>}
-                                </button>
-                            </div>
-                            <pre className="bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-xs text-gray-600 overflow-x-auto">
-                                {reactUsageCode}
-                            </pre>
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                <Smartphone size={16} className="text-orange-500" />
+                                3. Integrate Workflows
+                            </label>
+                            <button
+                                onClick={() => handleCopy(reactWorkflowCode, setCopiedEvent)}
+                                className="text-xs flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors"
+                            >
+                                {copiedEvent ? <span className="text-green-600">Copied!</span> : <><Copy size={12} /> Copy</>}
+                            </button>
                         </div>
+                        <pre className="bg-gray-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+                            <code>
+                                <span className="text-purple-400">import</span> <span className="text-gray-300">{'{'}</span> <span className="text-yellow-300">NarrativeeTrigger</span> <span className="text-gray-300">{'}'}</span> <span className="text-purple-400">from</span> <span className="text-green-400">'@narrativee/sdk'</span><span className="text-gray-300">;</span>{'\n'}
+                                <span className="text-purple-400">import</span> <span className="text-gray-300">{'{'}</span> <span className="text-yellow-300">UpgradeModal</span> <span className="text-gray-300">{'}'}</span> <span className="text-purple-400">from</span> <span className="text-green-400">'./UpgradeModal'</span><span className="text-gray-300">;</span>{'\n\n'}
+                                <span className="text-gray-500">// Wrap your component - it renders only when workflow triggers</span>{'\n'}
+                                <span className="text-gray-300">{'<'}</span><span className="text-blue-400">NarrativeeTrigger</span>{'\n'}
+                                <span className="text-gray-300">  id=</span><span className="text-green-400">"workflow-id"</span>{'\n'}
+                                <span className="text-gray-300">  component={'={<'}</span><span className="text-yellow-300">UpgradeModal</span><span className="text-gray-300"> {'/>}'}</span>{'\n'}
+                                <span className="text-gray-300">{'/>'}</span>
+                            </code>
+                        </pre>
+                    </div>
+                </>
 
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                    <Smartphone size={16} className="text-gray-400" />
-                                    3. Integrate Workflows
-                                </label>
-                                <button
-                                    onClick={() => handleCopy(reactWorkflowCode, setCopiedEvent)}
-                                    className="text-xs flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors"
-                                >
-                                    {copiedEvent ? <span className="text-green-600">Copied!</span> : <><Copy size={12} /> Copy code</>}
-                                </button>
-                            </div>
-                            <pre className="bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-xs text-gray-600 overflow-x-auto">
-                                {reactWorkflowCode}
-                            </pre>
-                        </div>
-                    </>
-                )}
             </div>
         </div>
     );
