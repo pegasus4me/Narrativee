@@ -3,6 +3,7 @@ import { db, auth } from '../auth/auth';
 import { workflows, apiKeys } from '../auth/schema/schema';
 import { eq, and } from 'drizzle-orm';
 import { apikeyValidator } from '../middleware/apikeyValidator';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
@@ -71,7 +72,7 @@ router.get('/', requireAuth, async (req, res) => {
         if (!apiKey) {
             console.log(`[Workflows] No active API key found for user ${userId}. Creating one...`);
             const [newKey] = await db.insert(apiKeys).values({
-                key: 'pk_' + Math.random().toString(36).substring(2, 15), // Simple generation
+                key: `nr-live-${uuidv4()}`,
                 userId: userId,
                 mode: 'live',
                 isActive: true
@@ -103,7 +104,7 @@ router.post('/', requireAuth, async (req, res) => {
 
         if (!apiKey) {
             const [newKey] = await db.insert(apiKeys).values({
-                key: 'pk_' + Math.random().toString(36).substring(2, 15),
+                key: `nr-live-${uuidv4()}`,
                 userId: userId,
                 mode: 'live',
                 isActive: true

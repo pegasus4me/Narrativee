@@ -19,8 +19,8 @@ export default function Header() {
       </div>
       <nav className="flex-1 flex justify-center text-white items-center gap-8 text-sm font-medium font-manrope">
         <Link href="/pricing" className="hover:opacity-70">Pricing</Link>
-        <Link href="#features" className="hover:opacity-70">Features</Link>
-        <Link href="#solution" className="hover:opacity-70">Solution</Link>
+        <Link href="/#features" className="hover:opacity-70">Features</Link>
+        <Link href="/#solution" className="hover:opacity-70">Solution</Link>
         <Link href="/pricing#calculator" className="hover:opacity-70 text-yellow-400 glow">ROI Calculator </Link>
       </nav>
       <div className="flex-1 flex justify-end gap-4 items-center">
