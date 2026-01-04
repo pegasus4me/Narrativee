@@ -17,6 +17,7 @@ import { MdKeyboardDoubleArrowLeft, MdKeyboardArrowDown } from "react-icons/md";
 import { AnimatePresence, motion } from "framer-motion";
 import { LuWorkflow } from "react-icons/lu";
 import { FaMagic } from "react-icons/fa";
+import { API_URL } from "@/lib/api-config";
 
 import ProfileMenu from "./ProfileMenu";
 interface Template {
@@ -47,6 +48,12 @@ interface SavedReport {
   createdAt: string;
 }
 
+interface OrgData {
+  orgName?: string;
+  orgLogo?: string;
+  orgUrl?: string;
+}
+
 export function SideBar({ selectedTemplateId }: SideBarProps) {
   const params = useParams();
   const path = usePathname()
@@ -61,10 +68,16 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const { data: session } = authClient.useSession();
   const [credits, setCredits] = useState<number | null>(null);
   const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(true);
+  const [orgData, setOrgData] = useState<OrgData>({});
 
   useEffect(() => {
     if (session?.user) {
       reportApi.getUserCredits().then(setCredits).catch(console.error);
+      // Fetch org data
+      fetch(`${API_URL}/onboarding`, { credentials: 'include' })
+        .then(res => res.json())
+        .then((data: any) => setOrgData(data))
+        .catch(console.error);
     }
   }, [session?.user]);
 
@@ -84,6 +97,35 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
            2. flex-col: Stacks children vertically
         */}
         <div className="p-3 h-full overflow-y-auto flex flex-col">
+          {/* Org Header */}
+          <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
+           <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-lg">  
+             {orgData.orgLogo ? (
+              <img
+                src={orgData.orgLogo}
+                alt="Org Logo"
+                className="w-6 h-6 rounded-lg object-cover flex-shrink-0"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-sm font-manrope">
+                  {orgData.orgName?.charAt(0)?.toUpperCase() || 'N'}
+                </span>
+              </div>
+            )}
+           </div>
+            {isSidebarOpen && (
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-gray-900 text-sm truncate font-manrope">
+                  {orgData.orgName || 'My Workspace'}
+                </p>
+                {orgData.orgUrl && (
+                  <p className="text-xs text-gray-400 truncate">{orgData.orgUrl.replace(/^https?:\/\//, '')}</p>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="flex items-center justify-between mb-2" >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">

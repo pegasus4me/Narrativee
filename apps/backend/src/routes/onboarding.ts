@@ -27,23 +27,39 @@ router.get('/', requireAuth, async (req: any, res) => {
 
         const userData = await db.query.user.findFirst({
             where: eq(user.id, userId),
-            columns: { onboarded: true }
+            columns: {
+                onboarded: true,
+                orgName: true,
+                orgUrl: true,
+                orgLogo: true
+            }
         });
 
-        return res.json({ onboarded: userData?.onboarded ?? false });
+        return res.json({
+            onboarded: userData?.onboarded ?? false,
+            orgName: userData?.orgName,
+            orgUrl: userData?.orgUrl,
+            orgLogo: userData?.orgLogo
+        });
     } catch (error) {
         console.error('Error fetching onboarding status:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
-// POST /onboarding/complete - Mark onboarding as complete
+// POST /onboarding/complete - Mark onboarding as complete with org details
 router.post('/complete', requireAuth, async (req: any, res) => {
     try {
         const userId = req.session.user.id;
+        const { orgName, orgUrl, orgLogo } = req.body;
 
         await db.update(user)
-            .set({ onboarded: true })
+            .set({
+                onboarded: true,
+                orgName: orgName || null,
+                orgUrl: orgUrl || null,
+                orgLogo: orgLogo || null
+            })
             .where(eq(user.id, userId));
 
         return res.json({ success: true, onboarded: true });

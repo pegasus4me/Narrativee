@@ -16,6 +16,9 @@ export const user = pgTable("user", {
   subscriptionStatus: text("subscriptionStatus"),
   currentPeriodEnd: timestamp("currentPeriodEnd"),
   onboarded: boolean("onboarded").default(false),
+  orgName: text("orgName"),
+  orgUrl: text("orgUrl"),
+  orgLogo: text("orgLogo"),
 });
 
 export const session = pgTable("session", {
