@@ -27,8 +27,8 @@ export const PricingPlans = [
         name: "Starter",
         category: "For growing startups",
         description: "Ideal for early-stage SaaS with active trial users to convert.",
-        monthlyPrice: 29,
-        annualPrice: 24,
+        monthlyPrice: 35,
+        annualPrice: 28,
         monthlyPriceId: isProd ? "price_1Sldl4LShg9EGCkGkgTqhI3z" : "price_test_starter_monthly",
         annualPriceId: isProd ? "price_1SldilLShg9EGCkG8t3u2Lol" : "price_test_starter_annual",
         savings: 60,
@@ -38,7 +38,7 @@ export const PricingPlans = [
         trialUsers: 500,
         workflows: 5,
         features: [
-            { text: "500 tracked trial users", included: true, bold: true },
+            { text: "2500 tracked trial users", included: true, bold: true },
             { text: "5 workflows", included: true, bold: true },
             { text: "Advanced engagement scoring", included: true },
             { text: "Component & popup triggers", included: true },
@@ -52,7 +52,7 @@ export const PricingPlans = [
         category: "For scaling teams",
         description: "For SaaS with high trial volume looking to maximize conversions.",
         monthlyPrice: 79,
-        annualPrice: 66,
+        annualPrice: 63,
         monthlyPriceId: isProd ? "price_1SldoJLShg9EGCkG6JROqVrf" : "price_test_growth_monthly",
         annualPriceId: isProd ? "price_1SldpILShg9EGCkGtoYkj5rm" : "price_test_growth_annual",
         savings: 156,
@@ -60,10 +60,10 @@ export const PricingPlans = [
         cta: "Start 7-day free trial",
         color: "black",
         trialUsers: 2000,
-        workflows: -1, // Unlimited
+        workflows: 50, // Unlimited
         features: [
-            { text: "2,000 tracked trial users", included: true, bold: true },
-            { text: "Unlimited workflows", included: true, bold: true },
+            { text: "800 tracked trial users", included: true, bold: true },
+            { text: "50 workflows", included: true, bold: true },
             { text: "A/B testing for popups", included: true, highlight: true },
             { text: "Advanced analytics & cohorts", included: true },
             { text: "Slack notifications", included: true },
@@ -73,7 +73,7 @@ export const PricingPlans = [
     },
     {
         name: "Scale",
-        category: "Enterprise",
+        category: "For large teams",
         description: "For high-volume SaaS with thousands of trial users monthly.",
         monthlyPrice: 199,
         annualPrice: 166,
@@ -84,9 +84,9 @@ export const PricingPlans = [
         cta: "Contact Sales",
         color: "amber",
         trialUsers: 20000,
-        workflows: -1, // Unlimited
+        workflows: 400, // Unlimited
         features: [
-            { text: "20,000 tracked trial users", included: true, bold: true },
+            { text: "4000 tracked trial users", included: true, bold: true },
             { text: "Unlimited workflows", included: true, bold: true },
             { text: "Custom integrations", included: true, highlight: true },
             { text: "SSO & team management", included: true },

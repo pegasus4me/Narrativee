@@ -1,106 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { narrativee } from "@narrativee/sdk";
 import { NarrativeeTrigger } from "@narrativee/sdk/react";
-import { authClient } from "@/lib/auth-client";
 import {
-    X, Sparkles, BarChart3, Users, DollarSign, Download, FileText, Plug, Zap,
-    TrendingUp, ArrowUpRight, ArrowDownRight, CreditCard, Clock, CheckCircle2,
-    AlertCircle, ChevronRight, Bell, Search, Settings, HelpCircle
+    Users, Download, FileText, Plug, Zap,
+    ArrowUpRight, ArrowDownRight, Clock, CheckCircle2,
+    ChevronRight, Bell, Search, Settings, BarChart3,
+    Sparkles
 } from "lucide-react";
-
-// Upgrade Popup Component (triggered by Narrativee)
-const UpgradePopup = () => {
-    const [open, setOpen] = useState(true);
-
-    if (!open) return null;
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative animate-in zoom-in-95 duration-200">
-                <button
-                    onClick={() => setOpen(false)}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                    <X size={20} />
-                </button>
-
-                <div className="flex flex-col items-center text-center space-y-5">
-                    <div className="p-4 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl text-white shadow-lg shadow-purple-500/25">
-                        <Sparkles size={28} />
-                    </div>
-
-                    <div>
-                        <h2 className="text-xl font-semibold text-gray-900">You're a Power User! 🚀</h2>
-                        <p className="text-gray-500 mt-2 text-sm leading-relaxed">
-                            You've been exploring advanced features. Upgrade to Pro for unlimited access.
-                        </p>
-                    </div>
-
-                    <div className="w-full pt-2 space-y-2">
-                        <button
-                            onClick={() => setOpen(false)}
-                            className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-xl transition-colors text-sm"
-                        >
-                            Upgrade to Pro — $29/mo
-                        </button>
-                        <button
-                            onClick={() => setOpen(false)}
-                            className="w-full py-2 text-gray-400 hover:text-gray-600 text-sm"
-                        >
-                            Maybe later
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// Mock data
-const recentTransactions = [
-    { id: 1, customer: "Sarah Johnson", email: "sarah@company.com", amount: 299, status: "success", time: "2 min ago" },
-    { id: 2, customer: "Mike Chen", email: "mike@startup.io", amount: 99, status: "success", time: "15 min ago" },
-    { id: 3, customer: "Emma Davis", email: "emma@agency.co", amount: 199, status: "pending", time: "1 hour ago" },
-    { id: 4, customer: "Alex Turner", email: "alex@tech.dev", amount: 499, status: "success", time: "3 hours ago" },
-];
-
-const recentActivity = [
-    { action: "New signup", detail: "john@example.com joined", time: "Just now" },
-    { action: "Upgrade", detail: "Pro plan activated", time: "5 min ago" },
-    { action: "Export", detail: "Q4 report downloaded", time: "12 min ago" },
-    { action: "Integration", detail: "Slack connected", time: "1 hour ago" },
-];
+import { UpgradePopup, PersonalizedUpsellPopup, TimeSensitivePopup, recentTransactions, recentActivity } from "./popups";
 
 export default function AcmeAnalyticsDemo() {
-    const { data: session } = authClient.useSession();
     const [eventLog, setEventLog] = useState<string[]>([]);
 
+    // 📊 Helper to log events for the demo UI
     const logEvent = (eventName: string) => {
         setEventLog(prev => [`${new Date().toLocaleTimeString()} — ${eventName}`, ...prev.slice(0, 4)]);
     };
 
-    useEffect(() => {
-        narrativee.init("nr-live-a969db13-6a4e-42c4-825e-9101a32dffe8");
-
-        if (session?.user?.id) {
-            narrativee.identify(session.user.id, {
-                email: session.user.email,
-                name: session.user.name,
-                plan: "free"
-            });
-        }
-
-        narrativee.event("view_dashboard", { source: "demo" });
-        logEvent("view_dashboard");
-    }, [session]);
-
+    // 🎯 Track when user clicks a feature
     const handleFeatureClick = async (feature: string) => {
-        await narrativee.event("used_feature", { feature });
-        logEvent(`used_feature: ${feature}`);
+        await narrativee.event("share_project", { feature });
+        logEvent(`share_project: ${feature}`);
     };
 
+    // 💰 Track when user views pricing
     const handlePricingClick = async () => {
         await narrativee.event("view_pricing", { source: "demo-cta" });
         logEvent("view_pricing");
@@ -108,9 +33,14 @@ export default function AcmeAnalyticsDemo() {
 
     return (
         <div className="min-h-screen bg-[#f6f8fa] font-sans antialiased">
+            {/* NarrativeeTriggers for different popup types */}
             <NarrativeeTrigger id="vip-modal" component={<UpgradePopup />} />
+            <NarrativeeTrigger id="export-upsell" component={<PersonalizedUpsellPopup />} />
+            <NarrativeeTrigger id="trial-ending" component={<TimeSensitivePopup />} />
 
-            {/* Top Navigation - Stripe Style */}
+
+
+
             <header className="bg-white border-b border-gray-200/80 sticky top-0 z-40">
                 <div className="max-w-[1400px] mx-auto px-6">
                     <div className="flex items-center justify-between h-14">
@@ -256,8 +186,8 @@ export default function AcmeAnalyticsDemo() {
                                         <td className="px-5 py-3.5 font-medium text-gray-900 text-[13px]">${tx.amount}</td>
                                         <td className="px-5 py-3.5">
                                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${tx.status === 'success'
-                                                    ? 'bg-emerald-50 text-emerald-700'
-                                                    : 'bg-amber-50 text-amber-700'
+                                                ? 'bg-emerald-50 text-emerald-700'
+                                                : 'bg-amber-50 text-amber-700'
                                                 }`}>
                                                 {tx.status === 'success' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
                                                 {tx.status === 'success' ? 'Paid' : 'Pending'}
