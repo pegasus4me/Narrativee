@@ -24,36 +24,28 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row lg:items-stretch items-center lg:gap-0 gap-12">
 
             {/* Text Content */}
-            <div className="flex-1 text-center lg:text-left p-6 lg:py-20 lg:pl-6 lg:pr-12">
+            <div className="flex-1 text-center p-6 lg:py-20 lg:px-12">
               {/* Badge */}
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
                 Someone signed up to a trial. Now what?
               </h1>
 
-              <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto lg:mx-0">
+              <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
                 You're bleeding revenue and you don't even see it. Narrativee tracks <span className="text-gray-900 font-medium">who's engaged vs. who's a tourist</span>, pinpoints the <span className="text-gray-900 font-medium">aha moment</span>, and <span className="text-gray-900 font-medium">converts it before the trial ends</span>.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start text-sm font-semibold">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center text-sm font-semibold">
                 <PrimaryButton
                   onClick={() => router.push('/auth/signup')}
                 >
-                  Get started – <span className="text-white/70">7 day free trial</span>
+                  Get started – <span className="text-white/70">it's free</span>
                 </PrimaryButton>
-                {/* <button className="px-8 py-4 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all active:scale-95">
+                <button className="px-8 py-4 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all active:scale-95">
                 View Interactive Demo
-              </button> */}
+              </button> 
               </div>
             </div>
-
-            {/* Visual Content */}
-            <div
-              className="flex-1 w-full min-h-[400px] lg:min-h-0 bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: "url('/backgroundHero.png')" }}
-            >
-            </div>
-
           </div>
         </main>
 

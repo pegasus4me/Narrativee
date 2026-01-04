@@ -45,9 +45,9 @@ export function WelcomeModal({ open, onComplete }: WelcomeModalProps) {
     };
 
     const handleComplete = () => {
-        // Store onboarding completion in localStorage
-        localStorage.setItem('narrativee_onboarded', 'true');
+        // Store saasName in localStorage for reference
         localStorage.setItem('narrativee_saas_name', saasName);
+        // Parent component will call the API to mark onboarding complete
         onComplete();
     };
 

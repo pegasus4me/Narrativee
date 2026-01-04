@@ -15,6 +15,7 @@ export const user = pgTable("user", {
   stripeSubscriptionId: text("stripeSubscriptionId"),
   subscriptionStatus: text("subscriptionStatus"),
   currentPeriodEnd: timestamp("currentPeriodEnd"),
+  onboarded: boolean("onboarded").default(false),
 });
 
 export const session = pgTable("session", {
