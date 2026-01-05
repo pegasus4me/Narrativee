@@ -99,7 +99,7 @@ export const PricingPlans = [
 
 // ROI Calculator defaults
 export const ROI_DEFAULTS = {
-    avgMonthlyTrialUsers: 500,
+    avgMonthlyTrialUsers: 50,
     currentConversionRate: 3, // 3%
     narrativeeConversionLift: 1.8, // 1.8% additional conversions
     avgLTV: 200, // $200 average monthly plan price

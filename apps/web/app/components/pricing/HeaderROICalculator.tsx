@@ -62,7 +62,7 @@ export function HeaderROICalculator() {
                 {/* Result */}
                 <div className="flex items-center gap-3 pl-4 md:border-l border-white/10 min-w-max">
                     <div className="text-right">
-                        <div className="text-[10px] uppercase tracking-wider font-semibold text-white font-manrope">Potential Revenue Lift with Narrativee</div>
+                        <div className="text-[10px] uppercase tracking-wider font-semibold text-white font-manrope">Potential Revenue Lift <span className="text-white/80">(with 1.8% lift)</span></div>
                         <div className="text-xl md:text-3xl font-bold font-urbanist text-white flex items-center justify-end gap-3">
                             <div className="flex flex-col items-end leading-none">
                                 <div className="flex items-baseline gap-1">
