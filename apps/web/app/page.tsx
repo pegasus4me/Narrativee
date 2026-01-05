@@ -8,6 +8,7 @@ import { useGTMTracking } from "./hooks/useGTMTracking";
 import PrimaryButton from "./components/commons/PrimaryButton";
 import { Target, TrendingUp, Zap, Users, BarChart3, Bell, ArrowRight, X, Play } from "lucide-react";
 import { ROICalculator } from "./components/pricing/ROICalculator";
+import { HeaderROICalculator } from "./components/pricing/HeaderROICalculator";
 import { useState } from "react";
 
 export default function Home() {
@@ -20,9 +21,10 @@ export default function Home() {
     <div className="min-h-screen max-w-7xl mx-auto border border-neutral-200 mx-auto">
       <div className="">
         <Header />
+        <HeaderROICalculator />
 
         {/* Hero Section */}
-        <main className="mt-16 lg:mt-24 border-b border-t border-neutral-200 ">
+        <main className=" border-b border-t border-neutral-200 ">
           <div className="flex flex-col lg:flex-row lg:items-stretch items-center lg:gap-0 gap-12">
 
             {/* Text Content */}
@@ -34,7 +36,7 @@ export default function Home() {
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
-                You're bleeding revenue and you don't even see it. Narrativee tracks <span className="text-gray-900 font-medium">who's engaged vs. who's a tourist</span>, pinpoints the <span className="text-gray-900 font-medium">aha moment</span>, and <span className="text-gray-900 font-medium">converts it before the trial ends</span>.
+                Narrativee is a lightweight SDK that plugs on top of your code and helps you <span className="text-gray-900 font-medium">track your trial users, score them</span> and know <span className="text-gray-900 font-medium">who's engaged and who is a tourist</span>. Trigger at the right moment. <span className="text-gray-900 font-medium">Convert more trials.</span>
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center text-sm font-semibold">
@@ -71,7 +73,6 @@ export default function Home() {
             </p>
           </div>
         </section>
-
         {/* Problem Section */}
         <section id="problem" className="border-b border-neutral-200 py-20 px-6">
           <div className="max-w-4xl mx-auto text-center">
@@ -249,7 +250,7 @@ export default function Home() {
 
           </div>
         </section>
-        {/* Calculator Section */}
+                {/* Calculator Section */}
         <section id="calculator" className="border-b border-neutral-200 py-20 px-6 bg-gray-50">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">

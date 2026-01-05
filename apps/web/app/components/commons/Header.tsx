@@ -13,7 +13,7 @@ export default function Header() {
   const { data: session } = authClient.useSession();
 
   return (
-    <header className="flex items-center justify-between mt-5 px-4 bg-tertiary md:px-6 border-t border-b py-2">
+    <header className="flex items-center justify-between mt-5 px-4 bg-tertiary md:px-6 border-t py-2">
       <div className="flex-1">
         <Image src={logo} alt="Logo" width={160} height={100} />
       </div>
