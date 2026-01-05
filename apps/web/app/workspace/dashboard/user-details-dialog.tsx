@@ -35,20 +35,7 @@ export function UserDetailsDialog({ user, children }: UserDetailsDialogProps) {
             setLoading(true);
             fetch(`${API_URL}/events/user/${user.id}`, {
                 headers: {
-                    'x-user-id': session.user.id,
-                    'x-api-key': 'nr-live-a969db13-6a4e-42c4-825e-9101a32dffe8' // FIXME: Should get from context/session if possible, or just x-user-id is enough for backend to find key? 
-                    // Wait, the backend endpoint uses `apikeyValidator`. 
-                    // `apikeyValidator` expects `x-api-key` in header.
-                    // The dashboard page tracks 'x-user-id'.
-                    // We need the API Key here. 
-                    // Actually, the dashboard page fetches users using `x-user-id` (mockAuth). 
-                    // BUT `events.ts` uses `apikeyValidator` which needs `x-api-key`.
-                    // Let's use `x-user-id` mechanism for now or hardcode for dev/demo if needed, 
-                    // but cleaner is to fetch the key or pass it down.
-                    // For now, let's assume the dashboard session implies access. 
-                    // Wait, `events.ts` routes use `apikeyValidator`.
-                    // To fetch events, we need to pass the API Key.
-                    // The user provided key: nr-live-a969db13-6a4e-42c4-825e-9101a32dffe8
+                    'x-user-id': session.user.id
                 }
             })
                 .then(res => res.json())

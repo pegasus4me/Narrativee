@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm';
 import { Router } from 'express';
 import { db } from '../auth/auth';
 import { apiKeys, saasUsers, events, scoringConfigs, workflows } from '../auth/schema/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, inArray } from 'drizzle-orm';
 import { apikeyValidator } from '../middleware/apikeyValidator';
 const router = Router();
 
@@ -187,22 +187,46 @@ router.post('/track', apikeyValidator, async (req, res) => {
 });
 
 // [NEW] Get Events for a User
-router.get('/user/:userId', apikeyValidator, async (req, res) => {
+// Mock Auth Middleware
+const mockAuth = (req: any, res: any, next: any) => {
+    const userId = req.headers['x-user-id'];
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    req.user = { id: userId };
+    next();
+};
+
+// [NEW] Get Events for a User (Dashboard Route)
+router.get('/user/:userId', mockAuth, async (req: any, res) => {
     const { userId } = req.params;
-    const apiKeyId = (req as any).user.apiKeyId;
+    const adminId = req.user.id; // From mockAuth
 
     try {
-        // Fetch events
+        // 1. Get API Keys for this Admin
+        const userApiKeys = await db.select({ id: apiKeys.id })
+            .from(apiKeys)
+            .where(eq(apiKeys.userId, adminId));
+
+        const keyIds = userApiKeys.map(k => k.id);
+
+        if (keyIds.length === 0) {
+            return res.json({ events: [] });
+        }
+
+        // 2. Fetch events
+        // Ensure we only fetch events for this admin's projects (via keyIds)
+        // using inArray(events.apiKeyId, keyIds)
         const userEvents = await db.select()
             .from(events)
-            .where(sql`${events.saasUserId} = ${userId} AND ${events.apiKeyId} = ${apiKeyId}`)
+            .where(sql`${events.saasUserId} = ${userId} AND ${inArray(events.apiKeyId, keyIds)}`)
             .orderBy(desc(events.createdAt))
             .limit(50);
 
-        // Fetch scoring configs for this API key
+        // 3. Fetch scoring configs for these API keys
         const configs = await db.select()
             .from(scoringConfigs)
-            .where(eq(scoringConfigs.apiKeyId, apiKeyId));
+            .where(inArray(scoringConfigs.apiKeyId, keyIds));
 
         // Create a lookup map: eventName -> scoreValue
         const scoreMap = new Map<string, number>();
