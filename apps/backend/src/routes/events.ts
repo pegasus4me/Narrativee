@@ -73,7 +73,7 @@ router.post('/track', apikeyValidator, async (req, res) => {
                     score: sql`${saasUsers.score} + ${scoreIncrement}`,
                     metadata: newMeta
                 })
-                .where(eq(saasUsers.id, userId));
+                .where(and(eq(saasUsers.id, userId), eq(saasUsers.apiKeyId, apiKeyId)));
         } else {
             // Create new user with initial score
             await db.insert(saasUsers).values({
