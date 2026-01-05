@@ -6,13 +6,15 @@ import { useRouter } from "next/navigation";
 import Header from "./components/commons/Header";
 import { useGTMTracking } from "./hooks/useGTMTracking";
 import PrimaryButton from "./components/commons/PrimaryButton";
-import { Target, TrendingUp, Zap, Users, BarChart3, Bell, ArrowRight } from "lucide-react";
+import { Target, TrendingUp, Zap, Users, BarChart3, Bell, ArrowRight, X, Play } from "lucide-react";
 import { ROICalculator } from "./components/pricing/ROICalculator";
+import { useState } from "react";
 
 export default function Home() {
   const router = useRouter();
   const { trackEvent } = useGTMTracking();
   const { data: session } = authClient.useSession();
+  const [showVideoModal, setShowVideoModal] = useState(false);
 
   return (
     <div className="min-h-screen max-w-7xl mx-auto border border-neutral-200 mx-auto">
@@ -41,9 +43,13 @@ export default function Home() {
                 >
                   Get started – <span className="text-white/70">it's free</span>
                 </PrimaryButton>
-                <button className="px-8 py-4 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all active:scale-95">
-                View Interactive Demo
-              </button> 
+                <button
+                  onClick={() => setShowVideoModal(true)}
+                  className="px-8 py-4 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all active:scale-95 flex items-center gap-2 justify-center"
+                >
+                  <Play size={16} fill="currentColor" />
+                  View Interactive Demo
+                </button>
               </div>
             </div>
           </div>
@@ -365,6 +371,33 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Video Demo Modal */}
+        {showVideoModal && (
+          <div
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowVideoModal(false)}
+          >
+            <div
+              className="relative w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowVideoModal(false)}
+                className="absolute -top-12 right-0 text-white/70 hover:text-white transition-colors"
+              >
+                <X size={28} />
+              </button>
+              <iframe
+                src="https://www.loom.com/embed/be00088402064ee2a68080f00c89904e?autoplay=1"
+                frameBorder="0"
+                allowFullScreen
+                className="w-full h-full"
+                allow="autoplay"
+              />
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
