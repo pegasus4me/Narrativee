@@ -3,6 +3,7 @@ import { authClient } from "@/lib/auth-client";
 import { reportApi } from "@/lib/apis";
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2 } from "lucide-react";
+import { narrativee } from "@narrativee/sdk";
 import {
     Table,
     TableBody,
@@ -41,6 +42,7 @@ export default function WorkflowsPage() {
 
     const handleCreateNew = () => {
         setEditingWorkflow(null);
+        narrativee.event('create_workflow')
         setView('editor');
     };
 

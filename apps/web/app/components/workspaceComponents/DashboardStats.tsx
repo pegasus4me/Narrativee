@@ -3,6 +3,7 @@ import { authClient } from "@/lib/auth-client";
 import { Users, Zap, Flame, DollarSign, Activity, TrendingUp, TrendingDown } from "lucide-react";
 import { API_URL } from "@/lib/api-config";
 import { CumulativeRevenueChart } from "./CumulativeRevenueChart";
+import { narrativee } from "@narrativee/sdk";
 
 export default function DashboardStats() {
     const { data: session } = authClient.useSession();
@@ -51,6 +52,16 @@ export default function DashboardStats() {
 
         fetchStats();
     }, [session]);
+
+    // Track revenue milestone
+    useEffect(() => {
+        if (stats.revenueAttributed > 0) {
+            narrativee.event('revenue_milestone_reached', {
+                revenue: stats.revenueAttributed,
+                user_id: session?.user?.id
+            });
+        }
+    }, [stats.revenueAttributed]);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('en-US', {
@@ -129,7 +140,7 @@ export default function DashboardStats() {
         }
     ];
 
-    const TrendIndicator = ({ trend } : { trend: number }) => {
+    const TrendIndicator = ({ trend }: { trend: number }) => {
         if (trend === null || trend === undefined || trend === 0) return null;
 
         const isPositive = trend > 0;

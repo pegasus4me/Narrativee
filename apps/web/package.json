@@ -21,7 +21,7 @@
     "@lexical/rich-text": "^0.38.2",
     "@lexical/selection": "^0.38.2",
     "@lexical/utils": "^0.38.2",
-    "@narrativee/sdk": "^1.0.2",
+    "@narrativee/sdk": "^1.0.4",
     "@next/third-parties": "^16.0.6",
     "@nivo/bar": "^0.99.0",
     "@nivo/core": "^0.99.0",

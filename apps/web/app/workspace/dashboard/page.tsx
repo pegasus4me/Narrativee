@@ -8,6 +8,7 @@ import PrimaryButton from "@/app/components/commons/PrimaryButton"
 import DashboardStats from "../../components/workspaceComponents/DashboardStats"
 import { ScoringDialog } from "./scoring-dialog"
 import { API_URL } from "@/lib/api-config"
+import { narrativee } from "@narrativee/sdk"
 
 export default function DashboardPage() {
     const { data: session } = authClient.useSession();
@@ -52,7 +53,10 @@ export default function DashboardPage() {
                         <p className="text-muted-foreground">Monitor and know who is engaging with your app</p>
                     </div>
                     <div>
-                        <PrimaryButton onClick={() => setShowScoringDialog(true)}>
+                        <PrimaryButton onClick={() => {
+                            setShowScoringDialog(true)
+                            narrativee.event('click_edit_scorig')
+                        }}>
                             Edit scoring
                         </PrimaryButton>
                     </div>

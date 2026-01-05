@@ -2,24 +2,20 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
-import logo from "../../public/logo.png";
-import { Add, Setting7, File, Home4, Slack, Database, Sparkles } from "clicons-react";
+
 import Link from "next/link";
 import { useSideBarStore } from "../../state/SideBar.store";
 import { authClient } from "../../../lib/auth-client";
 import { reportApi } from "../../../lib/apis";
 import { usePathname, useRouter } from "next/navigation";
-import PrimaryButton from "./PrimaryButton";
 import { IoAddCircle, IoFileTrayStacked, IoHomeSharp, IoSettingsSharp, IoLogoSlack, IoChatbubbles } from "react-icons/io5";
 import { FaDatabase } from "react-icons/fa";
 import { MdKeyboardDoubleArrowLeft, MdKeyboardArrowDown } from "react-icons/md";
-import { AnimatePresence, motion } from "framer-motion";
 import { LuWorkflow } from "react-icons/lu";
 import { FaMagic } from "react-icons/fa";
 import { API_URL } from "@/lib/api-config";
+import { narrativee } from "@narrativee/sdk";
 
-import ProfileMenu from "./ProfileMenu";
 interface Template {
   id: string;
   name: string;
@@ -147,11 +143,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               {isSidebarOpen && <span>Home</span>}
             </Link>
             <div className="mt-4">
-              <Link href="/workspace/workflows" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <Link onClick={() => narrativee.event('click_workflow')} href="/workspace/workflows" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
                 <LuWorkflow size={18} className="shrink-0" />
                 {isSidebarOpen && <span>Workflow</span>}
               </Link>
-              <Link href="/workspace/dashboard" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <Link onClick={() => narrativee.event('click_audience')} href="/workspace/dashboard" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
                 <FaDatabase size={15
 
                 } className="shrink-0" />

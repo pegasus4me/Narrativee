@@ -20,7 +20,7 @@ import { ComponentActionNode } from './nodes/ComponentActionNode';
 import { EmailActionNode } from './nodes/EmailActionNode';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Play, Square } from 'lucide-react';
-
+import { narrativee } from '@narrativee/sdk';
 const nodeTypes = {
     'start': StartNode,
     'score-trigger': ScoreTriggerNode,
@@ -193,8 +193,13 @@ export default function WorkflowBuilder({ initialData, onSave, onBack }: Workflo
                 <div className="flex gap-2 items-center">
                     {/* Active Toggle */}
                     <div className="flex items-center bg-gray-100 rounded-lg p-1 mr-4">
-                        <button
-                            onClick={() => setIsActive(true)}
+                        <button 
+                            onClick={() => {
+                                setIsActive(true)
+                                narrativee.event('run_workflow', {
+                                    workflowId: initialData?.id
+                                })
+                            }}
                             className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-all ${isActive ? 'bg-white text-green-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                         >
                             <Play size={12} className={isActive ? "fill-green-700" : ""} /> Run

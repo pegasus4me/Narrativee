@@ -21,13 +21,13 @@ export default function AcmeAnalyticsDemo() {
 
     // 🎯 Track when user clicks a feature
     const handleFeatureClick = async (feature: string) => {
-        await narrativee.event("share_project", { feature });
-        logEvent(`share_project: ${feature}`);
+        await narrativee.event("invite_collaborators", { feature });
+        logEvent(`invite_collaborators: ${feature}`);
     };
 
     // 💰 Track when user views pricing
     const handlePricingClick = async () => {
-        await narrativee.event("view_pricing", { source: "demo-cta" });
+        await narrativee.event("share_page", { source: "demo-cta" });
         logEvent("view_pricing");
     };
 

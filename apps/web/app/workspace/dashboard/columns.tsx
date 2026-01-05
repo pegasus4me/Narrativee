@@ -11,6 +11,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { narrativee } from "@narrativee/sdk"
 
 // This type is used to define the shape of our data.
 export type SaasUser = {
@@ -27,7 +28,6 @@ export const columns: ColumnDef<SaasUser>[] = [
         header: "User",
         cell: ({ row }) => {
             const meta = row.original.metadata;
-            console.log("meta", meta)
             // Try to find name or email in metadata (case insensitive keys often help, but strict here for now)
             const name = meta?.name || meta?.Name;
             const email = meta?.email || meta?.Email;
@@ -103,7 +103,7 @@ export const columns: ColumnDef<SaasUser>[] = [
                         </DropdownMenuItem>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                             <UserDetailsDialog user={user}>
-                                <div className="w-full h-full cursor-pointer">View details</div>
+                                <div className="w-full h-full cursor-pointer" onClick={() => narrativee.event('user_more_details')}>View details</div>
                             </UserDetailsDialog>
                         </DropdownMenuItem>
                     </DropdownMenuContent>

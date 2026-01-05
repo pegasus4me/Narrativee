@@ -10,7 +10,7 @@ export * from './types/types';
 
 class NarrativeeSDK {
     private apiKey: string | null = null;
-    private baseUrl: string = 'http://localhost:3002'; // Default to local for dev, will be 'https://api.narrativee.com' in prod
+    private baseUrl: string = 'https://api.narrativee.com'; // Default to prod
     private userId: string | null = null;
     private userTraits: UserTraits | null = null;
     private listeners: Map<string, Set<(action: WorkflowAction) => void>> = new Map();
