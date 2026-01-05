@@ -176,8 +176,8 @@ importers:
         specifier: ^0.38.2
         version: 0.38.2
       '@narrativee/sdk':
-        specifier: ^1.0.4
-        version: 1.0.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: ^1.0.8
+        version: 1.0.8(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@next/third-parties':
         specifier: ^16.0.6
         version: 16.0.6(next@16.0.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)
@@ -1906,8 +1906,8 @@ packages:
     peerDependencies:
       yjs: '>=13.5.22'
 
-  '@narrativee/sdk@1.0.4':
-    resolution: {integrity: sha512-+tmwVpuV5KB7TdHaa/MRJ7xBXRhSFWpH12dGkv0lyCmdBvVzgyoSy6SfMXlPVj8rCyG8vebUGH8bBQSfwkOtAA==}
+  '@narrativee/sdk@1.0.8':
+    resolution: {integrity: sha512-ER2YjIEPP2JiTmsxUkqQJ+lHsj1iqS9EZqkkZfVMwwzzBQAJpJjVbEUvr9C5E4cSIbyNX7xuCR0FullILUu+tA==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
@@ -8021,7 +8021,7 @@ snapshots:
       lexical: 0.38.2
       yjs: 13.6.27
 
-  '@narrativee/sdk@1.0.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@narrativee/sdk@1.0.8(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)

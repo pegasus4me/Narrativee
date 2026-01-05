@@ -140,7 +140,8 @@ router.post('/track', apikeyValidator, async (req, res) => {
                     console.log(`[Debug] MATCHED! Triggering action.`);
                     actions.push({
                         type: wf.actionType,
-                        config: wf.actionConfig
+                        config: wf.actionConfig,
+                        workflowId: wf.id
                     });
                     triggeredWorkflowIds.push(wf.id);
                     metadataUpdated = true;
@@ -157,7 +158,8 @@ router.post('/track', apikeyValidator, async (req, res) => {
                     console.log(`[Debug] MATCHED! Triggering action for event.`);
                     actions.push({
                         type: wf.actionType,
-                        config: wf.actionConfig
+                        config: wf.actionConfig,
+                        workflowId: wf.id
                     });
                     // IMPORTANT: For event triggers, maybe we DON'T want one-off filtering? 
                     // Or usually popups should show once per session/user to avoid spam?

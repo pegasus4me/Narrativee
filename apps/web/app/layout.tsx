@@ -26,7 +26,7 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   title: "Narrativee",
-  description: "",
+  description: "increase your trial to paid conversion rate with an ",
 };
 
 export default function RootLayout({
@@ -39,9 +39,7 @@ export default function RootLayout({
       <body className={`${urbanist.variable} ${manrope.variable} ${geistMono.variable}`}>
         <GoogleTagManager gtmId="GTM-5BCN3HMQ" />
         <GoogleAnalytics gaId="G-L8W7KEVHQ4" />
-        <NarrativeeProvider apiKey="nr-live-11eaf097-2cb0-4e3b-9e38-d61b131d1620">
           {children}
-        </NarrativeeProvider>
         <FeedbackPopup />
       </body>
     </html>

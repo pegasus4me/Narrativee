@@ -174,12 +174,13 @@ class NarrativeeSDK {
     }
 
     private notifyListeners(action: WorkflowAction): void {
-        // Notify generic listeners (keyed by action ID or wildcards?)
-        // For now, let's notify listeners subscribed to the COMPONENT ID (e.g. 'vip-modal')
-        // The action comes as { type: 'component', config: { componentId: 'vip-modal' } }
+        // Notify listeners subscribed to the COMPONENT ID (e.g. 'upgrade-modal')
+        // The action comes as { type: 'popup' | 'component', config: { componentId: 'upgrade-modal' } }
 
         let targetId = action.id;
-        if (action.type === 'component' && action.config?.componentId) {
+
+        // Handle both 'popup' and 'component' action types
+        if ((action.type === 'component' || action.type === 'popup') && action.config?.componentId) {
             targetId = action.config.componentId;
         }
 

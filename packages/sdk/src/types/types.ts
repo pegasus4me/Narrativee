@@ -23,6 +23,7 @@ export interface WorkflowAction {
     type: string;
     payload: any;
     config?: any; // For backward compatibility with 'config' in backend
+    workflowId?: string; // For popup click attribution
 }
 
 export interface EventResponse {

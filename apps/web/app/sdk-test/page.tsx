@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { narrativee } from "@narrativee/sdk";
-import { NarrativeeTrigger } from "@narrativee/sdk/react";
+import {NarrativeeTrigger} from "@narrativee/sdk/react";
 import {
     Users, Download, FileText, Plug, Zap,
     ArrowUpRight, ArrowDownRight, Clock, CheckCircle2,
@@ -21,22 +21,30 @@ export default function AcmeAnalyticsDemo() {
 
     // 🎯 Track when user clicks a feature
     const handleFeatureClick = async (feature: string) => {
-        await narrativee.event("invite_collaborators", { feature });
-        logEvent(`invite_collaborators: ${feature}`);
+        await narrativee.event("share_event", { feature });
+        logEvent(`share_event: ${feature}`);
     };
 
     // 💰 Track when user views pricing
     const handlePricingClick = async () => {
-        await narrativee.event("share_page", { source: "demo-cta" });
+        await narrativee.event("export_event", { source: "demo-cta" });
         logEvent("view_pricing");
     };
 
     return (
         <div className="min-h-screen bg-[#f6f8fa] font-sans antialiased">
             {/* NarrativeeTriggers for different popup types */}
-            <NarrativeeTrigger id="vip-modal" component={<UpgradePopup />} />
-            <NarrativeeTrigger id="export-upsell" component={<PersonalizedUpsellPopup />} />
-            <NarrativeeTrigger id="trial-ending" component={<TimeSensitivePopup />} />
+            <NarrativeeTrigger id="upgrade-modal">
+                <UpgradePopup />
+            </NarrativeeTrigger>
+            
+            <NarrativeeTrigger id="export-upsell">
+                <PersonalizedUpsellPopup />
+            </NarrativeeTrigger>
+            <NarrativeeTrigger id="trial-ending">
+                <TimeSensitivePopup />
+            </NarrativeeTrigger>
+
 
 
 
@@ -87,7 +95,7 @@ export default function AcmeAnalyticsDemo() {
                     </div>
                     <div className="flex items-center gap-3">
                         <button
-                            onClick={() => handleFeatureClick("export")}
+                            onClick={() => handlePricingClick}
                             className="flex items-center gap-2 px-4 py-2 border border-gray-200 bg-white hover:bg-gray-50 rounded-lg text-sm font-medium text-gray-700 transition-colors"
                         >
                             <Download size={16} />
