@@ -30,9 +30,11 @@ export default function Home() {
             {/* Text Content */}
             <div className="flex-1 text-center p-6 lg:py-20 lg:px-12">
               {/* Badge */}
+              {/* Badge */}
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
-                Someone signed up to a trial. Now what?
+                Turn trial interest into paid revenue — <br />
+                <span className="text-gray-400">before time runs out.</span>
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
@@ -250,7 +252,7 @@ export default function Home() {
 
           </div>
         </section>
-                {/* Calculator Section */}
+        {/* Calculator Section */}
         <section id="calculator" className="border-b border-neutral-200 py-20 px-6 bg-gray-50">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
