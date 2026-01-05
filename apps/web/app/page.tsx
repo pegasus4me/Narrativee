@@ -55,6 +55,23 @@ export default function Home() {
           </div>
         </main>
 
+        {/* Demo Video Section */}
+        <section className="border-b border-neutral-200 py-16 px-6 bg-gray-50">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
+              <iframe
+                src="https://www.loom.com/embed/be00088402064ee2a68080f00c89904e"
+                frameBorder="0"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+            <p className="text-center text-gray-500 text-sm mt-4 font-manrope">
+              See how Narrativee turns trial users into paying customers
+            </p>
+          </div>
+        </section>
+
         {/* Problem Section */}
         <section id="problem" className="border-b border-neutral-200 py-20 px-6">
           <div className="max-w-4xl mx-auto text-center">
