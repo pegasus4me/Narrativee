@@ -149,6 +149,9 @@ router.get('/', mockAuth, async (req: any, res) => {
             .from(saasUsers)
             .where(inArray(saasUsers.apiKeyId, keyIds))
             .orderBy(desc(saasUsers.lastSeenAt));
+        // .groupBy(saasUsers.id); // Valid if we aggregate other fields, but strict mode might complain.
+        // Let's filter in JS for now to be safe against strict SQL modes without aggregation functions on other cols
+
 
         // Let's do a quick separate count or join if needed. 
         // For V1, the data in saasUsers table is sufficient if we update it.
@@ -156,7 +159,12 @@ router.get('/', mockAuth, async (req: any, res) => {
         // In the events.ts, we should have been updating this. 
         // Let's assume the data in saasUsers is the source of truth for the dashboard list.
 
-        return res.json({ users });
+        // Deduplicate users by ID
+        const uniqueUsers = Array.from(
+            new Map(users.map(u => [u.id, u])).values()
+        );
+
+        return res.json({ users: uniqueUsers });
     } catch (error) {
         console.error('Error fetching SaaS users:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
