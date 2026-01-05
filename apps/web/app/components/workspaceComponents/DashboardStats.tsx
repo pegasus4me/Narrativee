@@ -210,16 +210,6 @@ export default function DashboardStats() {
                     );
                 })}
             </div>
-
-            {/* Cumulative Revenue Chart */}
-            <div className="grid grid-cols-1">
-                <CumulativeRevenueChart
-                    data={stats.chartData}
-                    totalRevenue={stats.revenueAttributed}
-                    trend={stats.revenueTrend}
-                />
-            </div>
-
             {/* Bottom Grid - Regular Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 {regularCards.map((card, i) => {
@@ -248,6 +238,15 @@ export default function DashboardStats() {
                         </div>
                     );
                 })}
+            </div>
+
+            {/* Cumulative Revenue Chart */}
+            <div className="grid grid-cols-1">
+                <CumulativeRevenueChart
+                    data={stats.chartData}
+                    totalRevenue={stats.revenueAttributed}
+                    trend={stats.revenueTrend}
+                />
             </div>
 
             {/* Conversion Breakdown - Optional detailed view */}
