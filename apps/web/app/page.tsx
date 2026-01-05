@@ -33,12 +33,11 @@ export default function Home() {
               {/* Badge */}
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
-                Turn trial interest into paid revenue — <br />
-                <span className="text-gray-400">before time runs out.</span>
+                Turn trial interest into paid revenue before time runs out 
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
-                Narrativee is a lightweight SDK that plugs on top of your code and helps you <span className="text-gray-900 font-medium">track your trial users, score them</span> and know <span className="text-gray-900 font-medium">who's engaged and who is a tourist</span>. Trigger at the right moment. <span className="text-gray-900 font-medium">Convert more trials.</span>
+                Narrativee plugs on top of your code and helps you <span className="text-gray-900 font-medium">track your trial users, score them</span> and know <span className="text-gray-900 font-medium">who's engaged and who is a tourist</span>. Trigger at the right moment. <span className="text-gray-900 font-medium">Convert more trials.</span>
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center text-sm font-semibold">

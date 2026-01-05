@@ -26,7 +26,7 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   title: "Narrativee",
-  description: "increase your trial to paid conversion rate with an ",
+  description: "Turn trial interest into paid revenue — before time runs out.",
 };
 
 export default function RootLayout({
