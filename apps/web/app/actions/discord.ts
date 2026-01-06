@@ -1,20 +1,16 @@
 "use server";
 
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1451951712326779195/BnSQIdpiUOXJDaJWhGn-t6kGif843XxXqeppfKit_4VbY5lBAFEUp0znAkxSDELQyDTn";
+
 export async function submitToDiscord(formData: FormData) {
     const email = formData.get("email");
-    const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
     if (!email || typeof email !== "string") {
         return { success: false, message: "Invalid email address" };
     }
 
-    if (!webhookUrl) {
-        console.error("DISCORD_WEBHOOK_URL is not defined");
-        return { success: false, message: "Configuration error" };
-    }
-
     try {
-        const response = await fetch(webhookUrl, {
+        const response = await fetch(DISCORD_WEBHOOK_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
