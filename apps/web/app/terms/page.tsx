@@ -16,7 +16,7 @@ export default function TermsOfService() {
                     <h1 className="text-5xl md:text-6xl font-medium text-black mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
                         Terms of Service
                     </h1>
-                    <p className="text-gray-400">Last updated: December 8, 2024</p>
+                    <p className="text-gray-400">Last updated: January 6, 2026</p>
                 </div>
 
                 {/* Content */}
@@ -31,7 +31,7 @@ export default function TermsOfService() {
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Description of Service</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            Narrativee is an AI-powered platform that transforms spreadsheet data into narrative reports. The Service includes report generation, editing, sharing, and related features.
+                            Narrativee is a SaaS platform designed to help businesses optimize trial conversions. The Service provides tools for tracking user engagement, scoring leads, and automating conversion workflows through an integrated SDK and dashboard.
                         </p>
                     </section>
 
@@ -49,25 +49,25 @@ export default function TermsOfService() {
                         <h2 className="text-xl font-medium text-black mb-4">Acceptable Use</h2>
                         <p className="text-gray-600 leading-relaxed mb-4">You agree not to:</p>
                         <ul className="text-gray-600 leading-relaxed space-y-3">
-                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>Use the Service for any illegal purpose</span></li>
-                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>Upload malicious files or code</span></li>
-                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>Attempt to gain unauthorized access to our systems</span></li>
-                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>Interfere with or disrupt the Service</span></li>
-                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>Resell or redistribute the Service without permission</span></li>
+                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>Use the Service for any illegal purpose or to violate any laws.</span></li>
+                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>Upload malicious code, viruses, or harmful software.</span></li>
+                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>Attempt to gain unauthorized access to our systems or other users' accounts.</span></li>
+                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>Interfere with or disrupt the integrity or performance of the Service.</span></li>
+                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>Resell, duplicate, or reproduce any part of the Service without express permission.</span></li>
                         </ul>
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-medium text-black mb-4">Your Content</h2>
+                        <h2 className="text-xl font-medium text-black mb-4">Data Rights & Ownership</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            You retain ownership of all data and content you upload to the Service. By using the Service, you grant us a limited license to process your content solely for the purpose of providing the Service. Your uploaded data is processed in your browser and is not stored on our servers.
+                            You retain all rights to the data you send to Narrativee ("Customer Data"). By using the Service, you grant Narrativee a license to collect, host, store, and analyzing Customer Data solely for the purpose of providing and improving the Service. You represent and warrant that you have obtained all necessary consents from your end-users to share their data with Narrativee.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Intellectual Property</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            The Service, including its design, features, and content (excluding user content), is owned by Narrativee and protected by intellectual property laws. You may not copy, modify, or reverse-engineer any part of the Service.
+                            The Service, including its software, code, design, features, and documentation, is the exclusive property of Narrativee and its licensors. You may not copy, modify, distribute, sell, or lease any part of our software or included documentation, nor may you reverse engineer or attempt to extract the source code of that software.
                         </p>
                     </section>
 
@@ -75,16 +75,16 @@ export default function TermsOfService() {
                         <h2 className="text-xl font-medium text-black mb-4">Payment and Subscriptions</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="p-4 border border-gray-100 rounded-lg">
-                                <p className="text-gray-600">Some features require a paid subscription</p>
+                                <p className="text-gray-600">Subscriptions are billed in advance on a recurring basis.</p>
                             </div>
                             <div className="p-4 border border-gray-100 rounded-lg">
-                                <p className="text-gray-600">Payments processed securely through Stripe</p>
+                                <p className="text-gray-600">Payments are processed securely via Stripe.</p>
                             </div>
                             <div className="p-4 border border-gray-100 rounded-lg">
-                                <p className="text-gray-600">Subscriptions renew automatically</p>
+                                <p className="text-gray-600">You may cancel your subscription at any time.</p>
                             </div>
                             <div className="p-4 border border-gray-100 rounded-lg">
-                                <p className="text-gray-600">Refunds handled case-by-case</p>
+                                <p className="text-gray-600">Refunds are handled on a case-by-case basis.</p>
                             </div>
                         </div>
                     </section>
@@ -92,35 +92,35 @@ export default function TermsOfService() {
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Service Availability</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            We strive to maintain high availability but do not guarantee uninterrupted access. We may modify, suspend, or discontinue features at any time with reasonable notice.
+                            We strive to maintain high availability of the Service but do not guarantee 100% uptime. We may momentarily suspend the Service for maintenance or upgrades. We are not liable for any disruptions or data loss resulting from such downtimes.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Limitation of Liability</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            To the maximum extent permitted by law, Narrativee shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service. Our total liability shall not exceed the amount paid by you in the 12 months preceding the claim.
+                            To the maximum extent permitted by law, Narrativee shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, or goodwill, arising from your use of the Service. Our total liability for any claim shall not exceed the amount paid by you to Narrativee in the 12 months preceding the claim.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Disclaimer</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            The Service is provided "as is" without warranties of any kind. We do not guarantee that AI-generated content will be accurate, complete, or suitable for your specific purposes. You are responsible for reviewing and verifying all generated reports.
+                            The Service is provided "as is" and "as available" without warranties of any kind, either express or implied. We do not warrant that the Service will meet your specific requirements or that its operation will be uninterrupted or error-free.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Termination</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            We may terminate or suspend your account at any time for violation of these terms. You may delete your account at any time. Upon termination, your right to use the Service ceases immediately.
+                            We reserve the right to suspend or terminate your account if you violate these Terms or misuse the Service. You may terminate your account at any time via your account settings.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Changes to Terms</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            We may update these terms from time to time. We will notify you of significant changes via email or through the Service. Continued use after changes constitutes acceptance.
+                            We may update these Terms from time to time. We will notify you of material changes via email or a notice within the Service. Your continued use of the Service after such changes constitutes your acceptance of the new Terms.
                         </p>
                     </section>
 

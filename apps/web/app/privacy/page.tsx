@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
                     <h1 className="text-5xl md:text-6xl font-medium text-black mb-4" style={{ fontFamily: 'var(--font-petrona)' }}>
                         Privacy Policy
                     </h1>
-                    <p className="text-gray-400">Last updated: December 8, 2024</p>
+                    <p className="text-gray-400">Last updated: January 6, 2026</p>
                 </div>
 
                 {/* Content */}
@@ -24,51 +24,52 @@ export default function PrivacyPolicy() {
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Introduction</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            Narrativee ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our service.
+                            Narrativee ("we", "our", or "us") is dedicated to protecting your privacy and the privacy of your users. This Privacy Policy outlines how we collect, use, store, and safeguard your information when you use our tracking and conversion optimization platform.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Data We Collect</h2>
                         <p className="text-gray-600 leading-relaxed mb-4">
-                            We collect the following types of information:
+                            We collect two categories of information:
                         </p>
-                        <ul className="text-gray-600 leading-relaxed space-y-3">
-                            <li className="flex gap-3">
-                                <span className="text-gray-300">—</span>
-                                <span><strong className="text-black">Account Information:</strong> Email address and authentication data when you create an account.</span>
-                            </li>
-                            <li className="flex gap-3">
-                                <span className="text-gray-300">—</span>
-                                <span><strong className="text-black">Usage Data:</strong> How you interact with our service, including features used and the number of reports created, the content is encrypted using AES-256 encryption.</span>
-                            </li>
-                            <li className="flex gap-3">
-                                <span className="text-gray-300">—</span>
-                                <span><strong className="text-black">Payment Information:</strong> Processed securely through Stripe. We do not store credit card details.</span>
-                            </li>
-                        </ul>
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="font-semibold text-black mb-2">1. Account Information</h3>
+                                <p className="text-gray-600">Information you provide when signing up, including your email address, name, billing details (processed by Stripe), and company information.</p>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-black mb-2">2. End-User Data</h3>
+                                <p className="text-gray-600">
+                                    When you install the Narrativee SDK, we collect data about your users ("End-Users") to provide our service. This includes:
+                                </p>
+                                <ul className="text-gray-600 leading-relaxed space-y-2 mt-2 ml-4">
+                                    <li className="flex gap-2"><span className="text-gray-300">—</span><span>User identifiers (IDs, emails if provided)</span></li>
+                                    <li className="flex gap-2"><span className="text-gray-300">—</span><span>Behavioral data (events, page views, clicks)</span></li>
+                                    <li className="flex gap-2"><span className="text-gray-300">—</span><span>Device and browser information</span></li>
+                                    <li className="flex gap-2"><span className="text-gray-300">—</span><span>Engagement metrics and traits you specifically choose to track</span></li>
+                                </ul>
+                            </div>
+                        </div>
                     </section>
 
                     <section className="bg-black text-white -mx-6 px-6 py-8 rounded-lg">
-                        <h2 className="text-xl font-medium mb-4">Your Data Security</h2>
+                        <h2 className="text-xl font-medium mb-4">Data Security & Storage</h2>
                         <p className="text-gray-300 leading-relaxed mb-4">
-                            We are deeply concerned about privacy and security. This is why your uploaded data is <strong className="text-white">strictly processed in your browser</strong> and never sent to the server or any third party.
-                        </p>
-                        <p className="text-gray-300 leading-relaxed mb-6">
-                            The data-driven reports you create are <strong className="text-white">encrypted using AES-256 encryption</strong> before being stored.
+                            We employ industry-standard security measures to protect data both in transit and at rest.
                         </p>
                         <div className="flex gap-4 flex-wrap">
                             <div className="px-4 py-2 bg-white/10 rounded-lg text-sm">
-                                🔒 Browser-only processing
+                                🔒 Encrypted in transit (HTTPS/TLS)
                             </div>
                             <div className="px-4 py-2 bg-white/10 rounded-lg text-sm">
-                                🛡️ AES-256 encryption
+                                🛡️ Encrypted at rest
                             </div>
                             <div className="px-4 py-2 bg-white/10 rounded-lg text-sm">
-                                📤 Export anytime
+                                🔑 Strict access controls
                             </div>
                             <div className="px-4 py-2 bg-white/10 rounded-lg text-sm">
-                                🗑️ Delete anytime
+                                🗑️ Data deletion requests honored
                             </div>
                         </div>
                     </section>
@@ -76,48 +77,45 @@ export default function PrivacyPolicy() {
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">How We Use Your Information</h2>
                         <ul className="text-gray-600 leading-relaxed space-y-3">
-                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>To provide and maintain our service</span></li>
-                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>To process your transactions</span></li>
-                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>To send you service-related communications</span></li>
-                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>To improve our service and develop new features</span></li>
-                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>To detect and prevent fraud or abuse</span></li>
+                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>To provide granular analytics on your trial users.</span></li>
+                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>To calculate engagement scores and segments.</span></li>
+                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>To trigger automated workflows and personalization layers defined by you.</span></li>
+                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>To improve our algorithms and platform performance.</span></li>
+                            <li className="flex gap-3"><span className="text-gray-300">—</span><span>To communicate with you about your account and updates.</span></li>
                         </ul>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Data Sharing</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            We do not sell your personal information. We may share data with trusted third-party services (e.g., payment processors, analytics) only as necessary to operate our service.
+                            We do not sell your data or your End-User Data. We share information only with trusted third-party service providers (e.g., Stripe for payments, cloud infrastructure providers) necessary to operate our Service. These providers are bound by strict confidentiality agreements.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Data Retention</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            We retain your account information for as long as your account is active. You may request deletion of your data at any time by contacting us.
+                            We retain Account Information and End-User Data for as long as your account is active or as needed to provide you the Service. You can request the deletion of your account and all associated data at any time.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Your Rights & Control</h2>
                         <p className="text-gray-600 leading-relaxed mb-4">
-                            You are always in control of your data. You can export or delete your data at any time from your account settings.
+                            As a Customer, you have the right to access, correct, or delete your account data. You are also responsible for complying with applicable privacy laws (such as GDPR or CCPA) regarding the collection of your End-Users' data.
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="p-4 border border-gray-100 rounded-lg">
-                                <p className="text-gray-600">Access your personal data</p>
+                                <p className="text-gray-600">Access your business data</p>
                             </div>
                             <div className="p-4 border border-gray-100 rounded-lg">
-                                <p className="text-gray-600">Correct inaccurate data</p>
+                                <p className="text-gray-600">Export end-user event logs</p>
                             </div>
                             <div className="p-4 border border-gray-100 rounded-lg bg-gray-50">
-                                <p className="text-black font-medium">Export your data anytime</p>
-                            </div>
-                            <div className="p-4 border border-gray-100 rounded-lg bg-gray-50">
-                                <p className="text-black font-medium">Delete your data anytime</p>
+                                <p className="text-black font-medium">Request full data deletion</p>
                             </div>
                             <div className="p-4 border border-gray-100 rounded-lg">
-                                <p className="text-gray-600">Withdraw consent at any time</p>
+                                <p className="text-gray-600">Manage team access</p>
                             </div>
                         </div>
                     </section>
@@ -125,21 +123,14 @@ export default function PrivacyPolicy() {
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Cookies</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            We use essential cookies for authentication and session management. We do not use tracking cookies for advertising purposes.
-                        </p>
-                    </section>
-
-                    <section>
-                        <h2 className="text-xl font-medium text-black mb-4">Security Measures</h2>
-                        <p className="text-gray-600 leading-relaxed">
-                            We implement industry-standard security measures including HTTPS encryption, secure authentication, and AES-256 encryption for stored reports. Your raw data never leaves your browser.
+                            We use essential cookies for service authentication and session management. We may use analytics cookies to understand how you use our dashboard, which you can opt-out of. Our SDK technology relies on standard web technologies to track user sessions.
                         </p>
                     </section>
 
                     <section className="border-t border-gray-100 pt-12">
                         <h2 className="text-xl font-medium text-black mb-4">Contact Us</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            If you have questions about this Privacy Policy, please contact us at{" "}
+                            If you have questions about this Privacy Policy or data practices, please contact our Data Protection Officer at{" "}
                             <a href="mailto:mydata@narrativee.com" className="text-black underline underline-offset-4 hover:no-underline">
                                 mydata@narrativee.com
                             </a>

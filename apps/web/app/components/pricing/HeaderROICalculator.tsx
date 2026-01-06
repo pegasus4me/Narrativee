@@ -15,13 +15,13 @@ export function HeaderROICalculator() {
 
     return (
         <div className="bg-secondary py-3 font-manrope">
-            <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 flex flex-col lg:flex-row items-center justify-between gap-4 md:gap-6">
 
                 {/* Inputs */}
-                <div className="flex items-center gap-6 flex-1 w-full md:w-auto overflow-x-auto h-[40px] no-scrollbar">
+                <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full lg:w-auto">
 
                     {/* Trial Users Slider */}
-                    <div className="flex items-center gap-3 min-w-[240px]">
+                    <div className="flex items-center gap-3 w-full md:min-w-[240px]">
                         <div className="flex flex-col gap-1 w-full">
                             <div className="flex justify-between text-xs font-medium text-white/70 font-manrope">
                                 <span className="flex items-center gap-1"><Users size={12} /> Your Avg Trial Users</span>
@@ -40,7 +40,7 @@ export function HeaderROICalculator() {
                     </div>
 
                     {/* Avg Price Slider */}
-                    <div className="flex items-center gap-3 min-w-[240px]">
+                    <div className="flex items-center gap-3 w-full md:min-w-[240px]">
                         <div className="flex flex-col gap-1 w-full">
                             <div className="flex justify-between text-xs font-medium text-white/70 font-manrope">
                                 <span className="flex items-center gap-1"><DollarSign size={12} /> Your Avg Monthly Price</span>
@@ -60,13 +60,13 @@ export function HeaderROICalculator() {
                 </div>
 
                 {/* Result */}
-                <div className="flex items-center gap-3 pl-4 md:border-l border-white/10 min-w-max">
-                    <div className="text-right">
-                        <div className="text-[10px] uppercase tracking-wider font-semibold text-white font-manrope">Potential Revenue Lift <span className="text-white/80">(with 1.8% lift)</span></div>
-                        <div className="text-xl md:text-3xl font-bold font-urbanist text-white flex items-center justify-end gap-3">
-                            <div className="flex flex-col items-end leading-none">
+                <div className="flex items-center justify-center w-full lg:w-auto pt-4 border-t border-white/10 lg:pt-0 lg:border-t-0 lg:pl-6 lg:border-l lg:border-white/10">
+                    <div className="text-center lg:text-right w-full">
+                        <div className="text-[10px] uppercase tracking-wider font-semibold text-white font-manrope mb-1 lg:mb-0">Potential Revenue Lift <span className="text-white/80">(with 1.8% lift)</span></div>
+                        <div className="text-2xl md:text-3xl font-bold font-urbanist text-white flex items-center justify-center lg:justify-end gap-3">
+                            <div className="flex flex-col items-center lg:items-end leading-none">
                                 <div className="flex items-baseline gap-1">
-                                    <TrendingUp size={20} className="text-white" />
+                                    <TrendingUp size={20} className="text-white hidden lg:block" />
                                     +${roi.additionalMRR.toLocaleString()}/mo
                                     <span className="text-xs font-medium text-white/50 font-sans">/month</span>
                                 </div>

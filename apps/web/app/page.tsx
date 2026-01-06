@@ -4,6 +4,8 @@ import logo from "../public/logo.png";
 import { authClient } from "../lib/auth-client";
 import { useRouter } from "next/navigation";
 import Header from "./components/commons/Header";
+import Footer from "./components/commons/Footer";
+import BetaSignupPopup from "./components/commons/BetaSignupPopup";
 import { useGTMTracking } from "./hooks/useGTMTracking";
 import PrimaryButton from "./components/commons/PrimaryButton";
 import { Target, TrendingUp, Zap, Users, BarChart3, Bell, ArrowRight, X, Play } from "lucide-react";
@@ -33,7 +35,7 @@ export default function Home() {
               {/* Badge */}
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
-                Turn trial interest into paid revenue before time runs out 
+                Turn trial interest into paid revenue before time runs out
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
@@ -391,6 +393,7 @@ export default function Home() {
           </div>
         </section>
 
+
         {/* Video Demo Modal */}
         {showVideoModal && (
           <div
@@ -418,6 +421,8 @@ export default function Home() {
           </div>
         )}
 
+        <Footer />
+        <BetaSignupPopup />
       </div>
     </div>
   );
