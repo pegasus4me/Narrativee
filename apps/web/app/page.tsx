@@ -35,25 +35,30 @@ export default function Home() {
               {/* Badge */}
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
-                Turn trial interest into paid revenue before time runs out
+                Your trials have an expiration date<br />
+                <span className="bg-tertiary text-white px-1  rounded ">Don't waste it.</span>
               </h1>
 
-              <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
-                Narrativee plugs on top of your code and helps you <span className="text-gray-900 font-medium">track your trial users, score them</span> and know <span className="text-gray-900 font-medium">who's engaged and who is a tourist</span>. Trigger at the right moment. <span className="text-gray-900 font-medium">Convert more trials.</span>
+              <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-6 max-w-2xl mx-auto">
+                71% of trial users never convert—not because your product sucks, but because you reached them <span className="text-gray-900 font-medium">too late</span>. Narrativee tells you <span className="text-gray-900 font-medium">WHO</span> is ready to buy, <span className="text-gray-900 font-medium">WHEN</span> to reach them, and <span className="text-gray-900 font-medium">WHAT</span> to say.
+              </p>
+
+              <p className="text-sm text-gray-400 font-manrope mb-8">
+                Built for small & mid-size SaaS teams running free trials or freemium.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center text-sm font-semibold">
                 <PrimaryButton
                   onClick={() => router.push('/auth/signup')}
                 >
-                  Get started – <span className="text-white/70">it's free</span>
+                  See who's ready to buy <ArrowRight size={16} className="inline ml-1" />
                 </PrimaryButton>
                 <button
                   onClick={() => setShowVideoModal(true)}
                   className="px-8 py-4 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all active:scale-95 flex items-center gap-2 justify-center"
                 >
                   <Play size={16} fill="currentColor" />
-                  View Interactive Demo
+                  Watch the demo
                 </button>
               </div>
             </div>
@@ -83,11 +88,10 @@ export default function Home() {
               The Problem
             </span>
             <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-6">
-              You're losing 70% of trial users. <br />
-              <span className="text-gray-400">And you have no idea why.</span>
+              You're flying blind during the most critical 14 days.
             </h2>
             <p className="text-xl text-gray-500 font-urbanist leading-relaxed max-w-3xl mx-auto mb-12">
-              Most SaaS companies treat all trial users the same. But the truth is: some are ready to buy, some need a nudge, and some were never going to convert. Without knowing which is which, you're flying blind.
+              Every trial user starts with intent. Some explore once and ghost. Some binge your features at 2am. Some hover on your pricing page but never click. You're treating them all the same—and losing thousands every month.
             </p>
 
             {/* Problem Cards */}
@@ -131,8 +135,8 @@ export default function Home() {
                 The Solution
               </span>
               <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-6">
-                Turn trial users into paying customers. <br />
-                <span className="text-primary">Automatically.</span>
+                Stop sending "just checking in" emails.<br />
+                <span className="text-primary">Start sending the right message at the right moment.</span>
               </h2>
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed max-w-3xl mx-auto">
                 Narrativee tracks user behavior, calculates engagement scores, and triggers personalized nudges at the perfect moment.
@@ -370,17 +374,17 @@ export default function Home() {
         <section className="py-20 px-6 bg-tertiary text-white">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-medium font-urbanist mb-6">
-              Stop losing trial users
+              Your next paying customer is already in your trial.
             </h2>
             <p className="text-xl text-white/70 font-urbanist mb-8">
-              Start converting more trials today. Setup takes 5 minutes.
+              Find them before their trial expires. Setup takes 5 minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <PrimaryButton
                 onClick={() => router.push('/auth/signup')}
                 className="text-tertiary font-bold py-4 px-8 rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center justify-center gap-2"
               >
-                Get Started Free
+                Find your highest-intent trials
                 <ArrowRight size={18} />
               </PrimaryButton>
               <button
