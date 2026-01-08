@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Github, Menu, X, Star} from "lucide-react";
 import { authClient } from "../../../lib/auth-client";
 import logo from "../../../public/logoWhite.png";
 import PrimaryButton from "./PrimaryButton";
@@ -38,6 +38,17 @@ export default function Header() {
             <ProfileMenu />
           ) : (
             <>
+              <a
+                href="https://github.com/NarrativeeApp/Narrativee-SDK"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs font-manrope text-white border border-white/30 rounded-full px-3 py-1.5 bg-white/10 transition-colors"
+              >
+                <Github size={14} />
+              
+                <span>SDK</span>
+                  <Star size={14} className="text-yellow-500" fill="yellow"/>
+              </a>
               <Link className="text-sm font-medium text-white" href="/auth/signin">Login</Link>
               <PrimaryButton onClick={() => router.push('/auth/signup')}>Get Started</PrimaryButton>
             </>
