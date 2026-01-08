@@ -9,6 +9,9 @@ import { NarrativeeProvider } from "./NarrativeeProvider";
  */
 export default function SDKDemoLayout({ children }: { children: React.ReactNode }) {
     return (
-            {children}
+        <div>
+                   {children}
+        </div>
+
     );
 }
