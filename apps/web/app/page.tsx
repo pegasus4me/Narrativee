@@ -33,8 +33,8 @@ export default function Home() {
             <div className="flex-1 text-center p-6 lg:py-20 lg:px-12">
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
-                Your next paying customer is already in your trial. <span className="text-tertiary">You just don't know who.</span>
-
+                Not all trial users are equal, 
+                <span className="text-tertiary">Know who's serious.</span>
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
