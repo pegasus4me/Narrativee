@@ -33,7 +33,7 @@ export default function Home() {
             <div className="flex-1 text-center p-6 lg:py-20 lg:px-12">
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
-                Not all trial users are equal, 
+                Not all trial users are equal,
                 <span className="text-tertiary">Know who's serious.</span>
               </h1>
 
@@ -45,7 +45,7 @@ export default function Home() {
                 <PrimaryButton
                   onClick={() => router.push('/auth/signup')}
                 >
-                  Get started — <span className="text-white/70">it's free</span>
+                  Join beta program — <span className="text-white/70">it's free</span>
                 </PrimaryButton>
               </div>
             </div>
@@ -122,8 +122,8 @@ export default function Home() {
                 How It Works
               </span>
               <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-6">
-                Stop sending "just checking in" emails.<br />
-                <span className="text-primary">Start sending the right message at the right moment.</span>
+                Know exactly when a trial user is ready to upgrade —<br />
+                <span className="text-primary">and what to show them.</span>
               </h2>
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed max-w-3xl mx-auto mb-6">
                 Narrativee tracks user behavior, calculates engagement scores, and triggers personalized nudges at the perfect moment.
@@ -253,23 +253,6 @@ export default function Home() {
 
           </div>
         </section>
-        {/* Calculator Section */}
-        <section id="calculator" className="border-b border-neutral-200 py-20 px-6 bg-gray-50">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <span className="text-primary font-manrope font-semibold text-sm uppercase tracking-wider mb-4 block">
-                ROI Calculator
-              </span>
-              <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-4">
-                See your potential revenue lift
-              </h2>
-              <p className="text-xl text-gray-500 font-urbanist">
-                Calculate how much more you could earn by converting just a few more trial users
-              </p>
-            </div>
-            <ROICalculator />
-          </div>
-        </section>
         {/* Features Section */}
         <section id="features" className="border-b border-neutral-200 py-20 px-6">
           <div className="max-w-5xl mx-auto">
@@ -370,17 +353,17 @@ export default function Home() {
         <section className="py-20 px-6 bg-tertiary text-white">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-medium font-urbanist mb-6">
-              Your next paying customer is already in your trial.
+              Ready to convert more trials?
             </h2>
             <p className="text-xl text-white/70 font-urbanist mb-8">
-              Find them before their trial expires. Setup takes 5 minutes.
+              Join the beta and start identifying your highest-intent users today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <PrimaryButton
                 onClick={() => router.push('/auth/signup')}
                 className="text-tertiary font-bold py-4 px-8 rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center justify-center gap-2"
               >
-                Find your highest-intent trials
+                Join beta program — it's free
                 <ArrowRight size={18} />
               </PrimaryButton>
               <button
