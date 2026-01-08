@@ -30,15 +30,15 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row lg:items-stretch items-center lg:gap-0 gap-12">
 
             {/* Text Content */}
-            <div className="flex-1 text-center p-6 lg:py-20 lg:px-12">
+            <div className="flex-1 text-center p-6 lg:py-20 lg:px-12 border">
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
-                Not all trial users are equal,
-                <span className="text-tertiary">Know who's serious.</span>
+                Don't let high-intent trials slip away.<br />
+                <span className="text-tertiary">Turn them into paying customers.</span>
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
-                Narrativee shows you exactly which trial users are ready to buy — before their trial ends.
+                Track your trial users' behavior, score their intent, and show them tailored upgrade messages at the right moment.
               </p>
 
               <div className="flex justify-center">
