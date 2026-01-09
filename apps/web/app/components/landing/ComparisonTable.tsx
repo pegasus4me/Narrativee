@@ -29,8 +29,8 @@ const features = [
         name: "Identify high-intent trials",
         narrativee: true,
         posthog: false,
-        appcues: false,
-        mixpanel: false,
+        appcues: true,
+        mixpanel: true,
     },
     {
         name: "Trigger upgrade prompts",
