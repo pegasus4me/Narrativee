@@ -14,7 +14,7 @@ export function HeaderROICalculator() {
     }, [trialUsers, conversionRate, expectedLift, avgLTV]);
 
     return (
-        <div className="bg-secondary py-3 font-manrope">
+        <div className="bg-contrast py-3 font-manrope">
             <div className="max-w-7xl mx-auto px-4 md:px-6 flex flex-col lg:flex-row items-center justify-between gap-4 md:gap-6">
 
                 {/* Inputs */}
@@ -66,13 +66,8 @@ export function HeaderROICalculator() {
                         <div className="text-2xl md:text-3xl font-bold font-urbanist text-white flex items-center justify-center lg:justify-end gap-3">
                             <div className="flex flex-col items-center lg:items-end leading-none">
                                 <div className="flex items-baseline gap-1">
-                                    <TrendingUp size={20} className="text-white hidden lg:block" />
                                     +${roi.additionalMRR.toLocaleString()}/mo
                                     <span className="text-xs font-medium text-white/50 font-sans">/month</span>
-                                </div>
-                                <div className="text-sm font-medium text-white">
-                                    +${roi.additionalARR.toLocaleString()}
-                                    <span className="text-xs font-medium text-white/50 font-sans">/year</span>
                                 </div>
                             </div>
                         </div>
