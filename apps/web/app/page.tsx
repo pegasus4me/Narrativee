@@ -5,7 +5,7 @@ import { authClient } from "../lib/auth-client";
 import { useRouter } from "next/navigation";
 import Header from "./components/commons/Header";
 import Footer from "./components/commons/Footer";
-import BetaSignupPopup from "./components/commons/BetaSignupPopup";
+
 import { useGTMTracking } from "./hooks/useGTMTracking";
 import PrimaryButton from "./components/commons/PrimaryButton";
 import { Target, TrendingUp, Zap, Users, BarChart3, Bell, ArrowRight, X, Play } from "lucide-react";
@@ -30,7 +30,7 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row lg:items-stretch items-center lg:gap-0 gap-12">
 
             {/* Text Content */}
-            <div className="flex-1 text-center p-6 lg:py-20 lg:px-12 border">
+            <div className="flex-1 text-center p-6 lg:py-20 lg:px-12">
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
                 Don't let high-intent trials slip away.<br />
@@ -45,7 +45,7 @@ export default function Home() {
                 <PrimaryButton
                   onClick={() => router.push('/auth/signup')}
                 >
-                  Join beta program — <span className="text-white/70">it's free</span>
+                  Get started — <span className="text-white/70">it's free</span>
                 </PrimaryButton>
               </div>
             </div>
@@ -53,19 +53,15 @@ export default function Home() {
         </main>
 
         {/* Demo Video Section */}
-        <section className="border-b border-neutral-200 py-16 px-6 bg-gray-50">
-          <div className="max-w-4xl mx-auto">
-            <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
+        <section className="border-b border-neutral-200 bg-gray-50">
+          <div className="w-full">
+            <div className="relative aspect-video overflow-hidden w-full">
               <iframe
                 src="https://www.loom.com/embed/be00088402064ee2a68080f00c89904e"
-                frameBorder="0"
                 allowFullScreen
                 className="w-full h-full"
               />
             </div>
-            <p className="text-center text-gray-500 text-sm mt-4 font-manrope">
-              See how Narrativee turns trial users into paying customers
-            </p>
           </div>
         </section>
         {/* Problem Section */}
@@ -356,14 +352,14 @@ export default function Home() {
               Ready to convert more trials?
             </h2>
             <p className="text-xl text-white/70 font-urbanist mb-8">
-              Join the beta and start identifying your highest-intent users today.
+              Start identifying your highest-intent trial users today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <PrimaryButton
                 onClick={() => router.push('/auth/signup')}
                 className="text-tertiary font-bold py-4 px-8 rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center justify-center gap-2"
               >
-                Join beta program — it's free
+                Get started — it's free
                 <ArrowRight size={18} />
               </PrimaryButton>
               <button
@@ -405,7 +401,7 @@ export default function Home() {
         )}
 
         <Footer />
-        <BetaSignupPopup />
+
       </div>
     </div>
   );
