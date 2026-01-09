@@ -11,6 +11,7 @@ import PrimaryButton from "./components/commons/PrimaryButton";
 import { Target, TrendingUp, Zap, Users, BarChart3, Bell, ArrowRight, X, Play } from "lucide-react";
 import { ROICalculator } from "./components/pricing/ROICalculator";
 import { HeaderROICalculator } from "./components/pricing/HeaderROICalculator";
+import { ComparisonTable } from "./components/landing/ComparisonTable";
 import { useState } from "react";
 
 export default function Home() {
@@ -64,6 +65,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        
         {/* Problem Section */}
         <section id="problem" className="border-b border-neutral-200 py-20 px-6">
           <div className="max-w-4xl mx-auto text-center">
@@ -109,7 +111,8 @@ export default function Home() {
             </div>
           </div>
         </section>
-
+        {/* Comparison Section */}
+        <ComparisonTable />
         {/* Solution Section */}
         <section id="solution" className="border-b border-neutral-200 py-24 px-6 bg-gray-50">
           <div className="max-w-6xl mx-auto">
@@ -249,6 +252,7 @@ export default function Home() {
 
           </div>
         </section>
+
         {/* Features Section */}
         <section id="features" className="border-b border-neutral-200 py-20 px-6">
           <div className="max-w-5xl mx-auto">
