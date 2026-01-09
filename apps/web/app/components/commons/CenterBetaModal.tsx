@@ -68,13 +68,36 @@ export default function CenterBetaModal({ isOpen, onClose }: CenterBetaModalProp
                     {/* Content */}
                     <div className="text-center mb-6">
                         <h3 className="text-2xl font-semibold text-gray-900 mb-3 font-urbanist">
-                            {isSuccess ? "You're on the list! 🎉" : "Join the Beta Program"}
+                            {isSuccess ? "You're on the list! 🎉" : "Join the Beta — it's FREE!"}
                         </h3>
-                        <p className="text-gray-500 leading-relaxed font-manrope">
-                            {isSuccess
-                                ? "We'll be in touch shortly with your early access."
-                                : "Get free lifetime access to Narrativee. Help us build the future of trial conversion."}
-                        </p>
+                        {isSuccess ? (
+                            <p className="text-gray-500 leading-relaxed font-manrope">
+                                We'll be in touch within 24h with your early access.
+                            </p>
+                        ) : (
+                            <>
+                                <p className="text-gray-600 leading-relaxed font-manrope mb-4">
+                                    <strong>This is for you if:</strong>
+                                </p>
+                                <ul className="text-left text-sm text-gray-600 space-y-2 mb-4 max-w-sm mx-auto">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-primary mt-0.5">✓</span>
+                                        <span>You run a <strong>SaaS with free trials</strong></span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-primary mt-0.5">✓</span>
+                                        <span>You're <strong>losing trial users</strong> before they convert</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-primary mt-0.5">✓</span>
+                                        <span>You want to <strong>boost your MRR</strong> without guessing</span>
+                                    </li>
+                                </ul>
+                                <p className="text-primary font-medium text-sm font-manrope">
+                                    Get free access. Let's 10x your trial conversions together.
+                                </p>
+                            </>
+                        )}
                     </div>
 
                     {!isSuccess && (
@@ -96,17 +119,17 @@ export default function CenterBetaModal({ isOpen, onClose }: CenterBetaModalProp
                                 {isPending ? (
                                     <>
                                         <Loader2 size={18} className="animate-spin" />
-                                        Joining Beta...
+                                        Securing your spot...
                                     </>
                                 ) : (
                                     <>
-                                        Join Beta for Free
+                                        Claim Free Access Now
                                         <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                     </>
                                 )}
                             </button>
                             <p className="text-xs text-gray-400 text-center">
-                                Limited spots available • No credit card required
+                                ⚡ Limited to 20 SaaS companies • Free forever • No credit card
                             </p>
                         </form>
                     )}
