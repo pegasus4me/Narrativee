@@ -12,6 +12,8 @@ import { Target, TrendingUp, Zap, Users, BarChart3, Bell, ArrowRight, X, Play } 
 import { ROICalculator } from "./components/pricing/ROICalculator";
 import { HeaderROICalculator } from "./components/pricing/HeaderROICalculator";
 import { ComparisonTable } from "./components/landing/ComparisonTable";
+import BetaSignupPopup from "./components/commons/BetaSignupPopup";
+import CenterBetaModal from "./components/commons/CenterBetaModal";
 import { useState } from "react";
 
 export default function Home() {
@@ -19,11 +21,12 @@ export default function Home() {
   const { trackEvent } = useGTMTracking();
   const { data: session } = authClient.useSession();
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showBetaPopup, setShowBetaPopup] = useState(false);
 
   return (
     <div className="min-h-screen max-w-7xl mx-auto border border-neutral-200 mx-auto">
       <div className="">
-        <Header />
+        <Header onBetaSignup={() => setShowBetaPopup(true)} />
         <HeaderROICalculator />
 
         {/* Hero Section */}
@@ -35,7 +38,7 @@ export default function Home() {
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
                 Don't let high-intent trials slip away.<br />
-                <span className="text-tertiary">Turn them into paying customers.</span>
+                <span className="text-tertiary ">Turn them into paying customers.</span>
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
@@ -44,9 +47,9 @@ export default function Home() {
 
               <div className="flex justify-center">
                 <PrimaryButton
-                  onClick={() => router.push('/auth/signup')}
+                  onClick={() => setShowBetaPopup(true)}
                 >
-                  Get started — <span className="text-white/70">it's free</span>
+                  Join Beta Program — <span className="text-white/70">it's free</span>
                 </PrimaryButton>
               </div>
             </div>
@@ -65,7 +68,7 @@ export default function Home() {
             </div>
           </div>
         </section>
-        
+
         {/* Problem Section */}
         <section id="problem" className="border-b border-neutral-200 py-20 px-6">
           <div className="max-w-4xl mx-auto text-center">
@@ -360,10 +363,10 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <PrimaryButton
-                onClick={() => router.push('/auth/signup')}
+                onClick={() => setShowBetaPopup(true)}
                 className="text-tertiary font-bold py-4 px-8 rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center justify-center gap-2"
               >
-                Get started — it's free
+                Join Beta Program — it's free
                 <ArrowRight size={18} />
               </PrimaryButton>
               <button
@@ -403,6 +406,13 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* Beta Signup Popups */}
+        <BetaSignupPopup />
+        <CenterBetaModal
+          isOpen={showBetaPopup}
+          onClose={() => setShowBetaPopup(false)}
+        />
 
         <Footer />
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { X, Sparkles, ArrowRight, Loader2, Check } from "lucide-react";
+import { X, ArrowRight, Loader2, Check } from "lucide-react";
 import { submitToDiscord } from "../../actions/discord";
 import Image from "next/image";
 import logo from "../../../public/logo.png"

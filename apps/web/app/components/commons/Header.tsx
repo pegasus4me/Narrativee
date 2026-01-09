@@ -4,13 +4,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Github, Menu, X, Star} from "lucide-react";
+import { Github, Menu, X, Star } from "lucide-react";
 import { authClient } from "../../../lib/auth-client";
 import logo from "../../../public/logoWhite.png";
 import PrimaryButton from "./PrimaryButton";
 import ProfileMenu from "./ProfileMenu";
 
-export default function Header() {
+interface HeaderProps {
+  onBetaSignup?: () => void;
+}
+
+export default function Header({ onBetaSignup }: HeaderProps = {}) {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -45,12 +49,17 @@ export default function Header() {
                 className="flex items-center gap-1.5 text-xs font-manrope text-white border border-white/30 rounded-full px-3 py-1.5 bg-white/10 transition-colors"
               >
                 <Github size={14} />
-              
+
                 <span>SDK</span>
-                  <Star size={14} className="text-yellow-500" fill="yellow"/>
+                <Star size={14} className="text-yellow-500" fill="yellow" />
               </a>
-              <Link className="text-sm font-medium text-white" href="/auth/signin">Login</Link>
-              <PrimaryButton onClick={() => router.push('/auth/signup')}>Get Started</PrimaryButton>
+              <button
+                className="text-sm font-medium text-white hover:opacity-70 transition-opacity"
+                onClick={onBetaSignup || (() => router.push('/auth/signin'))}
+              >
+                Login
+              </button>
+              <PrimaryButton onClick={onBetaSignup || (() => router.push('/auth/signup'))}>Get Started</PrimaryButton>
             </>
           )}
         </div>
@@ -79,8 +88,21 @@ export default function Header() {
               <ProfileMenu />
             ) : (
               <>
-                <Link className="text-sm font-medium text-white" href="/auth/signin" onClick={() => setMobileMenuOpen(false)}>Login</Link>
-                <PrimaryButton onClick={() => { setMobileMenuOpen(false); router.push('/auth/signup'); }}>Get Started</PrimaryButton>
+                <button
+                  className="text-sm font-medium text-white hover:opacity-70 transition-opacity text-left"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (onBetaSignup) onBetaSignup();
+                    else router.push('/auth/signin');
+                  }}
+                >
+                  Login
+                </button>
+                <PrimaryButton onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (onBetaSignup) onBetaSignup();
+                  else router.push('/auth/signup');
+                }}>Get Started</PrimaryButton>
               </>
             )}
           </div>
