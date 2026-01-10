@@ -37,7 +37,7 @@ export default function Home() {
             <div className="flex-1 text-center p-6 lg:py-20 lg:px-12">
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
-                Don't let high-intent trials slip away.<br />
+                Don't let high-intent trials slip away<br />
                 <span className="text-tertiary ">Turn them into paying customers.</span>
               </h1>
 
