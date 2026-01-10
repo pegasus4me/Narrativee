@@ -42,7 +42,7 @@ export default function Home() {
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
-                Track your trial users' behavior, score their intent, and show them tailored upgrade messages at the right moment.
+                Track your trial users' behavior, score their intent, and show them tailored targeted nudges at the right moment.
               </p>
 
               <div className="flex justify-center">
