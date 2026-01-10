@@ -42,17 +42,6 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             <ProfileMenu />
           ) : (
             <>
-              <a
-                href="https://github.com/NarrativeeApp/Narrativee-SDK"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs font-manrope text-white border border-white/30 rounded-full px-3 py-1.5 bg-white/10 transition-colors"
-              >
-                <Github size={14} />
-
-                <span>SDK</span>
-                <Star size={14} className="text-yellow-500" fill="yellow" />
-              </a>
               <button
                 className="text-sm font-medium text-white hover:opacity-70 transition-opacity"
                 onClick={onBetaSignup || (() => router.push('/auth/signin'))}
