@@ -42,7 +42,7 @@ export default function Home() {
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
-                Track your trial users' behavior, score their intent, and show them tailored targeted nudges at the right moment.
+                Narrativee help you increase your <span className="text-primary font-medium">Trial-to-Paid Conversion</span> by tracking your trial users behavior, scoring their intent, and showing them targeted nudges at the right moment - in a 5 minute setup.
               </p>
 
               <div className="flex justify-center">
