@@ -76,7 +76,7 @@ export default function Home() {
               The Problem
             </span>
             <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-6">
-              You're flying blind during the most critical 14 days.
+              You're flying blind during the trial period
             </h2>
             <p className="text-xl text-gray-500 font-urbanist leading-relaxed max-w-3xl mx-auto mb-12">
               Every trial user starts with intent. Some explore once and ghost. Some binge your features at 2am. Some hover on your pricing page but never click. You're treating them all the same—and losing thousands every month.
