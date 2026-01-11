@@ -24,7 +24,7 @@ export function CumulativeRevenueChart({ data = [], totalRevenue, trend }: Cumul
     const chartData = data.length > 0 ? data : defaultData;
 
     return (
-        <div className="bg-white p-6 rounded-xl ">
+        <div className="p-6 rounded-xl ">
             <div className="flex justify-between items-end mb-6">
                 <div>
                     <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">

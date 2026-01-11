@@ -60,22 +60,13 @@ export function Dashboard() {
 }`;
 
 
-    const reactWorkflowCode = `import { NarrativeeTrigger } from '@narrativee/sdk';
-    import { UpgradeModal } from './components/UpgradeModal';
+    const reactWorkflowCode = `import { NarrativeeTrigger } from '@narrativee/sdk/react';
 
-    // In your app, wrap your component with the Trigger
-    // This will ONLY render <UpgradeModal> when the 'vip-modal' workflow triggers.
-    export function App() {
-        return (
-            <>
-                <NarrativeeTrigger
-                    id="pass the same ID as the one on the workflow "
-                    component={<UpgradeModal />}
-                />
-                {/* ... rest of your app */}
-            </>
-        );
-    } `;
+<NarrativeeTrigger 
+    id="trigger_id" 
+    component={<PersonalizedUpsellPopup />} 
+/>
+`;
 
     const handleCopy = (text: string, setCopied: (v: boolean) => void) => {
         navigator.clipboard.writeText(text);
@@ -168,12 +159,10 @@ export function Dashboard() {
                         </div>
                         <pre className="bg-gray-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
                             <code>
-                                <span className="text-purple-400">import</span> <span className="text-gray-300">{'{'}</span> <span className="text-yellow-300">NarrativeeTrigger</span> <span className="text-gray-300">{'}'}</span> <span className="text-purple-400">from</span> <span className="text-green-400">'@narrativee/sdk'</span><span className="text-gray-300">;</span>{'\n'}
-                                <span className="text-purple-400">import</span> <span className="text-gray-300">{'{'}</span> <span className="text-yellow-300">UpgradeModal</span> <span className="text-gray-300">{'}'}</span> <span className="text-purple-400">from</span> <span className="text-green-400">'./UpgradeModal'</span><span className="text-gray-300">;</span>{'\n\n'}
-                                <span className="text-gray-500">// Wrap your component - it renders only when workflow triggers</span>{'\n'}
-                                <span className="text-gray-300">{'<'}</span><span className="text-blue-400">NarrativeeTrigger</span>{'\n'}
-                                <span className="text-gray-300">  id=</span><span className="text-green-400">"workflow-id"</span>{'\n'}
-                                <span className="text-gray-300">  component={'={<'}</span><span className="text-yellow-300">UpgradeModal</span><span className="text-gray-300"> {'/>}'}</span>{'\n'}
+                                <span className="text-purple-400">import</span> <span className="text-gray-300">{'{'}</span> <span className="text-yellow-300">NarrativeeTrigger</span> <span className="text-gray-300">{'}'}</span> <span className="text-purple-400">from</span> <span className="text-green-400">'@narrativee/sdk/react'</span><span className="text-gray-300">;</span>{'\n\n'}
+                                <span className="text-gray-300">{'<'}</span><span className="text-blue-400">NarrativeeTrigger</span> {'\n'}
+                                <span className="text-gray-300">    id=</span><span className="text-green-400">"trigger_id"</span> {'\n'}
+                                <span className="text-gray-300">    component={'={<'}</span><span className="text-yellow-300">PersonalizedUpsellPopup</span><span className="text-gray-300"> {'/>'}</span> {'\n'}
                                 <span className="text-gray-300">{'/>'}</span>
                             </code>
                         </pre>

@@ -37,12 +37,11 @@ export default function Home() {
             <div className="flex-1 text-center p-6 lg:py-20 lg:px-12">
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
-                Don't let high-intent trials slip away<br />
-                <span className="text-tertiary ">Turn them into paying customers.</span>
+                Convert more SaaS trials into paying customers
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
-                Narrativee help you increase your <span className="text-primary font-medium">Trial-to-Paid Conversion</span> by tracking your trial users behavior, scoring their intent, and showing them targeted nudges at the right moment - in a 5 minute setup.
+Narrativee helps you identify high-intent trial users and nudge them to upgrade at the right moment — in a 5-minute setup.
               </p>
 
               <div className="flex justify-center">
@@ -221,10 +220,9 @@ export default function Home() {
               </div>
               <div className="flex-1 relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-3xl blur-2xl opacity-50"></div>
-                {/* Code Block since we don't have an image yet */}
                 <Image
-                  src="/component.png"
-                  alt="SDK Render Component"
+                  src="/trigger.png"
+                  alt="NarrativeeTrigger Component"
                   width={600}
                   height={400}
                   className="relative rounded-xl shadow-2xl border border-gray-200/50"
