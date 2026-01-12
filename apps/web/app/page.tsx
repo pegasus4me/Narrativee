@@ -41,7 +41,7 @@ export default function Home() {
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
-Narrativee helps you identify high-intent trial users and nudge them to upgrade at the right moment — in a 5-minute setup.
+                Narrativee helps you identify high-intent users based on the actions you define and trigger nudges when specific events happen — in a 5-minute setup.
               </p>
 
               <div className="flex justify-center">
@@ -143,7 +143,7 @@ Narrativee helps you identify high-intent trial users and nudge them to upgrade 
             {/* Step 1: Track */}
             <div className="flex flex-col md:flex-row items-center gap-16 mb-24">
               <div className="flex-1 space-y-6">
-                <h3 className="text-3xl font-manrope text-gray-900">Track Engagement</h3>
+                <h3 className="text-3xl font-manrope text-gray-900">Score Engagement</h3>
                 <p className="text-lg text-gray-600 font-manrope leading-relaxed">
                   Install our lightweight SDK in minutes. It automatically identifies users and tracks their journey from trial sign-up to their "Aha!" moment.
                 </p>
