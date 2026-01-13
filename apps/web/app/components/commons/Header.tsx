@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Github, Menu, X, Star } from "lucide-react";
 import { authClient } from "../../../lib/auth-client";
-import logo from "../../../public/logoWhite.png";
+import logo from "../../../public/logoDark.png";
 import PrimaryButton from "./PrimaryButton";
 import ProfileMenu from "./ProfileMenu";
 
@@ -20,16 +20,16 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="bg-tertiary">
+    <header className="bg-white text-tertiary">
       {/* Main header bar */}
-      <div className="flex items-center justify-between px-4 md:px-6 py-2">
+      <div className="relative flex items-center justify-between px-4 md:px-6 py-2">
         {/* Logo */}
-        <div className="w-[120px] md:w-[160px]">
+        <div className="w-[120px] md:w-[160px] z-10">
           <Image src={logo} alt="Logo" width={160} height={100} className="w-full h-auto" />
         </div>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex flex-1 justify-center text-white items-center gap-8 text-sm font-medium font-manrope">
+        {/* Desktop nav - Absolutely centered */}
+        <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 text-tertiary items-center gap-8 text-sm font-medium font-manrope">
           <Link href="/pricing" className="hover:opacity-70">Pricing</Link>
           <Link href="/#features" className="hover:opacity-70">Features</Link>
           <Link href="/#solution" className="hover:opacity-70">Solution</Link>
@@ -37,7 +37,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
         </nav>
 
         {/* Desktop CTA */}
-        <div className="hidden md:flex flex-1 justify-end gap-4 items-center">
+        <div className="hidden md:flex gap-4 items-center z-10">
           {session ? (
             <ProfileMenu />
           ) : (
@@ -78,7 +78,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             ) : (
               <>
                 <button
-                  className="text-sm font-medium text-white hover:opacity-70 transition-opacity text-left"
+                  className="text-sm font-medium text-tertiary hover:opacity-70 transition-opacity text-left"
                   onClick={() => {
                     setMobileMenuOpen(false);
                     if (onBetaSignup) onBetaSignup();

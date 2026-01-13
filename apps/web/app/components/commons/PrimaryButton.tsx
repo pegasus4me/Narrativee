@@ -23,6 +23,7 @@ export default function PrimaryButton({ children, className, ...props }: Primary
         shadow-[inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-2px_0_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.05)]
         active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]
         active:translate-y-[1px]
+        animate-[pulse-subtle_2s_ease-in-out_infinite]
         ${className || ""}
       `}
             {...props}
