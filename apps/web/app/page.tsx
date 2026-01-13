@@ -39,11 +39,11 @@ export default function Home() {
             <div className="flex-1 text-center p-6 lg:py-20 lg:px-12">
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-gray-900 font-urbanist mb-6">
-                Convert more trial users into paying customers
+                Convert more trial users without guessing who will subscribe
               </h1>
 
               <p className="text-xl text-gray-500 font-urbanist leading-relaxed mb-8 max-w-2xl mx-auto">
-                Narrativee helps you identify high-intent trial users and nudge them to upgrade at the right moment — in a 5-minute setup.
+                Narrativee scores your trial users in real time based on your rules, and nudges them exactly when they're ready to convert — setup in 5 minutes.
               </p>
 
               <div className="flex justify-center">
