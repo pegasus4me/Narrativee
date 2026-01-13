@@ -160,3 +160,7 @@
     box-shadow: 0 0 20px 4px rgba(0, 10, 191, 0.2);
   }
 }
+
+.pulse-cta {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
