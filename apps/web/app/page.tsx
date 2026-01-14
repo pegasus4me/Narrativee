@@ -169,87 +169,99 @@ export default function Home() {
                 How It Works
               </span>
               <h2 className="text-4xl md:text-5xl font-medium font-urbanist text-gray-900 mb-4">
-                Start converting more trial users in minutes
+                Start converting more trials in 4 simple steps
               </h2>
             </div>
 
-            {/* 4-Step Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Step 1: Connect */}
-              <div className="border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors overflow-hidden flex flex-col">
-                <div className="bg-gray-50 p-4 flex-1 flex items-center justify-center">
+            {/* Bento Grid */}
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Step 1: Connect - Full width */}
+              <div className="md:col-span-2 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors overflow-hidden flex flex-col md:flex-row">
+                <div className="bg-gray-50 p-6 md:w-1/2 flex items-center justify-center">
                   <Image
                     src="/carbon-5.png"
                     alt="SDK Code Example"
-                    width={500}
-                    height={280}
+                    width={600}
+                    height={340}
                     className="rounded-lg w-full"
                   />
                 </div>
-                <div className="p-6 flex gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 font-manrope font-bold">
-                    1
+                <div className="p-6 md:w-1/2 flex flex-col justify-center">
+                  <div className="flex gap-4 mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 font-manrope font-bold">
+                      1
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 font-manrope">Install in 2 minutes</h3>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-1">Connect your app</h3>
-                    <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                      Install our lightweight SDK with a few lines of code.
-                    </p>
-                  </div>
+                  <p className="text-gray-500 font-manrope leading-relaxed">
+                    Drop in our SDK with 3 lines of code. Auto-identifies users and tracks every action without slowing down your app.
+                  </p>
                 </div>
               </div>
 
-              {/* Step 2: Score */}
-              <div className="border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors overflow-hidden flex flex-col">
-                <div className="flex-1 flex items-center justify-center">
-                  <EngagementScoreChart />
+              {/* Step 2: Score - Left column, spans 2 rows */}
+              <div className="md:row-span-2 border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors overflow-hidden flex flex-col">
+                <div className="bg-gray-50 p-4 flex-1 flex items-center justify-center">
+                  <Image
+                    src="/create_events.png"
+                    alt="Scoring Rules Interface"
+                    width={500}
+                    height={700}
+                    className="rounded-lg w-full"
+                  />
                 </div>
-                <div className="p-6 flex gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 font-manrope font-bold">
-                    2
+                <div className="p-5">
+                  <div className="flex gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 font-manrope font-bold text-sm">
+                      2
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 font-manrope">Define your scoring rules</h3>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-1">Score engagement</h3>
-                    <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                      Every action earns points. See who's ready to convert.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 3: Trigger */}
-              <div className="border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors overflow-hidden flex flex-col">
-                <div className="flex-1 flex items-center justify-center">
-                  <TriggerIllustration />
-                </div>
-                <div className="p-6 flex gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 font-manrope font-bold">
-                    3
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-1">Trigger at the right moment</h3>
-                    <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                      Show personalized nudges when users hit the right score.
-                    </p>
-                  </div>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    Assign points to actions that matter: feature usage, page visits, clicks. High score = high intent.
+                  </p>
                 </div>
               </div>
 
-              {/* Step 4: Convert */}
+              {/* Step 3: Trigger - Right top */}
               <div className="border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors overflow-hidden flex flex-col">
-                <div className="flex-1 flex items-center justify-center">
+                <div className="bg-gray-50 p-4 flex-1 flex items-center justify-center">
+                  <Image
+                    src="/Workflow.png"
+                    alt="Visual Workflow Builder"
+                    width={600}
+                    height={400}
+                    className="rounded-lg w-full"
+                  />
+                </div>
+                <div className="p-5">
+                  <div className="flex gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 font-manrope font-bold text-sm">
+                      3
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 font-manrope">Build your automation</h3>
+                  </div>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    Set up workflows visually: when a user hits your score threshold, trigger popups, emails, or webhooks automatically.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 4: Convert - Right bottom */}
+              <div className="border border-neutral-200 rounded-xl hover:border-primary/30 transition-colors overflow-hidden flex flex-col">
+                <div className="bg-gray-50 p-6 flex-1 flex items-center justify-center">
                   <ConvertIllustration />
                 </div>
-                <div className="p-6 flex gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 font-manrope font-bold">
-                    4
+                <div className="p-5">
+                  <div className="flex gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 font-manrope font-bold text-sm">
+                      4
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 font-manrope">Watch conversions grow</h3>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 font-manrope mb-1">Convert and measure</h3>
-                    <p className="text-gray-500 text-sm font-manrope leading-relaxed">
-                      Track every conversion with full revenue attribution.
-                    </p>
-                  </div>
+                  <p className="text-gray-500 text-sm font-manrope leading-relaxed">
+                    Real-time analytics show exactly which nudges convert and how much revenue they drive.
+                  </p>
                 </div>
               </div>
             </div>
