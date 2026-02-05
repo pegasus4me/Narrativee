@@ -16,6 +16,17 @@ export const user = pgTable("user", {
   subscriptionStatus: text("subscriptionStatus"),
   currentPeriodEnd: timestamp("currentPeriodEnd"),
   onboarded: boolean("onboarded").default(false),
+  substackPublicationName: text("substackPublicationName"),
+  substackPublicationUrl: text("substackPublicationUrl"),
+  substackPublicationLogo: text("substackPublicationLogo"),
+  substackProfileUrl: text("substackProfileUrl"),
+  substackBio: text("substackBio"),
+  substackHandle: text("substackHandle"),
+  // User Preferences
+  language: text("language"),
+  writingStyle: text("writingStyle"),
+  contentTopics: jsonb("contentTopics"), // Array of strings
+  // Legacy fields (kept to avoid data loss warning during push)
   orgName: text("orgName"),
   orgUrl: text("orgUrl"),
   orgLogo: text("orgLogo"),

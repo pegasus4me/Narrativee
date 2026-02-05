@@ -1,34 +1,28 @@
 "use client"
-import Image from "next/image";
-import logo from "../public/logo.png";
-import { authClient } from "../lib/auth-client";
 import { useRouter } from "next/navigation";
 import Header from "./components/commons/Header";
-import Footer from "./components/commons/Footer";
-
-import { useGTMTracking } from "./hooks/useGTMTracking";
-import PrimaryButton from "./components/commons/PrimaryButton";
-import { Target, TrendingUp, Zap, Users, BarChart3, Bell, ArrowRight, X, Play } from "lucide-react";
-import { ROICalculator } from "./components/pricing/ROICalculator";
-import { HeaderROICalculator } from "./components/pricing/HeaderROICalculator";
-import { ComparisonTable } from "./components/landing/ComparisonTable";
-import BetaSignupPopup from "./components/commons/BetaSignupPopup";
-import CenterBetaModal from "./components/commons/CenterBetaModal";
-import { EngagementScoreChart } from "./components/landing/EngagementScoreChart";
-import { TriggerIllustration } from "./components/landing/TriggerIllustration";
-import { ConvertIllustration } from "./components/landing/ConvertIllustration";
-import { useState } from "react";
 
 export default function Home() {
   const router = useRouter();
-  const { trackEvent } = useGTMTracking();
-  const { data: session } = authClient.useSession();
-  const [showVideoModal, setShowVideoModal] = useState(false);
-  const [showBetaPopup, setShowBetaPopup] = useState(false);
 
   return (
-    <div className="min-h-screen max-w-7xl mx-auto flex items-center justify-center">
-      <h1 className="text-center text-7xl font-urbanist">in validation mode, see you soon</h1>
+    <div className="bg-white">
+      <Header />
+
+      <main className=" max-w-[97%] mx-auto">
+        <section className="relative flex flex-col items-center">
+          {/* Centered heading at the top */}
+          <div className="mt-16 md:mt-20 lg:mt-24 mb-12 z-10">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-semibold font-manrope text-center px-4">
+              Grow on <span className="bg-orange-500 rounded-xl px-5 text-white border-2 border-orange-200">Substack</span> <br />with auto mode
+            </h1>
+            <p className="text-center text-gray-600 mt-4 font-urbanist max-w-[90%] mx-auto">
+              Narrativee helps you grow on Substack with AI-powered content generation and optimization.
+            </p>
+          </div>
+
+        </section>
+      </main>
     </div>
   );
 }

@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import { Urbanist, Manrope } from 'next/font/google'
 import { GoogleTagManager } from '@next/third-parties/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
-import { NarrativeeProvider } from "./sdk-test/NarrativeeProvider";
 import "./globals.css";
 
 const geistMono = localFont({
@@ -38,9 +37,7 @@ export default function RootLayout({
       <body className={`${urbanist.variable} ${manrope.variable} ${geistMono.variable}`}>
         <GoogleTagManager gtmId="GTM-5BCN3HMQ" />
         <GoogleAnalytics gaId="G-L8W7KEVHQ4" />
-        <NarrativeeProvider apiKey="nr-live-a76b2c29-16c4-4324-a092-a09fb0beb26a">
         {children}
-        </NarrativeeProvider>
       </body>
     </html>
   );

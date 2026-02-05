@@ -6,7 +6,6 @@ import { Tick2 } from "clicons-react";
 import PrimaryButton from "../components/commons/PrimaryButton";
 import { PricingPlans } from "../../lib/pricingData";
 import Header from "../components/commons/Header";
-import { ROICalculator } from "../components/pricing/ROICalculator";
 import { API_URL } from "@/lib/api-config";
 
 import { useRouter } from "next/navigation";
@@ -91,7 +90,7 @@ export default function PricingPage() {
 
                     {/* ROI Calculator */}
                     <div className="mt-20 mb-12 px-4">
-                        <ROICalculator />
+                        {/* <ROICalculator /> */}
                     </div>
 
                     {/* Toggle */}

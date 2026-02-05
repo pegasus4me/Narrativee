@@ -61,7 +61,6 @@ export default function ProfileMenu() {
                         height={32}
                         className="rounded-full"
                     />
-                    <span className="text-sm font-medium font-manrope text-white">{session?.data?.user.name}</span>
                 </button>
             </div>
 

@@ -26,6 +26,7 @@ app.use(cors({
     "http://localhost:3001",
     "https://narrativee.com",
     "https://www.narrativee.com",
+    "http://localhost:3010",
 
   ],
   credentials: true,
@@ -48,25 +49,27 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Narrativee API is running' });
 });
 
-import eventsRouter from './routes/events';
+// import eventsRouter from './routes/events';
 
 // ... (imports)
 
 // ...
 
-import apiKeysRouter from './routes/api-keys';
+// import apiKeysRouter from './routes/api-keys';
 import saasUsersRouter from './routes/saas-users';
-import scoringRouter from './routes/scoring';
-import workflowsRouter from './routes/workflows';
+// import scoringRouter from './routes/scoring';
+// import workflowsRouter from './routes/workflows';
 import onboardingRouter from './routes/onboarding';
+import substackRouter from './routes/substack';
 
 app.use('/api/user', userRouter);
-app.use('/api/events', eventsRouter);
-app.use('/api/api-keys', apiKeysRouter);
+// app.use('/api/events', eventsRouter);
+// app.use('/api/api-keys', apiKeysRouter);
 app.use('/api/saas-users', saasUsersRouter);
-app.use('/api/scoring', scoringRouter);
-app.use('/api/workflows', workflowsRouter);
+// app.use('/api/scoring', scoringRouter);
+// app.use('/api/workflows', workflowsRouter);
 app.use('/api/onboarding', onboardingRouter);
+app.use('/api/substack', substackRouter);
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

@@ -1,0 +1,464 @@
+// Background service worker - handles API calls to OpenRouter
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'GENERATE_COMMENT') {
+        generateComment(message.context)
+            .then(comment => sendResponse({ success: true, comment }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+    }
+
+    if (message.type === 'GENERATE_NOTE') {
+        generateNote(message.topic)
+            .then(note => sendResponse({ success: true, note }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+    }
+
+    // Article Writing Assistant handlers
+    if (message.type === 'WRITE_SECTION') {
+        writeArticleSection(message.prompt, message.context)
+            .then(content => sendResponse({ success: true, content }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+    }
+
+    if (message.type === 'EXPAND_TEXT') {
+        expandText(message.text, message.context)
+            .then(content => sendResponse({ success: true, content }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+    }
+
+    if (message.type === 'REWRITE_TEXT') {
+        rewriteText(message.text, message.context)
+            .then(content => sendResponse({ success: true, content }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+    }
+
+    if (message.type === 'SUGGEST_HEADLINES') {
+        suggestHeadlines(message.content)
+            .then(headlines => sendResponse({ success: true, headlines }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+    }
+
+    if (message.type === 'GENERATE_OUTLINE') {
+        generateOutline(message.topic)
+            .then(outline => sendResponse({ success: true, outline }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+    }
+});
+
+async function generateComment(context) {
+    // Get settings
+    const settings = await chrome.storage.sync.get(['apiKey', 'tone', 'length']);
+
+    if (!settings.apiKey) {
+        throw new Error('Please set your OpenRouter API key in the extension popup');
+    }
+
+    const tone = settings.tone || 'thoughtful';
+    const targetLength = parseInt(settings.length) || 200;
+
+    const toneInstructions = {
+        thoughtful: 'Be reflective and add genuine insight or a personal perspective.',
+        friendly: 'Be warm, supportive, and encouraging. Use a conversational tone.',
+        professional: 'Be polished and articulate. Share relevant expertise or observations.',
+        curious: 'Ask thoughtful follow-up questions that show genuine interest.'
+    };
+
+    const lengthInstructions = {
+        100: 'Keep it very brief: 1-2 sentences, around 100 characters.',
+        200: 'Keep it concise: 2-3 sentences, around 200 characters.',
+        350: 'Be moderately detailed: 3-4 sentences, around 350 characters.',
+        500: 'Be detailed and thorough: 4-6 sentences, around 500 characters.'
+    };
+
+    // Calculate max_tokens based on target length (roughly 4 chars per token)
+    const maxTokens = Math.ceil(targetLength / 3);
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${settings.apiKey}`,
+            'HTTP-Referer': 'https://substack.com',
+            'X-Title': 'Substack Comment Wizard'
+        },
+        body: JSON.stringify({
+            model: 'moonshotai/kimi-k2.5',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a real person leaving a genuine comment on someone's Substack post. Write like a human, not an AI.
+
+TONE: ${tone}
+${toneInstructions[tone]}
+
+LENGTH: ${lengthInstructions[targetLength] || lengthInstructions[200]}
+
+YOUR GOAL:
+- Agree with what the OP is saying and show you understand their point
+- Ask a genuine follow-up question to learn more or spark discussion
+- You are NOT trying to impress anyone or one-up the OP
+
+NEVER DO THIS:
+- NEVER claim you've done something similar ("I also did this", "I made X", "I sold Y")
+- NEVER brag about your own achievements or results
+- NEVER make up fake personal stories or accomplishments
+- NEVER say "me too" type responses with made-up details
+
+DO THIS INSTEAD:
+- React to what they said ("This is such a good point", "Hadn't thought of it that way")
+- Expand on their idea or add a related thought
+- Ask a genuine question ("What format do you think works best?", "Do you think X or Y?")
+- Express curiosity about their experience
+
+HOW TO SOUND HUMAN:
+- Write casually, like you're texting a friend
+- Use contractions (I'm, don't, can't, it's, that's)
+- Start with "So", "Honestly", "This", "Wait" sometimes
+- Include filler words naturally (like, kinda, actually)
+
+WHAT NOT TO DO (these scream AI):
+- Don't use: "resonate", "profound", "delve", "unpack", "navigate", "landscape", "journey"
+- Don't be overly complimentary
+- Avoid perfect grammar and semicolons
+
+Return ONLY the comment text, nothing else.`
+                },
+                {
+                    role: 'user',
+                    content: `Write a comment for this Substack post:
+
+TITLE: ${context.title}
+
+AUTHOR: ${context.author}
+
+ARTICLE EXCERPT:
+${context.content}
+
+Write a single engaging comment (~${targetLength} characters):`
+                }
+            ],
+            max_tokens: maxTokens,
+            temperature: 0.8
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'Failed to generate comment');
+    }
+
+    const data = await response.json();
+    const comment = data.choices[0]?.message?.content?.trim();
+
+    if (!comment) {
+        throw new Error('No comment generated');
+    }
+
+    return comment;
+}
+
+// Generate an original note using the user's profile
+async function generateNote(topic) {
+    const settings = await chrome.storage.sync.get([
+        'apiKey', 'bio', 'goals', 'topics', 'style', 'articles'
+    ]);
+
+    if (!settings.apiKey) {
+        throw new Error('Please set your OpenRouter API key in the extension popup');
+    }
+
+    const styleDescriptions = {
+        casual: 'Write casually and conversationally, like chatting with a friend. Use contractions, informal language.',
+        provocative: 'Be bold and provocative. Challenge assumptions, make strong statements, be contrarian when appropriate.',
+        educational: 'Be helpful and educational. Share insights, explain concepts clearly, provide actionable takeaways.',
+        witty: 'Be clever and witty. Use wordplay, humor, and sharp observations.',
+        inspirational: 'Be motivating and inspirational. Uplift the reader, share encouragement, paint a vision.'
+    };
+
+    const profileContext = `
+ABOUT THE WRITER:
+${settings.bio || 'A Substack writer'}
+
+THEIR GOALS:
+${settings.goals || 'Growing their audience and sharing valuable content'}
+
+TOPICS THEY COVER:
+${settings.topics || 'Various topics'}
+
+WRITING STYLE:
+${styleDescriptions[settings.style] || styleDescriptions.casual}
+
+${settings.articles ? `SAMPLE OF THEIR WRITING (match this voice):
+${settings.articles.substring(0, 1500)}` : ''}
+`.trim();
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${settings.apiKey}`,
+            'HTTP-Referer': 'https://substack.com',
+            'X-Title': 'Substack Note Generator'
+        },
+        body: JSON.stringify({
+            model: 'moonshotai/kimi-k2.5',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a Substack writer creating an original note. Write as if YOU are the writer - authentic, personal, human.
+
+${profileContext}
+
+HOW TO SOUND HUMAN:
+- Write like you're texting a smart friend, not publishing an article
+- Use contractions (I'm, don't, can't, it's, that's, we're)
+- Start some sentences with "And", "But", "So", "Like", "Honestly", "Look", "Here's the thing"
+- Use casual phrases: "kinda", "pretty much", "actually", "honestly", "low-key"
+- Imperfect punctuation is fine - use ... trails, dashes, even skip some commas
+- React emotionally sometimes ("This blew my mind", "I was wrong about this")
+- Make it feel like a moment of clarity or insight you're sharing
+
+FORMATTING FOR SUBSTACK NOTES:
+- Keep paragraphs SHORT - 1-2 sentences each
+- Use line breaks between thoughts for readability
+- Put your hook/punch line at the START, not the end
+- Total length: 3-6 short paragraphs
+- End with something that invites engagement OR just trail off naturally
+
+BANNED (these scream AI):
+- "resonate", "profound", "delve", "unpack", "navigate", "landscape", "journey", "game-changer"
+- Perfect grammar throughout
+- Overly structured or listy formats
+- Hashtags
+- Emojis (unless the writer's style uses them)
+- Promotional language or CTAs unless natural
+
+Return ONLY the note text. No quotes, no explanations, no meta-commentary.`
+                },
+                {
+                    role: 'user',
+                    content: `Write a Substack note about: ${topic}
+
+Remember: Short paragraphs, punchy start, human voice.`
+                }
+            ],
+            max_tokens: 600,
+            temperature: 0.9
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'Failed to generate note');
+    }
+
+    const data = await response.json();
+    const note = data.choices[0]?.message?.content?.trim();
+
+    if (!note) {
+        throw new Error('No note generated');
+    }
+
+    return note;
+}
+
+// ==========================================
+// ARTICLE WRITING ASSISTANT FUNCTIONS
+// ==========================================
+
+async function getProfileAndApiKey() {
+    const settings = await chrome.storage.sync.get([
+        'apiKey', 'bio', 'goals', 'topics', 'style', 'articles'
+    ]);
+
+    if (!settings.apiKey) {
+        throw new Error('Please set your OpenRouter API key in the extension popup');
+    }
+
+    return settings;
+}
+
+async function callOpenRouter(messages, maxTokens = 1000) {
+    const settings = await getProfileAndApiKey();
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${settings.apiKey}`,
+            'HTTP-Referer': 'https://substack.com',
+            'X-Title': 'Substack Writing Assistant'
+        },
+        body: JSON.stringify({
+            model: 'moonshotai/kimi-k2.5',
+            messages,
+            max_tokens: maxTokens,
+            temperature: 0.8
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'API request failed');
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content?.trim() || '';
+}
+
+// Write a section of article content
+async function writeArticleSection(prompt, context = {}) {
+    const settings = await getProfileAndApiKey();
+
+    const profileContext = settings.bio ? `
+WRITER'S BACKGROUND: ${settings.bio}
+TOPICS: ${settings.topics || 'Various'}
+STYLE: ${settings.style || 'casual'}
+` : '';
+
+    const messages = [
+        {
+            role: 'system',
+            content: `You are a skilled writer helping create a Substack article. Write in a natural, engaging style.
+
+${profileContext}
+
+WRITING STYLE:
+- Write like a human, not AI. Conversational, relatable, authentic.
+- Use short paragraphs (2-3 sentences max)
+- Start with a hook that grabs attention
+- Use contractions (I'm, don't, can't)
+- Include personal observations, examples, or stories when relevant
+- Avoid clichés: "In today's world...", "It's important to note..."
+- BANNED words: resonate, delve, unpack, navigate, landscape, journey, game-changer
+
+FORMAT:
+- Write in clean HTML paragraphs: <p>...</p>
+- For headings use: <h2>...</h2>
+- For emphasis: <strong>...</strong> or <em>...</em>
+- For lists: <ul><li>...</li></ul>
+
+${context.title ? `ARTICLE TITLE: ${context.title}` : ''}
+${context.existingContent ? `EXISTING CONTENT (continue from here):\n${context.existingContent.substring(0, 500)}...` : ''}
+
+Return ONLY the HTML content, no explanations or markdown.`
+        },
+        {
+            role: 'user',
+            content: `Write about: ${prompt}`
+        }
+    ];
+
+    return await callOpenRouter(messages, 1500);
+}
+
+// Expand selected text
+async function expandText(text, context = {}) {
+    const messages = [
+        {
+            role: 'system',
+            content: `You are helping expand a piece of text into a more detailed, richer version.
+
+RULES:
+- Keep the same voice and tone as the original
+- Add more detail, examples, or explanations
+- Make it 2-3x longer
+- Keep it engaging and readable
+- Use short paragraphs
+- Output in HTML format: <p>...</p>
+
+Return ONLY the expanded HTML content.`
+        },
+        {
+            role: 'user',
+            content: `Expand this text:\n\n"${text}"`
+        }
+    ];
+
+    return await callOpenRouter(messages, 1000);
+}
+
+// Rewrite text differently
+async function rewriteText(text, context = {}) {
+    const messages = [
+        {
+            role: 'system',
+            content: `You are helping rewrite a piece of text to be clearer and more engaging.
+
+RULES:
+- Keep the same core meaning
+- Make it more punchy and readable
+- Improve flow and clarity
+- Use active voice
+- Keep similar length
+- Output in HTML format: <p>...</p>
+
+Return ONLY the rewritten HTML content, no explanations.`
+        },
+        {
+            role: 'user',
+            content: `Rewrite this:\n\n"${text}"`
+        }
+    ];
+
+    return await callOpenRouter(messages, 800);
+}
+
+// Suggest headlines
+async function suggestHeadlines(content) {
+    const messages = [
+        {
+            role: 'system',
+            content: `You are helping create compelling headlines for a Substack article.
+
+RULES:
+- Generate 5 different headline options
+- Mix styles: curiosity, benefit-driven, controversial, how-to
+- Keep them under 60 characters when possible
+- Make them click-worthy but not clickbait
+- Number each option 1-5
+
+Return ONLY the 5 numbered headlines, one per line.`
+        },
+        {
+            role: 'user',
+            content: `Suggest headlines for this article:\n\n${content.substring(0, 1000)}`
+        }
+    ];
+
+    return await callOpenRouter(messages, 300);
+}
+
+// Generate article outline
+async function generateOutline(topic) {
+    const settings = await getProfileAndApiKey();
+
+    const messages = [
+        {
+            role: 'system',
+            content: `You are helping create an article outline for a Substack post.
+
+${settings.bio ? `WRITER: ${settings.bio}` : ''}
+${settings.topics ? `TYPICAL TOPICS: ${settings.topics}` : ''}
+
+Create a structured outline with:
+- A compelling hook/intro concept
+- 3-5 main sections with subpoints
+- A strong conclusion/CTA idea
+
+Format as a numbered outline. Keep it practical and actionable.`
+        },
+        {
+            role: 'user',
+            content: `Create an outline for an article about: ${topic}`
+        }
+    ];
+
+    return await callOpenRouter(messages, 600);
+}

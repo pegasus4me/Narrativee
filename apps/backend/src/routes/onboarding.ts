@@ -29,17 +29,21 @@ router.get('/', requireAuth, async (req: any, res) => {
             where: eq(user.id, userId),
             columns: {
                 onboarded: true,
-                orgName: true,
-                orgUrl: true,
-                orgLogo: true
+                substackPublicationName: true,
+                substackPublicationUrl: true,
+                substackPublicationLogo: true,
+                substackProfileUrl: true,
+                substackHandle: true
             }
         });
 
         return res.json({
             onboarded: userData?.onboarded ?? false,
-            orgName: userData?.orgName,
-            orgUrl: userData?.orgUrl,
-            orgLogo: userData?.orgLogo
+            substackPublicationName: userData?.substackPublicationName,
+            substackPublicationUrl: userData?.substackPublicationUrl,
+            substackPublicationLogo: userData?.substackPublicationLogo,
+            substackProfileUrl: userData?.substackProfileUrl,
+            substackHandle: userData?.substackHandle
         });
     } catch (error) {
         console.error('Error fetching onboarding status:', error);
@@ -47,18 +51,34 @@ router.get('/', requireAuth, async (req: any, res) => {
     }
 });
 
-// POST /onboarding/complete - Mark onboarding as complete with org details
+// POST /onboarding/complete - Mark onboarding as complete with substack details
 router.post('/complete', requireAuth, async (req: any, res) => {
     try {
         const userId = req.session.user.id;
-        const { orgName, orgUrl, orgLogo } = req.body;
+        const {
+            substackPublicationName,
+            substackPublicationUrl,
+            substackPublicationLogo,
+            substackProfileUrl,
+            substackBio,
+            substackHandle,
+            language,
+            writingStyle,
+            contentTopics
+        } = req.body;
 
         await db.update(user)
             .set({
                 onboarded: true,
-                orgName: orgName || null,
-                orgUrl: orgUrl || null,
-                orgLogo: orgLogo || null
+                substackPublicationName: substackPublicationName || null,
+                substackPublicationUrl: substackPublicationUrl || null,
+                substackPublicationLogo: substackPublicationLogo || null,
+                substackProfileUrl: substackProfileUrl || null,
+                substackBio: substackBio || null,
+                substackHandle: substackHandle || null,
+                language: language || null,
+                writingStyle: writingStyle || null,
+                contentTopics: contentTopics || null
             })
             .where(eq(user.id, userId));
 

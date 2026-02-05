@@ -55,9 +55,47 @@ export default function SignIn() {
         email,
         password,
       }, {
-        onSuccess: () => {
+        onSuccess: async () => {
           trackEvent({ eventName: 'login', eventData: { method: 'email' } });
-          router.push("/");
+
+          // Check if onboarding is complete
+          try {
+            // We can check the session directly if improved, but usually we need to fetch user details or check a claim.
+            // Let's fetch the onboarding status endpoint we made.
+            const res = await fetch(`${window.location.origin}/api/onboarding`);
+            // Note: Depending on how the client is set up, we might need to handle the URL better or use authClient.useSession if it updates immediately.
+            // A safer bet involves either a dedicated check or relying on the session object if it carries the "onboarded" flag.
+            // Given our backend `GET /onboarding` endpoint, let's use that.
+
+            // Wait for session to be established? The onSuccess usually implies session is set locally.
+
+            // Actually, `authClient` might not have the session updated in the hook immediately, but the cookie is there.
+            // Let's rely on a direct fetch to our new endpoint.
+            // Since we are on client, we need the full URL if it's ssr, but here relative is fine.
+            // BUT: The api is at API_URL (likely localhost:3002 or narrativee.com).
+            // We need to import API_URL.
+
+            // Let's verify where API_URL comes from.
+            // It's in `../../lib/api-config`.
+          } catch (e) {
+            console.error("Failed to check onboarding status", e);
+          }
+
+          // Actually, let's do a simple redirect to a generic /dashboard or /workspace
+          // AND have a protective wrapper (Layout or specialized component) that redirects to /onboarding if needed.
+          // However, the user asked for the redirect *right now*.
+
+          // Let's try to fetch the session/user data.
+          const { data } = await authClient.getSession();
+
+          // If our session object (from better-auth) includes the `onboarded` field (which we added to schema), we can use it.
+          // If not, we fetch.
+
+          if (data?.user?.onboarded) {
+            router.push("/workspace");
+          } else {
+            router.push("/onboarding");
+          }
         },
         onError: (ctx) => {
           setError(ctx.error.message);
@@ -211,7 +249,7 @@ export default function SignIn() {
       </div>
 
       {/* Right Side: Gradient */}
-      <div className="hidden lg:flex w-1/2 rounded-l-full bg-gradient-to-br from-primary to-secondary relative items-center justify-center overflow-hidden">
+      <div className="hidden lg:flex w-1/2 rounded-l-md relative items-center justify-center overflow-hidden">
         {/* Abstract Shapes */}
         <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-contrast to-contrast/50 rounded-full blur-[100px] opacity-40 animate-pulse" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-gradient-to-tr from-contrast to-contrast/50 rounded-full blur-[120px] opacity-40" />

@@ -1,213 +1,379 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { API_URL } from "@/lib/api-config";
-import { Upload, Building2, Globe, ArrowRight, Check, Loader2 } from "lucide-react";
+import { Upload, Building2, Globe, ArrowRight, Check, Loader2, Sparkles, User, FileText, Languages } from "lucide-react";
 import Image from "next/image";
 import logo from "../../public/logoDark.png";
 import PrimaryButton from "../components/commons/PrimaryButton";
+
+type Step = "input-url" | "verify" | "connect-publication" | "preferences" | "completing";
+
 export default function OnboardingPage() {
     const router = useRouter();
     const { data: session } = authClient.useSession();
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [step, setStep] = useState<Step>("input-url");
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
 
-    const [orgName, setOrgName] = useState("");
-    const [orgUrl, setOrgUrl] = useState("");
-    const [logoPreview, setLogoPreview] = useState<string | null>(null);
-    const [logoFile, setLogoFile] = useState<File | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [checkingStatus, setCheckingStatus] = useState(true);
+    // Form Data
+    const [substackUrl, setSubstackUrl] = useState("");
+    const [profileData, setProfileData] = useState<any>(null);
+    const [preferences, setPreferences] = useState({
+        language: "English",
+        writingStyle: "Professional",
+        contentTopics: [] as string[]
+    });
+    const [topicInput, setTopicInput] = useState("");
 
-    // Check if already onboarded
-    useEffect(() => {
-        if (session?.user?.id) {
-            checkOnboardingStatus();
+    const fetchProfile = async () => {
+        if (!substackUrl.includes("substack.com")) {
+            setError("Please enter a valid Substack URL (e.g. https://substack.com/@username)");
+            return;
         }
-    }, [session]);
 
-    const checkOnboardingStatus = async () => {
-        try {
-            const res = await fetch(`${API_URL}/onboarding`, {
-                credentials: 'include'
-            });
-            const data = await res.json() as any;
-
-            if (data.onboarded) {
-                router.replace('/workspace');
-            }
-        } catch (error) {
-            console.error('Error checking onboarding status:', error);
-        } finally {
-            setCheckingStatus(false);
-        }
-    };
-
-    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setLogoFile(file);
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setLogoPreview(e.target?.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!orgName.trim() || !orgUrl.trim()) return;
-
-        setLoading(true);
+        setIsLoading(true);
+        setError("");
 
         try {
-            // For now, we'll just send the org data without file upload
-            // File upload can be added later with Supabase Storage
-            const res = await fetch(`${API_URL}/onboarding/complete`, {
-                method: 'POST',
+            const response = await fetch(`${API_URL}/substack/fetch-profile`, {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json'
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${session?.session?.token}`
                 },
-                credentials: 'include',
+                credentials: "include",
+                body: JSON.stringify({ profileUrl: substackUrl })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || "Failed to fetch profile");
+            }
+
+            const data = await response.json();
+            setProfileData(data);
+            setStep("verify");
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message || "Failed to fetch profile. Please check the URL.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleComplete = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${API_URL}/onboarding/complete`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${session?.session?.token}`
+                },
+                credentials: "include",
                 body: JSON.stringify({
-                    orgName: orgName.trim(),
-                    orgUrl: orgUrl.trim(),
-                    orgLogo: logoPreview // Base64 for now, can be URL later
+                    substackPublicationName: profileData.name || "My Publication",
+                    substackPublicationUrl: profileData.publicationUrl || profileData.url, // Use confirmed pub URL
+                    substackPublicationLogo: profileData.image,
+                    substackProfileUrl: profileData.url,
+                    substackBio: profileData.bio,
+                    substackHandle: profileData.handle,
+                    // Preferences
+                    language: preferences.language,
+                    writingStyle: preferences.writingStyle,
+                    contentTopics: preferences.contentTopics
                 })
             });
 
-            if (res.ok) {
-                router.push('/workspace');
-            } else {
-                console.error('Failed to complete onboarding');
+            console.log("prfiee", profileData);
+            if (!response.ok) {
+                throw new Error("Failed to complete onboarding");
             }
-        } catch (error) {
-            console.error('Error completing onboarding:', error);
-        } finally {
-            setLoading(false);
+
+            // Redirect to workspace
+            router.push("/workspace");
+        } catch (err) {
+            console.error(err);
+            setError("Something went wrong. Please try again.");
+            setIsLoading(false);
         }
     };
 
-    if (checkingStatus) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-            </div>
-        );
-    }
+    const addTopic = () => {
+        if (topicInput.trim() && !preferences.contentTopics.includes(topicInput.trim())) {
+            setPreferences(prev => ({
+                ...prev,
+                contentTopics: [...prev.contentTopics, topicInput.trim()]
+            }));
+            setTopicInput("");
+        }
+    };
+
+    const removeTopic = (topic: string) => {
+        setPreferences(prev => ({
+            ...prev,
+            contentTopics: prev.contentTopics.filter(t => t !== topic)
+        }));
+    };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50 flex items-center justify-center p-6 font-manrope">
-            <div className="w-full max-w-md">
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+            <div className="max-w-md w-full  p-8 transition-all duration-300">
+
                 {/* Logo */}
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center gap-2 mb-4">
-                        <Image src={logo} alt="Logo" width={120} height={120} />
-                    </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2 font-manrope">Set up your organization</h1>
-                    <p className="text-gray-500 text-sm font-manrope">Let's get your workspace ready in 30 seconds</p>
+                <div className="flex justify-center mb-8">
+                    <Image src={logo} alt="Narrativee" width={140} height={40} className="object-contain" />
                 </div>
 
-                {/* Form Card */}
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Logo Upload */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                Organization Logo
-                            </label>
-                            <div
-                                onClick={() => fileInputRef.current?.click()}
-                                className="relative w-24 h-24 mx-auto rounded-2xl border-2 border-dashed border-gray-200 hover:border-indigo-400 transition-colors cursor-pointer group overflow-hidden"
+                {/* Progress Indicators (Simple dots) */}
+                <div className="flex justify-center gap-2 mb-8">
+                    <div className={`h-2 w-2 rounded-full ${step === 'input-url' ? 'bg-primary w-6' : 'bg-gray-200'}`} />
+                    <div className={`h-2 w-2 rounded-full ${step === 'verify' ? 'bg-primary w-6' : 'bg-gray-200'}`} />
+                    <div className={`h-2 w-2 rounded-full ${step === 'connect-publication' ? 'bg-primary w-6' : 'bg-gray-200'}`} />
+                    <div className={`h-2 w-2 rounded-full ${step === 'preferences' ? 'bg-primary w-6' : 'bg-gray-200'}`} />
+                </div>
+
+                {/* STEP 1: Input URL */}
+                {step === "input-url" && (
+                    <div className="space-y-6">
+                        <div className="text-center">
+                            <h1 className="text-2xl font-bold text-gray-900 mb-2 font-urbanist">Connect Substack</h1>
+                            <p className="text-gray-500">Enter your Substack profile URL to get started.</p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Substack Profile URL</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Globe className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="url"
+                                        placeholder="https://substack.com/@username"
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition-colors"
+                                        value={substackUrl}
+                                        onChange={(e) => setSubstackUrl(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && fetchProfile()}
+                                    />
+                                </div>
+                                {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+                            </div>
+
+                            <PrimaryButton
+                                onClick={fetchProfile}
+                                disabled={isLoading || !substackUrl}
+                                className="w-full justify-center"
                             >
-                                {logoPreview ? (
+                                {isLoading ? (
                                     <>
-                                        <img
-                                            src={logoPreview}
-                                            alt="Logo preview"
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <Upload className="w-6 h-6 text-white" />
-                                        </div>
+                                        <Loader2 className="animate-spin mr-2 h-5 w-5" />
+                                        Fetching...
                                     </>
                                 ) : (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 group-hover:text-indigo-500 transition-colors">
-                                        <Upload className="w-6 h-6 mb-1" />
-                                        <span className="text-xs">Upload</span>
-                                    </div>
+                                    <>
+                                        Continue
+                                    </>
                                 )}
-                            </div>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleLogoChange}
-                                className="hidden"
-                            />
-                            <p className="text-center text-xs text-gray-400 mt-2">PNG, JPG up to 2MB</p>
+                            </PrimaryButton>
+                        </div>
+                    </div>
+                )}
+
+                {/* STEP 2: Verify Profile */}
+                {step === "verify" && profileData && (
+                    <div className="space-y-6">
+                        <div className="text-center">
+                            <h1 className="text-2xl text-gray-900 mb-2 font-urbanist">Is this you?</h1>
+                            <p className="text-gray-500 font-light">Confirm your profile details</p>
                         </div>
 
-                        {/* Org Name */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Organization Name
-                            </label>
-                            <div className="relative">
-                                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <input
-                                    type="text"
-                                    value={orgName}
-                                    onChange={(e) => setOrgName(e.target.value)}
-                                    placeholder="Acme Inc."
-                                    className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                                    required
+                        <div className="rounded-xl p-6 flex flex-col items-center text-center bg-gray-50/50">
+                            {profileData.image ? (
+                                <img
+                                    src={profileData.image}
+                                    alt={profileData.name}
+                                    className="w-24 h-24 rounded-full border-4 mb-4 object-cover"
                                 />
-                            </div>
-                        </div>
-
-                        {/* Org URL */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Website URL
-                            </label>
-                            <div className="relative">
-                                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <input
-                                    type="url"
-                                    value={orgUrl}
-                                    onChange={(e) => setOrgUrl(e.target.value)}
-                                    placeholder="https://acme.com"
-                                    className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {/* Submit */}
-                        <PrimaryButton
-                            type="submit"
-                            disabled={loading || !orgName.trim() || !orgUrl.trim()}
-                            className="w-full"
-                        >
-                            {loading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
+                                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-4 text-primary">
+                                    <User className="w-10 h-10" />
+                                </div>
+                            )}
+
+                            <h3 className="text-xl font-semibold text-gray-900">{profileData.name}</h3>
+                            {profileData.handle && <a href={profileData.url} className="text-primary font-medium">@{profileData.handle}</a>}
+
+                            {profileData.bio && (
+                                <p className="text-gray-600 text-sm mt-3 line-clamp-3">
+                                    "{profileData.bio}"
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                onClick={() => setStep('input-url')}
+                                className="px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                            >
+                                No, retry
+                            </button>
+                            <PrimaryButton
+                                onClick={() => setStep('connect-publication')}
+                                className="justify-center"
+                            >
+                                Yes, that&apos;s me
+                            </PrimaryButton>
+                        </div>
+                    </div>
+                )}
+
+                {/* STEP 3: Connect Publication */}
+                {step === "connect-publication" && (
+                    <div className="space-y-6">
+                        <div className="text-center">
+                            <h1 className="text-2xl text-gray-900 mb-2 font-urbanist">Connect Publication</h1>
+                            <p className="text-gray-500 font-light">
+                                Connecting your blog URL helps for AI fine-tuning and content generation.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Substack Publication URL</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Building2 className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="url"
+                                        placeholder="https://yourname.substack.com"
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition-colors"
+                                        value={profileData?.publicationUrl || ""}
+                                        onChange={(e) => setProfileData({ ...profileData, publicationUrl: e.target.value })}
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">We tried to find this automatically. Please verify it's correct.</p>
+                            </div>
+
+                            <PrimaryButton
+                                onClick={() => setStep('preferences')}
+                                className="w-full justify-center"
+                            >
+                                Continue <ArrowRight className="ml-2 h-5 w-5" />
+                            </PrimaryButton>
+                        </div>
+                    </div>
+                )}
+
+                {/* STEP 4: Preferences */}
+                {step === "preferences" && (
+                    <div className="space-y-6">
+                        <div className="text-center">
+                            <h1 className="text-2xl text-gray-900 mb-2 font-urbanist">Personalize your AI</h1>
+                            <p className="text-gray-500 font-light">Tell us how you write.</p>
+                        </div>
+
+                        <div className="space-y-5">
+                            {/* Language */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1 flex items-center gap-2">
+                                    <Globe className="w-4 h-4 text-primary" /> Preferred Language
+                                </label>
+                                <select
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary bg-white"
+                                    value={preferences.language}
+                                    onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
+                                >
+                                    <option>English</option>
+                                    <option>Spanish</option>
+                                    <option>French</option>
+                                    <option>German</option>
+                                    <option>Italian</option>
+                                    <option>Portuguese</option>
+                                </select>
+                            </div>
+
+                            {/* Writing Style */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1 flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-primary" /> Writing Style
+                                </label>
+                                <select
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary bg-white"
+                                    value={preferences.writingStyle}
+                                    onChange={(e) => setPreferences({ ...preferences, writingStyle: e.target.value })}
+                                >
+                                    <option>Professional</option>
+                                    <option>Casual</option>
+                                    <option>Academic</option>
+                                    <option>Storytelling</option>
+                                    <option>Direct</option>
+                                    <option>Inspirational</option>
+                                </select>
+                            </div>
+
+                            {/* Content Topics */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1 flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-primary" /> Core Topics
+                                </label>
+                                <div className="flex gap-2 mb-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Add a topic (e.g. AI, Marketing)..."
+                                        className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                                        value={topicInput}
+                                        onChange={(e) => setTopicInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && addTopic()}
+                                    />
+                                    <button
+                                        onClick={addTopic}
+                                        className="bg-gray-100 px-4 rounded-lg font-bold text-gray-700 hover:bg-gray-200"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {preferences.contentTopics.map((topic, idx) => (
+                                        <span key={idx} className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 border border-primary/20">
+                                            {topic}
+                                            <button onClick={() => removeTopic(topic)} className="hover:text-red-500 ml-1">×</button>
+                                        </span>
+                                    ))}
+                                    {preferences.contentTopics.length === 0 && (
+                                        <span className="text-gray-400 text-sm italic">No topics added yet.</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+
+                        <PrimaryButton
+                            onClick={handleComplete}
+                            disabled={isLoading}
+                            className="w-full justify-center mt-4"
+                        >
+                            {isLoading ? (
                                 <>
-                                    Continue to Dashboard
+                                    <Loader2 className="animate-spin mr-2 h-5 w-5" />
+                                    Setting up Workspace...
                                 </>
+                            ) : (
+                                "Complete Setup"
                             )}
                         </PrimaryButton>
-                    </form>
-                </div>
-
-                {/* Footer */}
-                <p className="text-center text-xs text-gray-400 mt-6">
-                    You can change these settings later in your workspace
-                </p>
+                    </div>
+                )}
             </div>
+
+            <p className="mt-8 text-gray-400 text-sm">
+                Need help? <a href="#" className="text-gray-600 hover:text-primary transition-colors">Contact support</a>
+            </p>
         </div>
     );
 }

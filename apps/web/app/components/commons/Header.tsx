@@ -20,7 +20,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="bg-white text-tertiary">
+    <header className="bg-white text-tertiary container mx-auto">
       {/* Main header bar */}
       <div className="relative flex items-center justify-between px-4 md:px-6 py-2">
         {/* Logo */}
@@ -33,7 +33,6 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
           <Link href="/pricing" className="hover:opacity-70">Pricing</Link>
           <Link href="/#features" className="hover:opacity-70">Features</Link>
           <Link href="/#solution" className="hover:opacity-70">Solution</Link>
-          <Link href="/pricing#calculator" className="hover:opacity-70">ROI Calculator</Link>
         </nav>
 
         {/* Desktop CTA */}
