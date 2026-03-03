@@ -61,6 +61,9 @@ import saasUsersRouter from './routes/saas-users';
 // import workflowsRouter from './routes/workflows';
 import onboardingRouter from './routes/onboarding';
 import substackRouter from './routes/substack';
+import postsRouter from './routes/posts';
+import notesRouter from './routes/notes';
+import subscribersRouter from './routes/subscribers';
 
 app.use('/api/user', userRouter);
 // app.use('/api/events', eventsRouter);
@@ -70,6 +73,9 @@ app.use('/api/saas-users', saasUsersRouter);
 // app.use('/api/workflows', workflowsRouter);
 app.use('/api/onboarding', onboardingRouter);
 app.use('/api/substack', substackRouter);
+app.use('/api/posts', postsRouter);
+app.use('/api/notes', notesRouter);
+app.use('/api/subscribers', subscribersRouter);
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

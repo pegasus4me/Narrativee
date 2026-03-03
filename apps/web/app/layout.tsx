@@ -4,6 +4,7 @@ import { Urbanist, Manrope } from 'next/font/google'
 import { GoogleTagManager } from '@next/third-parties/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
@@ -34,10 +35,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${urbanist.variable} ${manrope.variable} ${geistMono.variable}`}>
+      <body
+        className={`${urbanist.variable} ${manrope.variable} ${geistMono.variable}`}
+        suppressHydrationWarning
+      >
         <GoogleTagManager gtmId="GTM-5BCN3HMQ" />
         <GoogleAnalytics gaId="G-L8W7KEVHQ4" />
         {children}
+        <Toaster />
       </body>
     </html>
   );

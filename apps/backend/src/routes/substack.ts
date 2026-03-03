@@ -78,19 +78,34 @@ router.post('/fetch-profile', requireAuth, async (req, res) => {
 
         // Try to find publications
         // Strategy 1: Look for links to *.substack.com that are likely the user's publication
-        // Strategy 2: Default to handle.substack.com if highly confident (or just pass it as a suggestion)
-
+        // Priority 1: Check for data-href (verified working for safoan.substack.com)
         let publicationUrl = null;
+        const chipMatch = html.match(/data-href="(https:\/\/[a-zA-Z0-9-]+\.substack\.com)[^"]*"/i);
+        console.log("Searching for publication URL...");
+        if (chipMatch) {
+            publicationUrl = chipMatch[1];
+            console.log("Found via data-href:", publicationUrl);
+        } else {
+            console.log("data-href Match failed");
+        }
 
-        // Simple regex to find the first substack subdomain link that isn't www or profile
-        // This is a heuristic.
-        const pubMatch = html.match(/class="[^"]*publication-title[^"]*"[^>]*href="(https:\/\/[a-zA-Z0-9-]+\.substack\.com)"/i);
-        if (pubMatch) {
-            publicationUrl = pubMatch[1];
-        } else if (handle) {
+        // Priority 2: Check for publication-title class (legacy/desktop view sometimes)
+        if (!publicationUrl) {
+            const pubMatch = html.match(/class="[^"]*publication-title[^"]*"[^>]*href="(https:\/\/[a-zA-Z0-9-]+\.substack\.com)"/i);
+            if (pubMatch) {
+                publicationUrl = pubMatch[1];
+                console.log("Found via publication-title:", publicationUrl);
+            }
+        }
+
+        // Priority 3: Fallback to handle
+        if (!publicationUrl && handle) {
             // Fallback suggestion
             publicationUrl = `https://${handle}.substack.com`;
+            console.log("Using fallback:", publicationUrl);
         }
+
+        console.log("Final Returning:", { name, bio, image, handle, url: profileUrl, publicationUrl });
 
         return res.json({
             name,

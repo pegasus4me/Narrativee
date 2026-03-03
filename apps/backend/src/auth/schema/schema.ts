@@ -72,81 +72,63 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-export const apiKeys = pgTable("api_keys", {
+export const posts = pgTable("posts", {
   id: uuid("id").defaultRandom().primaryKey(),
-  key: text("key").notNull().unique(),
-  userId: text("user_id").notNull().references(() => user.id),
-  mode: text("mode").notNull().default('live'), // 'live' or 'test'
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  lastUsedAt: timestamp("last_used_at"),
-  lastEventAt: timestamp("last_event_at"), // Tracks when SDK last sent an event
-});
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  substackId: text("substack_id"), // Optional: deduplication ID from Substack
+  title: text("title"),
+  url: text("url"),
+  slug: text("slug"), // e.g. /p/my-post-title
+  publishedAt: timestamp("published_at"),
 
+  // Metrics
+  views: integer("views").default(0),
+  openRate: integer("open_rate").default(0), // Percentage 0-100
+  likes: integer("likes").default(0),
+  comments: integer("comments").default(0),
+  shares: integer("shares").default(0), // Can sometimes get this from public page
 
-// [NEW] SaaS Users Table (The end-users we track)
-export const saasUsers = pgTable("saas_users", {
-  id: text("id").notNull(), // The userId from the external SaaS. NOT unique globally anymore.
-  apiKeyId: uuid("api_key_id").references(() => apiKeys.id).notNull(),
-  score: integer("score").default(0),
-  metadata: jsonb("metadata"),
-  lastSeenAt: timestamp("last_seen_at").defaultNow(),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.id, table.apiKeyId] }),
-}));
-
-// [NEW] Events Table
-export const events = pgTable("events", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  eventName: text("event_name").notNull(),
-  saasUserId: text("saas_user_id").notNull(),
-  apiKeyId: uuid("api_key_id").references(() => apiKeys.id),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// [NEW] Scoring Configs Table
-export const scoringConfigs = pgTable("scoring_configs", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  apiKeyId: uuid("api_key_id").references(() => apiKeys.id).notNull(),
-  eventName: text("event_name").notNull(),
-  scoreValue: integer("score_value").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// [NEW] Workflows Table
-export const workflows = pgTable("workflows", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  apiKeyId: uuid("api_key_id").references(() => apiKeys.id).notNull(),
-  name: text("name").notNull(),
-  isActive: boolean("is_active").default(false),
-  nodes: jsonb("nodes").default([]),
-  edges: jsonb("edges").default([]),
-  triggerType: text("trigger_type").default('score'),
-  triggerCondition: jsonb("trigger_condition"), // e.g. { operator: '>', value: 70 }
-  actionType: text("action_type").default('popup'),
-  actionConfig: jsonb("action_config"), // e.g. { title: 'Upgrade', body: '...' }
+  // Sync Status
+  lastSyncedAt: timestamp("last_synced_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const requestLogs = pgTable("request_logs", {
+export const notes = pgTable("notes", {
   id: uuid("id").defaultRandom().primaryKey(),
-  apiKeyId: uuid("api_key_id").references(() => apiKeys.id),
-  method: text("method"),
-  path: text("path"),
-  status: integer("status"),
-  duration: integer("duration"),
-  ip: text("ip"),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  substackNoteId: text("substack_note_id"),  // deduplication
+  contentPreview: text("content_preview"),   // first 280 chars
+  url: text("url"),
+  publishedAt: timestamp("published_at"),
+
+  // Metrics
+  likes: integer("likes").default(0),
+  comments: integer("comments").default(0),
+  restacks: integer("restacks").default(0),
+
+  // Sync Status
+  lastSyncedAt: timestamp("last_synced_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const subscribers = pgTable("subscribers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  month: text("month").notNull(), // e.g. "2025-01"
+  freeCount: integer("free_count").default(0),
+  paidCount: integer("paid_count").default(0),
+  totalCount: integer("total_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
-  apiKeys: many(apiKeys),
+  posts: many(posts),
+  notes: many(notes),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -163,40 +145,18 @@ export const accountRelations = relations(account, ({ one }) => ({
   }),
 }));
 
-export const apiKeysRelations = relations(apiKeys, ({ one, many }) => ({
+
+
+export const postsRelations = relations(posts, ({ one }) => ({
   user: one(user, {
-    fields: [apiKeys.userId],
+    fields: [posts.userId],
     references: [user.id],
   }),
-  saasUsers: many(saasUsers),
-  events: many(events),
-  scoringConfigs: many(scoringConfigs),
-  workflows: many(workflows),
-}))
-export const saasUsersRelations = relations(saasUsers, ({ one }) => ({
-  apiKey: one(apiKeys, {
-    fields: [saasUsers.apiKeyId],
-    references: [apiKeys.id],
-  }),
 }));
 
-export const eventsRelations = relations(events, ({ one }) => ({
-  apiKey: one(apiKeys, {
-    fields: [events.apiKeyId],
-    references: [apiKeys.id],
-  }),
-}));
-
-export const scoringConfigsRelations = relations(scoringConfigs, ({ one }) => ({
-  apiKey: one(apiKeys, {
-    fields: [scoringConfigs.apiKeyId],
-    references: [apiKeys.id],
-  }),
-}));
-
-export const workflowsRelations = relations(workflows, ({ one }) => ({
-  apiKey: one(apiKeys, {
-    fields: [workflows.apiKeyId],
-    references: [apiKeys.id],
+export const notesRelations = relations(notes, ({ one }) => ({
+  user: one(user, {
+    fields: [notes.userId],
+    references: [user.id],
   }),
 }));

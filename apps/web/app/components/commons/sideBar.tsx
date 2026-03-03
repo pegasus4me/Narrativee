@@ -7,14 +7,19 @@ import Link from "next/link";
 import { useSideBarStore } from "../../state/SideBar.store";
 import { authClient } from "../../../lib/auth-client";
 import { usePathname, useRouter } from "next/navigation";
-import { IoHomeSharp, IoSettingsSharp, IoLogoSlack } from "react-icons/io5";
-
+import { IoHomeOutline, IoSettingsOutline, IoGitBranchOutline } from "react-icons/io5";
+import { FaPenNib } from "react-icons/fa";
 import { MdKeyboardDoubleArrowLeft, MdKeyboardArrowDown } from "react-icons/md";
 import Image from "next/image";
 import { FaMagic } from "react-icons/fa";
 import { API_URL } from "@/lib/api-config";
-import logo from "../../../public/logoDark.png"
+import logo from "../../../public/narrativee.png"
 import logoSide from "../../../public/logo.png"
+import { VscLayoutSidebarRight } from "react-icons/vsc";
+import { VscLayoutSidebarLeft } from "react-icons/vsc";
+import { BsDatabaseCheck } from "react-icons/bs";
+import { LuLibraryBig } from "react-icons/lu";
+import { TbMessageChatbot } from "react-icons/tb";
 
 interface Template {
   id: string;
@@ -23,25 +28,9 @@ interface Template {
   sections: any[];
 }
 
-interface ReportData {
-  success: boolean;
-  template: Template;
-  metadata: {
-    fileName: string;
-    rowCount: number;
-    columns: string[];
-  };
-}
 
 interface SideBarProps {
   selectedTemplateId?: string | null;
-}
-
-interface SavedReport {
-  id: string;
-  name: string;
-  fileName: string;
-  createdAt: string;
 }
 
 interface OrgData {
@@ -58,7 +47,6 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const reportId = params.reportID as string;
   const isSidebarOpen = useSideBarStore((state) => state.opened);
   const toggleSidebar = useSideBarStore((state) => state.toggleSidebar);
-  const toggleChat = useSideBarStore((state) => state.toggleChat);
   const { data: session } = authClient.useSession();
   const [orgData, setOrgData] = useState<OrgData>({});
 
@@ -78,54 +66,64 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
 
       <aside
         className={`
-          h-screen bg-white border  
+          h-screen   
           ${isSidebarOpen ? "w-67" : "w-16"}
           overflow-hidden
+          rounded-r-sm
         `}
-        style={{ fontFamily: 'var(--font-noto)' }}
       >
         {/* 1. h-full: Makes the container take full height 
            2. flex-col: Stacks children vertically
         */}
-        <div className="p-3 h-full overflow-y-auto flex flex-col">
+        <div className="p-3 h-full overflow-y-auto flex flex-col bg-[#161718]">
 
-          <div className="flex items-center justify-between w-full mb-2">
+          <div className="flex items-center justify-between w-full mb-2 ">
             {isSidebarOpen ? (
-              <Image src={logo} alt="Logo" width={120} height={120} />
+              <Image src={logo} alt="Logo" width={150} height={120} />
             ) : (
-              <Image src={logoSide} alt="Logo" width={15} height={15} />
+              null
             )}
             <button
               onClick={toggleSidebar}
-              className={`hover:bg-gray-200 rounded-md transition-colors p-1 ${!isSidebarOpen ? 'mx-auto' : ''}`}
+              className={`hover:bg-gray-700 rounded-md transition-colors p-1 ${!isSidebarOpen ? 'mx-auto' : ''}`}
               aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             >
-              <MdKeyboardDoubleArrowLeft className={`w-5 h-5 text-gray-600 transition-transform ${!isSidebarOpen ? 'rotate-180' : ''}`} />
+              {isSidebarOpen ? <VscLayoutSidebarLeft className={`w-5 h-5 text-gray-400 transition-transform ${!isSidebarOpen ? 'rotate-180' : ''}`} /> : <VscLayoutSidebarRight className={`w-5 h-5 text-gray-400 transition-transform ${!isSidebarOpen ? 'rotate-180' : ''}`} />}
             </button>
           </div>
-
-          <div className="space-y-1  font-manrope">
-            <Link href="/workspace" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
-              <IoHomeSharp size={18} className="shrink-0" />
-              {isSidebarOpen && <span>Home</span>}
+          <div className=" border-gray-700 space-y-4 mt-10 ">
+            <Link href="/workspace" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <IoHomeOutline size={20} className="shrink-0" />
+              {isSidebarOpen && <span className="text-md font-medium">Home</span>}
             </Link>
-
-          </div>
-          <div className=" border-gray-200 space-y-1">
-
-            <Link href="/setting" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
-              <IoSettingsSharp size={18} className="shrink-0" />
-              {isSidebarOpen && <span>Settings</span>}
+            <Link href="/workspace/knowledge" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <BsDatabaseCheck size={20} className="shrink-0" />
+              {isSidebarOpen && <span className="text-md font-medium">Knowledge base</span>}
             </Link>
-            <Link href="/setting" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
-              <FaMagic size={18} className="shrink-0" />
-              {isSidebarOpen && <span>Feature request</span>}
+            <Link href="/workspace/post-queue" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <FaPenNib size={20} className="shrink-0" />
+              {isSidebarOpen && <span className="text-md font-medium">Posts queue</span>}
             </Link>
-            <a href="https://narrativecommunity.slack.com" target="_blank" className={`w-full py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
-              <IoLogoSlack size={18} className="shrink-0" />
-              {isSidebarOpen && <span>Join slack</span>}
-            </a>
-
+            <Link href="/workspace/engage" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <TbMessageChatbot size={20} className="shrink-0" />
+              {isSidebarOpen && <span className="text-md font-medium">Engage</span>}
+            </Link>
+             <Link href="#" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <IoGitBranchOutline size={20} className="shrink-0" />
+              {isSidebarOpen && <span className="text-md font-medium">Cross Post <span className="text-xs text-gray-500 bg-yellow-500 px-2 py-0.5 rounded-full text-white">Soon</span></span>}
+            </Link>
+            <Link href="/setting" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <FaMagic size={20} className="shrink-0" />
+              {isSidebarOpen && <span className="text-md font-medium">Feature request</span>}
+            </Link>
+            <Link href="/workspace/inspirations" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <LuLibraryBig size={20} className="shrink-0" />
+              {isSidebarOpen && <span className="text-md font-medium">Inspiration</span>}
+            </Link>
+            <Link href="/setting" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <IoSettingsOutline size={20} className="shrink-0" />
+              {isSidebarOpen && <span className="text-md font-medium">Settings</span>}
+            </Link>
           </div>
           {/* --- Bottom Section ---
               Added `mt-auto` to push this to the bottom

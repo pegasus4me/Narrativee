@@ -49,6 +49,453 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             .catch(error => sendResponse({ success: false, error: error.message }));
         return true;
     }
+
+    if (message.type === 'OPEN_SUBSTACK_DRAFT') {
+        console.log('🚀 Background: Received OPEN_SUBSTACK_DRAFT', message.draft);
+
+        // 1. Store the draft content
+        chrome.storage.local.set({ 'pending_draft': message.draft }, () => {
+            console.log('🚀 Background: Draft saved to storage');
+
+            // 2. Open Substack New Note/Post page
+            chrome.tabs.create({ url: 'https://substack.com/home' }, (tab) => {
+                if (chrome.runtime.lastError) {
+                    console.error('🚀 Background: ERROR opening tab', chrome.runtime.lastError);
+                    sendResponse({ success: false, error: chrome.runtime.lastError.message });
+                } else {
+                    console.log('🚀 Background: Opened Substack tab', tab?.id);
+                    const postingTabId = tab?.id;
+
+                    // Listen for the NOTE_POSTED signal from content script
+                    function onNotePosted(msg, msgSender) {
+                        if (msgSender.tab?.id === postingTabId && msg.type === 'NOTE_POSTED') {
+                            chrome.runtime.onMessage.removeListener(onNotePosted);
+                            clearTimeout(safetyTimeout);
+                            console.log('🚀 Background: Note posted confirmed, will close tab in 3s');
+                            // Close the tab after a short delay so user sees success banner
+                            setTimeout(() => {
+                                try { chrome.tabs.remove(postingTabId); } catch (e) { }
+                            }, 3000);
+                        }
+                    }
+                    chrome.runtime.onMessage.addListener(onNotePosted);
+
+                    // Safety: stop listening after 2 minutes (don't leak listeners)
+                    const safetyTimeout = setTimeout(() => {
+                        chrome.runtime.onMessage.removeListener(onNotePosted);
+                        console.log('🚀 Background: Posting listener expired (2min)');
+                    }, 120000);
+
+                    sendResponse({ success: true, tabId: postingTabId });
+                }
+            });
+        });
+        return true;
+    }
+
+    if (message.type === 'START_NOTES_SYNC') {
+        console.log('🚀 Background: Received START_NOTES_SYNC for', message.profileUrl);
+
+        let targetUrl = message.profileUrl;
+        if (!targetUrl.endsWith('/notes')) {
+            targetUrl = targetUrl.replace(/\/$/, '') + '/notes';
+        }
+
+        chrome.tabs.create({ url: targetUrl, active: false }, (tab) => {
+            console.log('🚀 Background: Opened notes tab', tab.id);
+
+            // Wait for tab to load then scrape
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                if (tabId === tab.id && info.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    console.log('🚀 Background: Tab loaded, sending scrape command');
+
+                    chrome.tabs.sendMessage(tabId, { type: 'SCRAPE_NOTES_ON_LOAD' });
+                }
+            });
+        });
+        sendResponse({ success: true });
+        return true;
+    }
+
+    if (message.type === 'NOTES_SCRAPED') {
+        console.log('🚀 Background: Received scraped notes', message.notes.length);
+
+        // Find the Narrativee tab and send the notes back
+        chrome.tabs.query({}, (tabs) => {
+            const narrativeeTab = tabs.find(t => t.url?.includes('localhost:') || t.url?.includes('narrativee.com'));
+            if (narrativeeTab) {
+                chrome.tabs.sendMessage(narrativeeTab.id, {
+                    type: 'NARRATIVEE_NOTES_SYNCED',
+                    notes: message.notes
+                });
+                console.log('🚀 Background: Sent notes to Narrativee tab', narrativeeTab.id);
+            }
+        });
+        return true;
+    }
+
+    if (message.type === 'INSPIRATION_SAVED') {
+        console.log('💡 Background: Received saved inspiration', message.note);
+
+        // Find the Narrativee tab and send the saved note
+        chrome.tabs.query({}, (tabs) => {
+            const narrativeeTab = tabs.find(t => t.url?.includes('localhost:') || t.url?.includes('narrativee.com'));
+            if (narrativeeTab) {
+                console.log('💡 Background: Found Narrativee tab at', narrativeeTab.url);
+                chrome.tabs.sendMessage(narrativeeTab.id, {
+                    type: 'NARRATIVEE_INSPIRATION_SAVED',
+                    note: message.note,
+                    allNotes: message.allNotes
+                });
+                console.log('💡 Background: Sent inspiration to Narrativee tab', narrativeeTab.id);
+            } else {
+                console.warn('💡 Background: No Narrativee tab found. Open tabs:', tabs.map(t => t.url));
+            }
+        });
+        return true;
+    }
+
+    // ===== ENGAGEMENT AUTOPILOT =====
+
+
+    if (message.type === 'START_STATS_SYNC') {
+        console.log('📊 Background: Received START_STATS_SYNC');
+
+        let dashboardUrl = 'https://substack.com/publish/posts';
+        if (message.publicationUrl) {
+            dashboardUrl = message.publicationUrl.replace(/\/$/, '') + '/publish/posts';
+        }
+
+        chrome.tabs.create({ url: dashboardUrl, active: false }, (tab) => {
+            console.log('📊 Background: Opened dashboard tab', tab.id);
+
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                if (tabId === tab.id && info.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    console.log('📊 Background: Dashboard loaded, waiting for content script...');
+
+                    // Allow a moment for dynamic content to load
+                    setTimeout(() => {
+                        chrome.tabs.sendMessage(tabId, { type: 'SCRAPE_STATS' }, async (response) => {
+                            if (chrome.runtime.lastError) {
+                                console.error('📊 Background: Scrape failed:', chrome.runtime.lastError.message);
+                                forwardToNarrativeeTab({ type: 'NARRATIVEE_STATS_SYNC_ERROR', error: chrome.runtime.lastError.message });
+                                chrome.tabs.remove(tabId);
+                                return;
+                            }
+
+                            if (response && response.success) {
+                                console.log(`📊 Background: Scraped ${response.count} posts. Syncing to backend...`);
+
+                                try {
+                                    // Send to Backend
+                                    const backendRes = await fetch('http://localhost:3002/api/posts/sync-extension', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                            // Note: We rely on the backend to handle auth via cookie if same domain, 
+                                            // but here extension origin is different. 
+                                            // Ideally we should pass the session token or api key.
+                                            // For this MVP, we assumes local dev environment or we need to extract token from Narrativee tab cookies? 
+                                            // Let's rely on simple fetch for now and see if we hit CORS/Auth issues. 
+                                            // The `requireAuth` middleware uses `auth.api.getSession({ headers: req.headers })`.
+                                            // Since this fetch is from extension background (separate origin), it won't send localhost:3000 cookies by default unless we set credentials: 'include'.
+                                        },
+                                        // key: Credential include is vital for sharing localhost cookies
+                                        // But Extension origin != localhost:3000. 
+                                        // We might need to fetch the token from the apps/web via message first.
+                                        // Let's try sending it back to Frontend and let Frontend push to Backend?
+                                        // YES, that is safer and handles Auth automatically.
+                                        // body: JSON.stringify({ posts: response.posts })
+                                    });
+
+                                    // REVISED STRATEGY: Send back to Frontend (Narrativee Tab) to handle API push
+                                    forwardToNarrativeeTab({
+                                        type: 'NARRATIVEE_STATS_SCRAPED',
+                                        posts: response.posts
+                                    });
+
+                                } catch (e) {
+                                    console.error('📊 Background: Sync error', e);
+                                    forwardToNarrativeeTab({ type: 'NARRATIVEE_STATS_SYNC_ERROR', error: e.message });
+                                }
+                            } else {
+                                console.error('📊 Background: Scrape response error', response?.error);
+                                forwardToNarrativeeTab({ type: 'NARRATIVEE_STATS_SYNC_ERROR', error: response?.error });
+                            }
+
+                            // Close the tab
+                            setTimeout(() => chrome.tabs.remove(tabId), 1000);
+                        });
+                    }, 5000); // 5s wait for dashboard render
+                }
+            });
+        });
+
+        sendResponse({ success: true });
+        return true;
+    }
+
+    if (message.type === 'START_SUBS_SYNC') {
+        console.log('📈 Background: Received START_SUBS_SYNC');
+
+        let overviewUrl = 'https://substack.com/publish/home';
+        if (message.publicationUrl) {
+            overviewUrl = message.publicationUrl.replace(/\/$/, '') + '/publish/home';
+        }
+
+        chrome.tabs.create({ url: overviewUrl, active: false }, (tab) => {
+            console.log('📈 Background: Opened overview tab', tab.id);
+
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                if (tabId === tab.id && info.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(listener);
+
+                    setTimeout(() => {
+                        chrome.tabs.sendMessage(tabId, { type: 'SCRAPE_SUBS' }, (response) => {
+                            if (chrome.runtime.lastError) {
+                                forwardToNarrativeeTab({ type: 'NARRATIVEE_SUBS_SCRAPED', error: chrome.runtime.lastError.message, data: [] });
+                                chrome.tabs.remove(tabId);
+                                return;
+                            }
+                            forwardToNarrativeeTab({
+                                type: 'NARRATIVEE_SUBS_SCRAPED',
+                                data: response?.data || [],
+                                error: response?.error || null,
+                            });
+                            setTimeout(() => chrome.tabs.remove(tabId), 1000);
+                        });
+                    }, 6000);
+                }
+            });
+        });
+
+        sendResponse({ success: true });
+        return true;
+    }
+
+    if (message.type === 'START_NOTES_PERF_SYNC') {
+        console.log('📝 Background: Received START_NOTES_PERF_SYNC for', message.profileUrl);
+
+        // Build notes URL from the profile URL
+        let notesUrl = message.profileUrl;
+        if (!notesUrl) {
+            console.error('📝 Background: No profileUrl provided');
+            sendResponse({ success: false, error: 'No profile URL' });
+            return true;
+        }
+        // Normalize: strip trailing slash, add /notes
+        notesUrl = notesUrl.replace(/\/$/, '') + '/notes';
+
+        chrome.tabs.create({ url: notesUrl, active: false }, (tab) => {
+            console.log('📝 Background: Opened notes tab', tab.id);
+
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                if (tabId === tab.id && info.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    console.log('📝 Background: Notes tab loaded, waiting for scripts...');
+
+                    let attempts = 0;
+                    const maxAttempts = 6;
+
+                    function tryScrape() {
+                        attempts++;
+                        console.log(`📝 Background: Scrape attempt ${attempts}/${maxAttempts}`);
+
+                        chrome.tabs.sendMessage(tabId, { type: 'SCRAPE_OWN_NOTES' }, (response) => {
+                            if (chrome.runtime.lastError) {
+                                console.warn('📝 Background: Attempt failed:', chrome.runtime.lastError.message);
+                                if (attempts < maxAttempts) {
+                                    setTimeout(tryScrape, 2000);
+                                } else {
+                                    forwardToNarrativeeTab({
+                                        type: 'NARRATIVEE_NOTES_PERF_SCRAPED',
+                                        notes: [],
+                                        error: 'Content script not responding'
+                                    });
+                                    chrome.tabs.remove(tabId);
+                                }
+                                return;
+                            }
+
+                            console.log('📝 Background: Got', response?.notes?.length || 0, 'own notes');
+                            forwardToNarrativeeTab({
+                                type: 'NARRATIVEE_NOTES_PERF_SCRAPED',
+                                notes: response?.notes || []
+                            });
+                            setTimeout(() => chrome.tabs.remove(tabId), 1000);
+                        });
+                    }
+
+                    // Allow extra time for the feed to render
+                    setTimeout(tryScrape, 4000);
+                }
+            });
+        });
+
+        sendResponse({ success: true });
+        return true;
+    }
+
+    if (message.type === 'SCRAPE_ENGAGEMENT_FEED') {
+        console.log('🎯 Background: Received SCRAPE_ENGAGEMENT_FEED');
+
+        // Open Substack explore/home feed in a new tab
+        const feedUrl = 'https://substack.com/home';
+        chrome.tabs.create({ url: feedUrl, active: false }, (tab) => {
+            console.log('🎯 Background: Opened feed tab', tab.id);
+
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                if (tabId === tab.id && info.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    console.log('🎯 Background: Feed tab loaded, waiting for content scripts...');
+
+                    // Retry sending scrape command - content scripts may not be ready yet
+                    let attempts = 0;
+                    const maxAttempts = 5;
+
+                    function tryScrape() {
+                        attempts++;
+                        console.log(`🎯 Background: Scrape attempt ${attempts}/${maxAttempts}`);
+
+                        chrome.tabs.sendMessage(tabId, { type: 'SCRAPE_ENGAGEMENT_FEED' }, (response) => {
+                            if (chrome.runtime.lastError) {
+                                console.warn('🎯 Background: Scrape attempt failed:', chrome.runtime.lastError.message);
+                                if (attempts < maxAttempts) {
+                                    setTimeout(tryScrape, 2000);
+                                } else {
+                                    console.error('🎯 Background: All scrape attempts failed');
+                                    // Notify Narrativee tab of failure
+                                    forwardToNarrativeeTab({
+                                        type: 'NARRATIVEE_ENGAGEMENT_FEED_LOADED',
+                                        notes: [],
+                                        error: 'Content script not responding'
+                                    });
+                                    chrome.tabs.remove(tabId);
+                                }
+                                return;
+                            }
+
+                            console.log('🎯 Background: Got', response?.notes?.length || 0, 'engagement notes');
+
+                            // Forward to Narrativee tab
+                            forwardToNarrativeeTab({
+                                type: 'NARRATIVEE_ENGAGEMENT_FEED_LOADED',
+                                notes: response?.notes || []
+                            });
+
+                            // Close the scrape tab
+                            chrome.tabs.remove(tabId);
+                        });
+                    }
+
+                    // Initial delay for content scripts to load
+                    setTimeout(tryScrape, 4000);
+                }
+            });
+        });
+        sendResponse({ success: true });
+        return true;
+    }
+
+    if (message.type === 'POST_ENGAGEMENT_COMMENT') {
+        console.log('🎯 Background: Posting comment to', message.noteUrl);
+
+        // Open the note page
+        chrome.tabs.create({ url: message.noteUrl, active: false }, (tab) => {
+            const commentTabId = tab.id;
+
+            // Listen for completion signal from content script
+            function onPostComplete(msg, msgSender) {
+                if (msgSender.tab?.id === commentTabId && msg.type === 'ENGAGEMENT_COMMENT_DONE') {
+                    chrome.runtime.onMessage.removeListener(onPostComplete);
+                    clearTimeout(safetyTimeout);
+                    console.log('🎯 Background: Comment posting confirmed, closing tab');
+
+                    // Forward result to Narrativee tab
+                    forwardToNarrativeeTab({
+                        type: 'NARRATIVEE_COMMENT_POSTED',
+                        noteUrl: message.noteUrl,
+                        success: msg.success
+                    });
+
+                    // Wait a moment then close
+                    setTimeout(() => chrome.tabs.remove(commentTabId), 1500);
+                }
+            }
+            chrome.runtime.onMessage.addListener(onPostComplete);
+
+            // Safety timeout — close after 45s no matter what
+            const safetyTimeout = setTimeout(() => {
+                chrome.runtime.onMessage.removeListener(onPostComplete);
+                console.warn('🎯 Background: Comment posting timed out after 45s');
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_COMMENT_POSTED',
+                    noteUrl: message.noteUrl,
+                    success: false
+                });
+                chrome.tabs.remove(commentTabId);
+            }, 45000);
+
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                if (tabId === commentTabId && info.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(listener);
+
+                    // Retry sending the insert command
+                    let attempts = 0;
+                    const maxAttempts = 5;
+
+                    function tryInsert() {
+                        attempts++;
+                        chrome.tabs.sendMessage(commentTabId, {
+                            type: 'INSERT_ENGAGEMENT_COMMENT',
+                            comment: message.comment,
+                            autoPost: message.autoPost || false
+                        }, (response) => {
+                            if (chrome.runtime.lastError) {
+                                console.warn(`🎯 Background: Insert attempt ${attempts} failed:`, chrome.runtime.lastError.message);
+                                if (attempts < maxAttempts) {
+                                    setTimeout(tryInsert, 2000);
+                                } else {
+                                    // All attempts failed
+                                    chrome.runtime.onMessage.removeListener(onPostComplete);
+                                    clearTimeout(safetyTimeout);
+                                    forwardToNarrativeeTab({
+                                        type: 'NARRATIVEE_COMMENT_POSTED',
+                                        noteUrl: message.noteUrl,
+                                        success: false
+                                    });
+                                    chrome.tabs.remove(commentTabId);
+                                }
+                                return;
+                            }
+                            console.log('🎯 Background: Comment insert command accepted');
+                            // Now we wait for the ENGAGEMENT_COMMENT_DONE message
+                        });
+                    }
+
+                    setTimeout(tryInsert, 3000);
+                }
+            });
+        });
+        sendResponse({ success: true });
+        return true;
+    }
+
+    function forwardToNarrativeeTab(message) {
+        chrome.tabs.query({}, (tabs) => {
+            const narrativeeTab = tabs.find(t =>
+                t.url?.includes('localhost:') || t.url?.includes('narrativee.com')
+            );
+            if (narrativeeTab) {
+                chrome.tabs.sendMessage(narrativeeTab.id, message);
+                console.log('🎯 Background: Forwarded to Narrativee tab');
+            } else {
+                console.warn('🎯 Background: No Narrativee tab found');
+            }
+        });
+    }
 });
 
 async function generateComment(context) {

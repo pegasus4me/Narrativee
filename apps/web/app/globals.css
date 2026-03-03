@@ -55,40 +55,40 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #000ABF;
-  --primary-foreground: oklch(0.985 0 0);
+  --background: #161718;
+  --foreground: #e5e7eb;
+  --card: #1e1f21;
+  --card-foreground: #e5e7eb;
+  --popover: #1e1f21;
+  --popover-foreground: #e5e7eb;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
   --secondary: #36A5FF;
-  --secondary-foreground: oklch(0.205 0 0);
-  --tertiary: #222222;
+  --secondary-foreground: #ffffff;
+  --tertiary: #2a2b2d;
   --contrast: #202CFF;
   --contrast2: #FF006E;
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --muted: #2a2b2d;
+  --muted-foreground: #9ca3af;
+  --accent: #2a2b2d;
+  --accent-foreground: #e5e7eb;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: #2e3033;
+  --input: #2a2b2d;
+  --ring: #3b82f6;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #1a1b1c;
+  --sidebar-foreground: #e5e7eb;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2a2b2d;
+  --sidebar-accent-foreground: #e5e7eb;
+  --sidebar-border: #2e3033;
+  --sidebar-ring: #3b82f6;
 }
 
 .dark {
@@ -127,7 +127,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    /* @apply border-border outline-ring/50; */
   }
 
   body {
@@ -136,15 +136,15 @@
 }
 
 .bg-mesh {
-  background-color: #ffffff;
+  background-color: #161718;
   background-image:
-    radial-gradient(at 40% 20%, hsla(210, 100%, 85%, 0.1) 0px, transparent 50%),
-    radial-gradient(at 80% 0%, hsla(189, 100%, 56%, 0.1) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, hsla(220, 100%, 90%, 0.1) 0px, transparent 50%),
-    radial-gradient(at 80% 50%, hsla(200, 100%, 76%, 0.1) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, hsla(210, 100%, 80%, 0.1) 0px, transparent 50%),
-    radial-gradient(at 80% 100%, hsla(242, 100%, 70%, 0.1) 0px, transparent 50%),
-    radial-gradient(at 0% 0%, hsla(215, 100%, 85%, 0.1) 0px, transparent 50%);
+    radial-gradient(at 40% 20%, hsla(210, 100%, 30%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, hsla(189, 100%, 30%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(220, 100%, 30%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, hsla(200, 100%, 30%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(210, 100%, 30%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(242, 100%, 30%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 0%, hsla(215, 100%, 30%, 0.1) 0px, transparent 50%);
 }
 
 @keyframes pulse-subtle {

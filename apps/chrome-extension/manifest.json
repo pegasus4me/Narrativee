@@ -5,10 +5,14 @@
     "description": "Generate AI-powered comments on Substack Notes with one click 🧙‍♂️",
     "permissions": [
         "activeTab",
-        "storage"
+        "storage",
+        "tabs"
     ],
     "host_permissions": [
-        "*://*.substack.com/*"
+        "*://*.substack.com/*",
+        "http://localhost:3000/*",
+        "http://localhost:3010/*",
+        "http://127.0.0.1:3000/*"
     ],
     "action": {
         "default_popup": "popup/popup.html",
@@ -24,10 +28,18 @@
     "content_scripts": [
         {
             "matches": [
-                "*://*.substack.com/*"
+                "*://*.substack.com/*",
+                "http://localhost:3000/*",
+                "http://localhost:3010/*",
+                "http://127.0.0.1:3000/*"
             ],
             "js": [
-                "content/content.js"
+                "content/content.js",
+                "content/inspiration-saver.js",
+                "content/engagement-scraper.js",
+                "content/stats-scraper.js",
+                "content/notes-scraper.js",
+                "content/subs-scraper.js"
             ],
             "css": [
                 "styles/inject.css"

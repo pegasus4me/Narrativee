@@ -12,6 +12,69 @@
             isEnabled = message.enabled;
             console.log('🧙‍♂️ Settings updated, enabled:', isEnabled);
         }
+
+        if (message.type === 'NARRATIVEE_STATS_SCRAPED') {
+            console.log('🧙‍♂️ Received stats from background, forwarding to web app');
+            window.postMessage({ type: 'NARRATIVEE_STATS_SCRAPED', posts: message.posts }, '*');
+            // Keep legacy support
+            window.postMessage({ type: 'EXTENSION_STATS_SCRAPED', posts: message.posts }, '*');
+        }
+
+        if (message.type === 'NARRATIVEE_STATS_SYNC_ERROR') {
+            console.error('🧙‍♂️ Stats sync error from background', message.error);
+            window.postMessage({ type: 'NARRATIVEE_STATS_SYNC_ERROR', error: message.error }, '*');
+            // Keep legacy support
+            window.postMessage({ type: 'EXTENSION_STATS_SYNC_ERROR', error: message.error }, '*');
+        }
+
+        // Notes performance sync
+        if (message.type === 'NARRATIVEE_NOTES_PERF_SCRAPED') {
+            console.log('📝 Forwarding scraped notes to web app');
+            window.postMessage({ type: 'NARRATIVEE_NOTES_PERF_SCRAPED', notes: message.notes, error: message.error }, '*');
+        }
+
+        // Subscriber sync
+        if (message.type === 'NARRATIVEE_SUBS_SCRAPED') {
+            console.log('📈 Forwarding scraped subs to web app');
+            window.postMessage({ type: 'NARRATIVEE_SUBS_SCRAPED', data: message.data, error: message.error }, '*');
+        }
+    });
+
+    // Listen for messages from Narrativee Web App
+    window.addEventListener('message', (event) => {
+        if (event.source !== window) return;
+
+        if (event.data?.type === 'NARRATIVEE_PUBLISH_POST') {
+            console.log('Post request received from Web App:', event.data.payload);
+            chrome.runtime.sendMessage({
+                type: 'OPEN_SUBSTACK_DRAFT',
+                draft: event.data.payload
+            });
+        }
+
+        if (event.data?.type === 'NARRATIVEE_START_STATS_SYNC') {
+            console.log('🧙‍♂️ Stats sync requested from Web App');
+            chrome.runtime.sendMessage({
+                type: 'START_STATS_SYNC',
+                publicationUrl: event.data.publicationUrl
+            });
+        }
+
+        if (event.data?.type === 'NARRATIVEE_START_NOTES_PERF_SYNC') {
+            console.log('📝 Notes perf sync requested from Web App');
+            chrome.runtime.sendMessage({
+                type: 'START_NOTES_PERF_SYNC',
+                profileUrl: event.data.profileUrl
+            });
+        }
+
+        if (event.data?.type === 'NARRATIVEE_START_SUBS_SYNC') {
+            console.log('📈 Subs sync requested from Web App');
+            chrome.runtime.sendMessage({
+                type: 'START_SUBS_SYNC',
+                publicationUrl: event.data.publicationUrl
+            });
+        }
     });
 
     // Initialize
@@ -28,9 +91,304 @@
         // Start observing immediately
         observeForReplyInputs();
 
+        // Check for pending drafts from Narrativee
+        checkPendingDraft();
+
         // Also try to inject after delays
         setTimeout(tryInject, 1000);
         setTimeout(tryInject, 2000);
+    }
+
+    async function checkPendingDraft() {
+        console.log('🔵 Narrativee: checkPendingDraft() called on', window.location.href);
+
+        if (!window.location.hostname.includes('substack.com')) {
+            console.log('🔵 Narrativee: Not on substack.com, skipping');
+            return;
+        }
+
+        try {
+            const data = await chrome.storage.local.get(['pending_draft']);
+            console.log('🔵 Narrativee: Storage data:', data);
+
+            if (data.pending_draft) {
+                console.log('🔵 Narrativee: Found pending draft!', data.pending_draft);
+
+                // Clear it immediately so we don't re-paste on refresh
+                await chrome.storage.local.remove('pending_draft');
+                console.log('🔵 Narrativee: Draft cleared from storage');
+
+                // Try to find the editor and insert
+                // We'll retry a few times as the page loads
+                retryInsertDraft(data.pending_draft, 0);
+            } else {
+                console.log('🔵 Narrativee: No pending draft found in storage');
+            }
+        } catch (e) {
+            console.error('🔵 Narrativee: Error checking draft', e);
+        }
+    }
+
+    function retryInsertDraft(draft, attempt) {
+        const MAX_ATTEMPTS = 30; // Wait up to 15s total
+
+        if (attempt > MAX_ATTEMPTS) {
+            console.error('🔵 Narrativee: GAVE UP after', MAX_ATTEMPTS, 'attempts.');
+            const warning = document.createElement('div');
+            warning.style.cssText = "position:fixed;top:10px;right:10px;background:#ef4444;color:white;padding:15px 20px;border-radius:8px;z-index:999999;font-family:sans-serif;";
+            warning.innerHTML = `<strong>Narrativee:</strong> Could not open Notes dialog.<br>Please paste your content manually.`;
+            document.body.appendChild(warning);
+            setTimeout(() => warning.remove(), 10000);
+            return;
+        }
+
+        if (attempt === 0) {
+            console.log('🔵 Narrativee: Starting draft insertion flow...');
+        }
+
+        // STEP 1: Check if the dialog is already open (look for the editor)
+        const editor = document.querySelector('div.tiptap.ProseMirror[contenteditable="true"]');
+
+        if (editor) {
+            // Dialog is open! Inject the content
+            console.log('🔵 Narrativee: 🎉 Found editor! Injecting draft...');
+
+            // Focus the editor
+            editor.focus();
+
+            // Clear any existing placeholder content
+            editor.innerHTML = '';
+
+            // Use document.execCommand to simulate typing (works with React/contenteditable)
+            // This is the most reliable way to trigger React's change detection
+            const textToInsert = draft.content.trim();
+
+            // Insert text using execCommand - this triggers input events properly
+            document.execCommand('insertText', false, textToInsert);
+
+            // Also dispatch a comprehensive set of events
+            editor.dispatchEvent(new InputEvent('input', {
+                bubbles: true,
+                cancelable: true,
+                inputType: 'insertText',
+                data: textToInsert
+            }));
+            editor.dispatchEvent(new Event('change', { bubbles: true }));
+            editor.dispatchEvent(new Event('blur', { bubbles: true }));
+            editor.dispatchEvent(new Event('focus', { bubbles: true }));
+
+            console.log('🔵 Narrativee: Content injected using execCommand!');
+
+            // Wait a moment for Substack to process, then proceed
+            setTimeout(() => {
+                startAutoPostSequence(editor);
+            }, 500);
+            return;
+        }
+
+        // STEP 2: Dialog not open yet. Try to click the trigger button.
+        if (attempt < 5) {
+            // Look for the "What's on your mind?" trigger
+            // Try specific selectors first, then broad text search
+            const trigger = document.querySelector('.inlineComposer-v8PLSi') ||
+                document.querySelector('[class*="inlineComposer"]') ||
+                document.querySelector('div[class*="cursor-pointer"][class*="pencraft"]') ||
+                // Fallback: Find element with "What's on your mind?" text
+                Array.from(document.querySelectorAll('div, button')).find(el =>
+                    el.textContent?.includes("What's on your mind?") &&
+                    !el.closest('.tiptap') // Exclude if inside an editor
+                );
+
+            if (trigger && !trigger.dataset.narrativeeClicked) {
+                console.log('🔵 Narrativee: Found trigger button, clicking to open dialog...', trigger);
+                trigger.dataset.narrativeeClicked = 'true';
+                trigger.click();
+            } else if (!trigger) {
+                console.log('🔵 Narrativee: Looking for trigger button... (attempt', attempt, ')');
+            }
+        }
+
+        // Retry
+        setTimeout(() => retryInsertDraft(draft, attempt + 1), 500);
+    }
+
+    function startAutoPostSequence(editor) {
+        console.log('🔵 Narrativee: Starting Auto-Post sequence...');
+        findPostButtonWithRetry(0);
+    }
+
+    function findPostButtonWithRetry(attempt) {
+        const MAX_ATTEMPTS = 15;
+
+        if (attempt >= MAX_ATTEMPTS) {
+            console.error('🔵 Narrativee: Could not find Post button after', MAX_ATTEMPTS, 'attempts!');
+            const warning = document.createElement('div');
+            warning.style.cssText = "position:fixed;top:10px;right:10px;background:#ef4444;color:white;padding:15px 20px;border-radius:8px;z-index:999999;font-family:sans-serif;";
+            warning.innerHTML = `<strong>Narrativee:</strong> Could not find Post button.<br>Please click Post manually.`;
+            document.body.appendChild(warning);
+            setTimeout(() => warning.remove(), 10000);
+            return;
+        }
+
+        let postBtn = null;
+
+        // GLOBAL SEARCH STRATEGY (ported from engagement-scraper fix)
+        // The button typically has class "priority_primary" and text "Post"
+        const allButtons = Array.from(document.querySelectorAll('button'));
+
+        // Filter for likely "Post" buttons
+        const priorityButtons = allButtons.filter(btn => {
+            const text = btn.textContent?.trim().toLowerCase() || '';
+            const classList = btn.className || '';
+            return text === 'post' &&
+                (classList.includes('priority_primary') || classList.includes('pencraft') || classList.includes('buttonText'));
+        });
+
+        // Sort by DOM proximity to our input (fallback heuristic)
+        // Assuming the button appears AFTER the input in DOM
+        if (priorityButtons.length > 0) {
+            // Since we likely just opened a modal/reply box, the last button in the DOM 
+            // is usually the one associated with the active editor.
+            // Or find the one closest to the input.
+            postBtn = priorityButtons.find(btn => {
+                // Must be visible
+                return btn.offsetParent !== null;
+            });
+
+            // If multiple visible, pick the one closest in DOM source order (usually after input)
+            if (!postBtn && priorityButtons.length > 0) postBtn = priorityButtons[priorityButtons.length - 1];
+        }
+
+        // Log diagnostic info
+        if (!postBtn && attempt === 0) {
+            console.log('🔵 Narrativee: Searching for Post button...');
+            console.log('🔵 Narrativee: All buttons found:', Array.from(allButtons).map(b => b.textContent?.trim()).filter(t => t));
+        }
+
+        if (postBtn) {
+            console.log('🔵 Narrativee: Found Post button!', postBtn.textContent?.trim());
+            checkButtonAndProceed(postBtn);
+        } else {
+            // Retry
+            console.log('🔵 Narrativee: Post button not found yet, retry', attempt + 1);
+            setTimeout(() => findPostButtonWithRetry(attempt + 1), 500);
+        }
+    }
+
+    function checkButtonAndProceed(postBtn) {
+        // Check if button is disabled (needs content)
+        if (postBtn.disabled) {
+            console.log('🔵 Narrativee: Post button is disabled, waiting for Substack to detect content...');
+            // Retry multiple times with increasing delays
+            retryUntilEnabled(postBtn, 0);
+        } else {
+            proceedWithAutoPost(postBtn);
+        }
+    }
+
+    function retryUntilEnabled(postBtn, attempt) {
+        const MAX_RETRIES = 10;
+
+        if (attempt >= MAX_RETRIES) {
+            console.log('🔵 Narrativee: Button still disabled after', MAX_RETRIES, 'attempts. User may need to click Post manually.');
+            const warning = document.createElement('div');
+            warning.style.cssText = "position:fixed;top:10px;right:10px;background:#f59e0b;color:white;padding:15px 20px;border-radius:8px;z-index:999999;font-family:sans-serif;";
+            warning.innerHTML = `<strong>Narrativee:</strong> Content inserted but Post button not enabled.<br>Please click Post manually.`;
+            document.body.appendChild(warning);
+            setTimeout(() => warning.remove(), 10000);
+            return;
+        }
+
+        setTimeout(() => {
+            if (!postBtn.disabled) {
+                console.log('🔵 Narrativee: Post button is now enabled! Proceeding...');
+                proceedWithAutoPost(postBtn);
+            } else {
+                console.log('🔵 Narrativee: Button still disabled, retry', attempt + 1, '/', MAX_RETRIES);
+                retryUntilEnabled(postBtn, attempt + 1);
+            }
+        }, 500);
+    }
+
+    function proceedWithAutoPost(postBtn) {
+        // Create Countdown Overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            text-align: center;
+        `;
+
+        let timeLeft = 3;
+        overlay.innerHTML = `
+            <div style="font-size: 80px; font-weight: bold; margin-bottom: 20px;">${timeLeft}</div>
+            <div style="font-size: 24px; margin-bottom: 40px;">Auto-Posting to Substack...</div>
+            <button id="narrativee-cancel" style="
+                background: #ef4444; 
+                color: white; 
+                border: none; 
+                padding: 15px 40px; 
+                font-size: 20px; 
+                border-radius: 8px; 
+                cursor: pointer;
+                font-weight: bold;
+            ">CANCEL</button>
+        `;
+        document.body.appendChild(overlay);
+
+        // Timer Loop
+        const timer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                const div = overlay.querySelector('div');
+                if (div) div.textContent = timeLeft;
+            } else {
+                // TIME UP!
+                clearInterval(timer);
+                if (document.body.contains(overlay)) {
+                    document.body.removeChild(overlay);
+                }
+                console.log('🔵 Narrativee: CLICKING POST BUTTON!', postBtn);
+                postBtn.click();
+
+                // Wait for the post to go through, then signal completion
+                setTimeout(() => {
+                    console.log('🔵 Narrativee: Post submitted, sending NOTE_POSTED signal');
+                    try {
+                        chrome.runtime.sendMessage({ type: 'NOTE_POSTED', success: true });
+                    } catch (e) {
+                        console.warn('🔵 Narrativee: Could not send NOTE_POSTED signal', e);
+                    }
+
+                    // Show success notification
+                    const successBanner = document.createElement('div');
+                    successBanner.style.cssText = "position:fixed;top:10px;right:10px;background:#22c55e;color:white;padding:15px 20px;border-radius:8px;z-index:999999;font-family:sans-serif;font-weight:bold;";
+                    successBanner.textContent = '✓ Narrativee: Note posted!';
+                    document.body.appendChild(successBanner);
+                    setTimeout(() => successBanner.remove(), 5000);
+                }, 5000);
+            }
+        }, 1000);
+
+        // Handle Cancel
+        const cancelBtn = overlay.querySelector('#narrativee-cancel');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                clearInterval(timer);
+                if (document.body.contains(overlay)) {
+                    document.body.removeChild(overlay);
+                }
+                console.log('🔵 Narrativee: Auto-Post CANCELLED by user.');
+            });
+        }
     }
 
     function tryInject() {
@@ -124,6 +482,10 @@
     // Find reply inputs and inject wizard buttons
     function injectWizardButtons() {
         if (!isEnabled) return;
+
+        // Enhanced selectors for Substack Notes tab based on user's HTML
+        // The container has class "feedUnit-NTpfyQ"
+        const noteElements = document.querySelectorAll('.feedUnit-NTpfyQ, .feed-item2, .feed-item, .post-preview, .portable-archive-item');
 
         // Find all contenteditable elements
         const allEditable = document.querySelectorAll('[contenteditable="true"]');
@@ -647,6 +1009,251 @@
         }
     }, 500);
 
+    // ==========================================
+    // NARRATIVEE BRIDGE (Localhost Listener)
+    // ==========================================
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log('Bridge: Listening for Narrativee events on localhost...');
+
+        // VISUAL DEBUG: Add a red border to body to prove injection works
+        document.body.style.border = "5px solid red";
+        setTimeout(() => { document.body.style.border = "none"; }, 3000); // Remove after 3s
+
+        // Handshake: Tell the web app we are here AND send profile data
+        setInterval(async () => {
+            try {
+                // We need to ask background for sensitive data or just read storage if allowed
+                // content scripts can read storage.sync
+                const settings = await chrome.storage.sync.get(['bio', 'goals', 'topics', 'style']);
+
+                // Construct a "source" object from this
+                // We might not have the name/avatar unless we scraped it, 
+                // but we at least have the "bio" which implies a connected profile.
+                const profileData = {
+                    connected: true,
+                    bio: settings.bio,
+                    goals: settings.goals
+                };
+
+                window.postMessage({
+                    type: 'NARRATIVEE_EXTENSION_READY',
+                    payload: profileData
+                }, '*');
+            } catch (e) {
+                // Fallback if storage access fails
+                window.postMessage({ type: 'NARRATIVEE_EXTENSION_READY' }, '*');
+            }
+        }, 1000);
+
+        window.addEventListener('message', async (event) => {
+            // Validate origin if needed, but for localhost dev it's fine
+            const { type, payload } = event.data || {};
+
+            if (type === 'NARRATIVEE_PUBLISH_POST') {
+                console.log('Bridge: Received publish request', payload);
+                try {
+                    const response = await chrome.runtime.sendMessage({
+                        type: 'OPEN_SUBSTACK_DRAFT',
+                        draft: payload
+                    });
+                    console.log('Bridge: Sent to background', response);
+                } catch (err) {
+                    console.error('Bridge: Failed to send to background', err);
+                }
+            }
+        });
+    }
+
     init();
     initWritingAssistant();
+    initNotesSync();
+
+    // Notes Sync Feature
+    function initNotesSync() {
+        console.log('🔄 Narrativee: Initializing notes sync listener...');
+
+        // 1. Listen for "Start Sync" from Web App
+        window.addEventListener('message', (event) => {
+            if (event.data?.type === 'NARRATIVEE_START_SYNC') {
+                console.log('🔄 Narrativee: Received sync request for', event.data.profileUrl);
+                chrome.runtime.sendMessage({
+                    type: 'START_NOTES_SYNC',
+                    profileUrl: event.data.profileUrl
+                });
+            }
+
+            // Web app requests saved inspirations
+            if (event.data?.type === 'NARRATIVEE_GET_INSPIRATIONS') {
+                console.log('💡 Bridge: Web app requested inspirations');
+                chrome.storage.local.get(['savedInspirations'], (result) => {
+                    const notes = result.savedInspirations || [];
+                    console.log('💡 Bridge: Sending', notes.length, 'inspirations to web app');
+                    window.postMessage({
+                        type: 'NARRATIVEE_INSPIRATIONS_LOADED',
+                        notes: notes
+                    }, '*');
+                });
+            }
+
+            // Web app requests engagement feed scrape
+            if (event.data?.type === 'NARRATIVEE_PULL_ENGAGEMENT_FEED') {
+                console.log('🎯 Bridge: Web app requested engagement feed');
+                chrome.runtime.sendMessage({
+                    type: 'SCRAPE_ENGAGEMENT_FEED'
+                });
+            }
+
+            // Web app requests comment posting
+            if (event.data?.type === 'NARRATIVEE_POST_COMMENT') {
+                console.log('🎯 Bridge: Web app requesting comment post to', event.data.noteUrl);
+                chrome.runtime.sendMessage({
+                    type: 'POST_ENGAGEMENT_COMMENT',
+                    noteUrl: event.data.noteUrl,
+                    comment: event.data.comment,
+                    autoPost: event.data.autoPost
+                });
+            }
+        });
+
+        // 2. Listen for messages from Background
+        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+            if (message.type === 'SCRAPE_NOTES_ON_LOAD') {
+                console.log('🔄 Narrativee: Received scrape command');
+                scrapeNotesAndSendBack();
+            }
+
+            // 3. Listen for Synced Data from Background (Web App Tab)
+            if (message.type === 'NARRATIVEE_NOTES_SYNCED') {
+                console.log('🔄 Narrativee: Received synced notes', message.notes.length);
+                window.postMessage({
+                    type: 'NARRATIVEE_NOTES_SYNCED',
+                    notes: message.notes
+                }, '*');
+            }
+
+            // 4. Forward saved inspiration from Background to Web App
+            if (message.type === 'NARRATIVEE_INSPIRATION_SAVED') {
+                console.log('💡 Bridge: Forwarding saved inspiration to web app', message.note);
+                window.postMessage({
+                    type: 'NARRATIVEE_INSPIRATION_SAVED',
+                    note: message.note
+                }, '*');
+            }
+
+            // 5. Forward engagement feed from Background to Web App
+            if (message.type === 'NARRATIVEE_ENGAGEMENT_FEED_LOADED') {
+                console.log('🎯 Bridge: Forwarding engagement feed to web app', message.notes?.length, 'notes');
+                window.postMessage({
+                    type: 'NARRATIVEE_ENGAGEMENT_FEED_LOADED',
+                    notes: message.notes
+                }, '*');
+            }
+
+            // 6. Forward comment posted result from Background to Web App
+            if (message.type === 'NARRATIVEE_COMMENT_POSTED') {
+                console.log('🎯 Bridge: Forwarding comment posted result to web app');
+                window.postMessage({
+                    type: 'NARRATIVEE_COMMENT_POSTED',
+                    noteUrl: message.noteUrl,
+                    success: message.success
+                }, '*');
+            }
+        });
+
+        // 5. On localhost, automatically load saved inspirations for the web app
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            setTimeout(() => {
+                chrome.storage.local.get(['savedInspirations'], (result) => {
+                    const notes = result.savedInspirations || [];
+                    if (notes.length > 0) {
+                        console.log('💡 Bridge: Auto-sending', notes.length, 'saved inspirations to web app');
+                        window.postMessage({
+                            type: 'NARRATIVEE_INSPIRATIONS_LOADED',
+                            notes: notes
+                        }, '*');
+                    }
+                });
+            }, 1500);
+        }
+    }
+
+    async function scrapeNotesAndSendBack() {
+        console.log('🔄 Narrativee: Scraping notes...');
+        const notes = [];
+
+        // Auto-scroll to load more content
+        console.log('🔄 Narrativee: Auto-scrolling to load more content...');
+
+        // Perform 15 scrolls with delays to load deeper history
+        for (let i = 0; i < 15; i++) {
+            window.scrollTo(0, document.body.scrollHeight);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Check if we have enough items? optional, but let's just force depth for now
+            if (i % 5 === 0) console.log(`🔄 Narrativee: Scroll ${i + 1}/15...`);
+        }
+
+        // Enhanced selectors for Substack Notes tab based on user's HTML
+        // The container has class "feedUnit-NTpfyQ"
+        const noteElements = document.querySelectorAll('.feedUnit-NTpfyQ, .feed-item2, .feed-item, .post-preview, .portable-archive-item');
+
+        console.log('🔄 Narrativee: Found potential elements:', noteElements.length);
+
+        noteElements.forEach(el => {
+            try {
+                // Selector strategy from user HTML:
+                // Content is in .feedCommentBody-UWho7S .ProseMirror
+                // Date is in time element or .date or inside a link with specific class
+
+                const contentEl = el.querySelector('.feedCommentBody-UWho7S .ProseMirror') ||
+                    el.querySelector('.feedCommentBody-UWho7S') ||
+                    el.querySelector('.ProseMirror') ||
+                    el.querySelector('.post-preview-content') ||
+                    el.querySelector('.pencraft');
+
+                if (!contentEl) return;
+
+                const text = contentEl.innerText?.trim();
+                if (!text) return;
+
+                // Extract date
+                // User HTML: <a title="Feb 9, 2026, 3:03 PM" ...>1h</a>
+                const timeEl = el.querySelector('time') || el.querySelector('a[title*=","]');
+                let time = new Date().toISOString();
+                if (timeEl) {
+                    const titleAttr = timeEl.getAttribute('title');
+                    if (titleAttr) {
+                        time = new Date(titleAttr).toISOString();
+                    } else {
+                        time = timeEl.innerText;
+                    }
+                }
+
+                // Extract permalink
+                // User HTML: href="/@businessmentalist/note/c-212111444?"
+                const linkEl = el.querySelector('a[href*="/note/"]') || el.querySelector('a.post-preview-title');
+                const url = linkEl ? linkEl.href : '';
+
+                // Identify if it's likely a note (short, no big title)
+                const isNote = url.includes('/note/') || window.location.href.includes('/notes');
+
+                notes.push({
+                    content: text,
+                    date: time,
+                    url: url,
+                    isNote: isNote,
+                    source: 'substack_scrape'
+                });
+            } catch (e) {
+                console.error('Error parsing note item:', e);
+            }
+        });
+
+        console.log('🔄 Narrativee: Scraped', notes.length, 'notes. Sending back...');
+
+        chrome.runtime.sendMessage({
+            type: 'NOTES_SCRAPED',
+            notes: notes
+        });
+    }
 })();
