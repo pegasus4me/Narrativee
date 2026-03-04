@@ -33,7 +33,7 @@ export default function NoteEditor({ className }: NoteEditorProps) {
                 try {
                     const res = await fetch(`${API_URL}/onboarding`, { credentials: 'include' });
                     if (res.ok) {
-                        const data = await res.json();
+                        const data: any = await res.json();
                         connectedSources = {
                             publicationName: data.substackPublicationName || data.orgName,
                             publicationUrl: data.substackPublicationUrl || data.orgUrl,

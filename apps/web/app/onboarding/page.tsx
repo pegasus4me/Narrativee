@@ -49,11 +49,11 @@ export default function OnboardingPage() {
             });
 
             if (!response.ok) {
-                const data = await response.json();
+                const data: any = await response.json();
                 throw new Error(data.error || "Failed to fetch profile");
             }
 
-            const data = await response.json();
+            const data: any = await response.json();
             setProfileData(data);
             setStep("verify");
         } catch (err: any) {
@@ -299,7 +299,7 @@ export default function OnboardingPage() {
                             {/* Writing Style */}
                             <div>
                                 <label className="block text-sm text-gray-700 mb-1 flex items-center gap-2">
-                                Writing Style
+                                    Writing Style
                                 </label>
                                 <select
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary bg-white"
@@ -318,7 +318,7 @@ export default function OnboardingPage() {
                             {/* Content Topics */}
                             <div>
                                 <label className="block text-sm text-gray-700 mb-1 flex items-center gap-2">
-                                  Core Topics discussed
+                                    Core Topics discussed
                                 </label>
                                 <div className="flex gap-2 mb-2">
                                     <input

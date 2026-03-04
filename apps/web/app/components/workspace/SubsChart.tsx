@@ -25,7 +25,7 @@ export function SubsChart() {
         try {
             setLoading(true);
             const res = await fetch(`${API_URL}/subscribers`, { credentials: "include" });
-            const json = await res.json();
+            const json: any = await res.json();
             setData(json.data || []);
         } catch (e) {
             console.error("Failed to fetch subscribers", e);

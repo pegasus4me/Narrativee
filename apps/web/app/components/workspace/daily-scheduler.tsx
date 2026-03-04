@@ -53,7 +53,7 @@ export default function IDailyScheduler() {
             try {
                 const res = await fetch(`${API_URL}/onboarding`, { credentials: 'include' });
                 if (res.ok) {
-                    const data = await res.json();
+                    const data: any = await res.json();
                     setProfile({
                         name: data.substackPublicationName || data.name,
                         handle: data.substackHandle,
@@ -72,8 +72,8 @@ export default function IDailyScheduler() {
     const [editTime, setEditTime] = useState("");
 
     // Helper: Format Date to YYYY-MM-DD
-    const formatDateKey = (date: Date) => {
-        return date.toISOString().split('T')[0];
+    const formatDateKey = (date: Date): string => {
+        return date.toISOString().split('T')[0] || "";
     };
 
     // Helper: Format Display Date (e.g., "Friday, Feb 7")
@@ -221,7 +221,7 @@ export default function IDailyScheduler() {
         const postToMove = posts.find(p => p.id === id);
         if (!postToMove) return;
 
-        const [y, m, d] = postToMove.date.split('-').map(Number);
+        const [y = 0, m = 1, d = 1] = postToMove.date.split('-').map(Number);
         const dateObj = new Date(y, m - 1, d);
 
         dateObj.setDate(dateObj.getDate() + daysToAdd);

@@ -111,12 +111,7 @@ export const NoteService = {
         return (result as any).rowCount ?? 0;
     },
 
-    /**
-     * Get all notes for a user (for AI analysis)
-     */
-    async getNotes(userId: string) {
-        return db.select().from(notes).where(eq(notes.userId, userId)).orderBy(desc(notes.publishedAt));
-    },
+
 
     /**
      * Hourly engagement breakdown (24 buckets)

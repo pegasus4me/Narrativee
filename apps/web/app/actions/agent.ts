@@ -76,7 +76,7 @@ export async function fetchSubstackPosts(publicationUrl: string, limit: number =
 
             // Also try to extract from JSON data embedded in page
             const jsonDataMatch = html.match(/<script[^>]*>window\.__PRELOADED_STATE__\s*=\s*({[\s\S]*?})\s*<\/script>/);
-            if (jsonDataMatch) {
+            if (jsonDataMatch && jsonDataMatch[1]) {
                 try {
                     const data = JSON.parse(jsonDataMatch[1]);
                     if (data?.posts || data?.publicationPosts) {
@@ -113,6 +113,7 @@ export async function fetchSubstackPosts(publicationUrl: string, limit: number =
 
             for (const match of itemMatches) {
                 const itemXml = match[1];
+                if (!itemXml) continue;
 
                 const titleMatch = itemXml.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/);
                 const title = titleMatch?.[1] || titleMatch?.[2] || '';
@@ -134,6 +135,7 @@ export async function fetchSubstackPosts(publicationUrl: string, limit: number =
                 if (existingIndex >= 0) {
                     posts[existingIndex] = {
                         ...posts[existingIndex],
+                        title: title || posts[existingIndex]?.title || '',
                         excerpt,
                         content: content.slice(0, 2000),
                         publishedAt: pubDateMatch?.[1]

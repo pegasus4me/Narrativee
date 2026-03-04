@@ -23,10 +23,10 @@ export function MetricsAnalysis() {
         try {
             const res = await fetch(`${API_URL}/notes/ai-analysis`, { credentials: "include" });
             if (!res.ok) {
-                const j = await res.json().catch(() => ({}));
+                const j: any = await res.json().catch(() => ({}));
                 throw new Error(j.error ?? `HTTP ${res.status}`);
             }
-            const json = await res.json();
+            const json: any = await res.json();
             setAnalysis(json.analysis);
         } catch (e: any) {
             setError(e.message ?? "Failed to generate analysis");

@@ -21,7 +21,7 @@ export function ActivityChart() {
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 return r.json();
             })
-            .then(json => setData(json.data || []))
+            .then((json: any) => setData(json.data || []))
             .catch(console.error)
             .finally(() => setLoading(false));
     }, []);
@@ -55,7 +55,7 @@ export function ActivityChart() {
                         <Tooltip
                             contentStyle={{ background: "#1e1f21", border: "1px solid #374151", borderRadius: 8, fontSize: 12 }}
                             labelStyle={{ color: "#d1d5db" }}
-                            formatter={(val: number, name: string) => [val.toLocaleString(), name === "engagement" ? "Engagement" : "Notes"]}
+                            formatter={(val: any, name: any) => [val?.toLocaleString() || val, name === "engagement" ? "Engagement" : "Notes"]}
                         />
                         <Area type="monotone" dataKey="engagement" name="engagement" stroke="#10b981" strokeWidth={2} fill="url(#gradActivity)" />
                     </AreaChart>

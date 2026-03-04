@@ -56,7 +56,7 @@ app.get('/health', (req, res) => {
 // ...
 
 // import apiKeysRouter from './routes/api-keys';
-import saasUsersRouter from './routes/saas-users';
+
 // import scoringRouter from './routes/scoring';
 // import workflowsRouter from './routes/workflows';
 import onboardingRouter from './routes/onboarding';
@@ -68,7 +68,7 @@ import subscribersRouter from './routes/subscribers';
 app.use('/api/user', userRouter);
 // app.use('/api/events', eventsRouter);
 // app.use('/api/api-keys', apiKeysRouter);
-app.use('/api/saas-users', saasUsersRouter);
+
 // app.use('/api/scoring', scoringRouter);
 // app.use('/api/workflows', workflowsRouter);
 app.use('/api/onboarding', onboardingRouter);

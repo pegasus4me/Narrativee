@@ -23,7 +23,7 @@ export function PerformanceChart() {
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 return r.json();
             })
-            .then(json => setData(json.data || []))
+            .then((json: any) => setData(json.data || []))
             .catch(console.error)
             .finally(() => setLoading(false));
     }, []);

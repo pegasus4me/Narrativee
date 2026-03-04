@@ -101,7 +101,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
             try {
                 const res = await fetch(`${API_URL}/onboarding`, { credentials: 'include' });
                 if (res.ok) {
-                    const data = await res.json();
+                    const data: any = await res.json();
                     setOnboardingData(data);
                     if (data.writingStyle) {
                         setTone(data.writingStyle);
@@ -141,8 +141,8 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
                 const notes = event.data.notes;
 
                 // Extract handle - assuming URL format like https://substack.com/@handle
-                const userHandle = onboardingData.substackProfileUrl
-                    ? onboardingData.substackProfileUrl.split('/').pop()?.split('?')[0].replace('@', '')
+                const userHandle = onboardingData?.substackProfileUrl
+                    ? onboardingData?.substackProfileUrl?.split('/').pop()?.split('?')[0]?.replace('@', '')
                     : null;
 
                 console.log("Using handle for filtering:", userHandle);
@@ -268,7 +268,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
 
             // Map to GeneratedNote format with dates
             const notes: GeneratedNote[] = bulkNotes.map((note, i) => {
-                const noteDate = new Date(startDate);
+                const noteDate = new Date(startDate || new Date());
                 noteDate.setDate(noteDate.getDate() + i);
 
                 return {
