@@ -20,6 +20,7 @@ import { VscLayoutSidebarLeft } from "react-icons/vsc";
 import { BsDatabaseCheck } from "react-icons/bs";
 import { LuLibraryBig } from "react-icons/lu";
 import { TbMessageChatbot } from "react-icons/tb";
+import ProfileMenuSidebar from "./profileMenuSidebar";
 
 interface Template {
   id: string;
@@ -109,7 +110,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               <TbMessageChatbot size={20} className="shrink-0" />
               {isSidebarOpen && <span className="text-md font-medium">Engage</span>}
             </Link>
-             <Link href="#" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+            <Link href="#" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
               <IoGitBranchOutline size={20} className="shrink-0" />
               {isSidebarOpen && <span className="text-md font-medium">Cross Post <span className="text-xs text-gray-500 bg-yellow-500 px-2 py-0.5 rounded-full text-white">Soon</span></span>}
             </Link>
@@ -130,7 +131,13 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               Added `mt-auto` to push this to the bottom
               Added `space-y-2` for spacing between buttons
           */}
-
+          <div className="mt-auto w-full pb-4">
+            {session?.user && (
+              <div className={`flex ${!isSidebarOpen ? 'justify-center' : 'px-2'}`}>
+                <ProfileMenuSidebar isSidebarOpen={isSidebarOpen} />
+              </div>
+            )}
+          </div>
         </div>
       </aside>
     </>
