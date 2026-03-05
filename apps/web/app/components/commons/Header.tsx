@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Github, Menu, X, Star } from "lucide-react";
 import { authClient } from "../../../lib/auth-client";
-import logo from "../../../public/logoDark.png";
+import logo from "../../../public/narrativee.png"
 import PrimaryButton from "./PrimaryButton";
 import ProfileMenu from "./ProfileMenu";
 
@@ -20,7 +20,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="bg-white text-tertiary container mx-auto">
+    <header className="text-white container mx-auto">
       {/* Main header bar */}
       <div className="relative flex items-center justify-between px-4 md:px-6 py-2">
         {/* Logo */}
@@ -29,7 +29,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
         </div>
 
         {/* Desktop nav - Absolutely centered */}
-        <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 text-tertiary items-center gap-8 text-sm font-medium font-manrope">
+        <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 text-white items-center gap-8 text-sm font-medium font-manrope">
           <Link href="/pricing" className="hover:opacity-70">Pricing</Link>
           <Link href="/#features" className="hover:opacity-70">Features</Link>
           <Link href="/#solution" className="hover:opacity-70">Solution</Link>
@@ -47,7 +47,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
               >
                 Login
               </button>
-              <PrimaryButton onClick={onBetaSignup || (() => router.push('/auth/signup'))}>Get Started</PrimaryButton>
+              <PrimaryButton onClick={onBetaSignup || (() => router.push('/auth/signup'))}>Get Started for free</PrimaryButton>
             </>
           )}
         </div>

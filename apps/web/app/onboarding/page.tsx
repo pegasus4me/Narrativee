@@ -6,7 +6,7 @@ import { authClient } from "@/lib/auth-client";
 import { API_URL } from "@/lib/api-config";
 import { Upload, Building2, Globe, ArrowRight, Check, Loader2, Sparkles, User, FileText, Languages } from "lucide-react";
 import Image from "next/image";
-import logo from "../../public/logoDark.png";
+import logo from "../../public/logodark.png";
 import PrimaryButton from "../components/commons/PrimaryButton";
 
 type Step = "input-url" | "verify" | "connect-publication" | "preferences" | "completing";
@@ -154,7 +154,7 @@ export default function OnboardingPage() {
                                     <input
                                         type="url"
                                         placeholder="https://substack.com/@username"
-                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition-colors"
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-400 rounded-lg focus:ring-primary focus:border-primary transition-colors"
                                         value={substackUrl}
                                         onChange={(e) => setSubstackUrl(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && fetchProfile()}
@@ -283,7 +283,7 @@ export default function OnboardingPage() {
                                     Preferred Language
                                 </label>
                                 <select
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary bg-white pr-5"
+                                    className="w-full p-3 border placeholder:text-gray-400 border-gray-300 text-gray-900 rounded-lg focus:ring-primary focus:border-primary bg-white pr-5"
                                     value={preferences.language}
                                     onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
                                 >
@@ -302,7 +302,7 @@ export default function OnboardingPage() {
                                     Writing Style
                                 </label>
                                 <select
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary bg-white"
+                                    className="w-full p-3 border placeholder:text-gray-400 border-gray-300 text-gray-900 rounded-lg focus:ring-primary focus:border-primary bg-white"
                                     value={preferences.writingStyle}
                                     onChange={(e) => setPreferences({ ...preferences, writingStyle: e.target.value })}
                                 >
@@ -324,7 +324,7 @@ export default function OnboardingPage() {
                                     <input
                                         type="text"
                                         placeholder="Add a topic (e.g. AI, Marketing)..."
-                                        className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
+                                        className="flex-1 p-3 border placeholder:text-gray-400 border-gray-300 text-gray-900 rounded-lg focus:ring-primary focus:border-primary"
                                         value={topicInput}
                                         onChange={(e) => setTopicInput(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && addTopic()}

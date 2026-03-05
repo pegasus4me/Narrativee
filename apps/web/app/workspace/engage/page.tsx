@@ -152,7 +152,7 @@ export default function EngagePage() {
 
     return (
         <div className="h-full p-6 overflow-y-auto">
-            <div className="container mx-auto">
+            <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
@@ -176,7 +176,7 @@ export default function EngagePage() {
                     <button
                         onClick={handlePullFeed}
                         disabled={isLoading}
-                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
+                        className="px-5 py-2.5 bg-primary hover:bg-primary/80 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
                     >
                         {isLoading ? (
                             <>
@@ -192,7 +192,7 @@ export default function EngagePage() {
                     </button>
 
                     {notes.length > 0 && (
-                        <div className="flex items-center gap-1 bg-[#1e1f21] rounded-lg border border-gray-700/50 p-1">
+                        <div className="flex items-center gap-1 bg-primary/10 rounded-lg border border-gray-700/50 p-1">
                             <button
                                 onClick={() => setSortMode("engagement")}
                                 className={`px-3 py-1.5 text-xs rounded-md transition-colors ${sortMode === "engagement" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-200"

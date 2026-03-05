@@ -275,11 +275,11 @@ export default function InspirationsPage() {
                                 : "Start saving hot notes from Substack using the Chrome extension, or add notes manually."}
                         </p>
                         {notes.length === 0 && (
-                            <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4 max-w-md mx-auto text-left">
-                                <p className="text-blue-300 text-sm mb-2">
-                                    <strong>Coming soon:</strong> Chrome Extension
+                            <div className="bg-primary/5 border border-primary/5 rounded-lg p-4 max-w-md mx-auto text-left">
+                                <p className="text-primary text-sm mb-2">
+                                    install the offcial chrome Extension
                                 </p>
-                                <p className="text-blue-400 text-xs">
+                                <p className="text-primary/50 text-xs">
                                     Install the Narrativee extension to easily save high-engagement notes while browsing Substack.
                                 </p>
                             </div>

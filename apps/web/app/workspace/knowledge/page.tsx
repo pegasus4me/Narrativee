@@ -129,7 +129,7 @@ export default function KnowledgeBasePage() {
     };
 
     return (
-        <div className="p-8 max-w-4xl mx-auto">
+        <div className="p-8 max-w-7xl mx-auto">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-100 mb-2 font-urbanist">Knowledge Base</h1>
                 <p className="text-gray-400">Manage the context and rules for your AI agent.</p>
@@ -138,11 +138,11 @@ export default function KnowledgeBasePage() {
             {/* Connected Sources Section */}
             <div className="mb-10">
                 <h2 className="text-xl font-semibold text-gray-200 mb-4 flex items-center gap-2">
-                    <Book className="w-5 h-5 text-blue-400" />
+                    <Book className="w-5 h-5 text-primary" />
                     Connected Sources (Training Data)
                 </h2>
-                <div className="bg-blue-900/30 border border-blue-800 rounded-xl p-5">
-                    <p className="text-sm text-blue-300 mb-4">
+                <div className="bg-primary/5 border border-primary/5 rounded-xl p-5">
+                    <p className="text-sm text-primary mb-4">
                         Your agent is trained on these sources. It understands your writing style and content from here.
                     </p>
 

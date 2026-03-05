@@ -14,7 +14,7 @@ export default function Workspace() {
 
     return (
         <div className="h-full p-8 overflow-y-auto relative">
-            <div className="container mx-auto flex flex-col gap-8">
+            <div className="max-w-7xl mx-auto flex flex-col gap-8">
 
                 {/* Stats Overview */}
                 <div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
@@ -10,13 +10,14 @@ import {
   ArrowRight, ChevronRight, Check, Zap, TrendingUp,
   Clock, Repeat2, Heart, Eye, Users, Puzzle, Bot
 } from "lucide-react";
+import homepage from "../public/homepage.png";
+import { AnimatePresence } from "framer-motion";
 import Header from "./components/commons/Header";
 import Footer from "./components/commons/Footer";
 import PrimaryButton from "./components/commons/PrimaryButton";
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="border-b border-gray-800">
       <button
@@ -38,6 +39,8 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
     </div>
   );
 }
+
+
 
 function AnimatedSection({ children, className = "", delay = 0 }: {
   children: React.ReactNode;
@@ -65,49 +68,49 @@ const FEATURES = [
     icon: Calendar,
     title: "Scheduled Notes",
     description: "Visual calendar to schedule Substack notes. Set the time, and our Chrome extension auto-publishes for you — even while you sleep.",
-    color: "text-blue-400",
-    bg: "bg-blue-950/40",
-    border: "border-blue-900/40",
+    color: "text-primary",
+    bg: "bg-primary/10",
+    border: "border-primary/20",
   },
   {
     icon: Sparkles,
     title: "AI Note Generation",
     description: "Generate notes in bulk that sound exactly like you. Our AI studies your existing posts and clones your writing voice — not generic AI slop.",
-    color: "text-violet-400",
-    bg: "bg-violet-950/40",
-    border: "border-violet-900/40",
+    color: "text-primary",
+    bg: "bg-primary/10",
+    border: "border-primary/20",
   },
   {
     icon: Bot,
     title: "Engagement Autopilot",
     description: "Pull trending notes from your feed, generate smart comments, and post them with one click. Grow your visibility on autopilot.",
-    color: "text-amber-400",
-    bg: "bg-amber-950/40",
-    border: "border-amber-900/40",
+    color: "text-primary",
+    bg: "bg-primary/10",
+    border: "border-primary/20",
   },
   {
     icon: TrendingUp,
     title: "Inspiration Library",
     description: "Save viral notes from Substack, tag them, and add them to your queue when you're ready. Never run out of content ideas.",
-    color: "text-emerald-400",
-    bg: "bg-emerald-950/40",
-    border: "border-emerald-900/40",
+    color: "text-primary",
+    bg: "bg-primary/10",
+    border: "border-primary/20",
   },
   {
     icon: BarChart3,
     title: "Track Your Metrics",
     description: "Monitor views, open rates, likes, and comments in one dashboard. See what's working and double down.",
-    color: "text-rose-400",
-    bg: "bg-rose-950/40",
-    border: "border-rose-900/40",
+    color: "text-primary",
+    bg: "bg-primary/10",
+    border: "border-primary/20",
   },
   {
     icon: Puzzle,
     title: "Chrome Extension",
     description: "Auto-publish notes, scrape your feed, save inspirations, and post comments — all from your browser. Install once, works forever.",
-    color: "text-cyan-400",
-    bg: "bg-cyan-950/40",
-    border: "border-cyan-900/40",
+    color: "text-primary",
+    bg: "bg-primary/10",
+    border: "border-primary/20",
   },
 ];
 
@@ -117,28 +120,28 @@ const HOW_IT_WORKS = [
     icon: Users,
     title: "Connect your Substack",
     description: "Enter your profile URL. We import your publication info, writing style, and learn your voice from existing posts.",
-    accent: "from-blue-500 to-violet-500",
+    accent: "bg-primary",
   },
   {
     step: "02",
     icon: Sparkles,
     title: "Create & generate notes",
     description: "Write notes manually or let AI bulk-generate them in your voice. Pick a tone, choose a topic, and get a week's worth of content in seconds.",
-    accent: "from-violet-500 to-rose-500",
+    accent: "bg-primary",
   },
   {
     step: "03",
     icon: Clock,
     title: "Schedule & auto-publish",
     description: "Drop notes into time slots on your calendar. Our Chrome extension auto-publishes them at the exact time — no manual posting.",
-    accent: "from-rose-500 to-amber-500",
+    accent: "bg-primary",
   },
   {
     step: "04",
     icon: TrendingUp,
     title: "Engage & grow",
     description: "Use Engagement Autopilot to comment on trending notes and grow your visibility. Track your metrics and iterate.",
-    accent: "from-amber-500 to-emerald-500",
+    accent: "bg-primary",
   },
 ];
 
@@ -151,98 +154,108 @@ const STATS = [
 
 export default function Home() {
   const router = useRouter();
+  const [rotationIndex, setRotationIndex] = useState(0);
+  const namesRotation = ["actionnable data", "smart insights", "auto scheduling"];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRotationIndex((prev) => (prev + 1) % namesRotation.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [namesRotation.length]);
 
   return (
     <div className="bg-[#0d0d0f] overflow-hidden">
       <Header />
 
       {/* ─── HERO ─────────────────────────────────────── */}
-      <main className="max-w-[97%] mx-auto">
-        <section className="relative flex flex-col items-center pt-16 md:pt-24 pb-16 px-4">
+      <main className="container mx-auto">
+        <section className="relative grid grid-cols-1 lg:grid-cols-2 items-center">
           {/* Subtle gradient background */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          />
 
-          {/* Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            className="text-5xl md:text-7xl lg:text-[80px] font-bold text-center text-gray-100 leading-[1.05] tracking-tight font-urbanist max-w-4xl"
-          >
-            Grow faster on Substack
-          </motion.h1>
 
-          {/* Subheadline */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="text-lg md:text-xl text-gray-400 text-center max-w-2xl mt-6 font-manrope leading-relaxed"
-          >
-            Schedule notes, generate content in your voice, automate engagement,
-            and track what works — all from one dashboard.
-          </motion.p>
-
-          {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center gap-4 mt-10"
-          >
-            <PrimaryButton
-              onClick={() => router.push("/auth/signup")}
-              className="px-8 py-3 text-base pulse-cta"
+          <div className="flex flex-col items-start  pt-16 md:pt-24 pb-16 px-4 ">
+            {/* Headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="text-5xl md:text-7xl lg:text-[80px] text-start font-medium text-gray-100 leading-[1.05] tracking-tight font-urbanist"
             >
-              Start for Free
-              <ArrowRight className="w-4 h-4 ml-2 inline" />
-            </PrimaryButton>
-            <button
-              onClick={() => {
-                document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
-              }}
-              className="text-gray-400 font-medium text-base hover:text-gray-100 transition-colors font-manrope flex items-center gap-2"
+              Grow faster on Substack with{" "}
+              <span className="relative inline-block min-w-[1.2em] h-[1.1em] align-top overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={namesRotation[rotationIndex]}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                    className="block text-transparent bg-clip-text bg-primary"
+                  >
+                    {namesRotation[rotationIndex]}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
+            </motion.h1>
+
+            {/* Subheadline */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="text-lg md:text-xl text-gray-400 text-start max-w-2xl mt-6 font-manrope leading-relaxed"
             >
-              See how it works
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </motion.div>
+              Schedule notes, generate content in your voice, automate engagement,
+              and track what works — all from one dashboard.
+            </motion.p>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="flex flex-col sm:flex-row items-center gap-4 mt-10"
+            >
+              <PrimaryButton
+                onClick={() => router.push("/auth/signup")}
+                className="px-8 py-3 text-base pulse-cta"
+              >
+                Start for Free
+                <ArrowRight className="w-4 h-4 ml-2 inline" />
+              </PrimaryButton>
+              <button
+                onClick={() => {
+                  document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="text-gray-400 font-medium text-base hover:text-gray-100 transition-colors font-manrope flex items-center gap-2"
+              >
+                See how it works
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </motion.div>
+          </div>
 
           {/* Hero Dashboard Image */}
           <motion.div
-            initial={{ opacity: 0, y: 60, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-16 w-full max-w-5xl relative"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="overflow-hidden"
           >
-            <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/10 via-violet-500/10 to-blue-500/10 rounded-3xl blur-2xl" />
-
-            <div className="relative rounded-2xl overflow-hidden border border-gray-800 shadow-2xl shadow-black/40">
-              <Image
-                src="/dashboard-hero.png"
-                alt="Narrativee Dashboard — Schedule notes, track engagement, grow on Substack"
-                width={1200}
-                height={720}
-                className="w-full h-auto"
-                priority
-              />
-            </div>
+            {/* Dashboard preview content goes here */}
+            <Image src={homepage} alt="Homepage" width={1500} height={1500} className="rounded-lg" />
           </motion.div>
         </section>
-
         {/* ─── STATS BAR ─────────────────────────────────── */}
         <AnimatedSection className="py-12 md:py-16">
           <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 px-4">
             {STATS.map((stat, i) => (
               <div key={i} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-gray-100 font-urbanist">
+                <div className="text-3xl md:text-4xl font-medium text-gray-100 font-urbanist">
                   {stat.value}
                 </div>
-                <div className="text-sm text-gray-500 mt-1 font-manrope">{stat.label}</div>
+                <div className="text-sm text-gray-500 mt-1 font-manrope font-light">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -287,10 +300,10 @@ export default function Home() {
         <section id="features" className="py-16 md:py-24 px-4">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold text-gray-100 font-urbanist leading-tight">
+              <h2 className="text-3xl md:text-5xl font-medium text-gray-100 font-urbanist leading-tight">
                 Your Substack growth toolkit
               </h2>
-              <p className="text-gray-400 text-lg mt-4 max-w-xl mx-auto font-manrope">
+              <p className="text-gray-400 text-lg mt-4 max-w-xl mx-auto font-manrope font-light">
                 Everything you need to create, schedule, engage, and grow — without the grind.
               </p>
             </AnimatedSection>
@@ -299,15 +312,15 @@ export default function Home() {
               {FEATURES.map((feature, i) => (
                 <AnimatedSection key={i} delay={i * 0.08}>
                   <div
-                    className={`group p-7 rounded-2xl border ${feature.border} ${feature.bg} hover:shadow-lg hover:shadow-black/30 transition-all duration-300 h-full`}
+                    className={`group p-7 rounded-2xl border border-[#2e3033] bg-[#1a1b1c] hover:border-primary/50 transition-all duration-300 h-full`}
                   >
-                    <div className={`w-12 h-12 rounded-xl ${feature.bg} border ${feature.border} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}>
-                      <feature.icon className={`w-6 h-6 ${feature.color}`} />
+                    <div className={`w-12 h-12 rounded-xl bg-[#2a2b2d] flex items-center justify-center mb-5 group-hover:bg-primary/10 transition-colors duration-300`}>
+                      <feature.icon className={`w-6 h-6 text-gray-300 group-hover:text-primary transition-colors`} />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-100 font-urbanist mb-2">
+                    <h3 className="text-lg font-medium text-gray-100 font-urbanist mb-2">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-400 text-[15px] leading-relaxed font-manrope">
+                    <p className="text-gray-400 text-[15px] leading-relaxed font-manrope font-light">
                       {feature.description}
                     </p>
                   </div>
@@ -325,23 +338,23 @@ export default function Home() {
             <AnimatedSection>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
-                  <span className="text-xs font-semibold text-blue-400 uppercase tracking-widest font-manrope">Post Queue</span>
-                  <h3 className="text-3xl md:text-4xl font-bold text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope">Post Queue</span>
+                  <h3 className="text-3xl md:text-4xl font-medium text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
                     Your content calendar, fully automated
                   </h3>
-                  <p className="text-gray-400 text-lg font-manrope leading-relaxed">
+                  <p className="text-gray-400 text-lg font-manrope leading-relaxed font-light">
                     Drag notes onto your calendar, pick a publish time, and let the Chrome extension handle posting. Write once, publish forever.
                   </p>
                   <ul className="mt-6 flex flex-col gap-3">
                     {["Visual drag-and-drop scheduling", "Chrome extension auto-publishes", "Batch-create a week of content in minutes"].map(t => (
-                      <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px]">
-                        <Check className="w-4 h-4 text-blue-400 shrink-0" />{t}
+                      <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px] font-light">
+                        <Check className="w-4 h-4 text-primary shrink-0" />{t}
                       </li>
                     ))}
                   </ul>
                 </div>
-                <div className="rounded-2xl overflow-hidden border border-gray-800 shadow-xl shadow-black/30">
-                  <Image src="/postQueue.png" alt="Narrativee Post Queue" width={800} height={500} className="w-full h-auto" />
+                <div className="rounded-2xl overflow-hidden border border-[#2e3033] bg-[#1a1b1c] p-2">
+                  <Image src="/postQueue.png" alt="Narrativee Post Queue" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
                 </div>
               </div>
             </AnimatedSection>
@@ -349,21 +362,21 @@ export default function Home() {
             {/* 2 — AI Note Generation */}
             <AnimatedSection>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-gray-800 shadow-xl shadow-black/30">
-                  <Image src="/Notes generation.png" alt="Narrativee AI Note Generation" width={800} height={500} className="w-full h-auto" />
+                <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-[#2e3033] bg-[#1a1b1c] p-2">
+                  <Image src="/Notes generation.png" alt="Narrativee AI Note Generation" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
                 </div>
                 <div className="order-1 lg:order-2">
-                  <span className="text-xs font-semibold text-violet-400 uppercase tracking-widest font-manrope">AI Generation</span>
-                  <h3 className="text-3xl md:text-4xl font-bold text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope">AI Generation</span>
+                  <h3 className="text-3xl md:text-4xl font-medium text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
                     A week of notes, generated in seconds
                   </h3>
-                  <p className="text-gray-400 text-lg font-manrope leading-relaxed">
+                  <p className="text-gray-400 text-lg font-manrope leading-relaxed font-light">
                     Pick a topic, choose your tone, and get notes that genuinely sound like you — not generic AI. Our model learns from your real posts.
                   </p>
                   <ul className="mt-6 flex flex-col gap-3">
                     {["Voice cloning from your existing posts", "Tone & length controls", "Bulk generation — 10 notes at once"].map(t => (
-                      <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px]">
-                        <Check className="w-4 h-4 text-violet-400 shrink-0" />{t}
+                      <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px] font-light">
+                        <Check className="w-4 h-4 text-primary shrink-0" />{t}
                       </li>
                     ))}
                   </ul>
@@ -375,23 +388,23 @@ export default function Home() {
             <AnimatedSection>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
-                  <span className="text-xs font-semibold text-amber-400 uppercase tracking-widest font-manrope">Engagement Autopilot</span>
-                  <h3 className="text-3xl md:text-4xl font-bold text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope">Engagement Autopilot</span>
+                  <h3 className="text-3xl md:text-4xl font-medium text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
                     Grow your visibility without lifting a finger
                   </h3>
-                  <p className="text-gray-400 text-lg font-manrope leading-relaxed">
+                  <p className="text-gray-400 text-lg font-manrope leading-relaxed font-light">
                     Pull trending notes from your Substack feed, generate smart human-sounding comments, and post them with one click.
                   </p>
                   <ul className="mt-6 flex flex-col gap-3">
                     {["Feed scraping via Chrome extension", "AI comments that sound human", "One-click posting to Substack"].map(t => (
-                      <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px]">
-                        <Check className="w-4 h-4 text-amber-400 shrink-0" />{t}
+                      <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px] font-light">
+                        <Check className="w-4 h-4 text-primary shrink-0" />{t}
                       </li>
                     ))}
                   </ul>
                 </div>
-                <div className="rounded-2xl overflow-hidden border border-gray-800 shadow-xl shadow-black/30">
-                  <Image src="/Autopilot.png" alt="Narrativee Engagement Autopilot" width={800} height={500} className="w-full h-auto" />
+                <div className="rounded-2xl overflow-hidden border border-[#2e3033] bg-[#1a1b1c] p-2">
+                  <Image src="/Autopilot.png" alt="Narrativee Engagement Autopilot" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
                 </div>
               </div>
             </AnimatedSection>
@@ -399,21 +412,21 @@ export default function Home() {
             {/* 4 — Analytics */}
             <AnimatedSection>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-gray-800 shadow-xl shadow-black/30">
-                  <Image src="/analytics.png" alt="Narrativee Analytics" width={800} height={500} className="w-full h-auto" />
+                <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-[#2e3033] bg-[#1a1b1c] p-2">
+                  <Image src="/analytics.png" alt="Narrativee Analytics" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
                 </div>
                 <div className="order-1 lg:order-2">
-                  <span className="text-xs font-semibold text-rose-400 uppercase tracking-widest font-manrope">Analytics</span>
-                  <h3 className="text-3xl md:text-4xl font-bold text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope">Analytics</span>
+                  <h3 className="text-3xl md:text-4xl font-medium text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
                     Know exactly what's working
                   </h3>
-                  <p className="text-gray-400 text-lg font-manrope leading-relaxed">
+                  <p className="text-gray-400 text-lg font-manrope leading-relaxed font-light">
                     Track likes, comments, restacks, and posting patterns. Get AI-powered insights that tell you what to do next.
                   </p>
                   <ul className="mt-6 flex flex-col gap-3">
                     {["Heatmap of your best posting times", "Performance trends over time", "AI analysis with actionable suggestions"].map(t => (
-                      <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px]">
-                        <Check className="w-4 h-4 text-rose-400 shrink-0" />{t}
+                      <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px] font-light">
+                        <Check className="w-4 h-4 text-primary shrink-0" />{t}
                       </li>
                     ))}
                   </ul>
@@ -425,23 +438,23 @@ export default function Home() {
             <AnimatedSection>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
-                  <span className="text-xs font-semibold text-emerald-400 uppercase tracking-widest font-manrope">Inspiration Library</span>
-                  <h3 className="text-3xl md:text-4xl font-bold text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope">Inspiration Library</span>
+                  <h3 className="text-3xl md:text-4xl font-medium text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
                     Never run out of content ideas
                   </h3>
-                  <p className="text-gray-400 text-lg font-manrope leading-relaxed">
+                  <p className="text-gray-400 text-lg font-manrope leading-relaxed font-light">
                     Save viral notes from any Substack with one click, tag them by topic, and pull them into your queue when inspiration strikes.
                   </p>
                   <ul className="mt-6 flex flex-col gap-3">
                     {["Save any note from Substack instantly", "Tag & filter by topic or format", "Direct \"Add to Queue\" from your library"].map(t => (
-                      <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px]">
-                        <Check className="w-4 h-4 text-emerald-400 shrink-0" />{t}
+                      <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px] font-light">
+                        <Check className="w-4 h-4 text-primary shrink-0" />{t}
                       </li>
                     ))}
                   </ul>
                 </div>
-                <div className="rounded-2xl overflow-hidden border border-gray-800 shadow-xl shadow-black/30">
-                  <Image src="/Inspirations.png" alt="Narrativee Inspiration Library" width={800} height={500} className="w-full h-auto" />
+                <div className="rounded-2xl overflow-hidden border border-[#2e3033] bg-[#1a1b1c] p-2">
+                  <Image src="/Inspirations.png" alt="Narrativee Inspiration Library" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
                 </div>
               </div>
             </AnimatedSection>

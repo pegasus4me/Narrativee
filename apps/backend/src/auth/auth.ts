@@ -5,8 +5,23 @@ import * as schema from "./schema/schema";
 import dotenv from "dotenv"
 import { drizzle } from 'drizzle-orm/node-postgres'
 import dns from 'node:dns';
+import path from 'node:path';
+import fs from 'node:fs';
 
-dotenv.config()
+// Load .env: walk up from CWD until we find it (works for both turbo & docker)
+const loadEnv = () => {
+  let dir = process.cwd();
+  for (let i = 0; i < 6; i++) {
+    const candidate = path.join(dir, '.env');
+    if (fs.existsSync(candidate)) {
+      dotenv.config({ path: candidate });
+      return;
+    }
+    dir = path.dirname(dir);
+  }
+  dotenv.config(); // fallback
+};
+loadEnv();
 
 const pool = new Pool({
   connectionString: process.env.LOCAL_DATABASE_URL || process.env.DATABASE_URL,
