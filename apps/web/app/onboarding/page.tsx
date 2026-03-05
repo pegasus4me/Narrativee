@@ -19,6 +19,7 @@ export default function OnboardingPage() {
     const [error, setError] = useState("");
 
     // Form Data
+    
     const [substackUrl, setSubstackUrl] = useState("");
     const [profileData, setProfileData] = useState<any>(null);
     const [preferences, setPreferences] = useState({
