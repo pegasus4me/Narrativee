@@ -70,12 +70,13 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
           ${isSidebarOpen ? "w-67" : "w-16"}
           overflow-hidden
           rounded-r-sm
+  
         `}
       >
         {/* 1. h-full: Makes the container take full height 
            2. flex-col: Stacks children vertically
         */}
-        <div className="p-3 h-full overflow-y-auto flex flex-col bg-[#161718]">
+        <div className="p-3 h-full overflow-y-auto flex flex-col bg-black/10">
 
           <div className="flex items-center justify-between w-full mb-2 ">
             {isSidebarOpen ? (
