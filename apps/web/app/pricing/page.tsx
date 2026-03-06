@@ -83,7 +83,7 @@ export default function PricingPage() {
                 {/* Hero */}
                 <div className="text-center mb-16">
                     <h1
-                        className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 font-urbanist"
+                        className="text-5xl md:text-7xl font-bold text-white mb-6 font-urbanist"
                     >
                         Tools to grow your audience
                     </h1>
@@ -117,79 +117,105 @@ export default function PricingPage() {
                 </div>
 
                 {/* Pricing Cards */}
-                <div className="max-w-md mx-auto">
+                <div className="max-w-4xl mx-auto">
                     {PricingPlans.map((plan) => (
                         <div
                             key={plan.name}
-                            className={`bg-white font-manrope rounded-md p-8 border transition-all duration-300 flex flex-col ${plan.popular
-                                ? "border-contrast ring-1 ring-contrast/30 relative "
+                            className={`bg-white font-manrope rounded-xl p-8 md:p-12 border transition-all duration-300 flex flex-col md:flex-row md:items-center gap-8 md:gap-16 ${plan.popular
+                                ? "border-contrast ring-1 ring-contrast/30 relative shadow-lg"
                                 : "border-gray-100 "
                                 }`}
                         >
-                            {/* Header: Name + Badge */}
-                            <div className="flex items-center justify-between mb-2">
-                                <h3
-                                    className={`text-3xl font-bold ${plan.name === 'Starter' ? 'text-primary' : 'text-gray-900'}`}
-                                    style={{ fontFamily: 'var(--font-petrona)' }}
+                            {/* Left Side: Info & Price */}
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <h3
+                                        className={`text-4xl font-bold ${plan.name === 'Starter' ? 'text-primary' : 'text-gray-900'}`}
+                                        style={{ fontFamily: 'var(--font-petrona)' }}
+                                    >
+                                        {plan.name}
+                                    </h3>
+                                    {plan.popular && (
+                                        <div className="flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-primary/20">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                            </svg>
+                                            Popular
+                                        </div>
+                                    )}
+                                </div>
+
+                                <p className="text-gray-500 font-medium mb-6 text-lg">{plan.category}</p>
+
+                                <div className="flex items-baseline gap-2 mb-4">
+                                    <span className="text-7xl font-bold text-gray-900 tracking-tight font-urbanist">
+                                        ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                                    </span>
+                                    <span className="text-gray-500 font-medium">/ month</span>
+                                </div>
+
+                                <p className="text-gray-600 leading-relaxed mb-8 text-lg">
+                                    {plan.description}
+                                </p>
+
+                                {/* CTA Button - Desktop (Left side bottom) */}
+                                <div className="hidden md:block">
+                                    <PrimaryButton
+                                        className="w-full text-lg py-4"
+                                        onClick={() => {
+                                            trackItemSelection(
+                                                plan.name,
+                                                isAnnual ? plan.annualPrice : plan.monthlyPrice,
+                                                'USD',
+                                                'Subscription'
+                                            );
+                                            handleCheckout(plan);
+                                        }}
+                                    >
+                                        {plan.cta}
+                                    </PrimaryButton>
+                                </div>
+                            </div>
+
+                            {/* Divider for mobile */}
+                            <div className="border-t border-gray-100 w-full md:hidden"></div>
+
+                            {/* Right Side: Features */}
+                            <div className="flex-1 bg-gray-50 p-6 md:p-8 rounded-xl border border-gray-100">
+                                <h4 className="font-bold text-gray-900 mb-6 font-urbanist text-xl">What's included:</h4>
+                                <ul className="space-y-4">
+                                    {plan.features.map((feature, idx) => (
+                                        <li key={idx} className="flex items-start gap-3">
+                                            <Tick2
+                                                className="text-primary shrink-0 mt-0.5"
+                                                size={20}
+                                            />
+                                            <span className={`text-[15px] leading-relaxed ${feature.included ? "text-gray-800 font-medium" : "text-gray-400"}`}>
+                                                {feature.text}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            {/* CTA Button - Mobile (Bottom) */}
+                            <div className="md:hidden w-full mt-4">
+                                <PrimaryButton
+                                    className="w-full py-4 text-lg"
+                                    onClick={() => {
+                                        trackItemSelection(
+                                            plan.name,
+                                            isAnnual ? plan.annualPrice : plan.monthlyPrice,
+                                            'USD',
+                                            'Subscription'
+                                        );
+                                        handleCheckout(plan);
+                                    }}
                                 >
-                                    {plan.name}
-                                </h3>
-                                {plan.popular && (
-                                    <div className="flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-primary/20">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                        </svg>
-                                        Popular
-                                    </div>
-                                )}
+                                    {plan.cta}
+                                </PrimaryButton>
                             </div>
 
-                            {/* Category */}
-                            <p className="text-gray-500 font-medium mb-6">{plan.category}</p>
-
-                            {/* Price */}
-                            <div className="flex items-baseline gap-2 mb-4">
-                                <span className="text-6xl font-bold text-gray-900 tracking-tight font-urbanist">
-                                    ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                                </span>
-                            </div>
-
-                            {/* Description */}
-                            <p className="text-gray-600 leading-relaxed mb-8 h-12">
-                                {plan.description}
-                            </p>
-
-                            <div className="border-t border-gray-100 w-full mb-8"></div>
-
-                            {/* Features */}
-                            <ul className="space-y-5 mb-10 flex-grow">
-                                {plan.features.map((feature, idx) => (
-                                    <li key={idx} className="flex items-start gap-3">
-                                        <Tick2
-                                            className="text-gray-500 shrink-0 mt-0.5"
-                                            size={20}
-                                        />
-                                        <span className={`text-[15px] leading-relaxed ${feature.included ? "text-gray-700 font-medium" : "text-gray-400"}`}>
-                                            {feature.text}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-
-                            {/* CTA Button */}
-                            <PrimaryButton
-                                onClick={() => {
-                                    trackItemSelection(
-                                        plan.name,
-                                        isAnnual ? plan.annualPrice : plan.monthlyPrice,
-                                        'USD',
-                                        'Subscription'
-                                    );
-                                    handleCheckout(plan);
-                                }}
-                            >
-                                {plan.cta}
-                            </PrimaryButton>
                         </div>
                     ))}
                 </div>
