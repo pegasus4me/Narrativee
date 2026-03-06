@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { API_URL } from "@/lib/api-config";
@@ -13,10 +13,21 @@ type Step = "input-url" | "verify" | "connect-publication" | "preferences" | "co
 
 export default function OnboardingPage() {
     const router = useRouter();
-    const { data: session } = authClient.useSession();
+    const { data: session, isPending } = authClient.useSession();
     const [step, setStep] = useState<Step>("input-url");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // Redirect logic
+    useEffect(() => {
+        if (!isPending) {
+            if (!session?.user) {
+                router.push("/auth/signin");
+            } else if (session.user.onboarded) {
+                router.push("/workspace");
+            }
+        }
+    }, [isPending, session, router]);
 
     // Form Data
 
@@ -26,7 +37,7 @@ export default function OnboardingPage() {
         language: "English",
         writingStyle: "Professional",
         contentTopics: [] as string[]
-        
+
     });
     const [topicInput, setTopicInput] = useState("");
 

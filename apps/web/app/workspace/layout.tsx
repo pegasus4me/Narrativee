@@ -1,6 +1,7 @@
 import { SideBar } from "../components/commons/sideBar"
 import AutoScheduler from "../components/workspace/AutoScheduler";
 import ExtensionBanner from "../components/workspace/ExtensionBanner";
+import AuthGuard from "../components/commons/AuthGuard";
 
 
 export default function LayoutDashboard({ children }: { children: React.ReactNode }) {
@@ -11,7 +12,9 @@ export default function LayoutDashboard({ children }: { children: React.ReactNod
             <div className="flex">
                 <SideBar />
                 <main className="flex-1 overflow-y-auto h-[calc(100vh-64px)] ml-20">
-                    {children}
+                    <AuthGuard>
+                        {children}
+                    </AuthGuard>
                 </main>
             </div>
             <AutoScheduler />
