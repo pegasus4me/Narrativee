@@ -12,7 +12,8 @@
         "*://*.substack.com/*",
         "http://localhost:3000/*",
         "http://localhost:3010/*",
-        "http://127.0.0.1:3000/*"
+        "http://127.0.0.1:3000/*",
+        "*://*.narrativee.com/*"
     ],
     "action": {
         "default_popup": "popup/popup.html",
@@ -31,7 +32,8 @@
                 "*://*.substack.com/*",
                 "http://localhost:3000/*",
                 "http://localhost:3010/*",
-                "http://127.0.0.1:3000/*"
+                "http://127.0.0.1:3000/*",
+                "*://*.narrativee.com/*"
             ],
             "js": [
                 "content/content.js",

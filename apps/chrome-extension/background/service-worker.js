@@ -189,27 +189,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                                 console.log(`📊 Background: Scraped ${response.count} posts. Syncing to backend...`);
 
                                 try {
-                                    // Send to Backend
-                                    const backendRes = await fetch('http://localhost:3002/api/posts/sync-extension', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                            // Note: We rely on the backend to handle auth via cookie if same domain, 
-                                            // but here extension origin is different. 
-                                            // Ideally we should pass the session token or api key.
-                                            // For this MVP, we assumes local dev environment or we need to extract token from Narrativee tab cookies? 
-                                            // Let's rely on simple fetch for now and see if we hit CORS/Auth issues. 
-                                            // The `requireAuth` middleware uses `auth.api.getSession({ headers: req.headers })`.
-                                            // Since this fetch is from extension background (separate origin), it won't send localhost:3000 cookies by default unless we set credentials: 'include'.
-                                        },
-                                        // key: Credential include is vital for sharing localhost cookies
-                                        // But Extension origin != localhost:3000. 
-                                        // We might need to fetch the token from the apps/web via message first.
-                                        // Let's try sending it back to Frontend and let Frontend push to Backend?
-                                        // YES, that is safer and handles Auth automatically.
-                                        // body: JSON.stringify({ posts: response.posts })
-                                    });
-
                                     // REVISED STRATEGY: Send back to Frontend (Narrativee Tab) to handle API push
                                     forwardToNarrativeeTab({
                                         type: 'NARRATIVEE_STATS_SCRAPED',

@@ -1010,10 +1010,15 @@
     }, 500);
 
     // ==========================================
-    // NARRATIVEE BRIDGE (Localhost Listener)
+    // NARRATIVEE BRIDGE (Localhost & Production Listener)
     // ==========================================
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.log('Bridge: Listening for Narrativee events on localhost...');
+    const isNarrativee = window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname === 'narrativee.com' ||
+        window.location.hostname === 'www.narrativee.com';
+
+    if (isNarrativee) {
+        console.log('Bridge: Listening for Narrativee events...');
 
         // VISUAL DEBUG: Add a red border to body to prove injection works
         document.body.style.border = "5px solid red";
@@ -1160,8 +1165,8 @@
             }
         });
 
-        // 5. On localhost, automatically load saved inspirations for the web app
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // 5. On app domains, automatically load saved inspirations for the web app
+        if (isNarrativee) {
             setTimeout(() => {
                 chrome.storage.local.get(['savedInspirations'], (result) => {
                     const notes = result.savedInspirations || [];
