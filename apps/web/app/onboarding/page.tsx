@@ -106,8 +106,9 @@ export default function OnboardingPage() {
                 throw new Error("Failed to complete onboarding");
             }
 
-            // Redirect to workspace
-            router.push("/workspace");
+            // Force a hard reload to ensure the better-auth session is refreshed
+            // from the backend, recognizing that onboarded is now true.
+            window.location.href = "/workspace";
         } catch (err) {
             console.error(err);
             setError("Something went wrong. Please try again.");
