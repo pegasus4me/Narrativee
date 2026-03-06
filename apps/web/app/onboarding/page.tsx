@@ -179,7 +179,7 @@ export default function OnboardingPage() {
                             <PrimaryButton
                                 onClick={fetchProfile}
                                 disabled={isLoading || !substackUrl}
-                                className="w-full justify-center"
+                                className="w-full justify-center flex gap-2"
                             >
                                 {isLoading ? (
                                     <>
