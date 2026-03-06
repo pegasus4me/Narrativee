@@ -6,7 +6,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #1a1a1a;
+    background: #161718;
     color: #fff;
     min-width: 340px;
     max-width: 400px;
@@ -44,8 +44,8 @@ h1 {
 .tab {
     flex: 1;
     padding: 10px 12px;
-    background: #2a2a2a;
-    border: 1px solid #444;
+    background: #1e1f21;
+    border: 1px solid #333;
     border-radius: 8px;
     color: #888;
     font-size: 12px;
@@ -60,7 +60,7 @@ h1 {
 }
 
 .tab.active {
-    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    background: #316aff;
     border-color: transparent;
     color: #fff;
 }
@@ -92,8 +92,8 @@ select,
 textarea {
     width: 100%;
     padding: 10px 12px;
-    background: #2a2a2a;
-    border: 1px solid #444;
+    background: #1e1f21;
+    border: 1px solid #333;
     border-radius: 8px;
     color: #fff;
     font-size: 13px;
@@ -104,7 +104,7 @@ input[type="password"]:focus,
 select:focus,
 textarea:focus {
     outline: none;
-    border-color: #ff6b35;
+    border-color: #316aff;
 }
 
 textarea {
@@ -125,7 +125,7 @@ select {
 }
 
 .hint a {
-    color: #ff6b35;
+    color: #316aff;
     text-decoration: none;
 }
 
@@ -144,7 +144,7 @@ select {
 .toggle-label input[type="checkbox"] {
     width: 18px;
     height: 18px;
-    accent-color: #ff6b35;
+    accent-color: #316aff;
 }
 
 .toggle-text {
@@ -159,7 +159,7 @@ select {
     width: 100%;
     padding: 12px;
     margin-top: 8px;
-    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    background: #316aff;
     border: none;
     border-radius: 8px;
     color: #fff;
@@ -171,7 +171,8 @@ select {
 
 .save-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    box-shadow: 0 4px 12px rgba(49, 106, 255, 0.3);
+    background: #2a5de6;
 }
 
 .save-btn:active {

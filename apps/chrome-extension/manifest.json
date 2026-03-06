@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Substack Comment Wizard",
+    "name": "Narrativee",
     "version": "1.0.0",
-    "description": "Generate AI-powered comments on Substack Notes with one click 🧙‍♂️",
+    "description": "Your AI copilot for Substack growth and engagement.",
     "permissions": [
         "activeTab",
         "storage",

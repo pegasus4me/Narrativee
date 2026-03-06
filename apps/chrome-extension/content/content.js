@@ -521,7 +521,7 @@
             const wizardBtn = document.createElement('button');
             wizardBtn.className = isNewNote ? 'substack-note-btn' : 'substack-wizard-btn';
             wizardBtn.type = 'button';
-            wizardBtn.innerHTML = isNewNote ? '✨' : '🧙‍♂️';
+            wizardBtn.innerHTML = '✨';
             wizardBtn.title = isNewNote ? 'Generate AI Note' : 'Generate AI Reply';
             wizardBtn.style.cssText = `
                 display: inline-flex;
@@ -531,16 +531,16 @@
                 height: 36px;
                 border: none;
                 border-radius: 50%;
-                background: linear-gradient(135deg, ${isNewNote ? '#8b5cf6 0%, #a855f7' : '#ff6b35 0%, #f7931e'} 100%);
+                background: #316aff;
                 cursor: pointer;
                 font-size: 18px;
                 transition: all 0.2s ease;
-                box-shadow: 0 2px 8px ${isNewNote ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255, 107, 53, 0.3)'};
+                box-shadow: 0 2px 8px rgba(49, 106, 255, 0.3);
                 margin-right: 8px;
             `;
 
             postButton.parentNode.insertBefore(wizardBtn, postButton);
-            console.log(isNewNote ? '✨ Note button injected!' : '🧙‍♂️ Reply button injected!');
+            console.log('✨ Button injected!');
 
             // Handle click
             wizardBtn.addEventListener('click', async (e) => {
@@ -598,8 +598,8 @@
                         wizardBtn.innerHTML = '✓';
 
                         setTimeout(() => {
-                            wizardBtn.style.background = `linear-gradient(135deg, ${isNewNote ? '#8b5cf6 0%, #a855f7' : '#ff6b35 0%, #f7931e'} 100%)`;
-                            wizardBtn.innerHTML = isNewNote ? '✨' : '🧙‍♂️';
+                            wizardBtn.style.background = '#316aff';
+                            wizardBtn.innerHTML = '✨';
                         }, 2000);
                     } else {
                         throw new Error(response.error || 'Failed');
@@ -615,11 +615,11 @@
                         }
 
                         setTimeout(() => {
-                            wizardBtn.innerHTML = isNewNote ? '✨' : '🧙‍♂️';
+                            wizardBtn.innerHTML = '✨';
                         }, 2000);
                     } else {
                         wizardBtn.style.opacity = '1';
-                        wizardBtn.innerHTML = isNewNote ? '✨' : '🧙‍♂️';
+                        wizardBtn.innerHTML = '✨';
                     }
                 } finally {
                     wizardBtn.dataset.loading = 'false';
@@ -676,7 +676,7 @@
         bar.id = 'writing-assistant-bar';
         bar.innerHTML = `
             <div class="wa-header">
-                <span class="wa-title">🪄 AI Writing Assistant</span>
+                <span class="wa-title">✨ Narrativee AI Assistant</span>
                 <button class="wa-close" title="Close">×</button>
             </div>
             <div class="wa-input-row">
@@ -722,7 +722,7 @@
                 justify-content: space-between;
                 align-items: center;
                 padding: 12px 16px;
-                background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+                background: #316aff;
             }
             .wa-title {
                 font-weight: 600;
@@ -777,7 +777,7 @@
                 border-color: #555;
             }
             .wa-btn.wa-primary {
-                background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+                background: #316aff;
                 border: none;
             }
             .wa-btn.wa-primary:hover {
