@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Heart, Repeat2, MessageCircle, ExternalLink, Trash2, Tag, Plus, Calendar } from "lucide-react";
 import { InspirationNote } from "@/app/types/inspiration";
+import PrimaryButton from "../commons/PrimaryButton";
 
 interface InspirationCardProps {
     note: InspirationNote;
@@ -52,8 +53,9 @@ export default function InspirationCard({
         ? note.content.substring(0, 200) + "..."
         : note.content;
 
+    console.log("NOTE", note.author.avatar)
     return (
-        <div className="bg-[#1e1f21] rounded-lg p-5 border border-gray-700 hover:border-gray-600 transition-all group">
+        <div className="bg-[#1e1f21] rounded-lg p-5  border-gray-700 hover:border-gray-600 transition-all group">
             {/* Header - Author Info */}
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -248,14 +250,13 @@ export default function InspirationCard({
                     + Add personal notes
                 </button>
             )}
-
-            {/* Action Button */}
-            <button
+             <PrimaryButton
                 onClick={() => onAddToQueue(note)}
                 className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2"
             >
                 Add to Post Queue
-            </button>
+            </PrimaryButton>
+
         </div>
     );
 }

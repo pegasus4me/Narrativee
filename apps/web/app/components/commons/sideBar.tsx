@@ -122,10 +122,6 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               <LuLibraryBig size={20} className="shrink-0" />
               {isSidebarOpen && <span className="text-md font-medium">Inspiration</span>}
             </Link>
-            <Link href="/setting" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
-              <IoSettingsOutline size={20} className="shrink-0" />
-              {isSidebarOpen && <span className="text-md font-medium">Settings</span>}
-            </Link>
           </div>
           {/* --- Bottom Section ---
               Added `mt-auto` to push this to the bottom

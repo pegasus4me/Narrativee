@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, Send, RefreshCw, MessageSquare, Heart, Repeat2, ExternalLink } from "lucide-react";
+import PrimaryButton from "../commons/PrimaryButton";
 
 interface EngagementNote {
     id: string;
@@ -116,13 +117,13 @@ export default function EngagementCard({ note, onGenerateComment, onPostComment 
             {/* Comment Section */}
             <div className="border-t border-gray-700/30 p-4">
                 {!comment && !isGenerating && !posted && (
-                    <button
+                    <PrimaryButton
                         onClick={handleGenerate}
                         className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2"
                     >
                         <MessageSquare className="w-4 h-4" />
                         Generate Reply
-                    </button>
+                    </PrimaryButton>
                 )}
 
                 {isGenerating && (

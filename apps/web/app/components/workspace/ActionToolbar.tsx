@@ -1,30 +1,23 @@
 "use client";
 
 import { Calendar, Lightbulb, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 interface ActionToolbarProps {
     onSchedule?: () => void;
-    onInspirations?: () => void;
     onGenerateNotes?: () => void;
 }
 
-export default function ActionToolbar({ onSchedule, onInspirations, onGenerateNotes }: ActionToolbarProps) {
+export default function ActionToolbar({ onSchedule, onGenerateNotes }: ActionToolbarProps) {
     return (
         <div className="flex gap-4 mb-8">
-            <button
-                onClick={onSchedule}
-                className="bg-primary hover:bg-primary/80 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors"
-            >
-                <Calendar className="w-4 h-4" />
-                Schedule
-            </button>
-            <button
-                onClick={onInspirations}
+            <Link
+                href="/workspace/inspirations"
                 className="bg-primary hover:bg-primary/80 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors"
             >
                 <Lightbulb className="w-4 h-4" />
                 Inspirations
-            </button>
+            </Link>
             <button
                 onClick={onGenerateNotes}
                 className="bg-primary hover:bg-primary/80 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors"
