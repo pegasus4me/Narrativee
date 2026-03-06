@@ -10,7 +10,7 @@ export default function PrimaryButton({ children, className, ...props }: Primary
         <Button
             className={`
         bg-primary 
-        hover:bg-contrast
+        hover:bg-primary/80
         text-white 
         font-medium 
         px-4 py-2 md:px-5 md:py-2 

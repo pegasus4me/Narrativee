@@ -167,7 +167,7 @@ export default function OnboardingPage() {
                                     <input
                                         type="url"
                                         placeholder="https://substack.com/@username"
-                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-400 rounded-lg focus:ring-primary focus:border-primary transition-colors"
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 text-blackplaceholder-gray-400 rounded-lg focus:ring-primary focus:border-primary transition-colors"
                                         value={substackUrl}
                                         onChange={(e) => setSubstackUrl(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && fetchProfile()}
