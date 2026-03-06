@@ -85,10 +85,10 @@ export default function PricingPage() {
                     <h1
                         className="text-5xl md:text-7xl font-bold text-white mb-6 font-urbanist"
                     >
-                        Tools to grow your audience
+                        The only tool serious Substack writers need
                     </h1>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Spend less time typing, and more time connecting. Pick the plan that fits your growth goals.
+                    <p className="text-xl text-white/80 max-w-2xl mx-auto">
+                        AI-powered engagement, smart scheduling, and growth analytics — all in one place.
                     </p>
 
                     {/* ROI Calculator */}
@@ -98,7 +98,7 @@ export default function PricingPage() {
 
                     {/* Toggle */}
                     <div className="flex items-center justify-center gap-4 mb-12">
-                        <span className={`text-sm font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
+                        <span className={`text-sm font-medium ${!isAnnual ? 'text-white/80' : 'text-white/80'}`}>
                             Monthly
                         </span>
                         <button
@@ -110,7 +110,7 @@ export default function PricingPage() {
                                     }`}
                             />
                         </button>
-                        <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
+                        <span className={`text-sm font-medium ${isAnnual ? 'text-white/80' : 'text-white/80'}`}>
                             Yearly <span className="text-primary text-xs ml-1 font-bold">-20%</span>
                         </span>
                     </div>
@@ -121,16 +121,13 @@ export default function PricingPage() {
                     {PricingPlans.map((plan) => (
                         <div
                             key={plan.name}
-                            className={`bg-white font-manrope rounded-xl p-8 md:p-12 border transition-all duration-300 flex flex-col md:flex-row md:items-center gap-8 md:gap-16 ${plan.popular
-                                ? "border-contrast ring-1 ring-contrast/30 relative shadow-lg"
-                                : "border-gray-100 "
-                                }`}
+                            className={"font-manrope rounded-xl p-8 md:p-12 transition-all duration-300 flex flex-col md:flex-row md:items-center gap-8 md:gap-16"}
                         >
                             {/* Left Side: Info & Price */}
-                            <div className="flex-1">
+                            <div className="flex-1 text-white">
                                 <div className="flex items-center gap-3 mb-4">
                                     <h3
-                                        className={`text-4xl font-bold ${plan.name === 'Starter' ? 'text-primary' : 'text-gray-900'}`}
+                                        className={`text-4xl font-bold text-white}`}
                                         style={{ fontFamily: 'var(--font-petrona)' }}
                                     >
                                         {plan.name}
@@ -148,7 +145,7 @@ export default function PricingPage() {
                                 <p className="text-gray-500 font-medium mb-6 text-lg">{plan.category}</p>
 
                                 <div className="flex items-baseline gap-2 mb-4">
-                                    <span className="text-7xl font-bold text-gray-900 tracking-tight font-urbanist">
+                                    <span className="text-7xl font-bold text-white tracking-tight font-urbanist">
                                         ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
                                     </span>
                                     <span className="text-gray-500 font-medium">/ month</span>
