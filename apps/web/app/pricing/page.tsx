@@ -85,8 +85,11 @@ export default function PricingPage() {
                     <h1
                         className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 font-urbanist"
                     >
-                        Grow as your business grows
+                        Tools to grow your audience
                     </h1>
+                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                        Spend less time typing, and more time connecting. Pick the plan that fits your growth goals.
+                    </p>
 
                     {/* ROI Calculator */}
                     <div className="mt-20 mb-12 px-4">
@@ -113,9 +116,9 @@ export default function PricingPage() {
                     </div>
                 </div>
 
-                {/* Pricing Cards - First 3 */}
-                <div className=" grid md:grid-cols-3 gap-8">
-                    {PricingPlans.filter(plan => plan.name !== 'Scale').map((plan) => (
+                {/* Pricing Cards */}
+                <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
+                    {PricingPlans.map((plan) => (
                         <div
                             key={plan.name}
                             className={`bg-white font-manrope rounded-md p-8 border transition-all duration-300 flex flex-col ${plan.popular
@@ -191,82 +194,26 @@ export default function PricingPage() {
                     ))}
                 </div>
 
-                {/* Scale Plan - Horizontal Card */}
-                {(() => {
-                    const scalePlan = PricingPlans.find(p => p.name === 'Scale');
-                    if (!scalePlan) return null;
-                    return (
-                        <div className="max-w-7xl mx-auto px-4 mt-8">
-                            <div className="bg-tertiary text-white font-manrope rounded-md p-8 flex flex-col md:flex-row md:items-center gap-8">
-                                {/* Left: Plan Info */}
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h3 className="text-3xl font-bold font-urbanist">{scalePlan.name}</h3>
-                                    </div>
-                                    <p className="text-white/70 mb-4">{scalePlan.description}</p>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-5xl font-bold font-urbanist">
-                                            ${isAnnual ? scalePlan.annualPrice : scalePlan.monthlyPrice}
-                                        </span>
-                                        <span className="text-lg text-white/70">Per Month</span>
-                                    </div>
-                                </div>
-
-                                {/* Middle: Features */}
-                                <div className="flex-1">
-                                    <ul className="grid grid-cols-2 gap-3">
-                                        {scalePlan.features.slice(0, 6).map((feature, idx) => (
-                                            <li key={idx} className="flex items-center gap-2 text-sm">
-                                                <Tick2 className="text-white shrink-0" size={16} />
-                                                <span className="text-white/90">{feature.text}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                {/* Right: CTA */}
-                                <div className="md:w-48">
-                                    <button
-                                        onClick={() => {
-                                            trackItemSelection(
-                                                scalePlan.name,
-                                                isAnnual ? scalePlan.annualPrice : scalePlan.monthlyPrice,
-                                                'USD',
-                                                'Subscription'
-                                            );
-                                            handleCheckout(scalePlan);
-                                        }}
-                                        className="w-full bg-white text-tertiary font-bold py-4 px-6 rounded-xl hover:bg-gray-100 transition-colors"
-                                    >
-                                        {scalePlan.cta}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })()}
-
-                {/* FAQ Section */}
                 <div className="max-w-3xl mx-auto mt-24">
                     <h2 className="text-3xl font-bold text-center mb-12" style={{ fontFamily: 'var(--font-petrona)' }}>
                         Frequently Asked Questions
                     </h2>
                     <div className="space-y-4">
                         <FAQItem
-                            question="What counts as a tracked trial user?"
-                            answer="A tracked trial user is any unique user your SDK identifies before they upgrade to a paid plan. Once they convert, they no longer count against your limit."
+                            question="How do AI credits work?"
+                            answer="One AI credit is used each time you generate a comment or a note using the Narrativee extension. Your credits refresh at the start of your monthly billing cycle."
                         />
                         <FAQItem
                             question="Can I cancel anytime?"
-                            answer="Yes, you can cancel your subscription at any time. You'll continue to have access until the end of your billing period."
+                            answer="Yes, you can cancel your subscription at any time. You'll continue to have access to your credits and features until the end of your billing period."
                         />
                         <FAQItem
-                            question="What happens if I exceed my user limit?"
-                            answer="You'll receive a notification when you're approaching your limit. We won't cut off service immediately—you'll have time to upgrade or the next billing cycle."
+                            question="What happens if I run out of credits?"
+                            answer="If you use all your credits before the month ends, the AI features will pause until your next billing date. You can also upgrade your plan at any time to instantly unlock more."
                         />
                         <FAQItem
                             question="Do you offer a free trial?"
-                            answer="Yes! All paid plans include a 7-day free trial. No credit card required to start."
+                            answer="Yes! All paid plans include a 7-day free trial so you can experience the magic firsthand before committing. No hidden fees."
                         />
                     </div>
                 </div>

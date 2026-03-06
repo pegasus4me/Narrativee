@@ -63,7 +63,7 @@ export default function EngagementCard({ note, onGenerateComment, onPostComment 
     };
 
     return (
-        <div className={`bg-[#1e1f21] rounded-xl border transition-all ${posted ? 'border-green-500/30 opacity-60' : 'border-gray-700/50 hover:border-gray-600'}`}>
+        <div className={`bg-[#1e1f21] rounded-xl  transition-all ${posted ? 'border-green-500/30 opacity-60' : 'border-gray-700/50 hover:border-gray-600'}`}>
             {/* Note Content */}
             <div className="p-5">
                 {/* Author Header */}
