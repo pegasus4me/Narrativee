@@ -75,7 +75,7 @@ export default function PricingPage() {
     };
 
     return (
-        <div className="min-h-screen max-w-7xl mx-auto border-r border-gray-200 border-l">
+        <div className="min-h-screen max-w-7xl mx-auto ">
             {/* Header */}
             <Header />
 
@@ -117,7 +117,7 @@ export default function PricingPage() {
                 </div>
 
                 {/* Pricing Cards */}
-                <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
+                <div className="max-w-md mx-auto">
                     {PricingPlans.map((plan) => (
                         <div
                             key={plan.name}
