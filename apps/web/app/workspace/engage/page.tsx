@@ -195,7 +195,7 @@ export default function EngagePage() {
                         <div className="flex items-center gap-1 bg-primary/10 rounded-lg border border-gray-700/50 p-1">
                             <button
                                 onClick={() => setSortMode("engagement")}
-                                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${sortMode === "engagement" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-200"
+                                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${sortMode === "engagement" ? "bg-primary text-white" : "text-gray-400 hover:text-gray-200"
                                     }`}
                             >
                                 <TrendingUp className="w-3.5 h-3.5 inline mr-1" />
@@ -203,7 +203,7 @@ export default function EngagePage() {
                             </button>
                             <button
                                 onClick={() => setSortMode("comments")}
-                                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${sortMode === "comments" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-200"
+                                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${sortMode === "comments" ? "bg-primary text-white" : "text-gray-400 hover:text-gray-200"
                                     }`}
                             >
                                 <MessageSquare className="w-3.5 h-3.5 inline mr-1" />
@@ -211,7 +211,7 @@ export default function EngagePage() {
                             </button>
                             <button
                                 onClick={() => setSortMode("recent")}
-                                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${sortMode === "recent" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-200"
+                                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${sortMode === "recent" ? "bg-primary text-white" : "text-gray-400 hover:text-gray-200"
                                     }`}
                             >
                                 <Filter className="w-3.5 h-3.5 inline mr-1" />

@@ -52,7 +52,7 @@
                 // URL
                 const linkEl = row.querySelector('a[href*="/p/"]');
                 let url = linkEl ? linkEl.href : '';
-                if (!url && titleEl && titleEl.tagName === 'A') url = (titleEl as HTMLAnchorElement).href;
+                if (!url && titleEl && titleEl.tagName === 'A') url = titleEl.href;
 
                 // Only process if it looks like a post
                 if (!url || !url.includes('/p/')) continue;
