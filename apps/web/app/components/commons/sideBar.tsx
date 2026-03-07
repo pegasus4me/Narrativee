@@ -129,12 +129,13 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               Added `space-y-2` for spacing between buttons
           */}
           <div className="mt-auto w-full pb-4">
-            <ExtensionBanner isSidebarOpen={isSidebarOpen} />
             {session?.user && (
               <div className={`flex ${!isSidebarOpen ? 'justify-center' : 'px-2'}`}>
                 <ProfileMenuSidebar isSidebarOpen={isSidebarOpen} />
               </div>
             )}
+            <ExtensionBanner isSidebarOpen={isSidebarOpen} />
+
           </div>
         </div>
       </aside>

@@ -372,8 +372,8 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
                             Loading your profile...
                         </div>
                     ) : onboardingData.substackPublicationName && (
-                        <div className="bg-blue-900/30 border border-blue-800 rounded-lg p-3 text-sm">
-                            <p className="text-blue-300">
+                        <div className="bg-primary/30 border border-primary rounded-lg p-3 text-sm">
+                            <p className="text-primary">
                                 ✦ Generating for <strong>{onboardingData.substackPublicationName}</strong>
                                 {onboardingData.writingStyle && ` • ${onboardingData.writingStyle} style`}
                             </p>
@@ -396,7 +396,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
                                             console.log("📝 Notes specific:", allPosts.filter(p => p.type === 'note'));
                                         }}
                                         className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${sourceMode === "feed"
-                                            ? "bg-blue-600 border-blue-500 text-white"
+                                            ? "bg-primary border-primary text-white"
                                             : "bg-[#2a2b2d] border-gray-600 text-gray-400 hover:border-gray-500"
                                             }`}
                                     >
@@ -409,7 +409,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
                                     <button
                                         onClick={() => setSourceMode("article")}
                                         className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${sourceMode === "article"
-                                            ? "bg-blue-600 border-blue-500 text-white"
+                                            ? "bg-primary border-primary text-white"
                                             : "bg-[#2a2b2d] border-gray-600 text-gray-400 hover:border-gray-500"
                                             }`}
                                     >

@@ -10,10 +10,11 @@ export default function ExtensionBanner({ isSidebarOpen = true }: { isSidebarOpe
     if (!isSidebarOpen) return null;
 
     return (
-        <div className="w-full mb-4 px-2">
+        <div className="mt-3">
+            
 
             <div
-                className="relative rounded-2xl overflow-hidden bg-tertiary"
+                className=""
 
             >
                 {/* Orange accent bar */}
@@ -24,25 +25,10 @@ export default function ExtensionBanner({ isSidebarOpen = true }: { isSidebarOpe
                     }}
                 />
 
-                <div className="p-5">
+                <div className="">
                     {/* Header */}
                     <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                            <div
-                                className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0"
-
-                            >
-                                <Image src={logo} alt="Logo" width={30} height={30} />
-                            </div>
-                            <div>
-                                <p className="text-gray-100 font-semibold text-sm leading-tight">
-                                    Get the Chrome Extension
-                                </p>
-                                <p className="text-gray-500 text-xs mt-0.5">
-                                    Narrativee · Free
-                                </p>
-                            </div>
-                        </div>
+                       
 
 
 
@@ -51,7 +37,7 @@ export default function ExtensionBanner({ isSidebarOpen = true }: { isSidebarOpe
                             href="https://chrome.google.com/webstore"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-primary"
+                            className="flex items-center justify-center gap-2 w-full  p-2 rounded-xl text-sm font-semibold text-white bg-primary"
                         >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
@@ -59,11 +45,12 @@ export default function ExtensionBanner({ isSidebarOpen = true }: { isSidebarOpe
                                 alt="Chrome"
                                 className="w-5 h-5"
                             />
-                            Download from Chrome Store
+                            Download extension
                             <ArrowRight className="w-4 h-4" />
                         </a>
                     </div>
                 </div>
             </div>
+        </div>
             );
 }
