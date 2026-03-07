@@ -6,26 +6,8 @@ import Image from "next/image";
 
 import logo from "../../../public/logo.png";
 
-const DISMISSED_KEY = "narrativee_ext_banner_dismissed";
-
 export default function ExtensionBanner({ isSidebarOpen = true }: { isSidebarOpen?: boolean }) {
-    const [visible, setVisible] = useState(false);
-
-    useEffect(() => {
-        const dismissed = localStorage.getItem(DISMISSED_KEY);
-        if (!dismissed) {
-            // Small delay so it slides in after the page loads
-            const t = setTimeout(() => setVisible(true), 1200);
-            return () => clearTimeout(t);
-        }
-    }, []);
-
-    const dismiss = () => {
-        setVisible(false);
-        localStorage.setItem(DISMISSED_KEY, "1");
-    };
-
-    if (!visible || !isSidebarOpen) return null;
+    if (!isSidebarOpen) return null;
 
     return (
         <div className="w-full mb-4 px-2">
@@ -61,35 +43,27 @@ export default function ExtensionBanner({ isSidebarOpen = true }: { isSidebarOpe
                                 </p>
                             </div>
                         </div>
-                        <button
-                            onClick={dismiss}
-                            className="text-gray-600 hover:text-gray-400 p-0.5 -mt-0.5 -mr-0.5"
-                            aria-label="Dismiss"
+
+
+
+                        {/* CTA */}
+                        <a
+                            href="https://chrome.google.com/webstore"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-primary"
                         >
-                            <X className="w-4 h-4" />
-                        </button>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg"
+                                alt="Chrome"
+                                className="w-5 h-5"
+                            />
+                            Download from Chrome Store
+                            <ArrowRight className="w-4 h-4" />
+                        </a>
                     </div>
-
-
-
-                    {/* CTA */}
-                    <a
-                        href="https://chrome.google.com/webstore"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-primary"
-                    >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                            src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg"
-                            alt="Chrome"
-                            className="w-5 h-5"
-                        />
-                        Download from Chrome Store
-                        <ArrowRight className="w-4 h-4" />
-                    </a>
                 </div>
             </div>
-        </div>
-    );
+            );
 }
