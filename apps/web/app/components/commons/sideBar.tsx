@@ -21,6 +21,7 @@ import { BsDatabaseCheck } from "react-icons/bs";
 import { LuLibraryBig } from "react-icons/lu";
 import { TbMessageChatbot } from "react-icons/tb";
 import ProfileMenuSidebar from "./profileMenuSidebar";
+import ExtensionBanner from "../workspace/ExtensionBanner";
 
 interface Template {
   id: string;
@@ -128,6 +129,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               Added `space-y-2` for spacing between buttons
           */}
           <div className="mt-auto w-full pb-4">
+            <ExtensionBanner isSidebarOpen={isSidebarOpen} />
             {session?.user && (
               <div className={`flex ${!isSidebarOpen ? 'justify-center' : 'px-2'}`}>
                 <ProfileMenuSidebar isSidebarOpen={isSidebarOpen} />

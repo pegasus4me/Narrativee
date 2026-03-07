@@ -8,7 +8,7 @@ import logo from "../../../public/logo.png";
 
 const DISMISSED_KEY = "narrativee_ext_banner_dismissed";
 
-export default function ExtensionBanner() {
+export default function ExtensionBanner({ isSidebarOpen = true }: { isSidebarOpen?: boolean }) {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
@@ -25,13 +25,10 @@ export default function ExtensionBanner() {
         localStorage.setItem(DISMISSED_KEY, "1");
     };
 
-    if (!visible) return null;
+    if (!visible || !isSidebarOpen) return null;
 
     return (
-        <div
-            className="fixed bottom-6 right-6 z-50 w-80"
-
-        >
+        <div className="w-full mb-4 px-2">
 
             <div
                 className="relative rounded-2xl overflow-hidden bg-tertiary"

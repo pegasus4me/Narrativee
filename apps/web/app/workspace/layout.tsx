@@ -1,6 +1,5 @@
 import { SideBar } from "../components/commons/sideBar"
 import AutoScheduler from "../components/workspace/AutoScheduler";
-import ExtensionBanner from "../components/workspace/ExtensionBanner";
 import AuthGuard from "../components/commons/AuthGuard";
 
 
@@ -18,7 +17,6 @@ export default function LayoutDashboard({ children }: { children: React.ReactNod
                 </main>
             </div>
             <AutoScheduler />
-            <ExtensionBanner />
         </div>
     );
 }

@@ -79,16 +79,16 @@ export default function PricingPage() {
             {/* Header */}
             <Header />
 
-            <main className="py-20 px-4">
+            <main className="py-10 px-4">
                 {/* Hero */}
                 <div className="text-center mb-16">
                     <h1
                         className="text-5xl md:text-7xl font-bold text-white mb-6 font-urbanist"
                     >
-                        The only tool serious Substack writers need
+                        The only tool you need to grow 🗻
                     </h1>
                     <p className="text-xl text-white/80 max-w-2xl mx-auto">
-                        AI-powered engagement, smart scheduling, and growth analytics — all in one place.
+                        No credit card required, cancel anytime
                     </p>
 
                     {/* ROI Calculator */}
@@ -97,7 +97,7 @@ export default function PricingPage() {
                     </div>
 
                     {/* Toggle */}
-                    <div className="flex items-center justify-center gap-4 mb-12">
+                    <div className="flex items-center justify-center gap-4">
                         <span className={`text-sm font-medium ${!isAnnual ? 'text-white/80' : 'text-white/80'}`}>
                             Monthly
                         </span>
@@ -117,7 +117,7 @@ export default function PricingPage() {
                 </div>
 
                 {/* Pricing Cards */}
-                <div className="max-w-4xl mx-auto">
+                <div className="max-w-5xl mx-auto">
                     {PricingPlans.map((plan) => (
                         <div
                             key={plan.name}
@@ -142,7 +142,7 @@ export default function PricingPage() {
                                     )}
                                 </div>
 
-                                <p className="text-gray-500 font-medium mb-6 text-lg">{plan.category}</p>
+                                <p className="text-white/80 font-medium mb-6 text-lg">{plan.category}</p>
 
                                 <div className="flex items-baseline gap-2 mb-4">
                                     <span className="text-7xl font-bold text-white tracking-tight font-urbanist">
@@ -151,7 +151,7 @@ export default function PricingPage() {
                                     <span className="text-gray-500 font-medium">/ month</span>
                                 </div>
 
-                                <p className="text-gray-600 leading-relaxed mb-8 text-lg">
+                                <p className="text-white/70 leading-relaxed mb-8 text-lg">
                                     {plan.description}
                                 </p>
 
@@ -217,8 +217,8 @@ export default function PricingPage() {
                     ))}
                 </div>
 
-                <div className="max-w-3xl mx-auto mt-24">
-                    <h2 className="text-3xl font-bold text-center mb-12" style={{ fontFamily: 'var(--font-petrona)' }}>
+                <div className="max-w-5xl mx-auto mt-24">
+                    <h2 className="text-3xl font-manrope text-center mb-12" >
                         Frequently Asked Questions
                     </h2>
                     <div className="space-y-4">
@@ -249,12 +249,12 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="border-b border-gray-200 last:border-0">
+        <div className="border-b border-white/20 last:border-0 font-manrope">
             <button
                 className="w-full py-6 flex items-center justify-between text-left focus:outline-none group"
                 onClick={() => setIsOpen(!isOpen)}
             >
-                <h3 className="text-lg font-bold text-gray-900 group-hover:text-amber-600 transition-colors" style={{ fontFamily: 'var(--font-petrona)' }}>
+                <h3 className="text-lg font-manrope text-white group-hover:text-amber-600 transition-colors">
                     {question}
                 </h3>
                 <span className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
@@ -268,7 +268,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
                     }`}
             >
                 <div className="overflow-hidden">
-                    <p className="text-gray-600 leading-relaxed">
+                    <p className="text-white/80 leading-relaxed">
                         {answer}
                     </p>
                 </div>
