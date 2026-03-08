@@ -1,8 +1,24 @@
 const isProd = process.env.NODE_ENV === "production";
 
-export const PricingPlans = [
+export interface PricingPlan {
+    name: string;
+    description: string;
+    category?: string;
+    monthlyPrice: number;
+    annualPrice: number;
+    monthlyPriceId: string;
+    annualPriceId: string;
+    savings: number;
+    popular: boolean;
+    cta: string;
+    color: string;
+    features: { text: string; included: boolean; bold?: boolean }[];
+}
+
+export const PricingPlans: PricingPlan[] = [
     {
         name: "Writer 🖋️",
+        category: "Personal Growth",
         description: "For creators who want to grow faster, post smarter, and level up using real insights.",
         monthlyPrice: 19.99,
         annualPrice: 17.99,
@@ -24,4 +40,4 @@ export const PricingPlans = [
             { text: "cross post your notes to other platforms automatically", included: true }
         ]
     }
-] as const;
+];
