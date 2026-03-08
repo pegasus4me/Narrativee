@@ -151,7 +151,10 @@ export default function InspirationsPage() {
 
     const handleDelete = (id: string) => {
         if (confirm("Remove this note from your inspirations?")) {
-            saveNotes(notes.filter(n => n.id !== id));
+            const updated = notes.filter(n => n.id !== id);
+            saveNotes(updated);
+            // Also tell the extension to remove from chrome.storage.local
+            window.postMessage({ type: 'NARRATIVEE_DELETE_INSPIRATION', id }, '*');
         }
     };
 

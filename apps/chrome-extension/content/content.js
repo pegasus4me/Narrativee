@@ -1108,6 +1108,19 @@
                 });
             }
 
+            // Web app deleted an inspiration — remove from chrome.storage.local
+            if (event.data?.type === 'NARRATIVEE_DELETE_INSPIRATION') {
+                const idToRemove = event.data.id;
+                console.log('💡 Bridge: Deleting inspiration', idToRemove, 'from chrome.storage.local');
+                chrome.storage.local.get(['savedInspirations'], (result) => {
+                    const saved = result.savedInspirations || [];
+                    const updated = saved.filter(n => n.id !== idToRemove);
+                    chrome.storage.local.set({ savedInspirations: updated }, () => {
+                        console.log('💡 Bridge: Deleted, remaining:', updated.length);
+                    });
+                });
+            }
+
             // Web app requests comment posting
             if (event.data?.type === 'NARRATIVEE_POST_COMMENT') {
                 console.log('🎯 Bridge: Web app requesting comment post to', event.data.noteUrl);

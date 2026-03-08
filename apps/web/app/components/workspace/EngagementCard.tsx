@@ -63,9 +63,9 @@ export default function EngagementCard({ note, onGenerateComment, onPostComment 
     };
 
     return (
-        <div className={`bg-[#1e1f21] rounded-xl  transition-all ${posted ? 'border-green-500/30 opacity-60' : 'border-gray-700/50 hover:border-gray-600'}`}>
+        <div className={`bg-[#1e1f21] rounded-xl transition-all flex flex-col ${posted ? 'border-green-500/30 opacity-60' : 'border-gray-700/50 hover:border-gray-600'}`}>
             {/* Note Content */}
-            <div className="p-5">
+            <div className="p-5 flex-1">
                 {/* Author Header */}
                 <div className="flex items-center gap-3 mb-3">
                     {note.author.avatar ? (

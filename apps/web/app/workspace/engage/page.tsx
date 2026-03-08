@@ -192,7 +192,7 @@ export default function EngagePage() {
                     </button>
 
                     {notes.length > 0 && (
-                        <div className="flex items-center gap-1 bg-primary/10 rounded-lg border border-gray-700/50 p-1">
+                        <div className="flex items-center gap-1 rounded-lg border border-gray-700/50 p-1">
                             <button
                                 onClick={() => setSortMode("engagement")}
                                 className={`px-3 py-1.5 text-xs rounded-md transition-colors ${sortMode === "engagement" ? "bg-primary text-white" : "text-gray-400 hover:text-gray-200"
