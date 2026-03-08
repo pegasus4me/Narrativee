@@ -124,6 +124,23 @@ export const subscribers = pgTable("subscribers", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const inspirations = pgTable("inspirations", {
+  id: text("id").primaryKey(), // Keep the original ID from the extension ('note_xxx')
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  authorName: text("author_name"),
+  authorHandle: text("author_handle"),
+  authorAvatar: text("author_avatar"),
+  url: text("url"),
+  likes: integer("likes").default(0),
+  restacks: integer("restacks").default(0),
+  comments: integer("comments").default(0),
+  tags: jsonb("tags").default([]),            // string[]
+  personalNotes: text("personal_notes"),
+  savedAt: timestamp("saved_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
