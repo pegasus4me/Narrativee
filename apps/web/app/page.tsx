@@ -8,7 +8,7 @@ import { motion, useInView } from "framer-motion";
 import {
   Calendar, MessageSquare, Sparkles, BarChart3,
   ArrowRight, ChevronRight, Check, Zap, TrendingUp,
-  Clock, Repeat2, Heart, Eye, Users, Puzzle, Bot
+  Clock, Repeat2, Heart, Eye, Users, Puzzle, Bot, Book
 } from "lucide-react";
 import homepage from "../public/homepage.png";
 import { AnimatePresence } from "framer-motion";
@@ -97,9 +97,9 @@ const FEATURES = [
     border: "border-primary/20",
   },
   {
-    icon: BarChart3,
-    title: "Track Your Metrics",
-    description: "Monitor views, open rates, likes, and comments in one dashboard. See what's working and double down.",
+    icon: Book,
+    title: "Knowledge Base",
+    description: "Train your AI agent on your unique writing style, publication info, and custom rules. Your agent gets smarter with every post.",
     color: "text-primary",
     bg: "bg-primary/10",
     border: "border-primary/20",
@@ -363,7 +363,7 @@ export default function Home() {
             <AnimatedSection>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-[#2e3033] bg-[#1a1b1c] p-2">
-                  <Image src="/Notes generation.png" alt="Narrativee AI Note Generation" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
+                  <Image src="/Notesgeneration.png" alt="Narrativee AI Note Generation" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
                 </div>
                 <div className="order-1 lg:order-2">
                   <span className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope">AI Generation</span>
@@ -404,27 +404,27 @@ export default function Home() {
                   </ul>
                 </div>
                 <div className="rounded-2xl overflow-hidden border border-[#2e3033] bg-[#1a1b1c] p-2">
-                  <Image src="/Autopilot.png" alt="Narrativee Engagement Autopilot" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
+                  <Image src="/Enagagement.png" alt="Narrativee Engagement Autopilot" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
                 </div>
               </div>
             </AnimatedSection>
 
-            {/* 4 — Analytics */}
+            {/* 4 — Knowledge Base */}
             <AnimatedSection>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-[#2e3033] bg-[#1a1b1c] p-2">
-                  <Image src="/analytics.png" alt="Narrativee Analytics" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
+                  <Image src="/knowledgebase.png" alt="Narrativee Knowledge Base" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
                 </div>
                 <div className="order-1 lg:order-2">
-                  <span className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope">Analytics</span>
+                  <span className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope">Knowledge Base</span>
                   <h3 className="text-3xl md:text-4xl font-medium text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
-                    Know exactly what's working
+                    Train your agent on your unique voice
                   </h3>
                   <p className="text-gray-400 text-lg font-manrope leading-relaxed font-light">
-                    Track likes, comments, restacks, and posting patterns. Get AI-powered insights that tell you what to do next.
+                    Connect your Substack, add custom writing rules, and define your brand persona. Your AI agent learns exactly how you think and write.
                   </p>
                   <ul className="mt-6 flex flex-col gap-3">
-                    {["Heatmap of your best posting times", "Performance trends over time", "AI analysis with actionable suggestions"].map(t => (
+                    {["Direct training on your Substack posts", "Custom AI writing rules", "Persona & style definitions"].map(t => (
                       <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px] font-light">
                         <Check className="w-4 h-4 text-primary shrink-0" />{t}
                       </li>
@@ -454,7 +454,7 @@ export default function Home() {
                   </ul>
                 </div>
                 <div className="rounded-2xl overflow-hidden border border-[#2e3033] bg-[#1a1b1c] p-2">
-                  <Image src="/Inspirations.png" alt="Narrativee Inspiration Library" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
+                  <Image src="/inspiration.png" alt="Narrativee Inspiration Library" width={800} height={500} className="w-full h-auto rounded-xl border border-[#2e3033]" />
                 </div>
               </div>
             </AnimatedSection>

@@ -18,7 +18,14 @@
 
             const authorEl = noteElement.querySelector('[class*="weight-medium"]');
             const authorLink = noteElement.querySelector('a[href*="/@"]');
-            const avatarImg = noteElement.querySelector('img[alt*="Avatar"]');
+
+            // Robust avatar extraction (matches engagement-scraper.js fix)
+            const avatarImg = noteElement.querySelector('img[alt*="Avatar"]')
+                || noteElement.querySelector('img[alt*="avatar"]')
+                || (authorLink ? authorLink.querySelector('img') : null)
+                || noteElement.querySelector('img[src*="substackcdn.com"][src*="profile"]')
+                || noteElement.querySelector('img[class*="avatar"], img[class*="photo"], img[class*="profile"]')
+                || noteElement.querySelector('img[width="32"], img[width="36"], img[width="40"], img[width="48"]');
 
             const buttons = noteElement.querySelectorAll('.container-_91AK1 button');
             let likes = 0, comments = 0, restacks = 0;

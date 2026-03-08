@@ -28,7 +28,7 @@ export default function InspirationsPage() {
         try {
             const res = await fetch(`${API_URL}/inspirations`, { credentials: "include" });
             if (res.ok) {
-                const data = await res.json();
+                const data = await res.json() as any;
                 return (data.notes as InspirationNote[]) || [];
             }
         } catch (e) {
