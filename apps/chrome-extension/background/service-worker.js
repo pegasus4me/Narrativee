@@ -332,7 +332,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                     // Retry sending scrape command - content scripts may not be ready yet
                     let attempts = 0;
-                    const maxAttempts = 5;
+                    const maxAttempts = 8;
 
                     function tryScrape() {
                         attempts++;
@@ -342,7 +342,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                             if (chrome.runtime.lastError) {
                                 console.warn('🎯 Background: Scrape attempt failed:', chrome.runtime.lastError.message);
                                 if (attempts < maxAttempts) {
-                                    setTimeout(tryScrape, 2000);
+                                    setTimeout(tryScrape, 3000);
                                 } else {
                                     console.error('🎯 Background: All scrape attempts failed');
                                     // Notify Narrativee tab of failure
@@ -369,8 +369,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         });
                     }
 
-                    // Initial delay for content scripts to load
-                    setTimeout(tryScrape, 4000);
+                    // Increased initial delay: Substack home is a heavy React app
+                    setTimeout(tryScrape, 6000);
                 }
             });
         });
@@ -463,15 +463,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     function forwardToNarrativeeTab(message) {
-        chrome.tabs.query({}, (tabs) => {
-            const narrativeeTab = tabs.find(t =>
-                t.url?.includes('localhost:') || t.url?.includes('narrativee.com')
-            );
-            if (narrativeeTab) {
-                chrome.tabs.sendMessage(narrativeeTab.id, message);
-                console.log('🎯 Background: Forwarded to Narrativee tab');
+        // Query for Narrativee tabs by URL pattern
+        chrome.tabs.query({ url: ['*://localhost/*', '*://*.narrativee.com/*'] }, (tabs) => {
+            if (tabs && tabs.length > 0) {
+                // Send to all matching tabs (handles multiple windows)
+                tabs.forEach(t => {
+                    chrome.tabs.sendMessage(t.id, message, () => {
+                        if (chrome.runtime.lastError) {
+                            // Ignore - tab might not have content script
+                        }
+                    });
+                });
+                console.log('🎯 Background: Forwarded to', tabs.length, 'Narrativee tab(s)');
             } else {
-                console.warn('🎯 Background: No Narrativee tab found');
+                // Fallback: query all tabs and match by URL string
+                chrome.tabs.query({}, (allTabs) => {
+                    const narrativeeTabs = allTabs.filter(t =>
+                        t.url && (t.url.includes('localhost:3010') || t.url.includes('localhost:3000') || t.url.includes('narrativee.com'))
+                    );
+                    if (narrativeeTabs.length > 0) {
+                        narrativeeTabs.forEach(t => {
+                            chrome.tabs.sendMessage(t.id, message, () => {
+                                if (chrome.runtime.lastError) { /* ignore */ }
+                            });
+                        });
+                        console.log('🎯 Background: Forwarded (fallback) to', narrativeeTabs.length, 'tab(s)');
+                    } else {
+                        console.warn('🎯 Background: No Narrativee tab found to forward message');
+                    }
+                });
             }
         });
     }

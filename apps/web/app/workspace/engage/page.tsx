@@ -258,7 +258,7 @@ export default function EngagePage() {
 
                 {/* Notes Grid */}
                 {filteredNotes.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {filteredNotes.map(note => (
                             <EngagementCard
                                 key={note.id}
