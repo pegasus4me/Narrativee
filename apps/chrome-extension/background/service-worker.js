@@ -137,21 +137,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message.type === 'INSPIRATION_SAVED') {
         console.log('💡 Background: Received saved inspiration', message.note);
-
-        // Find the Narrativee tab and send the saved note
-        chrome.tabs.query({}, (tabs) => {
-            const narrativeeTab = tabs.find(t => t.url?.includes('localhost:') || t.url?.includes('narrativee.com'));
-            if (narrativeeTab) {
-                console.log('💡 Background: Found Narrativee tab at', narrativeeTab.url);
-                chrome.tabs.sendMessage(narrativeeTab.id, {
-                    type: 'NARRATIVEE_INSPIRATION_SAVED',
-                    note: message.note,
-                    allNotes: message.allNotes
-                });
-                console.log('💡 Background: Sent inspiration to Narrativee tab', narrativeeTab.id);
-            } else {
-                console.warn('💡 Background: No Narrativee tab found. Open tabs:', tabs.map(t => t.url));
-            }
+        forwardToNarrativeeTab({
+            type: 'NARRATIVEE_INSPIRATION_SAVED',
+            note: message.note,
+            allNotes: message.allNotes
         });
         return true;
     }

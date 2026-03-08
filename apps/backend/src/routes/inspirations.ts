@@ -63,6 +63,8 @@ router.get('/', requireAuth, async (req: any, res) => {
 router.post('/', requireAuth, async (req: any, res) => {
     try {
         const { notes } = req.body;
+        console.log(`💡 [Backend] Received ${notes?.length} inspirations to save for user ${req.session.user.id}`);
+
         if (!Array.isArray(notes)) {
             return res.status(400).json({ error: 'Expected "notes" array' });
         }
@@ -70,6 +72,7 @@ router.post('/', requireAuth, async (req: any, res) => {
         const userId = req.session.user.id;
 
         for (const note of notes) {
+            console.log(`💡 [Backend] Processing note: ${note.id}`);
             await db
                 .insert(inspirations)
                 .values({

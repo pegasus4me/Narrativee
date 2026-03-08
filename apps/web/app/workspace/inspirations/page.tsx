@@ -52,15 +52,23 @@ export default function InspirationsPage() {
 
             if (event.data?.type === "NARRATIVEE_INSPIRATION_SAVED") {
                 const newNote: InspirationNote = event.data.note;
+                console.log("💡 [Inspirations] Received save event from extension:", newNote.id);
                 // Save to backend then add to UI
                 fetch(`${API_URL}/inspirations`, {
                     method: "POST",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ notes: [newNote] }),
-                }).then(() => {
-                    setNotes((prev) => [newNote, ...prev.filter((n) => n.id !== newNote.id)]);
-                }).catch(console.error);
+                }).then((res) => {
+                    console.log("💡 [Inspirations] Save response status:", res.status);
+                    if (res.ok) {
+                        setNotes((prev) => [newNote, ...prev.filter((n) => n.id !== newNote.id)]);
+                    } else {
+                        console.error("💡 [Inspirations] Save failed on backend");
+                    }
+                }).catch(err => {
+                    console.error("💡 [Inspirations] Fetch error:", err);
+                });
             }
         };
 
