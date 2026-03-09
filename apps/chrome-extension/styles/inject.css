@@ -7,19 +7,19 @@
     height: 36px;
     border: none;
     border-radius: 50%;
-    background: #316aff;
+    background: #f9871d;
     cursor: pointer;
     font-size: 18px;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(49, 106, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(249, 135, 29, 0.3);
     position: relative;
     margin-right: 8px;
 }
 
 .substack-wizard-btn:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(49, 106, 255, 0.5);
-    background: #2a5de6;
+    box-shadow: 0 4px 12px rgba(249, 135, 29, 0.5);
+    background: #f9871d;
 }
 
 .substack-wizard-btn:active {

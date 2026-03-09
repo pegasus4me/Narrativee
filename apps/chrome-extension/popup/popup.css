@@ -60,7 +60,7 @@ h1 {
 }
 
 .tab.active {
-    background: #316aff;
+    background: #f9871d;
     border-color: transparent;
     color: #fff;
 }
@@ -104,7 +104,7 @@ input[type="password"]:focus,
 select:focus,
 textarea:focus {
     outline: none;
-    border-color: #316aff;
+    border-color: #f9871d;
 }
 
 textarea {
@@ -125,7 +125,7 @@ select {
 }
 
 .hint a {
-    color: #316aff;
+    color: #f9871d;
     text-decoration: none;
 }
 
@@ -144,7 +144,7 @@ select {
 .toggle-label input[type="checkbox"] {
     width: 18px;
     height: 18px;
-    accent-color: #316aff;
+    accent-color: #f9871d;
 }
 
 .toggle-text {
@@ -159,7 +159,7 @@ select {
     width: 100%;
     padding: 12px;
     margin-top: 8px;
-    background: #316aff;
+    background: #f9871d;
     border: none;
     border-radius: 8px;
     color: #fff;
@@ -171,8 +171,8 @@ select {
 
 .save-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(49, 106, 255, 0.3);
-    background: #2a5de6;
+    box-shadow: 0 4px 12px rgba(249, 135, 29, 0.3);
+    background: #e67710;
 }
 
 .save-btn:active {

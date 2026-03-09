@@ -67,7 +67,7 @@ const FEATURES = [
   {
     icon: Calendar,
     title: "Scheduled Notes",
-    description: "Visual calendar to schedule Substack notes. Set the time, and our Chrome extension auto-publishes for you — even while you sleep.",
+    description: "Visual calendar to schedule Substack notes. Set the time, and our Chrome extension auto-publishes for you, even while you sleep.",
     color: "text-primary",
     bg: "bg-primary/10",
     border: "border-primary/20",
@@ -100,14 +100,6 @@ const FEATURES = [
     icon: Book,
     title: "Knowledge Base",
     description: "Train your AI agent on your unique writing style, publication info, and custom rules. Your agent gets smarter with every post.",
-    color: "text-primary",
-    bg: "bg-primary/10",
-    border: "border-primary/20",
-  },
-  {
-    icon: Puzzle,
-    title: "Chrome Extension",
-    description: "Auto-publish notes, scrape your feed, save inspirations, and post comments — all from your browser. Install once, works forever.",
     color: "text-primary",
     bg: "bg-primary/10",
     border: "border-primary/20",
@@ -207,7 +199,7 @@ export default function Home() {
               className="text-lg md:text-xl text-gray-400 text-start max-w-2xl mt-6 font-manrope leading-relaxed"
             >
               Schedule notes, generate content in your voice, automate engagement,
-              and track what works — all from one dashboard.
+              and track what works, all from one dashboard.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -234,6 +226,10 @@ export default function Home() {
                 <ChevronRight className="w-4 h-4" />
               </button>
             </motion.div>
+            <div className="flex items-center gap-3 text-gray-400 text-lg mt-8 font-manrope font-light">
+              <Image src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg" alt="Chrome Extension" width={30} height={30} className="rounded-lg" />
+              <a className="cursor-pointer text-sm">Download the official narrativee extension</a>
+            </div>
           </div>
 
           {/* Hero Dashboard Image */}
@@ -304,7 +300,7 @@ export default function Home() {
                 Your Substack growth toolkit
               </h2>
               <p className="text-gray-400 text-lg mt-4 max-w-xl mx-auto font-manrope font-light">
-                Everything you need to create, schedule, engage, and grow — without the grind.
+                Everything you need to create, schedule, engage, and grow without the grind.
               </p>
             </AnimatedSection>
 
@@ -374,7 +370,7 @@ export default function Home() {
                     Pick a topic, choose your tone, and get notes that genuinely sound like you — not generic AI. Our model learns from your real posts.
                   </p>
                   <ul className="mt-6 flex flex-col gap-3">
-                    {["Voice cloning from your existing posts", "Tone & length controls", "Bulk generation — 10 notes at once"].map(t => (
+                    {["Voice cloning from your existing posts", "Tone & length controls", "Bulk generation, 10 notes at once"].map(t => (
                       <li key={t} className="flex items-center gap-3 text-gray-300 font-manrope text-[15px] font-light">
                         <Check className="w-4 h-4 text-primary shrink-0" />{t}
                       </li>
@@ -471,7 +467,7 @@ export default function Home() {
               </h2>
               <p className="text-gray-400 text-lg mt-4 max-w-2xl mx-auto font-manrope">
                 Connect your Substack, install the Chrome extension, and start
-                scheduling — it's that simple.
+                scheduling, it's that simple.
               </p>
             </AnimatedSection>
 
@@ -517,7 +513,7 @@ export default function Home() {
                     </h3>
                     <p className="text-gray-400 text-lg leading-relaxed font-manrope max-w-lg">
                       Our AI reads your existing Substack posts and learns your sentence rhythm,
-                      vocabulary, and tone. The generated notes aren't "AI-inspired" — they're
+                      vocabulary, and tone. The generated notes aren't "AI-inspired", they're
                       indistinguishable from what you'd write yourself.
                     </p>
                     <div className="flex flex-wrap gap-3 mt-8">
@@ -543,7 +539,7 @@ export default function Home() {
                       Smart Engagement
                     </h3>
                     <p className="text-gray-400 text-[15px] font-manrope leading-relaxed">
-                      AI-generated comments that sound human — not spammy. Trained with
+                      AI-generated comments that sound human, not spammy. Trained with
                       banned phrases and tone rules so you never look like a bot.
                     </p>
                   </div>
@@ -556,7 +552,7 @@ export default function Home() {
                       Zero Manual Posting
                     </h3>
                     <p className="text-gray-400 text-[15px] font-manrope leading-relaxed">
-                      The Chrome extension handles everything — auto-publishing notes,
+                      The Chrome extension handles everything: auto-publishing notes,
                       scraping feeds, posting comments. You just set it and forget it.
                     </p>
                   </div>
@@ -579,11 +575,11 @@ export default function Home() {
               <div className="space-y-1">
                 <FAQItem
                   question="How does the Chrome extension work?"
-                  answer="After installing the extension and logging in, it runs silently in the background. It auto-publishes your scheduled notes at the exact time you set, scrapes your Substack feed for engagement opportunities, and posts AI-generated comments — all from your real Substack account."
+                  answer="After installing the extension and logging in, it runs silently in the background. It auto-publishes your scheduled notes at the exact time you set, scrapes your Substack feed for engagement opportunities, and posts AI-generated comments, all from your real Substack account."
                 />
                 <FAQItem
                   question="Will the AI-generated notes sound like me?"
-                  answer="Yes. Our AI reads your existing Substack posts and learns your sentence rhythm, vocabulary, tone, and style. It doesn't generate generic content — it clones your voice so the notes are indistinguishable from what you'd write yourself. You can also pick a tone (casual, professional, witty, etc.) to fine-tune."
+                  answer="Yes. Our AI reads your existing Substack posts and learns your sentence rhythm, vocabulary, tone, and style. It doesn't generate generic content, it clones your voice so the notes are indistinguishable from what you'd write yourself. You can also pick a tone (casual, professional, witty, etc.) to fine-tune."
                 />
                 <FAQItem
                   question="Is this safe for my Substack account?"
@@ -595,11 +591,11 @@ export default function Home() {
                 />
                 <FAQItem
                   question="What if I don't have a Substack yet?"
-                  answer="You'll need an active Substack publication to use Narrativee. The onboarding process connects to your existing profile and publication URL. If you're just getting started on Substack, create your publication first, then come back — we'll be here."
+                  answer="You'll need an active Substack publication to use Narrativee. The onboarding process connects to your existing profile and publication URL. If you're just getting started on Substack, create your publication first, then come back, we'll be here."
                 />
                 <FAQItem
                   question="Is there a free plan?"
-                  answer="Yes — you can start for free with limited features. Check out our pricing page for details on what's included in each plan."
+                  answer="Yes, you can start for free with limited features. Check out our pricing page for details on what's included in each plan."
                 />
               </div>
             </AnimatedSection>
