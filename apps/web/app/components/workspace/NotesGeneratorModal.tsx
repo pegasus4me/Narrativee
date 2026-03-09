@@ -247,7 +247,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
                 credentials: 'include'
             });
 
-            const deductData = await deductRes.json();
+            const deductData = await deductRes.json() as any;
 
             if (!deductData.success) {
                 setError(deductData.error || "Failed to deduct credits");

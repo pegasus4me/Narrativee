@@ -121,7 +121,7 @@ export default function EngagePage() {
                 credentials: 'include'
             });
 
-            const deductData = await deductRes.json();
+            const deductData = await deductRes.json() as any;
 
             if (!deductData.success) {
                 throw new Error(deductData.error || "Failed to deduct credits");
