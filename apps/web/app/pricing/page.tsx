@@ -169,7 +169,7 @@ export default function PricingPage() {
                                             handleCheckout(plan);
                                         }}
                                     >
-                                        {plan.cta}
+                                        {session?.user ? "Upgrade Now" : plan.cta}
                                     </PrimaryButton>
                                 </div>
                             </div>
@@ -209,7 +209,7 @@ export default function PricingPage() {
                                         handleCheckout(plan);
                                     }}
                                 >
-                                    {plan.cta}
+                                    {session?.user ? "Upgrade Now" : plan.cta}
                                 </PrimaryButton>
                             </div>
 

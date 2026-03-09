@@ -1137,7 +1137,7 @@
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             if (message.type === 'SCRAPE_NOTES_ON_LOAD') {
                 console.log('🔄 Narrativee: Received scrape command');
-                scrapeNotesAndSendBack();
+                scrapeNotesAndSendBack(message.requestingTabId);
             }
 
             // 3. Listen for Synced Data from Background (Web App Tab)
@@ -1195,7 +1195,7 @@
         }
     }
 
-    async function scrapeNotesAndSendBack() {
+    async function scrapeNotesAndSendBack(requestingTabId) {
         console.log('🔄 Narrativee: Scraping notes...');
         const notes = [];
 
@@ -1271,7 +1271,8 @@
 
         chrome.runtime.sendMessage({
             type: 'NOTES_SCRAPED',
-            notes: notes
+            notes: notes,
+            requestingTabId: requestingTabId
         });
     }
 })();

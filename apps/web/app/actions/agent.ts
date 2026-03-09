@@ -1,6 +1,6 @@
 "use server";
 
-import openrouter from "@/lib/openrouter";
+import grok from "@/lib/grok";
 
 interface AgentContext {
     userName?: string;
@@ -248,6 +248,7 @@ Each note must:
 - NOT sound like AI wrote it (no "In today's world...", no "It's important to note...", no "Let's dive in...")
 - NOT be generic motivation poster quotes
 - Have genuine depth — share a specific insight, observation, story, or contrarian take
+- ABSOLUTELY NO FAKE HISTORIES: Do NOT invent fake personal stories, fake past businesses, or pretend you experienced something you didn't. Stick STRICTLY to the user's prompt and facts. If they ask for tips, give tips. Do not preface it with "When I built my startup..." unless that story is explicitly in the author samples.
 
 BANNED phrases (these scream AI):
 "game-changer", "embark", "delve", "unpack", "navigate", "landscape", "journey", "here's the thing", "let that sink in", "read that again", "simple as that"
@@ -268,28 +269,35 @@ Vary times between 07:00-20:00. No markdown, no explanation, just the JSON array
 Remember: Write AS the author from the samples. Match their EXACT voice, not a polished version of it.`;
 
     try {
-        const response = await openrouter.chat.completions.create({
-            model: "x-ai/grok-4.1-fast",
+        const response = await grok.chat.completions.create({
+            model: "grok-4-1-fast-reasoning",
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt }
             ],
             temperature: 0.85,
+            max_tokens: 2500, // Explicit limit to prevent default 30k token request causing "insufficient credits"
         });
 
         const content = response.choices[0]?.message?.content || "[]";
 
-        // Parse JSON from response
-        const jsonMatch = content.match(/\[[\s\S]*\]/);
-        if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-            return parsed as BulkNote[];
+        try {
+            // Parse JSON from response
+            const matchIndex = content.indexOf('[');
+            const lastMatchIndex = content.lastIndexOf(']');
+            if (matchIndex !== -1 && lastMatchIndex !== -1 && lastMatchIndex > matchIndex) {
+                const jsonStr = content.substring(matchIndex, lastMatchIndex + 1);
+                const parsed = JSON.parse(jsonStr);
+                return parsed as BulkNote[];
+            }
+            return [];
+        } catch (parseError) {
+            console.error("JSON Parse Error. Raw content was:\n", content);
+            throw parseError;
         }
-
-        return [];
     } catch (error) {
         console.error("Bulk Generation Error:", error);
-        throw new Error("Failed to generate notes");
+        throw new Error(`Failed to generate notes: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 }
 
@@ -308,10 +316,11 @@ export async function generateAgentResponse(
     ];
 
     try {
-        const response = await openrouter.chat.completions.create({
-            model: "x-ai/grok-4.1-fast",
+        const response = await grok.chat.completions.create({
+            model: "grok-4-1-fast-reasoning",
             // @ts-ignore
             messages: messages,
+            max_tokens: 1500,
         });
 
         return response.choices[0]?.message?.content || "I'm having trouble thinking right now. Please try again.";
@@ -328,8 +337,8 @@ export async function cleanNote(
     const systemPrompt = constructNoteCleaningPrompt(context);
 
     try {
-        const response = await openrouter.chat.completions.create({
-            model: "x-ai/grok-4.1-fast",
+        const response = await grok.chat.completions.create({
+            model: "grok-4-1-fast-reasoning",
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: `Please clean up and refine this note:\n\n${noteContent}` }
@@ -373,8 +382,8 @@ export async function enhancePost(
     systemPrompt += `\n\nIMPORTANT: Return ONLY the enhanced post text, nothing else. No quotes, no explanations.`;
 
     try {
-        const response = await openrouter.chat.completions.create({
-            model: "x-ai/grok-4.1-fast",
+        const response = await grok.chat.completions.create({
+            model: "grok-4-1-fast-reasoning",
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: postContent }
@@ -530,13 +539,14 @@ Return ONLY the comment. Nothing else.`;
 Remember: short, casual, human. No made-up stories.`;
 
     try {
-        const response = await openrouter.chat.completions.create({
-            model: "x-ai/grok-4.1-fast",
+        const response = await grok.chat.completions.create({
+            model: "grok-4-1-fast-reasoning",
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt }
             ],
             temperature: 0.75,
+            max_tokens: 500,
         });
 
         return response.choices[0]?.message?.content?.trim() || "Failed to generate comment";

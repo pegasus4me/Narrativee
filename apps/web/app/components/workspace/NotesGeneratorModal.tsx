@@ -6,6 +6,7 @@ import { authClient } from "@/lib/auth-client";
 import { API_URL } from "@/lib/api-config";
 import PrimaryButton from "@/app/components/commons/PrimaryButton";
 import { generateBulkNotes, fetchSubstackPosts } from "@/app/actions/agent";
+import { useSideBarStore } from "@/app/state/SideBar.store";
 
 interface NotesGeneratorModalProps {
     isOpen: boolean;
@@ -227,9 +228,42 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
             return;
         }
 
+        // 1. Check local state first for instant feedback
+        const currentCredits = useSideBarStore.getState().credits;
+        if (currentCredits !== null && currentCredits < quantity) {
+            setError(`Insufficient credits. You need ${quantity} credits to generate this many notes.`);
+            return;
+        }
+
         setIsGenerating(true);
         setError(null);
 
+        // 2. Deduct credits on backend
+        try {
+            const deductRes = await fetch(`${API_URL}/user/credits/deduct`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount: quantity }),
+                credentials: 'include'
+            });
+
+            const deductData = await deductRes.json();
+
+            if (!deductData.success) {
+                setError(deductData.error || "Failed to deduct credits");
+                setIsGenerating(false);
+                return;
+            }
+
+            // Update globally
+            useSideBarStore.getState().setCredits(deductData.credits);
+        } catch (e: any) {
+            setError(e.message || "Failed to process credits");
+            setIsGenerating(false);
+            return;
+        }
+
+        // 3. Proceed with generation
         try {
             // Determine sample posts based on source mode
             let samplePosts: Array<{ title: string; content?: string }> = [];

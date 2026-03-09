@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, MoreVertical } from "lucide-react";
+import { useSideBarStore } from "../../state/SideBar.store";
 
 interface ProfileMenuSidebarProps {
     isSidebarOpen: boolean;
@@ -16,6 +17,7 @@ export default function ProfileMenuSidebar({ isSidebarOpen }: ProfileMenuSidebar
     const [isOpen, setIsOpen] = useState(false);
     const router = useRouter();
     const menuRef = useRef<HTMLDivElement>(null);
+    const plan = useSideBarStore((state) => state.plan);
 
     // Close on click outside
     useEffect(() => {
@@ -61,7 +63,14 @@ export default function ProfileMenuSidebar({ isSidebarOpen }: ProfileMenuSidebar
                     />
                     {isSidebarOpen && (
                         <div className="flex flex-col text-left overflow-hidden">
-                            <span className="text-sm font-medium text-gray-200 truncate">{session.data.user.name}</span>
+                            <span className="flex items-center text-sm font-medium text-gray-200">
+                                <span className="truncate max-w-[120px]">{session.data.user.name}</span>
+                                {plan && (
+                                    <span className={`text-[10px] bg-orange-500 px-1.5 py-0.5 rounded tracking-wider font-bold ml-2 `}>
+                                        {plan === 'free' ? 'Trial' : plan.replace(' 🖋️', '')}
+                                    </span>
+                                )}
+                            </span>
                             <span className="text-xs text-gray-500 truncate w-32">{session.data.user.email}</span>
                         </div>
                     )}

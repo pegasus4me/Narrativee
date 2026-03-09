@@ -6,6 +6,7 @@ import EngagementCard from "@/app/components/workspace/EngagementCard";
 import { generateEngagementComment } from "@/app/actions/agent";
 import { authClient } from "@/lib/auth-client";
 import { API_URL } from "@/lib/api-config";
+import { useSideBarStore } from "@/app/state/SideBar.store";
 
 interface EngagementNote {
     id: string;
@@ -105,6 +106,34 @@ export default function EngagePage() {
     };
 
     const handleGenerateComment = async (note: EngagementNote): Promise<string> => {
+        // 1. Check local state first for instant feedback (optional but good)
+        const currentCredits = useSideBarStore.getState().credits;
+        if (currentCredits !== null && currentCredits < 1) {
+            throw new Error("Insufficient credits. Please upgrade your plan.");
+        }
+
+        // 2. Deduct credit on backend
+        try {
+            const deductRes = await fetch(`${API_URL}/user/credits/deduct`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount: 1 }),
+                credentials: 'include'
+            });
+
+            const deductData = await deductRes.json();
+
+            if (!deductData.success) {
+                throw new Error(deductData.error || "Failed to deduct credits");
+            }
+
+            // Update globally
+            useSideBarStore.getState().setCredits(deductData.credits);
+        } catch (e: any) {
+            throw new Error(e.message || "Failed to process credits");
+        }
+
+        // 3. Proceed with generation
         const context = {
             rules: [],
             connectedSources: {

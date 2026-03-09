@@ -1,10 +1,10 @@
-// OpenRouter API configuration
-// Uses OpenAI SDK with OpenRouter base URL
+// Grok API configuration
+// Uses OpenAI SDK with xAI base URL
 import OpenAI from "openai";
 
-const openrouter = new OpenAI({
-    baseURL: "https://openrouter.ai/api/v1",
-    apiKey: process.env.OPENROUTER_API_KEY,
+const grok = new OpenAI({
+    baseURL: "https://api.x.ai/v1",
+    apiKey: process.env.GROK_API_KEY,
 });
 
 export interface RepurposeResult {
@@ -59,8 +59,8 @@ export async function generateRepurposedContent(
     tone: string
 ): Promise<RepurposeResult> {
     // Generate X/Twitter threads
-    const xResponse = await openrouter.chat.completions.create({
-        model: "x-ai/grok-4.1-fast",
+    const xResponse = await grok.chat.completions.create({
+        model: "grok-4-1-fast-reasoning",
         messages: [
             {
                 role: "system",
@@ -104,8 +104,8 @@ ${articleContent.substring(0, 10000)}`
     });
 
     // Generate LinkedIn posts
-    const linkedInResponse = await openrouter.chat.completions.create({
-        model: "x-ai/grok-4.1-fast",
+    const linkedInResponse = await grok.chat.completions.create({
+        model: "grok-4-1-fast-reasoning",
         messages: [
             {
                 role: "system",
@@ -167,5 +167,5 @@ ${articleContent.substring(0, 10000)}`
     };
 }
 
-export default openrouter;
+export default grok;
 

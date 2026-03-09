@@ -110,7 +110,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     chrome.tabs.onUpdated.removeListener(listener);
                     console.log('🚀 Background: Tab loaded, sending scrape command');
 
-                    chrome.tabs.sendMessage(tabId, { type: 'SCRAPE_NOTES_ON_LOAD' });
+                    chrome.tabs.sendMessage(tabId, {
+                        type: 'SCRAPE_NOTES_ON_LOAD',
+                        requestingTabId: sender.tab?.id
+                    });
                 }
             });
         });
@@ -121,17 +124,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'NOTES_SCRAPED') {
         console.log('🚀 Background: Received scraped notes', message.notes.length);
 
-        // Find the Narrativee tab and send the notes back
-        chrome.tabs.query({}, (tabs) => {
-            const narrativeeTab = tabs.find(t => t.url?.includes('localhost:') || t.url?.includes('narrativee.com'));
-            if (narrativeeTab) {
-                chrome.tabs.sendMessage(narrativeeTab.id, {
-                    type: 'NARRATIVEE_NOTES_SYNCED',
-                    notes: message.notes
-                });
-                console.log('🚀 Background: Sent notes to Narrativee tab', narrativeeTab.id);
-            }
-        });
+        // Route the notes directly to the tab that requested the sync
+        if (message.requestingTabId) {
+            chrome.tabs.sendMessage(message.requestingTabId, {
+                type: 'NARRATIVEE_NOTES_SYNCED',
+                notes: message.notes
+            });
+            console.log('🚀 Background: Sent notes directly to requesting tab', message.requestingTabId);
+        } else {
+            // Fallback
+            chrome.tabs.query({}, (tabs) => {
+                const narrativeeTab = tabs.find(t => t.url?.includes('localhost:') || t.url?.includes('narrativee.com'));
+                if (narrativeeTab) {
+                    chrome.tabs.sendMessage(narrativeeTab.id, {
+                        type: 'NARRATIVEE_NOTES_SYNCED',
+                        notes: message.notes
+                    });
+                    console.log('🚀 Background: Sent notes to Narrativee tab fallback', narrativeeTab.id);
+                }
+            });
+        }
+
+        // Auto-close the Substack scraping tab
+        if (sender && sender.tab && sender.tab.id) {
+            chrome.tabs.remove(sender.tab.id);
+        }
         return true;
     }
 

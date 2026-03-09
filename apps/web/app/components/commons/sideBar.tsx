@@ -52,6 +52,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const { data: session } = authClient.useSession();
   const [orgData, setOrgData] = useState<OrgData>({});
 
+  const credits = useSideBarStore((state) => state.credits);
+  const setCredits = useSideBarStore((state) => state.setCredits);
+  const plan = useSideBarStore((state) => state.plan);
+  const setPlan = useSideBarStore((state) => state.setPlan);
+
   useEffect(() => {
     if (session?.user) {
       // Fetch org data
@@ -59,8 +64,21 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
         .then(res => res.json())
         .then((data: any) => setOrgData(data))
         .catch(console.error);
+
+      // Fetch user credits
+      fetch(`${API_URL}/user/credits`, { credentials: 'include' })
+        .then(res => res.json())
+        .then((data: any) => {
+          if (data.success && typeof data.credits === 'number') {
+            setCredits(data.credits);
+            if (data.plan) {
+              setPlan(data.plan);
+            }
+          }
+        })
+        .catch(console.error);
     }
-  }, [session?.user]);
+  }, [session?.user, setCredits, setPlan]);
 
   return (
     <>
@@ -128,7 +146,33 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               Added `mt-auto` to push this to the bottom
               Added `space-y-2` for spacing between buttons
           */}
-          <div className="mt-auto w-full pb-4">
+          <div className="mt-auto w-full pb-4 space-y-2">
+
+            {/* Credits Display */}
+            <div className={`flex items-center text-sm font-medium ${isSidebarOpen ? 'px-4 text-amber-500 bg-amber-500/10 py-2 mx-2 rounded-lg' : 'justify-center text-amber-500 py-2'} select-none`}>
+              <span className="shrink-0">⚡</span>
+              {isSidebarOpen && (
+                <div className="flex flex-col ml-2 w-full">
+                  <div className="flex items-center justify-between w-full pr-1">
+                    <span>{credits !== null ? `${credits} Credits left` : 'Loading...'}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Upgrade Button for Trial Users */}
+            {plan === 'free' && (
+              <div className={`px-2 ${!isSidebarOpen && 'flex justify-center'}`}>
+                <Link
+                  href="/pricing"
+                  className={`flex items-center justify-center gap-2 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-sm font-bold rounded-lg transition-all shadow-md ${isSidebarOpen ? 'w-full' : 'w-10 h-10 rounded-full text-lg'}`}
+                >
+                  {isSidebarOpen ? 'Upgrade Now' : '↑'}
+                </Link>
+              </div>
+            )}
+
+
             {session?.user && (
               <div className={`flex ${!isSidebarOpen ? 'justify-center' : 'px-2'}`}>
                 <ProfileMenuSidebar isSidebarOpen={isSidebarOpen} />

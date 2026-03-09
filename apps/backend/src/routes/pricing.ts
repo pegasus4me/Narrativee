@@ -43,7 +43,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                     // Determine plan based on price ID or metadata
                     // For simplicity, assuming metadata or checking line items
                     // Ideally, pass plan name in metadata during checkout creation
-                    const plan = session.metadata?.plan || 'premium';
+                    const plan = session.metadata?.plan || 'paid';
                     console.log(`👤 Updating user ${userId} to plan ${plan}`);
 
                     await db.update(user)
@@ -52,12 +52,12 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                             stripeSubscriptionId: subscriptionId,
                             subscriptionStatus: 'active',
                             plan: plan,
-                            // Add tokens based on plan
-                            tokens: plan === 'pro' ? 300 : 130, // Example values
+                            // All paid users get exactly 100 credits per the single plan approach
+                            tokens: 100,
                         })
                         .where(eq(user.id, userId));
 
-                    console.log(`✅ User ${userId} upgraded to ${plan}`);
+                    console.log(`✅ User ${userId} upgraded to ${plan} with 100 credits`);
                 } else {
                     console.error('❌ No userId found in session metadata');
                 }
@@ -75,8 +75,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
 
                 if (foundUser) {
                     // Reset tokens on renewal
-                    const plan = foundUser.plan;
-                    const newTokens = plan === 'pro' ? 300 : (plan === 'premium' ? 130 : 50);
+                    const newTokens = 100; // Paid plan always resets to 100
 
                     await db.update(user)
                         .set({
@@ -99,7 +98,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                     .set({
                         plan: 'free',
                         subscriptionStatus: 'canceled',
-                        tokens: 50 // Reset to free tier limits
+                        tokens: 20 // Reset to free trial limits
                     })
                     .where(eq(user.stripeSubscriptionId, subscriptionId));
 
