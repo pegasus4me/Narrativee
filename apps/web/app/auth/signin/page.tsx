@@ -109,7 +109,7 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen w-full flex font-sans antialiased">
+    <div className="min-h-screen w-full flex font-sans antialiased bg-primary">
       {/* Left Side: Form */}
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 bg-white relative">
         <div className="w-full max-w-[440px]">
@@ -249,10 +249,19 @@ export default function SignIn() {
       </div>
 
       {/* Right Side: Gradient */}
-      <div className="hidden lg:flex w-1/2 rounded-l-md relative items-center justify-center overflow-hidden">
+      <div className="hidden lg:flex w-1/2 rounded-l-md relative items-center justify-center overflow-hidden bg-primary">
+        {/* Background Texture/Mask */}
+        <div
+          className="absolute inset-0 z-0 opacity-80 mix-blend-overlay"
+          style={{
+            backgroundImage: 'url(/bg.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        />
         {/* Abstract Shapes */}
-        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-contrast to-contrast/50 rounded-full blur-[100px] opacity-40 animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-gradient-to-tr from-contrast to-contrast/50 rounded-full blur-[120px] opacity-40" />
+        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-primary to-primary rounded-full blur-[100px] opacity-40 animate-pulse" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-gradient-to-tr from-primary to-primary/50 rounded-full blur-[120px] opacity-40" />
 
         {/* Content in the gradient side - optional, maybe a quote or feature highlight */}
         <div className="relative z-10 max-w-md text-center p-8">
