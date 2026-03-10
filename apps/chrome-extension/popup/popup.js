@@ -1,7 +1,6 @@
 // Popup script - handles settings and profile
 document.addEventListener('DOMContentLoaded', async () => {
     // Settings elements
-    const apiKeyInput = document.getElementById('apiKey');
     const toneSelect = document.getElementById('tone');
     const lengthSelect = document.getElementById('length');
     const enabledCheckbox = document.getElementById('enabled');
@@ -33,12 +32,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load saved settings and profile
     const data = await chrome.storage.sync.get([
-        'apiKey', 'tone', 'length', 'enabled',
+        'tone', 'length', 'enabled',
         'bio', 'goals', 'topics', 'style', 'articles'
     ]);
 
     // Settings
-    if (data.apiKey) apiKeyInput.value = data.apiKey;
     if (data.tone) toneSelect.value = data.tone;
     if (data.length) lengthSelect.value = data.length;
     if (data.enabled !== undefined) enabledCheckbox.checked = data.enabled;
@@ -52,7 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Save all
     saveBtn.addEventListener('click', async () => {
-        const apiKey = apiKeyInput.value.trim();
         const tone = toneSelect.value;
         const length = lengthSelect.value;
         const enabled = enabledCheckbox.checked;
@@ -63,18 +60,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const style = styleSelect.value;
         const articles = articlesInput.value.trim();
 
-        if (!apiKey) {
-            showStatus('Please enter your API key', 'error');
-            return;
-        }
-
-        if (!apiKey.startsWith('sk-or-')) {
-            showStatus('Invalid OpenRouter API key format', 'error');
-            return;
-        }
-
         await chrome.storage.sync.set({
-            apiKey, tone, length, enabled,
+            tone, length, enabled,
             bio, goals, topics, style, articles
         });
         showStatus('All settings saved! ✓', 'success');
