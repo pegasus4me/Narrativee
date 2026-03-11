@@ -5,14 +5,10 @@
     "description": "Your AI copilot for Substack growth and engagement.",
     "permissions": [
         "activeTab",
-        "storage",
-        "tabs"
+        "storage"
     ],
     "host_permissions": [
         "*://*.substack.com/*",
-        "http://localhost:3000/*",
-        "http://localhost:3010/*",
-        "http://127.0.0.1:3000/*",
         "*://*.narrativee.com/*"
     ],
     "action": {
@@ -30,9 +26,6 @@
         {
             "matches": [
                 "*://*.substack.com/*",
-                "http://localhost:3000/*",
-                "http://localhost:3010/*",
-                "http://127.0.0.1:3000/*",
                 "*://*.narrativee.com/*"
             ],
             "js": [

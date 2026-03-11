@@ -42,8 +42,9 @@ export async function fetchSubstackPosts(publicationUrl: string, limit: number =
         const archiveUrl = `${baseUrl}/archive?sort=new`;
         const archiveRes = await fetch(archiveUrl, {
             headers: {
-                'Accept': 'text/html',
-                'User-Agent': 'Mozilla/5.0 (compatible; Narrativee/1.0)'
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
             },
             next: { revalidate: 3600 }
         });
@@ -103,7 +104,10 @@ export async function fetchSubstackPosts(publicationUrl: string, limit: number =
         // Now fetch RSS for content of recent posts
         const feedUrl = `${baseUrl}/feed`;
         const feedRes = await fetch(feedUrl, {
-            headers: { 'Accept': 'application/rss+xml, application/xml, text/xml' },
+            headers: {
+                'Accept': 'application/rss+xml, application/xml, text/xml',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+            },
             next: { revalidate: 3600 }
         });
 
