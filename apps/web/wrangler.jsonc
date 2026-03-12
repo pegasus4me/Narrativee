@@ -33,13 +33,14 @@
   },
   "vars": {
     "GOOGLE_CLIENT_ID": "711835687460-nelc00l553fq3fee4stpp6j8pvm2hh1o.apps.googleusercontent.com",
-    "GOOGLE_CLIENT_SECRET":"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",
+    "GOOGLE_CLIENT_SECRET": "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",
     "BETTER_AUTH_SECRET": "2dkUq5Tk7TOKH7fKxN7fLl9tdkHQjCjo",
     "PROD_DATABASE_URL": "postgresql://postgres:Rayan_2008@db.nwqzqzzgrbdergqehnso.supabase.co:5432/postgres",
     "LOCAL_DB_URL": "postgres://postgres:password@localhost:5432/postgres",
-    "BACKEND_URL": "https://api.narrativee.com"
+    "BACKEND_URL": "https://api.narrativee.com",
+    "GROK_API_KEY": "xai-7Aruv4fThtVUpJs1BsKN3RwL91ciKRPz4uJNZiVU06LaXhO42GXET53lJOasR5Y9xnd7DltsRFfLfS3R"
   },
-    "hyperdrive": [
+  "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
       "localConnectionString": "postgres://postgres:password@localhost:5432/postgres",
