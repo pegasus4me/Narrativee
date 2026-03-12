@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
+import { authClient } from "../lib/auth-client";
 import {
   Calendar, MessageSquare, Sparkles, BarChart3,
   ArrowRight, ChevronRight, Check, Zap, TrendingUp,
@@ -148,6 +149,7 @@ export default function Home() {
   const router = useRouter();
   const [rotationIndex, setRotationIndex] = useState(0);
   const namesRotation = ["actionnable data", "smart insights", "auto scheduling"];
+  const { data: session, isPending } = authClient.useSession();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -210,10 +212,12 @@ export default function Home() {
               className="flex flex-col sm:flex-row items-center gap-4 mt-10"
             >
               <PrimaryButton
-                onClick={() => router.push("/auth/signup")}
+                onClick={() => {
+                  session ? router.push("/dashboard") : router.push("/auth/signup");
+                }}
                 className="px-8 py-3 text-base pulse-cta"
               >
-                Start for Free
+                {session ? "Dashboard" : "Start for Free"}
                 <ArrowRight className="w-4 h-4 ml-2 inline" />
               </PrimaryButton>
               <button
