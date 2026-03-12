@@ -213,7 +213,7 @@ export default function Home() {
             >
               <PrimaryButton
                 onClick={() => {
-                  session ? router.push("/dashboard") : router.push("/auth/signup");
+                  session ? router.push("/workspace") : router.push("/auth/signup");
                 }}
                 className="px-8 py-3 text-base pulse-cta"
               >
