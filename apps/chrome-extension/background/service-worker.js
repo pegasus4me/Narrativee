@@ -1,6 +1,91 @@
 // Background service worker - handles API calls to OpenRouter
+
+// ==========================================
+// ALARM-BASED SCHEDULER
+// ==========================================
+
+// When the alarm fires, fetch the post from storage and open Substack to post it
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+    if (!alarm.name.startsWith('narrativee_post_')) return;
+
+    const postId = alarm.name.replace('narrativee_post_', '');
+    console.log('⏰ Alarm fired for post:', postId);
+
+    const data = await chrome.storage.local.get(['narrativee_scheduled_posts']);
+    const scheduledPosts = data.narrativee_scheduled_posts || {};
+    const post = scheduledPosts[postId];
+
+    if (!post) {
+        console.warn('⏰ No post found in storage for alarm:', postId);
+        return;
+    }
+
+    // Remove the post from storage (it's firing now)
+    delete scheduledPosts[postId];
+    await chrome.storage.local.set({ narrativee_scheduled_posts: scheduledPosts });
+
+    console.log('⏰ Posting scheduled note:', post.content.substring(0, 50));
+
+    // Fire the same OPEN_SUBSTACK_DRAFT flow used by manual posting
+    chrome.storage.local.set({ 'pending_draft': { content: post.content } }, () => {
+        chrome.tabs.create({ url: 'https://substack.com/home' }, (tab) => {
+            console.log('⏰ Opened Substack tab for scheduled post', tab?.id);
+            // Notify Narrativee tab that the post was sent
+            setTimeout(() => {
+                forwardScheduledPostResult(postId, true);
+            }, 10000);
+        });
+    });
+});
+
+function forwardScheduledPostResult(postId, success) {
+    chrome.tabs.query({}, (allTabs) => {
+        const narrativeeTabs = allTabs.filter(t =>
+            t.url && (t.url.includes('narrativee.com') || t.url.includes('localhost:3010') || t.url.includes('localhost:3000'))
+        );
+        narrativeeTabs.forEach(t => {
+            chrome.tabs.sendMessage(t.id, {
+                type: 'NARRATIVEE_SCHEDULED_POST_FIRED',
+                postId,
+                success
+            }, () => { if (chrome.runtime.lastError) { } });
+        });
+    });
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'SCHEDULE_POST') {
+        const { postId, content, scheduledTimestamp } = message;
+        console.log('📅 Scheduling post', postId, 'for', new Date(scheduledTimestamp).toISOString());
+
+        chrome.storage.local.get(['narrativee_scheduled_posts'], (data) => {
+            const scheduledPosts = data.narrativee_scheduled_posts || {};
+            scheduledPosts[postId] = { postId, content, scheduledTimestamp };
+            chrome.storage.local.set({ narrativee_scheduled_posts: scheduledPosts }, () => {
+                const delayInMinutes = Math.max(1, (scheduledTimestamp - Date.now()) / 60000);
+                chrome.alarms.create(`narrativee_post_${postId}`, { delayInMinutes });
+                console.log(`📅 Alarm set for ${delayInMinutes.toFixed(1)} minutes from now`);
+                sendResponse({ success: true });
+            });
+        });
+        return true;
+    }
+
+    if (message.type === 'CANCEL_SCHEDULED_POST') {
+        const { postId } = message;
+        chrome.alarms.clear(`narrativee_post_${postId}`, () => {
+            chrome.storage.local.get(['narrativee_scheduled_posts'], (data) => {
+                const scheduledPosts = data.narrativee_scheduled_posts || {};
+                delete scheduledPosts[postId];
+                chrome.storage.local.set({ narrativee_scheduled_posts: scheduledPosts });
+                sendResponse({ success: true });
+            });
+        });
+        return true;
+    }
+
     if (message.type === 'GENERATE_COMMENT') {
+
         generateComment(message.context)
             .then(comment => sendResponse({ success: true, comment }))
             .catch(error => sendResponse({ success: false, error: error.message }));

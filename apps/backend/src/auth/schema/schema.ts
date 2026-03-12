@@ -141,11 +141,30 @@ export const inspirations = pgTable("inspirations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const scheduledNotes = pgTable("scheduled_notes", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  scheduledDate: text("scheduled_date").notNull(),
+  scheduledTime: text("scheduled_time"),
+  status: text("status").notNull().default("draft"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   posts: many(posts),
   notes: many(notes),
+  scheduledNotes: many(scheduledNotes),
+}));
+
+export const scheduledNotesRelations = relations(scheduledNotes, ({ one }) => ({
+  user: one(user, {
+    fields: [scheduledNotes.userId],
+    references: [user.id],
+  }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

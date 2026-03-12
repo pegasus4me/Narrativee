@@ -65,6 +65,7 @@ import postsRouter from './routes/posts';
 import notesRouter from './routes/notes';
 import subscribersRouter from './routes/subscribers';
 import inspirationsRouter from './routes/inspirations';
+import scheduledNotesRouter from './routes/scheduled-notes';
 
 app.use('/api/user', userRouter);
 // app.use('/api/events', eventsRouter);
@@ -78,6 +79,7 @@ app.use('/api/posts', postsRouter);
 app.use('/api/notes', notesRouter);
 app.use('/api/subscribers', subscribersRouter);
 app.use('/api/inspirations', inspirationsRouter);
+app.use('/api/scheduled-notes', scheduledNotesRouter);
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

@@ -52,6 +52,28 @@
             });
         }
 
+        if (event.data?.type === 'NARRATIVEE_SCHEDULE_POST') {
+            const p = event.data.payload || event.data;
+            console.log('📅 Schedule request received from Web App:', p);
+            chrome.runtime.sendMessage({
+                type: 'SCHEDULE_POST',
+                postId: p.postId,
+                content: p.content,
+                scheduledTimestamp: p.scheduledTimestamp
+            }, (response) => {
+                window.postMessage({ type: 'NARRATIVEE_SCHEDULE_POST_ACK', postId: p.postId, success: response?.success }, '*');
+            });
+        }
+
+        if (event.data?.type === 'NARRATIVEE_CANCEL_SCHEDULED_POST') {
+            const p = event.data.payload || event.data;
+            console.log('🗑️ Cancel schedule request from Web App:', p.postId);
+            chrome.runtime.sendMessage({
+                type: 'CANCEL_SCHEDULED_POST',
+                postId: p.postId
+            });
+        }
+
         if (event.data?.type === 'NARRATIVEE_START_STATS_SYNC') {
             console.log('🧙‍♂️ Stats sync requested from Web App');
             chrome.runtime.sendMessage({
@@ -1050,23 +1072,7 @@
             }
         }, 1000);
 
-        window.addEventListener('message', async (event) => {
-            // Validate origin if needed, but for localhost dev it's fine
-            const { type, payload } = event.data || {};
-
-            if (type === 'NARRATIVEE_PUBLISH_POST') {
-                console.log('Bridge: Received publish request', payload);
-                try {
-                    const response = await chrome.runtime.sendMessage({
-                        type: 'OPEN_SUBSTACK_DRAFT',
-                        draft: payload
-                    });
-                    console.log('Bridge: Sent to background', response);
-                } catch (err) {
-                    console.error('Bridge: Failed to send to background', err);
-                }
-            }
-        });
+        // NOTE: NARRATIVEE_PUBLISH_POST is already handled by the main message listener at the top of this file.
     }
 
     init();

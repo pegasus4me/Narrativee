@@ -41,6 +41,20 @@ export default function IDailyScheduler() {
             if (event.data?.type === 'NARRATIVEE_EXTENSION_READY') {
                 setIsExtensionConnected(true);
             }
+            // Mark a post as published when its alarm fires
+            if (event.data?.type === 'NARRATIVEE_SCHEDULED_POST_FIRED') {
+                const { postId } = event.data;
+                setPosts(prev => prev.map(p =>
+                    p.id === postId ? { ...p, status: 'published' as const } : p
+                ));
+                // Persist status change to DB
+                fetch(`${API_URL}/scheduled-notes/${postId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ status: 'published' })
+                }).catch(console.error);
+            }
         };
 
         window.addEventListener('message', handleMessage);
@@ -84,22 +98,57 @@ export default function IDailyScheduler() {
     const currentDateKey = formatDateKey(selectedDate);
     const isToday = currentDateKey === formatDateKey(new Date());
 
-    // Load from local storage
+    // Load from database
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem("narrativee_scheduler_posts_v3");
-            if (saved) {
-                try {
-                    setPosts(JSON.parse(saved));
-                } catch (e) { }
+        const fetchNotes = async () => {
+            try {
+                const res = await fetch(`${API_URL}/scheduled-notes`, { credentials: 'include' });
+                console.log('[Scheduler] GET /scheduled-notes status:', res.status);
+                if (res.ok) {
+                    const data = await res.json();
+                    console.log('[Scheduler] Loaded notes from DB:', data.notes?.length || 0);
+                    const mapped: Post[] = (data.notes || []).map((n: any) => ({
+                        id: n.id,
+                        content: n.content,
+                        time: n.scheduledTime || undefined,
+                        status: n.status as Post['status'],
+                        date: n.scheduledDate,
+                    }));
+                    setPosts(mapped);
+                } else {
+                    console.error('[Scheduler] GET failed:', await res.text());
+                }
+            } catch (e) {
+                console.error('Failed to fetch scheduled notes:', e);
             }
-        }
+        };
+        fetchNotes();
     }, []);
 
-    // Save to local storage
+    // Save helper — updates local state only (API calls happen at the call site)
     const savePosts = (newPosts: Post[]) => {
         setPosts(newPosts);
-        localStorage.setItem("narrativee_scheduler_posts_v3", JSON.stringify(newPosts));
+    };
+
+    // Persist a single note to the DB
+    const persistNote = async (post: Post) => {
+        try {
+            const res = await fetch(`${API_URL}/scheduled-notes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    id: post.id,
+                    content: post.content,
+                    scheduledDate: post.date,
+                    scheduledTime: post.time || null,
+                    status: post.status,
+                }),
+            });
+            console.log('[Scheduler] POST /scheduled-notes status:', res.status, await res.json());
+        } catch (e) {
+            console.error('Failed to save note:', e);
+        }
     };
 
     // Handle text selection to show enhance button
@@ -162,7 +211,7 @@ export default function IDailyScheduler() {
         }
     }, [showEnhanceButton]);
 
-    const handleSavePost = () => {
+    const handleSavePost = async (scheduleViaExtension = false) => {
         if (!editContent.trim()) {
             setIsCreating(false);
             setEditingId(null);
@@ -173,20 +222,38 @@ export default function IDailyScheduler() {
             const newPost: Post = {
                 id: crypto.randomUUID(),
                 content: editContent,
-                time: editTime,
+                time: editTime || undefined,
                 status: editTime ? "scheduled" : "draft",
                 date: currentDateKey
             };
             savePosts([...posts, newPost]);
+            await persistNote(newPost);
+
+            // Register the alarm in the extension if scheduling
+            if (editTime && scheduleViaExtension) {
+                const [hours, minutes] = editTime.split(':').map(Number);
+                const scheduledDate = new Date(currentDateKey);
+                scheduledDate.setHours(hours ?? 0, minutes ?? 0, 0, 0);
+                dispatchMessage('NARRATIVEE_SCHEDULE_POST', {
+                    postId: newPost.id,
+                    content: editContent,
+                    scheduledTimestamp: scheduledDate.getTime()
+                });
+            }
+
             setIsCreating(false);
         } else if (editingId) {
+            const updatedPost = posts.find(p => p.id === editingId);
             const updated = posts.map(p => p.id === editingId ? { ...p, content: editContent, time: editTime } : p);
             savePosts(updated);
+            if (updatedPost) {
+                await persistNote({ ...updatedPost, content: editContent, time: editTime });
+            }
             setEditingId(null);
         }
 
-        setEditContent("");
-        setEditTime("");
+        setEditContent('');
+        setEditTime('');
     };
 
     const startEditing = (post: Post) => {
@@ -203,9 +270,17 @@ export default function IDailyScheduler() {
         setEditTime("");
     };
 
-    const deletePost = (id: string) => {
+    const deletePost = async (id: string) => {
         if (confirm("Are you sure you want to delete this post?")) {
             savePosts(posts.filter(p => p.id !== id));
+            try {
+                await fetch(`${API_URL}/scheduled-notes/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                });
+            } catch (e) {
+                console.error('Failed to delete note:', e);
+            }
         }
     };
 
@@ -228,6 +303,10 @@ export default function IDailyScheduler() {
         const newDateKey = formatDateKey(dateObj);
 
         savePosts(posts.map(p => p.id === id ? { ...p, date: newDateKey } : p));
+        const movedPost = posts.find(p => p.id === id);
+        if (movedPost) {
+            persistNote({ ...movedPost, date: newDateKey });
+        }
     };
 
     // Dispatch message to Chrome Extension
@@ -238,25 +317,29 @@ export default function IDailyScheduler() {
         }
     };
 
-    const toggleStatus = (id: string) => {
-        savePosts(posts.map(p => {
-            if (p.id === id) {
-                const newStatus = p.status === 'published' ? 'draft' : 'published';
+    const toggleStatus = async (id: string) => {
+        const post = posts.find(p => p.id === id);
+        if (!post) return;
 
-                // If publishing, send message to extension
-                if (newStatus === 'published') {
-                    dispatchMessage("NARRATIVEE_PUBLISH_POST", {
-                        id: p.id,
-                        content: p.content,
-                        time: p.time,
-                        date: p.date
-                    });
-                }
+        const statusCycle: Record<string, "draft" | "scheduled" | "published"> = {
+            draft: "scheduled",
+            scheduled: "published",
+            published: "draft"
+        };
+        const newStatus = statusCycle[post.status] || "draft";
 
-                return { ...p, status: newStatus };
-            }
-            return p;
-        }));
+        savePosts(posts.map(p => p.id === id ? { ...p, status: newStatus } : p));
+
+        try {
+            await fetch(`${API_URL}/scheduled-notes/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ status: newStatus }),
+            });
+        } catch (e) {
+            console.error('Failed to update status:', e);
+        }
     };
 
     const filteredPosts = posts.filter(p => p.date === currentDateKey);
@@ -451,7 +534,8 @@ export default function IDailyScheduler() {
                             <div className="flex justify-end gap-2 pt-2 border-t border-gray-700">
                                 <button onClick={() => setIsCreating(false)} className="text-gray-400 hover:text-gray-200 text-sm px-3 py-1">Cancel</button>
                                 <button onClick={() => {
-                                    handleSavePost();
+                                    // Post Now: immediate publish via extension
+                                    handleSavePost(false);
                                     dispatchMessage("NARRATIVEE_PUBLISH_POST", {
                                         content: editContent,
                                         time: editTime,
@@ -460,7 +544,7 @@ export default function IDailyScheduler() {
                                 }} className="bg-[#2a2b2d] border border-gray-600 text-gray-200 text-sm px-3 py-1.5 rounded-md hover:bg-gray-700">
                                     Post Now
                                 </button>
-                                <button onClick={handleSavePost} className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-md hover:bg-blue-500">Schedule</button>
+                                <button onClick={() => handleSavePost(true)} className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-md hover:bg-blue-500">Schedule</button>
                             </div>
                         </div>
                     </div>
