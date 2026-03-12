@@ -121,8 +121,42 @@
                 const noteLink = item.querySelector('a[href*="/note/"]');
                 const titleDate = noteLink?.getAttribute('title') || null;
                 const timeEl = item.querySelector('time[datetime], [datetime]');
-                const publishedAt = timeEl?.getAttribute('datetime') ||
-                    (titleDate ? new Date(titleDate).toISOString() : null);
+                let publishedAt = timeEl?.getAttribute('datetime');
+
+                if (!publishedAt && titleDate) {
+                    try {
+                        publishedAt = new Date(titleDate).toISOString();
+                    } catch (e) { /* ignore invalid dates */ }
+                }
+
+                // If both fail, try parsing relative time text (e.g. "2 hr ago", "Mar 12")
+                if (!publishedAt) {
+                    const timeTextEl = item.querySelector('time, .timestamp, a[href*="/note/"] > span');
+                    if (timeTextEl && timeTextEl.textContent) {
+                        const text = timeTextEl.textContent.trim().toLowerCase();
+                        const now = new Date();
+                        if (text.includes('sec') || text === 'just now') {
+                            publishedAt = now.toISOString();
+                        } else if (text.includes('min')) {
+                            const mins = parseInt(text) || 1;
+                            publishedAt = new Date(now.getTime() - mins * 60000).toISOString();
+                        } else if (text.includes('hr') || text.includes('hour')) {
+                            const hrs = parseInt(text) || 1;
+                            publishedAt = new Date(now.getTime() - hrs * 3600000).toISOString();
+                        } else if (text.includes('day')) {
+                            const days = parseInt(text) || 1;
+                            publishedAt = new Date(now.getTime() - days * 86400000).toISOString();
+                        } else {
+                            // Assume it's a date string like "Mar 12"
+                            try {
+                                const parsed = new Date(`${text}, ${now.getFullYear()}`);
+                                if (!isNaN(parsed.getTime())) {
+                                    publishedAt = parsed.toISOString();
+                                }
+                            } catch (e) { }
+                        }
+                    }
+                }
 
                 // ── Metrics ───────────────────────────────────────────────
                 // ── Metrics ───────────────────────────────────────────────
