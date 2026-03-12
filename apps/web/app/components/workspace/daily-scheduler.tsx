@@ -105,7 +105,7 @@ export default function IDailyScheduler() {
                 const res = await fetch(`${API_URL}/scheduled-notes`, { credentials: 'include' });
                 console.log('[Scheduler] GET /scheduled-notes status:', res.status);
                 if (res.ok) {
-                    const data = await res.json();
+                    const data: any = await res.json();
                     console.log('[Scheduler] Loaded notes from DB:', data.notes?.length || 0);
                     const mapped: Post[] = (data.notes || []).map((n: any) => ({
                         id: n.id,
@@ -435,7 +435,7 @@ export default function IDailyScheduler() {
                                 />
                                 <div className="flex justify-end gap-2 pt-2 border-t border-gray-700">
                                     <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-200 text-sm px-3 py-1">Cancel</button>
-                                    <button onClick={handleSavePost} className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-md hover:bg-blue-500">Save</button>
+                                    <button onClick={() => handleSavePost()} className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-md hover:bg-blue-500">Save</button>
                                 </div>
                             </div>
                         ) : (
