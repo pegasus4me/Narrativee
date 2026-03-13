@@ -1,4 +1,4 @@
-import { ArrowUpRight, BarChart2, Eye, MessageSquare, ThumbsUp, Users, Calendar, Activity } from "lucide-react";
+import { ArrowUpRight, BarChart2, Eye, MessageSquare, ThumbsUp, Users, Calendar, Activity, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PostsAPI, NotesAPI, Stats, NoteStats, Post, Note } from "@/lib/api/posts";
 import { MetricsAnalysis } from "./MetricsAnalysis";
@@ -81,35 +81,38 @@ export function StatsOverview() {
 
     const engagementScore = totalLikes * 1 + totalComments * 3 + totalRestacks * 5;
 
-    const statItems = [
-        {
-            label: "Total Likes",
+    {
+        label: "Total Likes",
             value: totalLikes.toLocaleString(),
-            icon: ThumbsUp,
-            color: "text-purple-400",
-            bg: "bg-purple-900/20",
-        },
-        {
-            label: "Total Comments",
+                icon: ThumbsUp,
+                    color: "text-purple-400",
+                        bg: "bg-purple-900/20",
+                            tooltip: "Combined likes from all your Notes and Newsletter Posts"
+    },
+    {
+        label: "Total Comments",
             value: totalComments.toLocaleString(),
-            icon: MessageSquare,
-            color: "text-orange-400",
-            bg: "bg-orange-900/20",
-        },
-        {
-            label: "Engagement Score",
+                icon: MessageSquare,
+                    color: "text-orange-400",
+                        bg: "bg-orange-900/20",
+                            tooltip: "Combined comments from all your Notes and Newsletter Posts"
+    },
+    {
+        label: "Engagement Score",
             value: engagementScore.toLocaleString(),
-            icon: Activity,
-            color: "text-green-400",
-            bg: "bg-green-900/20",
-        },
-        {
-            label: "Best Posting Day",
+                icon: Activity,
+                    color: "text-green-400",
+                        bg: "bg-green-900/20",
+                            tooltip: "Weighted score: 1x Like + 3x Comment + 5x Restack/Share"
+    },
+    {
+        label: "Best Posting Day",
             value: bestDay,
-            icon: Calendar,
-            color: "text-pink-400",
-            bg: "bg-pink-900/20",
-        },
+                icon: Calendar,
+                    color: "text-pink-400",
+                        bg: "bg-pink-900/20",
+                            tooltip: "The day of the week your content gets the highest average engagement"
+    },
     ];
 
     if (loading) {
@@ -132,9 +135,21 @@ export function StatsOverview() {
                     >
 
                         <div>
-                            <h3 className="text-md font-medium text-gray-400 mb-1">
-                                {stat.label}
-                            </h3>
+                            <div className="flex items-center gap-1.5 mb-1 group relative">
+                                <h3 className="text-md font-medium text-gray-400">
+                                    {stat.label}
+                                </h3>
+                                {stat.tooltip && (
+                                    <>
+                                        <Info className="w-4 h-4 text-gray-500 cursor-help" />
+                                        <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-gray-800 text-xs text-gray-200 rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
+                                            {stat.tooltip}
+                                            {/* little arrow at bottom */}
+                                            <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-gray-800"></div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                             <h4 className="text-5xl font-bold text-gray-100 truncate">
                                 {stat.value}
                             </h4>
