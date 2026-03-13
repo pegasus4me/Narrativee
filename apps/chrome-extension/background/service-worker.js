@@ -27,14 +27,33 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     console.log('⏰ Posting scheduled note:', post.content.substring(0, 50));
 
     // Fire the same OPEN_SUBSTACK_DRAFT flow used by manual posting
-    chrome.storage.local.set({ 'pending_draft': { content: post.content } }, () => {
-        chrome.tabs.create({ url: 'https://substack.com/home' }, (tab) => {
-            console.log('⏰ Opened Substack tab for scheduled post', tab?.id);
-            // Notify Narrativee tab that the post was sent
-            setTimeout(() => {
-                forwardScheduledPostResult(postId, true);
-            }, 10000);
+    // Use direct message passing to avoid race conditions with multiple alarms
+    chrome.tabs.create({ url: 'https://substack.com/home' }, (tab) => {
+        const postingTabId = tab?.id;
+        if (!postingTabId) return;
+
+        console.log('⏰ Opened Substack tab for scheduled post', postingTabId);
+
+        chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+            if (tabId === postingTabId && info.status === 'complete') {
+                chrome.tabs.onUpdated.removeListener(listener);
+                console.log('⏰ Tab loaded, sending draft to inject');
+
+                // Let the target page settle slightly before injecting
+                setTimeout(() => {
+                    chrome.tabs.sendMessage(postingTabId, {
+                        type: 'INJECT_NARRATIVEE_DRAFT',
+                        draft: { content: post.content },
+                        autoPost: true
+                    });
+                }, 2000);
+            }
         });
+
+        // Notify Narrativee tab that the post was sent
+        setTimeout(() => {
+            forwardScheduledPostResult(postId, true);
+        }, 10000);
     });
 });
 
@@ -62,9 +81,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             const scheduledPosts = data.narrativee_scheduled_posts || {};
             scheduledPosts[postId] = { postId, content, scheduledTimestamp };
             chrome.storage.local.set({ narrativee_scheduled_posts: scheduledPosts }, () => {
-                const delayInMinutes = Math.max(1, (scheduledTimestamp - Date.now()) / 60000);
-                chrome.alarms.create(`narrativee_post_${postId}`, { delayInMinutes });
-                console.log(`📅 Alarm set for ${delayInMinutes.toFixed(1)} minutes from now`);
+                // Use exact timestamp to avoid past-date math errors
+                chrome.alarms.create(`narrativee_post_${postId}`, { when: scheduledTimestamp });
+                console.log(`📅 Alarm set for exact timestamp: ${new Date(scheduledTimestamp).toLocaleString()}`);
                 sendResponse({ success: true });
             });
         });
@@ -138,42 +157,51 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'OPEN_SUBSTACK_DRAFT') {
         console.log('🚀 Background: Received OPEN_SUBSTACK_DRAFT', message.draft);
 
-        // 1. Store the draft content
-        chrome.storage.local.set({ 'pending_draft': message.draft }, () => {
-            console.log('🚀 Background: Draft saved to storage');
+        // Open Substack New Note/Post page directly
+        chrome.tabs.create({ url: 'https://substack.com/home' }, (tab) => {
+            if (chrome.runtime.lastError) {
+                console.error('🚀 Background: ERROR opening tab', chrome.runtime.lastError);
+                sendResponse({ success: false, error: chrome.runtime.lastError.message });
+            } else {
+                console.log('🚀 Background: Opened Substack tab', tab?.id);
+                const postingTabId = tab?.id;
 
-            // 2. Open Substack New Note/Post page
-            chrome.tabs.create({ url: 'https://substack.com/home' }, (tab) => {
-                if (chrome.runtime.lastError) {
-                    console.error('🚀 Background: ERROR opening tab', chrome.runtime.lastError);
-                    sendResponse({ success: false, error: chrome.runtime.lastError.message });
-                } else {
-                    console.log('🚀 Background: Opened Substack tab', tab?.id);
-                    const postingTabId = tab?.id;
+                // Send the draft directly to the new tab once it loads
+                chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                    if (tabId === postingTabId && info.status === 'complete') {
+                        chrome.tabs.onUpdated.removeListener(listener);
+                        console.log('🚀 Tab loaded, sending manual draft to inject');
 
-                    // Listen for the NOTE_POSTED signal from content script
-                    function onNotePosted(msg, msgSender) {
-                        if (msgSender.tab?.id === postingTabId && msg.type === 'NOTE_POSTED') {
-                            chrome.runtime.onMessage.removeListener(onNotePosted);
-                            clearTimeout(safetyTimeout);
-                            console.log('🚀 Background: Note posted confirmed, will close tab in 3s');
-                            // Close the tab after a short delay so user sees success banner
-                            setTimeout(() => {
-                                try { chrome.tabs.remove(postingTabId); } catch (e) { }
-                            }, 3000);
-                        }
+                        setTimeout(() => {
+                            chrome.tabs.sendMessage(postingTabId, {
+                                type: 'INJECT_NARRATIVEE_DRAFT',
+                                draft: message.draft,
+                                autoPost: false
+                            });
+                        }, 2000);
                     }
-                    chrome.runtime.onMessage.addListener(onNotePosted);
+                });
 
-                    // Safety: stop listening after 2 minutes (don't leak listeners)
-                    const safetyTimeout = setTimeout(() => {
+                // Listen for the NOTE_POSTED signal from content script (optional cleanup)
+                function onNotePosted(msg, msgSender) {
+                    if (msgSender.tab?.id === postingTabId && msg.type === 'NOTE_POSTED') {
                         chrome.runtime.onMessage.removeListener(onNotePosted);
-                        console.log('🚀 Background: Posting listener expired (2min)');
-                    }, 120000);
-
-                    sendResponse({ success: true, tabId: postingTabId });
+                        clearTimeout(safetyTimeout);
+                        console.log('🚀 Background: Note posted confirmed, will close tab in 3s');
+                        setTimeout(() => {
+                            try { chrome.tabs.remove(postingTabId); } catch (e) { }
+                        }, 3000);
+                    }
                 }
-            });
+                chrome.runtime.onMessage.addListener(onNotePosted);
+
+                const safetyTimeout = setTimeout(() => {
+                    chrome.runtime.onMessage.removeListener(onNotePosted);
+                    console.log('🚀 Background: Posting listener expired (2min)');
+                }, 120000);
+
+                sendResponse({ success: true, tabId: postingTabId });
+            }
         });
         return true;
     }

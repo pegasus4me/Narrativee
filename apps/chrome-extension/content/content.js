@@ -113,43 +113,21 @@
         // Start observing immediately
         observeForReplyInputs();
 
-        // Check for pending drafts from Narrativee
-        checkPendingDraft();
+        // Message listener added at top level, no need for checkPendingDraft Polling
 
         // Also try to inject after delays
         setTimeout(tryInject, 1000);
         setTimeout(tryInject, 2000);
     }
 
-    async function checkPendingDraft() {
-        console.log('🔵 Narrativee: checkPendingDraft() called on', window.location.href);
-
-        if (!window.location.hostname.includes('substack.com')) {
-            console.log('🔵 Narrativee: Not on substack.com, skipping');
-            return;
+    // Listen for direct draft injection from background service worker
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.type === 'INJECT_NARRATIVEE_DRAFT') {
+            console.log('🔵 Narrativee: Received INJECT_NARRATIVEE_DRAFT', message.draft);
+            retryInsertDraft(message.draft, 0);
+            sendResponse({ success: true });
         }
-
-        try {
-            const data = await chrome.storage.local.get(['pending_draft']);
-            console.log('🔵 Narrativee: Storage data:', data);
-
-            if (data.pending_draft) {
-                console.log('🔵 Narrativee: Found pending draft!', data.pending_draft);
-
-                // Clear it immediately so we don't re-paste on refresh
-                await chrome.storage.local.remove('pending_draft');
-                console.log('🔵 Narrativee: Draft cleared from storage');
-
-                // Try to find the editor and insert
-                // We'll retry a few times as the page loads
-                retryInsertDraft(data.pending_draft, 0);
-            } else {
-                console.log('🔵 Narrativee: No pending draft found in storage');
-            }
-        } catch (e) {
-            console.error('🔵 Narrativee: Error checking draft', e);
-        }
-    }
+    });
 
     function retryInsertDraft(draft, attempt) {
         const MAX_ATTEMPTS = 30; // Wait up to 15s total
