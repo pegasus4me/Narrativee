@@ -81,38 +81,39 @@ export function StatsOverview() {
 
     const engagementScore = totalLikes * 1 + totalComments * 3 + totalRestacks * 5;
 
-    {
-        label: "Total Likes",
+    const statItems = [
+        {
+            label: "Total Likes",
             value: totalLikes.toLocaleString(),
-                icon: ThumbsUp,
-                    color: "text-purple-400",
-                        bg: "bg-purple-900/20",
-                            tooltip: "Combined likes from all your Notes and Newsletter Posts"
-    },
-    {
-        label: "Total Comments",
+            icon: ThumbsUp,
+            color: "text-purple-400",
+            bg: "bg-purple-900/20",
+            tooltip: "Combined likes from all your Notes and Newsletter Posts"
+        },
+        {
+            label: "Total Comments",
             value: totalComments.toLocaleString(),
-                icon: MessageSquare,
-                    color: "text-orange-400",
-                        bg: "bg-orange-900/20",
-                            tooltip: "Combined comments from all your Notes and Newsletter Posts"
-    },
-    {
-        label: "Engagement Score",
+            icon: MessageSquare,
+            color: "text-orange-400",
+            bg: "bg-orange-900/20",
+            tooltip: "Combined comments from all your Notes and Newsletter Posts"
+        },
+        {
+            label: "Engagement Score",
             value: engagementScore.toLocaleString(),
-                icon: Activity,
-                    color: "text-green-400",
-                        bg: "bg-green-900/20",
-                            tooltip: "Weighted score: 1x Like + 3x Comment + 5x Restack/Share"
-    },
-    {
-        label: "Best Posting Day",
+            icon: Activity,
+            color: "text-green-400",
+            bg: "bg-green-900/20",
+            tooltip: "Weighted score: 1x Like + 3x Comment + 5x Restack/Share"
+        },
+        {
+            label: "Best Posting Day",
             value: bestDay,
-                icon: Calendar,
-                    color: "text-pink-400",
-                        bg: "bg-pink-900/20",
-                            tooltip: "The day of the week your content gets the highest average engagement"
-    },
+            icon: Calendar,
+            color: "text-pink-400",
+            bg: "bg-pink-900/20",
+            tooltip: "The day of the week your content gets the highest average engagement"
+        },
     ];
 
     if (loading) {
