@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Loader2, Rss, TrendingUp, Filter, MessageSquare } from "lucide-react";
 import EngagementCard from "@/app/components/workspace/EngagementCard";
-import { generateEngagementComment } from "@/app/actions/agent";
+import { generateEngagementComment } from "@/app/actions/engage";
 import { authClient } from "@/lib/auth-client";
 import { API_URL } from "@/lib/api-config";
 import { useSideBarStore } from "@/app/state/SideBar.store";
