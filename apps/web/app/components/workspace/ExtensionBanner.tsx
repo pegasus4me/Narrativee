@@ -11,7 +11,7 @@ export default function ExtensionBanner({ isSidebarOpen = true }: { isSidebarOpe
 
     return (
         <div className="mt-3">
-            
+
 
             <div
                 className=""
@@ -28,13 +28,13 @@ export default function ExtensionBanner({ isSidebarOpen = true }: { isSidebarOpe
                 <div className="">
                     {/* Header */}
                     <div className="flex items-start justify-between mb-3">
-                       
+
 
 
 
                         {/* CTA */}
                         <a
-                            href="https://chrome.google.com/webstore"
+                            href="https://chromewebstore.google.com/detail/narrativee/cahjgmdjjpihnbhiinmabdcjpppflmni"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-center gap-2 w-full  p-2 rounded-xl text-sm font-semibold text-white bg-primary"
@@ -52,5 +52,5 @@ export default function ExtensionBanner({ isSidebarOpen = true }: { isSidebarOpe
                 </div>
             </div>
         </div>
-            );
+    );
 }

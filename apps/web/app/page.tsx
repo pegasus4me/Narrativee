@@ -232,7 +232,7 @@ export default function Home() {
             </motion.div>
             <div className="flex items-center gap-3 text-gray-400 text-lg mt-8 font-manrope font-light">
               <Image src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg" alt="Chrome Extension" width={30} height={30} className="rounded-lg" />
-              <a className="cursor-pointer text-sm">Download the official narrativee extension</a>
+              <a href="https://chromewebstore.google.com/detail/narrativee/cahjgmdjjpihnbhiinmabdcjpppflmni" target="_blank" rel="noopener noreferrer" className="cursor-pointer text-sm hover:text-white transition-colors">Download the official Narrativee extension</a>
             </div>
           </div>
 
