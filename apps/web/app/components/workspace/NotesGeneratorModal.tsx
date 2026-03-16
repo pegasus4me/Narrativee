@@ -351,30 +351,61 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
         );
     };
 
-    const handleScheduleAll = () => {
+    const handleScheduleAll = async () => {
         const selectedNotes = generatedNotes.filter(n => n.selected);
+        setIsGenerating(true); // Re-use the loading state while saving to DB
 
-        // Save to localStorage in DailyScheduler format
-        const existingPosts = JSON.parse(localStorage.getItem("narrativee_scheduler_posts_v3") || "[]");
+        try {
+            // Save to DB and trigger extension alarms concurrently
+            await Promise.all(selectedNotes.map(async (note) => {
+                const status = note.scheduledTime ? "scheduled" : "draft";
 
-        const newPosts = selectedNotes.map(note => ({
-            id: note.id,
-            content: note.content,
-            time: note.scheduledTime,
-            status: note.scheduledTime ? "scheduled" : "draft",
-            date: note.scheduledDate,
-        }));
+                // 1. Persist to Backend Database
+                const res = await fetch(`${API_URL}/scheduled-notes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        id: note.id,
+                        content: note.content,
+                        scheduledDate: note.scheduledDate,
+                        scheduledTime: note.scheduledTime || null,
+                        status: status,
+                    }),
+                });
 
-        localStorage.setItem(
-            "narrativee_scheduler_posts_v3",
-            JSON.stringify([...existingPosts, ...newPosts])
-        );
+                if (!res.ok) {
+                    console.error("Failed to save note to DB:", await res.text());
+                }
 
-        onScheduleNotes?.(selectedNotes);
-        onClose();
+                // 2. Register alarm with Chrome Extension
+                if (status === "scheduled" && typeof window !== 'undefined') {
+                    const [hours, minutes] = (note.scheduledTime || "09:00").split(':').map(Number);
+                    const scheduledDateObj = new Date(note.scheduledDate || new Date());
+                    scheduledDateObj.setHours(hours ?? 0, minutes ?? 0, 0, 0);
 
-        // Force page refresh to show new posts
-        window.location.reload();
+                    window.postMessage({
+                        type: 'NARRATIVEE_SCHEDULE_POST',
+                        payload: {
+                            postId: note.id,
+                            content: note.content,
+                            scheduledTimestamp: scheduledDateObj.getTime()
+                        }
+                    }, "*");
+                }
+            }));
+
+            onScheduleNotes?.(selectedNotes);
+            onClose();
+
+            // Force page refresh to load new posts from DB into the scheduler
+            window.location.reload();
+        } catch (error) {
+            console.error("Failed to schedule all notes:", error);
+            setError("Failed to save notes to database.");
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     const selectedCount = generatedNotes.filter(n => n.selected).length;
