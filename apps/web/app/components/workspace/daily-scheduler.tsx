@@ -378,11 +378,14 @@ export default function IDailyScheduler() {
     return (
         <div className="flex flex-col h-full rounded-lg overflow-hidden">
             {/* Header Navigation */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-[#2D2E2F]">
-                <div className="flex items-center gap-1" title={isExtensionConnected ? "Extension Connected" : "Extension Not Found"}>
+            <div className="relative flex items-center justify-center px-5 py-3 border-b border-[#2D2E2F]/40">
+                {/* Left side: Connection Indicator */}
+                <div className="absolute left-5 flex items-center gap-1" title={isExtensionConnected ? "Extension Connected" : "Extension Not Found"}>
                     <div className={`w-1.5 h-1.5 rounded-full ${isExtensionConnected ? 'bg-green-500' : 'bg-gray-600'}`} />
                     <span className="text-[9px] text-gray-500">{isExtensionConnected ? 'Linked' : ''}</span>
                 </div>
+                
+                {/* Center: Date Navigation */}
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => changeDate(-1)}
@@ -407,16 +410,16 @@ export default function IDailyScheduler() {
                     >
                         <ChevronRight className="w-4 h-4" />
                     </button>
+
+                    {!isToday && (
+                        <button onClick={() => setSelectedDate(new Date())} className="absolute ml-52 text-xs text-gray-400 hover:text-gray-200 font-medium">
+                            Today
+                        </button>
+                    )}
                 </div>
 
-                {!isToday && (
-                    <button onClick={() => setSelectedDate(new Date())} className="text-xs text-gray-400 hover:text-gray-200 font-medium">
-                        Today
-                    </button>
-                )}
-
-                {/* View Toggle */}
-                <div className="flex bg-[#1e1f21] rounded-lg p-0.5 ml-auto border border-[#2D2E2F]">
+                {/* Right side: View Toggle */}
+                <div className="absolute right-5 flex bg-[#1e1f21] rounded-lg p-0.5 border border-[#2D2E2F]">
                     <button
                         onClick={() => setViewMode("list")}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === "list" ? "bg-[#2a2b2d] text-gray-200 shadow-sm border border-gray-600/50" : "text-gray-500 hover:text-gray-300"}`}
