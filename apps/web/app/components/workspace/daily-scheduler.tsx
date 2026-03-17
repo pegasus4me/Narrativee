@@ -112,7 +112,7 @@ export default function IDailyScheduler() {
 
         const days = [];
         // Pad empty days at start of month
-        for (let i = 0; i < firstDay === 0 ? 6 : firstDay - 1; i++) {
+        for (let i = 0; i < (firstDay === 0 ? 6 : firstDay - 1); i++) {
             days.push(null);
         }
         // Add actual days
