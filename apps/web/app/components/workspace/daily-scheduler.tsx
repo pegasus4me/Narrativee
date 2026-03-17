@@ -378,13 +378,19 @@ export default function IDailyScheduler() {
     return (
         <div className="flex flex-col h-full rounded-lg overflow-hidden">
             {/* Header Navigation */}
-            <div className="relative flex items-center justify-center px-5 py-3 border-b border-[#2D2E2F]/40">
+            <div className="relative flex items-center justify-center px-5 py-3 bg-[#1e1f21]">
                 {/* Left side: Connection Indicator */}
                 <div className="absolute left-5 flex items-center gap-1" title={isExtensionConnected ? "Extension Connected" : "Extension Not Found"}>
                     <div className={`w-1.5 h-1.5 rounded-full ${isExtensionConnected ? 'bg-green-500' : 'bg-gray-600'}`} />
                     <span className="text-[9px] text-gray-500">{isExtensionConnected ? 'Linked' : ''}</span>
+                      {!isToday && (
+                        <button onClick={() => setSelectedDate(new Date())} className=" text-xs text-gray-400 ml-5 hover:text-gray-200 font-medium">
+                            Go to Today
+                        </button>
+                    )}
                 </div>
-                
+
+
                 {/* Center: Date Navigation */}
                 <div className="flex items-center gap-3">
                     <button
@@ -411,11 +417,7 @@ export default function IDailyScheduler() {
                         <ChevronRight className="w-4 h-4" />
                     </button>
 
-                    {!isToday && (
-                        <button onClick={() => setSelectedDate(new Date())} className="absolute ml-52 text-xs text-gray-400 hover:text-gray-200 font-medium">
-                            Today
-                        </button>
-                    )}
+
                 </div>
 
                 {/* Right side: View Toggle */}
