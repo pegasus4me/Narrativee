@@ -409,9 +409,10 @@ export default function IDailyScheduler() {
                     </button>
                 </div>
 
-                <button onClick={() => setSelectedDate(new Date())} className="text-xs text-gray-400 hover:text-gray-200 font-medium">
-                    Today
-                </button>
+                {!isToday && (
+                    <button onClick={() => setSelectedDate(new Date())} className="text-xs text-gray-400 hover:text-gray-200 font-medium">
+                        Today
+                    </button>
                 )}
 
                 {/* View Toggle */}
