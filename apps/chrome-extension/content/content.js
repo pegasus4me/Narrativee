@@ -38,6 +38,16 @@
             console.log('📈 Forwarding scraped subs to web app');
             window.postMessage({ type: 'NARRATIVEE_SUBS_SCRAPED', data: message.data, error: message.error }, '*');
         }
+
+        // Scheduled post fired
+        if (message.type === 'NARRATIVEE_SCHEDULED_POST_FIRED') {
+            console.log('⏰ Forwarding scheduled post fired to web app', message.postId);
+            window.postMessage({
+                type: 'NARRATIVEE_SCHEDULED_POST_FIRED',
+                postId: message.postId,
+                success: message.success
+            }, '*');
+        }
     });
 
     // Listen for messages from Narrativee Web App

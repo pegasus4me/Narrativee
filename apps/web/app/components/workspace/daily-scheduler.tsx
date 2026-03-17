@@ -138,13 +138,38 @@ export default function IDailyScheduler() {
                 if (res.ok) {
                     const data: any = await res.json();
                     console.log('[Scheduler] Loaded notes from DB:', data.notes?.length || 0);
-                    const mapped: Post[] = (data.notes || []).map((n: any) => ({
-                        id: n.id,
-                        content: n.content,
-                        time: n.scheduledTime || undefined,
-                        status: n.status as Post['status'],
-                        date: n.scheduledDate,
-                    }));
+
+                    const now = new Date();
+
+                    const mapped: Post[] = (data.notes || []).map((n: any) => {
+                        let currentStatus = n.status as Post['status'];
+
+                        // Failsafe: if it was scheduled for a time that is past (by ~2 mins), mark it as published
+                        if (currentStatus === 'scheduled' && n.scheduledDate && n.scheduledTime) {
+                            const [h, m] = n.scheduledTime.split(':').map(Number);
+                            const scheduledTimeObj = new Date(n.scheduledDate);
+                            scheduledTimeObj.setHours(h ?? 0, (m ?? 0) + 2, 0, 0);
+
+                            if (now > scheduledTimeObj) {
+                                currentStatus = 'published';
+                                // Async non-blocking update to backend to catch it up
+                                fetch(`${API_URL}/scheduled-notes/${n.id}/status`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    credentials: 'include',
+                                    body: JSON.stringify({ status: 'published' })
+                                }).catch(e => console.error("Auto-publish fallback failed", e));
+                            }
+                        }
+
+                        return {
+                            id: n.id,
+                            content: n.content,
+                            time: n.scheduledTime || undefined,
+                            status: currentStatus,
+                            date: n.scheduledDate,
+                        };
+                    });
                     setPosts(mapped);
                 } else {
                     console.error('[Scheduler] GET failed:', await res.text());
@@ -383,7 +408,7 @@ export default function IDailyScheduler() {
                 <div className="absolute left-5 flex items-center gap-1" title={isExtensionConnected ? "Extension Connected" : "Extension Not Found"}>
                     <div className={`w-1.5 h-1.5 rounded-full ${isExtensionConnected ? 'bg-green-500' : 'bg-gray-600'}`} />
                     <span className="text-[9px] text-gray-500">{isExtensionConnected ? 'Linked' : ''}</span>
-                      {!isToday && (
+                    {!isToday && (
                         <button onClick={() => setSelectedDate(new Date())} className=" text-xs text-gray-400 ml-5 hover:text-gray-200 font-medium">
                             Go to Today
                         </button>
