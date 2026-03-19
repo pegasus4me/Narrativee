@@ -68,7 +68,7 @@ const FEATURES = [
   {
     icon: Calendar,
     title: "Scheduled Notes",
-    description: "Visual calendar to schedule Substack notes. Set the time, and our Chrome extension auto-publishes for you, even while you sleep.",
+    description: "Schedule a week of notes in one click. Queue up your entire content calendar at once — our Chrome extension auto-publishes each note at exactly the right time.",
     color: "text-primary",
     bg: "bg-primary/10",
     border: "border-primary/20",
@@ -338,7 +338,13 @@ export default function Home() {
             <AnimatedSection>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
-                  <span className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope">Post Queue</span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 mb-4">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    <span className="text-xs font-semibold text-primary font-manrope tracking-wide">Schedule a week of notes in one click</span>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope">Post Queue</span>
+                  </div>
                   <h3 className="text-3xl md:text-4xl font-medium text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
                     Your content calendar, fully automated
                   </h3>
