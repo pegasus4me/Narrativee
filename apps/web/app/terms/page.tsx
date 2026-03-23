@@ -31,7 +31,7 @@ export default function TermsOfService() {
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Description of Service</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            Narrativee is a SaaS platform designed to help businesses optimize trial conversions. The Service provides tools for tracking user engagement, scoring leads, and automating conversion workflows through an integrated SDK and dashboard.
+                            Narrativee is a SaaS platform designed to help Substack creators grow their publications faster. The Service provides tools for scheduling and auto-publishing notes, generating AI-written content in your voice, automating engagement with trending posts, and tracking publication analytics — all from a single dashboard backed by a Chrome extension.
                         </p>
                     </section>
 
