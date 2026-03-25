@@ -166,25 +166,27 @@ export const NoteService = {
     },
 
     /**
-     * Posting heatmap: dayOfWeek (0=Sun) x hour (0-23) counts
+     * Posting heatmap: Date (YYYY-MM-DD) -> counts (last 6 months)
      */
     async getPostingHeatmap(userId: string) {
         const result = await db
             .select({
-                dayOfWeek: sql<number>`EXTRACT(DOW FROM ${notes.publishedAt})::int`,
-                hour: sql<number>`EXTRACT(HOUR FROM ${notes.publishedAt})::int`,
-                count: sql<number>`count(${notes.id})`
+                date: sql<string>`TO_CHAR(DATE_TRUNC('day', ${notes.publishedAt}), 'YYYY-MM-DD')`.as('date'),
+                count: sql<number>`count(${notes.id})::int`.as('count')
             })
             .from(notes)
-            .where(and(eq(notes.userId, userId), isNotNull(notes.publishedAt)))
-            .groupBy(
-                sql`EXTRACT(DOW FROM ${notes.publishedAt})`,
-                sql`EXTRACT(HOUR FROM ${notes.publishedAt})`
-            );
+            .where(
+                and(
+                    eq(notes.userId, userId),
+                    isNotNull(notes.publishedAt),
+                    sql`${notes.publishedAt} >= NOW() - INTERVAL '6 months'`
+                )
+            )
+            .groupBy(sql`DATE_TRUNC('day', ${notes.publishedAt})`)
+            .orderBy(sql`DATE_TRUNC('day', ${notes.publishedAt})`);
 
         return result.map(r => ({
-            dayOfWeek: Number(r.dayOfWeek),
-            hour: Number(r.hour),
+            date: r.date,
             count: Number(r.count),
         }));
     }

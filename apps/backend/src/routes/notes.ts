@@ -103,6 +103,7 @@ router.get('/performance-over-time', requireAuth, async (req: any, res) => {
 router.get('/posting-heatmap', requireAuth, async (req: any, res) => {
     try {
         const data = await NoteService.getPostingHeatmap(req.session.user.id);
+        console.log("API sending posting-heatmap data:", data);
         res.json({ data });
     } catch (error) {
         console.error("Error fetching heatmap:", error);
@@ -143,7 +144,9 @@ router.get('/ai-analysis', requireAuth, async (req: any, res) => {
         const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const dayTotals: Record<number, number> = {};
         for (const cell of heatmap) {
-            dayTotals[cell.dayOfWeek] = (dayTotals[cell.dayOfWeek] ?? 0) + cell.count;
+            const dateObj = new Date(cell.date);
+            const dow = dateObj.getUTCDay();
+            dayTotals[dow] = (dayTotals[dow] ?? 0) + cell.count;
         }
         const bestDay = Object.entries(dayTotals).sort(([, a], [, b]) => b - a)[0];
 
