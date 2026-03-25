@@ -129,6 +129,7 @@ router.post('/create-checkout-session', express.json(), verifyAuth, async (req: 
 
         const session = await stripe.checkout.sessions.create({
             mode: 'subscription',
+            allow_promotion_codes: true,
             payment_method_types: ['card'],
             line_items: [
                 {
