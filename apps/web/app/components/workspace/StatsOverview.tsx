@@ -118,9 +118,9 @@ export function StatsOverview() {
 
     if (loading) {
         return (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="animate-pulse h-32 bg-[#1e1f21] rounded-xl w-full"></div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="animate-pulse h-24 bg-[#1a1b1d] rounded-2xl border border-white/[0.06] w-full"></div>
                 ))}
             </div>
         );
@@ -128,32 +128,29 @@ export function StatsOverview() {
 
     return (
         <div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {statItems.map((stat, index) => (
                     <div
                         key={index}
-                        className="p-6 bg-[#1e1f21] rounded-xl hover:border-gray-700 transition-all flex flex-col justify-between"
+                        className="p-5 bg-[#1a1b1d] rounded-2xl border border-white/[0.06] flex flex-col gap-3"
                     >
-
-                        <div>
-                            <div className="flex items-center gap-1.5 mb-1 group relative">
-                                <h3 className="text-md font-medium text-gray-400">
-                                    {stat.label}
-                                </h3>
-                                {stat.tooltip && (
-                                    <>
-                                        <Info className="w-4 h-4 text-gray-500 cursor-help" />
-                                        <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-gray-800 text-xs text-gray-200 rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
-                                            {stat.tooltip}
-                                            {/* little arrow at bottom */}
-                                            <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-gray-800"></div>
-                                        </div>
-                                    </>
-                                )}
+                        <div className="flex items-center justify-between">
+                            <div className={`p-2 rounded-lg ${stat.bg}`}>
+                                <stat.icon className={`w-4 h-4 ${stat.color}`} />
                             </div>
-                            <h4 className="text-5xl font-bold text-gray-100 truncate">
-                                {stat.value}
-                            </h4>
+                            {stat.tooltip && (
+                                <div className="group relative">
+                                    <Info className="w-3.5 h-3.5 text-gray-600 cursor-help" />
+                                    <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-gray-800 text-xs text-gray-200 rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
+                                        {stat.tooltip}
+                                        <div className="absolute top-full right-3 -mt-1 border-4 border-transparent border-t-gray-800"></div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-gray-100 truncate">{stat.value}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
                         </div>
                     </div>
                 ))}

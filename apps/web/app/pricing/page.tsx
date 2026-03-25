@@ -7,7 +7,7 @@ import PrimaryButton from "../components/commons/PrimaryButton";
 import { PricingPlans } from "../../lib/pricingData";
 import Header from "../components/commons/Header";
 import { API_URL } from "@/lib/api-config";
-
+import { EarlyBirdBanner } from "./components/earlyBird";
 import { useRouter } from "next/navigation";
 import { useGTMTracking } from "../hooks/useGTMTracking";
 
@@ -91,10 +91,7 @@ export default function PricingPage() {
                         No credit card required, cancel anytime
                     </p>
 
-                    {/* ROI Calculator */}
-                    <div className="mt-20 mb-12 px-4">
-                        {/* <ROICalculator /> */}
-                    </div>
+
 
                     {/* Toggle */}
                     <div className="flex items-center justify-center gap-4">
@@ -144,11 +141,21 @@ export default function PricingPage() {
 
                                 <p className="text-white/80 font-medium mb-6 text-lg">{plan.category}</p>
 
-                                <div className="flex items-baseline gap-2 mb-4">
+                                <div className="flex items-baseline gap-2 mb-4 flex-wrap">
+                            
+
                                     <span className="text-7xl font-bold text-white tracking-tight font-urbanist">
-                                        ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                                        {plan.earlyBirdMonthlyPrice && !isAnnual && (
+                                            <span className="text-5xl text-primary font-medium line-through">${plan.monthlyPrice.toFixed(2)}</span>
+                                        )}
+                                        ${isAnnual ? plan.annualPrice : plan.earlyBirdMonthlyPrice || plan.monthlyPrice}
                                     </span>
+                                    <div className="text-sm text-white/80">
                                     <span className="text-gray-500 font-medium">/ month</span>
+                                    {plan.earlyBirdMonthlyPrice && !isAnnual && (
+                                        <span className="text-sm text-primary font-bold ml-2">for the first 3 months  🎉</span>
+                                    )}
+                                    </div>
                                 </div>
 
                                 <p className="text-white/70 leading-relaxed mb-8 text-lg">

@@ -7,71 +7,52 @@ import { SubsChart } from "../components/workspace/SubsChart";
 import { ActivityChart } from "../components/workspace/ActivityChart";
 import { PerformanceChart } from "../components/workspace/PerformanceChart";
 import { PostingHeatmap } from "../components/workspace/PostingHeatmap";
-import { ArrowRight } from "lucide-react";
+
+const Card = ({ title, children }: { title?: string; children: React.ReactNode }) => (
+    <div className="bg-[#1a1b1d] rounded-2xl border border-white/[0.06] p-5">
+        {title && <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-4">{title}</p>}
+        {children}
+    </div>
+);
 
 export default function Workspace() {
-    const router = useRouter();
-
     return (
-        <div className="h-full p-8 overflow-y-auto relative">
-            <div className="max-w-7xl mx-auto flex flex-col gap-8">
+        <div className="h-full overflow-y-auto">
+            <div className="max-w-6xl mx-auto px-8 py-10 flex flex-col gap-10">
 
-                {/* Stats Overview */}
+                {/* Header */}
                 <div>
-                    <h2 className="text-xl font-semibold mb-6 text-gray-100">Overview</h2>
-                    <StatsOverview />
+                    <h1 className="text-2xl font-semibold text-gray-100">Analytics</h1>
+                    <p className="text-sm text-gray-500 mt-1">Track your content performance and growth.</p>
                 </div>
 
-                {/* Top charts: activity + performance */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-[#1e1f21] rounded-xl p-5 border border-gray-800">
-                        <h2 className="text-base font-medium mb-4 text-gray-100">Best Time to Post</h2>
+                {/* Stats row */}
+                <StatsOverview />
+
+                {/* Charts row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <Card title="Best Time to Post">
                         <ActivityChart />
-                    </div>
-                    <div className="bg-[#1e1f21] rounded-xl p-5 border border-gray-800">
-                        <h2 className="text-base font-medium mb-4 text-gray-100">Performance Over Time</h2>
+                    </Card>
+                    <Card title="Performance Over Time">
                         <PerformanceChart />
-                    </div>
+                    </Card>
                 </div>
 
-                {/* Posting Heatmap + Subscribers side by side */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-[#1e1f21] rounded-xl p-5 border border-gray-800">
-                        <h2 className="text-base font-medium mb-4 text-gray-100">Posting Heatmap</h2>
-                        <PostingHeatmap />
-                    </div>
-                    <div className="bg-[#1e1f21] rounded-xl p-5 border border-gray-800">
-                        <h2 className="text-base font-medium mb-4 text-gray-100">Subscribers</h2>
-                        <SubsChart />
-                    </div>
-                </div>
+                {/* Heatmap */}
+                <Card>
+                    <PostingHeatmap />
+                </Card>
 
-                {/* Notes Performance */}
+                {/* Subscribers */}
+                <Card title="Subscribers">
+                    <SubsChart />
+                </Card>
+
+                {/* Notes table */}
                 <div>
-                    <h2 className="text-xl font-light mb-6 text-gray-100">Notes Performance</h2>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-4">Notes Performance</p>
                     <NotesList />
-                </div>
-
-                {/* Navigation to Queue */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div
-                        onClick={() => router.push("/workspace/post-queue")}
-                        className="group bg-[#1e1f21] p-8 rounded-xl border border-gray-700 shadow-sm hover:shadow-md hover:border-blue-500/50 transition-all cursor-pointer flex flex-col items-center text-center gap-4"
-                    >
-                        <div className="w-12 h-12 bg-blue-900/50 text-blue-400 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                            <ArrowRight className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-100 group-hover:text-blue-400">Open Post Queue</h3>
-                            <p className="text-gray-400 mt-1">
-                                Create content, generate notes, and manage your schedule.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="bg-[#1e1f21] p-8 rounded-xl border border-gray-700 border-dashed flex items-center justify-center text-gray-500">
-                        <span className="text-sm">More widgets coming soon...</span>
-                    </div>
                 </div>
 
             </div>

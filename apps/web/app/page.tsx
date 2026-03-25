@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import { authClient } from "../lib/auth-client";
+import { EarlyBirdBanner } from "./pricing/components/earlyBird";
 import {
   Calendar, MessageSquare, Sparkles, BarChart3,
   ArrowRight, ChevronRight, Check, Zap, TrendingUp,
@@ -161,7 +162,7 @@ export default function Home() {
   return (
     <div className="bg-[#0d0d0f] overflow-hidden">
       <Header />
-
+      <EarlyBirdBanner />
       {/* ─── HERO ─────────────────────────────────────── */}
       <main className="container mx-auto">
         <section className="relative grid grid-cols-1 lg:grid-cols-2 items-center">
