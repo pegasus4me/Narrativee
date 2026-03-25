@@ -2,6 +2,8 @@ import { ArrowUpRight, BarChart2, Eye, MessageSquare, ThumbsUp, Users, Calendar,
 import { useEffect, useState } from "react";
 import { PostsAPI, NotesAPI, Stats, NoteStats, Post, Note } from "@/lib/api/posts";
 import { MetricsAnalysis } from "./MetricsAnalysis";
+import { Card } from "@/components/ui/card";
+import { PostingHeatmap } from "./PostingHeatmap";
 
 export function StatsOverview() {
     const [stats, setStats] = useState<Stats | null>(null);
@@ -155,7 +157,11 @@ export function StatsOverview() {
                     </div>
                 ))}
             </div>
-            <MetricsAnalysis />
+                      {/* Heatmap */}
+                            <div className="mt-8 flex flex-row gap-6">
+                                <div className="flex-[2]"><MetricsAnalysis /></div>
+                                <div className="flex-1"><PostingHeatmap /></div>
+                            </div>
         </div>
     );
 }

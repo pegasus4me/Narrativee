@@ -1,6 +1,6 @@
 
 import { db } from "../auth/auth";
-import { notes } from "../auth/schema/schema";
+import { notes, scheduledNotes } from "../auth/schema/schema";
 import { eq, desc, sql, isNotNull, and } from "drizzle-orm";
 
 interface NoteData {
@@ -167,9 +167,15 @@ export const NoteService = {
 
     /**
      * Posting heatmap: Date (YYYY-MM-DD) -> counts (last 6 months)
+     * Merges synced notes (notes table) + notes posted via extension (scheduled_notes table)
      */
     async getPostingHeatmap(userId: string) {
-        const result = await db
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const sixMonthsAgoStr = sixMonthsAgo.toISOString().split('T')[0]!;
+
+        // Synced notes from Substack
+        const syncedResult = await db
             .select({
                 date: sql<string>`TO_CHAR(DATE_TRUNC('day', ${notes.publishedAt}), 'YYYY-MM-DD')`.as('date'),
                 count: sql<number>`count(${notes.id})::int`.as('count')
@@ -185,9 +191,34 @@ export const NoteService = {
             .groupBy(sql`DATE_TRUNC('day', ${notes.publishedAt})`)
             .orderBy(sql`DATE_TRUNC('day', ${notes.publishedAt})`);
 
-        return result.map(r => ({
-            date: r.date,
-            count: Number(r.count),
-        }));
+        // Notes posted via extension (status = published)
+        const scheduledResult = await db
+            .select({
+                date: scheduledNotes.scheduledDate,
+                count: sql<number>`count(${scheduledNotes.id})::int`.as('count')
+            })
+            .from(scheduledNotes)
+            .where(
+                and(
+                    eq(scheduledNotes.userId, userId),
+                    eq(scheduledNotes.status, 'published'),
+                    sql`${scheduledNotes.scheduledDate} >= ${sixMonthsAgoStr}`
+                )
+            )
+            .groupBy(scheduledNotes.scheduledDate)
+            .orderBy(scheduledNotes.scheduledDate);
+
+        // Merge counts by date
+        const map = new Map<string, number>();
+        for (const r of syncedResult) {
+            if (r.date) map.set(r.date, (map.get(r.date) ?? 0) + Number(r.count));
+        }
+        for (const r of scheduledResult) {
+            if (r.date) map.set(r.date, (map.get(r.date) ?? 0) + Number(r.count));
+        }
+
+        return Array.from(map.entries())
+            .map(([date, count]) => ({ date, count }))
+            .sort((a, b) => a.date.localeCompare(b.date));
     }
 };

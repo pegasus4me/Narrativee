@@ -39,10 +39,6 @@ export default function Workspace() {
                     </Card>
                 </div>
 
-                {/* Heatmap */}
-                <Card>
-                    <PostingHeatmap />
-                </Card>
 
                 {/* Subscribers */}
                 <Card title="Subscribers">

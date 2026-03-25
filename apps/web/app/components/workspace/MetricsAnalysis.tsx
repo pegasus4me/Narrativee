@@ -82,7 +82,7 @@ export function MetricsAnalysis() {
             )}
 
             {analysis && !loading && !collapsed && (
-                <div className="px-5 py-5 flex flex-col gap-5">
+                <div className="px-5 py-5 flex flex-col gap-5 max-h-80 overflow-y-auto">
                     {/* Assessment */}
                     <p className="text-sm text-gray-300 leading-relaxed border-l-2 border-violet-500 pl-3">
                         {analysis.assessment}
