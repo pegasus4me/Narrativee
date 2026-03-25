@@ -182,28 +182,31 @@ export async function generateBulkNotes(
 ): Promise<BulkNote[]> {
     const { topic, quantity, tone, samplePosts } = options;
 
-    let systemPrompt = `You are a ghostwriter who has deeply studied a specific author's voice. Your job is to write Substack notes that are INDISTINGUISHABLE from what this author would actually post.`;
+    let systemPrompt = `You are ghostwriting Substack notes for a specific person. You must sound exactly like them — not a cleaned-up version, not "inspired by" them. Exactly them.`;
 
-    // Add user context
     if (context.connectedSources?.publicationName) {
-        systemPrompt += `\n\nThe author writes for "${context.connectedSources.publicationName}".`;
+        systemPrompt += `\n\nThey write for: "${context.connectedSources.publicationName}"`;
     }
     if (context.connectedSources?.bio) {
-        systemPrompt += `\nAuthor bio: ${context.connectedSources.bio}`;
+        systemPrompt += `\nWho they are: ${context.connectedSources.bio}`;
+    }
+    if (context.platformPreferences?.language) {
+        systemPrompt += `\nWrite in: ${context.platformPreferences.language}`;
+    }
+    if (tone) {
+        systemPrompt += `\nTone direction: ${tone} — blend with their natural voice, don't override it`;
     }
 
-    // Add sample posts for voice training - use more samples with more content
     if (samplePosts && samplePosts.length > 0) {
-        systemPrompt += `\n\n=== AUTHOR'S ACTUAL WRITING (study this DEEPLY) ===`;
-        systemPrompt += `\nBefore writing anything, analyze these samples for:`;
-        systemPrompt += `\n- Sentence length and rhythm (short punchy? long flowing? mixed?)`;
-        systemPrompt += `\n- Vocabulary level (simple everyday words? intellectual? industry jargon?)`;
-        systemPrompt += `\n- How they open (question? bold claim? story? observation?)`;
-        systemPrompt += `\n- How they close (call to action? open question? mic drop? reflection?)`;
-        systemPrompt += `\n- Emotional register (raw/vulnerable? confident? analytical? passionate?)`;
-        systemPrompt += `\n- Use of line breaks, paragraphs, formatting`;
-        systemPrompt += `\n- Recurring phrases or verbal tics`;
-        systemPrompt += `\n- Whether they use "I" vs "you" vs "we"`;
+        systemPrompt += `\n\n════ THEIR ACTUAL WRITING — READ THIS CAREFULLY ════`;
+        systemPrompt += `\nStudy these samples. Extract:
+- Do they write short punchy sentences or longer flowing ones?
+- Do they use "I", "you", or "we"?
+- Do they open with a story, a bold claim, a question, or an observation?
+- Do they use casual language or more formal language?
+- What punctuation do they favour? (ellipses? short paragraphs? no punctuation tricks?)
+- What emotions come through — raw? confident? analytical? frustrated?
+- Any verbal tics or recurring phrases?`;
 
         samplePosts.slice(0, 10).forEach((post, i) => {
             const content = post.content?.slice(0, 1500) || '';
@@ -211,66 +214,42 @@ export async function generateBulkNotes(
                 systemPrompt += `\n\n--- Sample ${i + 1} ---\n${content}`;
             }
         });
-        systemPrompt += `\n\n=== END OF AUTHOR'S WRITING ===`;
-
-        systemPrompt += `\n\nCRITICAL: You must write AS this person. Not "inspired by" them. Not "in a similar style." 
-You must sound EXACTLY like them. Copy their sentence patterns, their word choices, their rhythm.
-If they write short declarative sentences, you write short declarative sentences.
-If they use em dashes and ellipses, you use em dashes and ellipses.
-If they share personal stories, you share personal stories.
-If they use metaphors, use similar types of metaphors.
-DO NOT sanitize or genericize their voice. Keep it raw and real.`;
+        systemPrompt += `\n════ END OF THEIR WRITING ════`;
+        systemPrompt += `\n\nNow write new notes that sound like THAT person wrote them — same sentence rhythm, same vocabulary level, same emotional register. Not a polished version. The real version.`;
     }
 
-    // Add tone guidance
-    if (tone) {
-        systemPrompt += `\n\nAdditional tone direction: ${tone} (blend this with the author's natural voice, don't override it)`;
-    }
-
-    // Add custom rules
     if (context.rules && context.rules.length > 0) {
-        systemPrompt += `\n\nCustom writing rules to follow:`;
+        systemPrompt += `\n\nPersonal writing rules (follow strictly):`;
         context.rules.forEach((rule, i) => {
             systemPrompt += `\n${i + 1}. ${rule}`;
         });
     }
 
-    // Add language preference
-    if (context.platformPreferences?.language) {
-        systemPrompt += `\n\nWrite in: ${context.platformPreferences.language}`;
-    }
+    systemPrompt += `\n\n════ RULES ════
+- 3-8 sentences per note. Real Substack note length, not a tweet, not an essay.
+- Strong first line that makes someone stop scrolling
+- One clear idea per note — don't try to say everything
+- Line breaks between paragraphs
+- Each of the ${quantity} notes must have a DIFFERENT angle (observation, hot take, tip, question, pattern, lesson)
+- NO fake personal stories or invented experiences unless they appear in the samples above
+- NO summary conclusions ("So remember...", "The bottom line is...")
 
-    systemPrompt += `\n\n=== OUTPUT FORMAT ===
-Generate exactly ${quantity} Substack notes about the topic below.
+BANNED — these instantly read as AI-generated:
+- Em dashes used as separators (—)
+- "game-changer", "embark", "delve", "unpack", "navigate", "landscape", "journey"
+- "here's the thing", "let that sink in", "read that again", "simple as that"
+- "In today's world", "It's important to note", "Let's dive in"
+- "foster", "pivotal", "crucial", "realm", "testament", "thrilled to share"
+- Rhetorical questions followed immediately by answering them
 
-Each note must:
-- Be 3-8 sentences long (like a real Substack note, not a tweet)
-- Have a strong opening hook that stops the scroll
-- Develop one clear idea or insight
-- Feel like something the author would actually post
-- Use line breaks between paragraphs for readability
-- NOT sound like AI wrote it (no "In today's world...", no "It's important to note...", no "Let's dive in...")
-- NOT be generic motivation poster quotes
-- Have genuine depth — share a specific insight, observation, story, or contrarian take
-- ABSOLUTELY NO FAKE HISTORIES: Do NOT invent fake personal stories, fake past businesses, or pretend you experienced something you didn't. Stick STRICTLY to the user's prompt and facts. If they ask for tips, give tips. Do not preface it with "When I built my startup..." unless that story is explicitly in the author samples.
-
-BANNED phrases (these scream AI):
-"game-changer", "embark", "delve", "unpack", "navigate", "landscape", "journey", "here's the thing", "let that sink in", "read that again", "simple as that"
-
-Each note angle should be DIFFERENT — use varied hooks:
-- A personal observation or story
-- A contrarian take or hot take 
-- A practical tip with specifics
-- A question that makes people think
-- A pattern or trend you've noticed
-- A mistake or lesson learned
-
-Return ONLY a valid JSON array: [{"content": "note text here with \\n for line breaks", "suggestedTime": "HH:MM"}]
-Vary times between 07:00-20:00. No markdown, no explanation, just the JSON array.`;
+════ OUTPUT ════
+Return ONLY a valid JSON array, no markdown, no explanation:
+[{"content": "note text with \\n for line breaks", "suggestedTime": "HH:MM"}]
+Vary times between 07:00-20:00.`;
 
     const userPrompt = `Write ${quantity} Substack notes about: ${topic}
 
-Remember: Write AS the author from the samples. Match their EXACT voice, not a polished version of it.`;
+Write as the person from the samples above. If there are no samples, write naturally and conversationally — like a real human posted this, not a content team.`;
 
     try {
         const response = await grok.chat.completions.create({
@@ -360,30 +339,39 @@ export async function enhancePost(
     postContent: string,
     context: AgentContext
 ): Promise<string> {
-    let systemPrompt = `You are an expert social media editor. Your task is to enhance the user's post by:
-1. Fixing any typos and grammatical errors
-2. Improving clarity and impact
-3. Making it more engaging and punchy
-4. Keeping the same voice and meaning`;
+    let systemPrompt = `You are editing a Substack note for a specific person. Your job is to sharpen what they wrote — not rewrite it, not make it sound smarter, not make it sound like a different person.
 
-    // Inject Tone/Style
-    if (context.platformPreferences?.writingStyle) {
-        systemPrompt += `\n\nStyle Guide: Maintain a ${context.platformPreferences.writingStyle} tone.`;
-    }
+WHAT TO DO:
+- Fix typos and obvious grammar errors
+- Tighten sentences that are too wordy
+- Strengthen the opening line if it's weak
+- Make sure the ending lands cleanly
+- Preserve every quirk, imperfection, and stylistic choice that makes it sound like THEM
+
+WHAT NOT TO DO:
+- Do NOT add em dashes (—) as stylistic separators
+- Do NOT add bullet points or structure that wasn't there
+- Do NOT use any of these words: "game-changer", "embark", "delve", "unpack", "navigate", "landscape", "journey", "fostering", "pivotal", "crucial", "realm", "testament", "thrilled", "excited to share"
+- Do NOT start sentences with "In today's...", "It's important to...", "Let's dive in"
+- Do NOT add a conclusion that summarizes what was just said
+- Do NOT make it more "professional" — that usually means less human`;
 
     if (context.connectedSources?.bio) {
-        systemPrompt += `\nAuthor Context: ${context.connectedSources.bio}`;
+        systemPrompt += `\n\nWho this person is: ${context.connectedSources.bio}`;
     }
 
-    // Inject Rules
+    if (context.platformPreferences?.writingStyle) {
+        systemPrompt += `\nTheir writing style: ${context.platformPreferences.writingStyle}`;
+    }
+
     if (context.rules && context.rules.length > 0) {
-        systemPrompt += `\n\nCustom writing rules to follow:`;
+        systemPrompt += `\n\nTheir personal writing rules (follow strictly):`;
         context.rules.forEach((rule, i) => {
             systemPrompt += `\n${i + 1}. ${rule}`;
         });
     }
 
-    systemPrompt += `\n\nIMPORTANT: Return ONLY the enhanced post text, nothing else. No quotes, no explanations.`;
+    systemPrompt += `\n\nReturn ONLY the edited note. No explanation, no "Here's the enhanced version:", no quotes around it.`;
 
     try {
         const response = await grok.chat.completions.create({
@@ -391,13 +379,15 @@ export async function enhancePost(
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: postContent }
-            ]
+            ],
+            temperature: 0.4,
+            max_tokens: 1000,
         });
 
         return response.choices[0]?.message?.content?.trim() || postContent;
     } catch (error) {
         console.error("Post Enhancement Error:", error);
-        return postContent; // Return original if error
+        return postContent;
     }
 }
 

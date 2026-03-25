@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ChevronRight, ChevronLeft, Plus, Clock, Trash2, ArrowRight, CheckCircle2, Circle, Calendar as CalendarIcon, User, Sparkles, Loader2, List } from "lucide-react";
+import { ChevronRight, ChevronLeft, Plus, Clock, Trash2, ArrowRight, CheckCircle2, Circle, Calendar as CalendarIcon, User, Sparkles, Loader2, List, XCircle } from "lucide-react";
 import { API_URL } from "@/lib/api-config";
 import { enhancePost } from "@/app/actions/agent";
 
@@ -9,7 +9,7 @@ interface Post {
     id: string;
     content: string;
     time?: string;
-    status: "draft" | "scheduled" | "published";
+    status: "draft" | "scheduled" | "published" | "cancelled";
     date: string; // YYYY-MM-DD
 }
 
@@ -26,7 +26,9 @@ export default function IDailyScheduler() {
     const [isCreating, setIsCreating] = useState(false);
     const [isExtensionConnected, setIsExtensionConnected] = useState(false);
     const [profile, setProfile] = useState<ProfileData>({});
+    const [onboardingData, setOnboardingData] = useState<any>({});
     const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+    const [statusFilter, setStatusFilter] = useState<Post['status'] | "all">("all");
 
     // AI Enhancement state
     const [isEnhancing, setIsEnhancing] = useState(false);
@@ -42,18 +44,17 @@ export default function IDailyScheduler() {
             if (event.data?.type === 'NARRATIVEE_EXTENSION_READY') {
                 setIsExtensionConnected(true);
             }
-            // Mark a post as published when its alarm fires
             if (event.data?.type === 'NARRATIVEE_SCHEDULED_POST_FIRED') {
-                const { postId } = event.data;
+                const { postId, status } = event.data;
+                if (status !== 'published' && status !== 'cancelled') return;
                 setPosts(prev => prev.map(p =>
-                    p.id === postId ? { ...p, status: 'published' as const } : p
+                    p.id === postId ? { ...p, status: status as Post['status'] } : p
                 ));
-                // Persist status change to DB
                 fetch(`${API_URL}/scheduled-notes/${postId}/status`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({ status: 'published' })
+                    body: JSON.stringify({ status })
                 }).catch(console.error);
             }
         };
@@ -69,6 +70,7 @@ export default function IDailyScheduler() {
                 const res = await fetch(`${API_URL}/onboarding`, { credentials: 'include' });
                 if (res.ok) {
                     const data: any = await res.json();
+                    setOnboardingData(data);
                     setProfile({
                         name: data.substackPublicationName || data.name,
                         handle: data.substackHandle,
@@ -139,34 +141,12 @@ export default function IDailyScheduler() {
                     const data: any = await res.json();
                     console.log('[Scheduler] Loaded notes from DB:', data.notes?.length || 0);
 
-                    const now = new Date();
-
                     const mapped: Post[] = (data.notes || []).map((n: any) => {
-                        let currentStatus = n.status as Post['status'];
-
-                        // Failsafe: if it was scheduled for a time that is past (by ~2 mins), mark it as published
-                        if (currentStatus === 'scheduled' && n.scheduledDate && n.scheduledTime) {
-                            const [h, m] = n.scheduledTime.split(':').map(Number);
-                            const scheduledTimeObj = new Date(n.scheduledDate);
-                            scheduledTimeObj.setHours(h ?? 0, (m ?? 0) + 2, 0, 0);
-
-                            if (now > scheduledTimeObj) {
-                                currentStatus = 'published';
-                                // Async non-blocking update to backend to catch it up
-                                fetch(`${API_URL}/scheduled-notes/${n.id}/status`, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    credentials: 'include',
-                                    body: JSON.stringify({ status: 'published' })
-                                }).catch(e => console.error("Auto-publish fallback failed", e));
-                            }
-                        }
-
                         return {
                             id: n.id,
                             content: n.content,
                             time: n.scheduledTime || undefined,
-                            status: currentStatus,
+                            status: n.status as Post['status'],
                             date: n.scheduledDate,
                         };
                     });
@@ -247,7 +227,16 @@ export default function IDailyScheduler() {
 
             const enhanced = await enhancePost(editContent, {
                 rules,
-                platformPreferences: { writingStyle: "casual" }
+                connectedSources: {
+                    publicationName: onboardingData.substackPublicationName,
+                    publicationUrl: onboardingData.substackPublicationUrl,
+                    profileUrl: onboardingData.substackProfileUrl,
+                    bio: onboardingData.substackBio
+                },
+                platformPreferences: {
+                    writingStyle: onboardingData.writingStyle,
+                    language: onboardingData.language
+                }
             });
 
             setEditContent(enhanced);
@@ -290,10 +279,31 @@ export default function IDailyScheduler() {
                 const [hours, minutes] = editTime.split(':').map(Number);
                 const scheduledDate = new Date(currentDateKey);
                 scheduledDate.setHours(hours ?? 0, minutes ?? 0, 0, 0);
+                const scheduledTimestamp = scheduledDate.getTime(); // UTC ms based on local clock
+                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+                // Persist timestamp + timezone to DB so extension can use them
+                await fetch(`${API_URL}/scheduled-notes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        id: newPost.id,
+                        content: editContent,
+                        scheduledDate: currentDateKey,
+                        scheduledTime: editTime,
+                        scheduledTimestamp,
+                        timezone,
+                        status: 'scheduled',
+                    }),
+                }).catch(console.error);
+
                 dispatchMessage('NARRATIVEE_SCHEDULE_POST', {
                     postId: newPost.id,
                     content: editContent,
-                    scheduledTimestamp: scheduledDate.getTime()
+                    scheduledTimestamp,
+                    timezone,
+                    apiUrl: API_URL,
                 });
             }
 
@@ -377,10 +387,11 @@ export default function IDailyScheduler() {
         const post = posts.find(p => p.id === id);
         if (!post) return;
 
-        const statusCycle: Record<string, "draft" | "scheduled" | "published"> = {
+        const statusCycle: Record<string, Post['status']> = {
             draft: "scheduled",
-            scheduled: "published",
-            published: "draft"
+            scheduled: "cancelled",
+            cancelled: "draft",
+            published: "draft",
         };
         const newStatus = statusCycle[post.status] || "draft";
 
@@ -398,7 +409,10 @@ export default function IDailyScheduler() {
         }
     };
 
-    const filteredPosts = posts.filter(p => p.date === currentDateKey);
+    const filteredPosts = posts.filter(p =>
+        p.date === currentDateKey &&
+        (statusFilter === "all" || p.status === statusFilter)
+    );
 
     return (
         <div className="flex flex-col h-full rounded-lg overflow-hidden">
@@ -535,6 +549,26 @@ export default function IDailyScheduler() {
                     </div>
                 ) : (
                     <>
+                        {/* Status Filter Toggle */}
+                        <div className="flex gap-1 p-1 bg-[#1e1f21] rounded-lg border border-[#2D2E2F]">
+                            {(["all", "scheduled", "published", "cancelled"] as const).map(f => (
+                                <button
+                                    key={f}
+                                    onClick={() => setStatusFilter(f)}
+                                    className={`flex-1 text-[11px] font-medium py-1 rounded-md transition-all capitalize ${
+                                        statusFilter === f
+                                            ? f === 'published' ? 'bg-green-900/40 text-green-400'
+                                            : f === 'scheduled' ? 'bg-blue-900/40 text-blue-400'
+                                            : f === 'cancelled' ? 'bg-red-900/40 text-red-400'
+                                            : 'bg-[#2a2b2d] text-gray-200'
+                                            : 'text-gray-500 hover:text-gray-300'
+                                    }`}
+                                >
+                                    {f}
+                                </button>
+                            ))}
+                        </div>
+
                         {/* List of Posts */}
                         {filteredPosts.map((post) => (
                             <div key={post.id} className={`bg-[#1e1f21]/20 p-3 rounded-md  transition-all group ${editingId === post.id ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-700 hover:border-gray-600'}`}>
@@ -631,6 +665,8 @@ export default function IDailyScheduler() {
                                                             <span className="flex items-center gap-1 text-green-400"><CheckCircle2 className="w-3 h-3" /> Published</span>
                                                         ) : post.status === 'scheduled' ? (
                                                             <span className="flex items-center gap-1 text-blue-400"><Clock className="w-3 h-3" /> Scheduled</span>
+                                                        ) : post.status === 'cancelled' ? (
+                                                            <span className="flex items-center gap-1 text-red-400"><XCircle className="w-3 h-3" /> Cancelled</span>
                                                         ) : (
                                                             <span className="flex items-center gap-1 text-gray-500"><Circle className="w-3 h-3" /> Draft</span>
                                                         )}

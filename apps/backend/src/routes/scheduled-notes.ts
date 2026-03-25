@@ -33,17 +33,33 @@ router.get('/', requireAuth, async (req: any, res) => {
 });
 
 /**
+ * GET /scheduled-notes/:id
+ * Get a single scheduled note by id (used by extension to fetch fresh content at fire time)
+ */
+router.get('/:id', requireAuth, async (req: any, res) => {
+    try {
+        const notes = await ScheduledNoteService.getAll(req.session.user.id);
+        const note = notes.find((n: any) => n.id === req.params.id);
+        if (!note) return res.status(404).json({ error: 'Not found' });
+        res.json({ note });
+    } catch (error) {
+        console.error("Error fetching scheduled note:", error);
+        res.status(500).json({ error: 'Failed to fetch scheduled note' });
+    }
+});
+
+/**
  * POST /scheduled-notes
  * Create or update a scheduled note
  */
 router.post('/', requireAuth, async (req: any, res) => {
     try {
-        const { id, content, scheduledDate, scheduledTime, status } = req.body;
+        const { id, content, scheduledDate, scheduledTime, scheduledTimestamp, timezone, status } = req.body;
         if (!id || !content || !scheduledDate) {
             return res.status(400).json({ error: 'Missing required fields: id, content, scheduledDate' });
         }
         const result = await ScheduledNoteService.upsert(req.session.user.id, {
-            id, content, scheduledDate, scheduledTime, status
+            id, content, scheduledDate, scheduledTime, scheduledTimestamp, timezone, status
         });
         res.json(result);
     } catch (error) {

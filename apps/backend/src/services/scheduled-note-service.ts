@@ -7,6 +7,8 @@ interface ScheduledNoteData {
     content: string;
     scheduledDate: string;
     scheduledTime?: string;
+    scheduledTimestamp?: number | string; // UTC ms
+    timezone?: string;           // e.g. "Europe/Paris"
     status?: string;
 }
 
@@ -31,6 +33,8 @@ export const ScheduledNoteService = {
                 content: data.content,
                 scheduledDate: data.scheduledDate,
                 scheduledTime: data.scheduledTime ?? null,
+                scheduledTimestamp: data.scheduledTimestamp != null ? String(data.scheduledTimestamp) : null,
+                timezone: data.timezone ?? null,
                 status: data.status ?? existing.status,
                 updatedAt: new Date(),
             }).where(eq(scheduledNotes.id, data.id));
@@ -41,6 +45,8 @@ export const ScheduledNoteService = {
                 content: data.content,
                 scheduledDate: data.scheduledDate,
                 scheduledTime: data.scheduledTime ?? null,
+                scheduledTimestamp: data.scheduledTimestamp != null ? String(data.scheduledTimestamp) : null,
+                timezone: data.timezone ?? null,
                 status: data.status ?? "draft",
             });
         }

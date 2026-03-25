@@ -147,6 +147,8 @@ export const scheduledNotes = pgTable("scheduled_notes", {
   content: text("content").notNull(),
   scheduledDate: text("scheduled_date").notNull(),
   scheduledTime: text("scheduled_time"),
+  scheduledTimestamp: text("scheduled_timestamp"), // UTC ms as string — authoritative fire time
+  timezone: text("timezone"),                                             // e.g. "Europe/Paris"
   status: text("status").notNull().default("draft"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

@@ -4,60 +4,109 @@
 // ALARM-BASED SCHEDULER
 // ==========================================
 
-// When the alarm fires, fetch the post from storage and open Substack to post it
+// When the alarm fires, fetch fresh content from the API and open Substack to post it
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (!alarm.name.startsWith('narrativee_post_')) return;
 
     const postId = alarm.name.replace('narrativee_post_', '');
     console.log('⏰ Alarm fired for post:', postId);
 
-    const data = await chrome.storage.local.get(['narrativee_scheduled_posts']);
-    const scheduledPosts = data.narrativee_scheduled_posts || {};
-    const post = scheduledPosts[postId];
+    // Get auth cookie / API base from storage
+    const storageData = await chrome.storage.local.get(['narrativee_api_url']);
+    const apiBase = storageData.narrativee_api_url || 'https://api.narrativee.com';
 
-    if (!post) {
-        console.warn('⏰ No post found in storage for alarm:', postId);
+    // Fetch fresh content from the backend — avoids stale snapshot bug
+    let content;
+    try {
+        const resp = await fetch(`${apiBase}/scheduled-notes/${postId}`, { credentials: 'include' });
+        if (!resp.ok) throw new Error(`API ${resp.status}`);
+        const json = await resp.json();
+        content = json.note?.content;
+    } catch (e) {
+        console.error('⏰ Could not fetch fresh content for post', postId, e);
+        // Fallback to stale snapshot if API unreachable
+        const data = await chrome.storage.local.get(['narrativee_scheduled_posts']);
+        const scheduledPosts = data.narrativee_scheduled_posts || {};
+        content = scheduledPosts[postId]?.content;
+    }
+
+    if (!content) {
+        console.warn('⏰ No content found for alarm:', postId);
+        forwardScheduledPostResult(postId, false);
         return;
     }
 
-    // Remove the post from storage (it's firing now)
+    // Remove the post from local storage (it's firing now)
+    const data = await chrome.storage.local.get(['narrativee_scheduled_posts']);
+    const scheduledPosts = data.narrativee_scheduled_posts || {};
     delete scheduledPosts[postId];
     await chrome.storage.local.set({ narrativee_scheduled_posts: scheduledPosts });
 
-    console.log('⏰ Posting scheduled note:', post.content.substring(0, 50));
+    console.log('⏰ Posting scheduled note:', content.substring(0, 50));
 
-    // Fire the same OPEN_SUBSTACK_DRAFT flow used by manual posting
-    // Use direct message passing to avoid race conditions with multiple alarms
     chrome.tabs.create({ url: 'https://substack.com/home' }, (tab) => {
         const postingTabId = tab?.id;
         if (!postingTabId) return;
 
         console.log('⏰ Opened Substack tab for scheduled post', postingTabId);
 
+        // Listen for NOTE_POSTED / NOTE_CANCELLED from content script
+        let postResolved = false;
+        function onNoteResult(msg, msgSender) {
+            if (msgSender.tab?.id !== postingTabId) return;
+
+            if (msg.type === 'NOTE_POSTED') {
+                postResolved = true;
+                chrome.runtime.onMessage.removeListener(onNoteResult);
+                clearTimeout(giveUpTimeout);
+                console.log('⏰ Scheduled post confirmed posted!');
+                forwardScheduledPostResult(postId, 'published');
+                setTimeout(() => {
+                    try { chrome.tabs.remove(postingTabId); } catch (e) {}
+                }, 3000);
+            }
+
+            if (msg.type === 'NOTE_CANCELLED') {
+                postResolved = true;
+                chrome.runtime.onMessage.removeListener(onNoteResult);
+                clearTimeout(giveUpTimeout);
+                console.log('⏰ Scheduled post cancelled by user.');
+                forwardScheduledPostResult(postId, 'cancelled');
+                setTimeout(() => {
+                    try { chrome.tabs.remove(postingTabId); } catch (e) {}
+                }, 1000);
+            }
+        }
+        chrome.runtime.onMessage.addListener(onNoteResult);
+
+        // Give up after 90s
+        const giveUpTimeout = setTimeout(() => {
+            chrome.runtime.onMessage.removeListener(onNoteResult);
+            if (!postResolved) {
+                console.warn('⏰ Scheduled post timed out — not confirmed');
+                forwardScheduledPostResult(postId, false);
+            }
+        }, 90000);
+
         chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
             if (tabId === postingTabId && info.status === 'complete') {
                 chrome.tabs.onUpdated.removeListener(listener);
-                console.log('⏰ Tab loaded, sending draft to inject');
+                console.log('⏰ Tab loaded, waiting for React hydration then injecting...');
 
-                // Let the target page settle slightly before injecting
+                // 2s delay lets Substack React finish hydrating after tab reports "complete"
                 setTimeout(() => {
                     chrome.tabs.sendMessage(postingTabId, {
                         type: 'INJECT_NARRATIVEE_DRAFT',
-                        draft: { content: post.content },
+                        draft: { content },
                         autoPost: true
                     });
                 }, 2000);
             }
         });
-
-        // Notify Narrativee tab that the post was sent
-        setTimeout(() => {
-            forwardScheduledPostResult(postId, true);
-        }, 10000);
     });
 });
 
-function forwardScheduledPostResult(postId, success) {
+function forwardScheduledPostResult(postId, status) {
     chrome.tabs.query({}, (allTabs) => {
         const narrativeeTabs = allTabs.filter(t =>
             t.url && (t.url.includes('narrativee.com') || t.url.includes('localhost:3010') || t.url.includes('localhost:3000'))
@@ -66,7 +115,7 @@ function forwardScheduledPostResult(postId, success) {
             chrome.tabs.sendMessage(t.id, {
                 type: 'NARRATIVEE_SCHEDULED_POST_FIRED',
                 postId,
-                success
+                status  // 'published' | 'cancelled' | false (timeout)
             }, () => { if (chrome.runtime.lastError) { } });
         });
     });
@@ -74,16 +123,22 @@ function forwardScheduledPostResult(postId, success) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'SCHEDULE_POST') {
-        const { postId, content, scheduledTimestamp } = message;
-        console.log('📅 Scheduling post', postId, 'for', new Date(scheduledTimestamp).toISOString());
+        const { postId, content, scheduledTimestamp, timezone } = message;
+        console.log('📅 Scheduling post', postId, 'for', new Date(scheduledTimestamp).toISOString(), 'tz:', timezone);
+
+        if (!scheduledTimestamp || scheduledTimestamp <= Date.now()) {
+            console.warn('📅 Timestamp is in the past or invalid, skipping alarm');
+            sendResponse({ success: false, error: 'Invalid timestamp' });
+            return true;
+        }
 
         chrome.storage.local.get(['narrativee_scheduled_posts'], (data) => {
             const scheduledPosts = data.narrativee_scheduled_posts || {};
-            scheduledPosts[postId] = { postId, content, scheduledTimestamp };
+            // Store content so it's always available at fire time, even if API is unreachable
+            scheduledPosts[postId] = { postId, content, scheduledTimestamp, timezone };
             chrome.storage.local.set({ narrativee_scheduled_posts: scheduledPosts }, () => {
-                // Use exact timestamp to avoid past-date math errors
                 chrome.alarms.create(`narrativee_post_${postId}`, { when: scheduledTimestamp });
-                console.log(`📅 Alarm set for exact timestamp: ${new Date(scheduledTimestamp).toLocaleString()}`);
+                console.log(`📅 Alarm set for: ${new Date(scheduledTimestamp).toLocaleString()}`);
                 sendResponse({ success: true });
             });
         });

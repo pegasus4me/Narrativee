@@ -39,13 +39,13 @@
             window.postMessage({ type: 'NARRATIVEE_SUBS_SCRAPED', data: message.data, error: message.error }, '*');
         }
 
-        // Scheduled post fired
+        // Scheduled post fired / cancelled
         if (message.type === 'NARRATIVEE_SCHEDULED_POST_FIRED') {
-            console.log('⏰ Forwarding scheduled post fired to web app', message.postId);
+            console.log('⏰ Forwarding scheduled post result to web app', message.postId, message.status);
             window.postMessage({
                 type: 'NARRATIVEE_SCHEDULED_POST_FIRED',
                 postId: message.postId,
-                success: message.success
+                status: message.status
             }, '*');
         }
     });
@@ -65,11 +65,18 @@
         if (event.data?.type === 'NARRATIVEE_SCHEDULE_POST') {
             const p = event.data.payload || event.data;
             console.log('📅 Schedule request received from Web App:', p);
+
+            // Store the API URL so service-worker can fetch fresh content at fire time
+            if (p.apiUrl) {
+                chrome.storage.local.set({ narrativee_api_url: p.apiUrl });
+            }
+
             chrome.runtime.sendMessage({
                 type: 'SCHEDULE_POST',
                 postId: p.postId,
                 content: p.content,
-                scheduledTimestamp: p.scheduledTimestamp
+                scheduledTimestamp: p.scheduledTimestamp,
+                timezone: p.timezone,
             }, (response) => {
                 window.postMessage({ type: 'NARRATIVEE_SCHEDULE_POST_ACK', postId: p.postId, success: response?.success }, '*');
             });
@@ -369,22 +376,29 @@
                 console.log('🔵 Narrativee: CLICKING POST BUTTON!', postBtn);
                 postBtn.click();
 
-                // Wait for the post to go through, then signal completion
-                setTimeout(() => {
-                    console.log('🔵 Narrativee: Post submitted, sending NOTE_POSTED signal');
-                    try {
-                        chrome.runtime.sendMessage({ type: 'NOTE_POSTED', success: true });
-                    } catch (e) {
-                        console.warn('🔵 Narrativee: Could not send NOTE_POSTED signal', e);
-                    }
+                // Wait for Substack to process the post, then confirm
+                // We wait for the editor/dialog to disappear as confirmation the post was accepted
+                const clickedAt = Date.now();
+                const confirmInterval = setInterval(() => {
+                    const editorStillOpen = document.querySelector('div.tiptap.ProseMirror[contenteditable="true"]');
+                    const elapsed = Date.now() - clickedAt;
+                    if (!editorStillOpen || elapsed > 8000) {
+                        clearInterval(confirmInterval);
+                        console.log('🔵 Narrativee: Post submitted, sending NOTE_POSTED signal');
+                        try {
+                            chrome.runtime.sendMessage({ type: 'NOTE_POSTED', success: true });
+                        } catch (e) {
+                            console.warn('🔵 Narrativee: Could not send NOTE_POSTED signal', e);
+                        }
 
-                    // Show success notification
-                    const successBanner = document.createElement('div');
-                    successBanner.style.cssText = "position:fixed;top:10px;right:10px;background:#22c55e;color:white;padding:15px 20px;border-radius:8px;z-index:999999;font-family:sans-serif;font-weight:bold;";
-                    successBanner.textContent = '✓ Narrativee: Note posted!';
-                    document.body.appendChild(successBanner);
-                    setTimeout(() => successBanner.remove(), 5000);
-                }, 5000);
+                        // Show success notification
+                        const successBanner = document.createElement('div');
+                        successBanner.style.cssText = "position:fixed;top:10px;right:10px;background:#22c55e;color:white;padding:15px 20px;border-radius:8px;z-index:999999;font-family:sans-serif;font-weight:bold;";
+                        successBanner.textContent = '✓ Narrativee: Note posted!';
+                        document.body.appendChild(successBanner);
+                        setTimeout(() => successBanner.remove(), 5000);
+                    }
+                }, 500);
             }
         }, 1000);
 
@@ -397,6 +411,11 @@
                     document.body.removeChild(overlay);
                 }
                 console.log('🔵 Narrativee: Auto-Post CANCELLED by user.');
+                try {
+                    chrome.runtime.sendMessage({ type: 'NOTE_CANCELLED' });
+                } catch (e) {
+                    console.warn('🔵 Narrativee: Could not send NOTE_CANCELLED signal', e);
+                }
             });
         }
     }
