@@ -18,6 +18,8 @@ import Header from "./components/commons/Header";
 import Footer from "./components/commons/Footer";
 import PrimaryButton from "./components/commons/PrimaryButton";
 import narrativee from "../public/narrativee.png";
+import postqueue from "../public/postqueue.png";
+
 import { ArrowRightIcon } from "clicons-react";
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
@@ -274,7 +276,7 @@ export default function Home() {
                   </ul>
                 </div>
                 <div className="rounded-xl overflow-hidden border border-white/[0.06]">
-                  <Image src="/postqueue.png" alt="Narrativee Post Queue" width={800} height={500} className="w-full h-auto" />
+                  <Image src={postqueue} alt="Narrativee Post Queue" width={800} height={500} className="w-full h-auto" />
                 </div>
               </div>
             </AnimatedSection>
