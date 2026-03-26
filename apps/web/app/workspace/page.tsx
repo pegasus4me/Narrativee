@@ -2,7 +2,7 @@
 
 import { StatsOverview } from "../components/workspace/StatsOverview";
 import { NotesList } from "../components/workspace/NotesList";
-import { GrowthChart } from "../components/workspace/GrowthChart";
+import { SubsChart } from "../components/workspace/SubsChart";
 import { ActivityChart } from "../components/workspace/ActivityChart";
 import { PerformanceChart } from "../components/workspace/PerformanceChart";
 import { PostingHeatmap } from "../components/workspace/PostingHeatmap";
@@ -28,7 +28,7 @@ const Card = ({ title, subtitle, children, className = "" }: {
 export default function Workspace() {
     return (
         <div className="h-full overflow-y-auto">
-            <div className="max-w-6xl mx-auto px-8 py-10 flex flex-col gap-8">
+            <div className="max-w-7xl mx-auto px-8 py-10 flex flex-col gap-8">
 
                 {/* Header */}
                 <div>
@@ -42,7 +42,7 @@ export default function Workspace() {
                 {/* Growth + Performance */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <Card title="Subscriber Growth" subtitle="Total and paid subscribers over time">
-                        <GrowthChart />
+                        <SubsChart />
                     </Card>
                     <Card title="Engagement Over Time" subtitle="Weekly likes, comments and restacks">
                         <PerformanceChart />
