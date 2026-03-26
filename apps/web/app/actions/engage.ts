@@ -48,27 +48,29 @@ You must sound like a real person typing quickly on their phone or laptop.`;
         systemPrompt += `\nYour writing style: ${writingStyle || context.platformPreferences?.writingStyle}`;
     }
 
-    systemPrompt += `\n\n=== HOW TO WRITE AN ELITE COMMENT ===
+    systemPrompt += `\n\nRULES:
+1. 1-2 sentences max. Never write a paragraph.
+2. Reference something specific they actually said. No generic praise.
+3. Either: relate with a small personal observation, push back lightly, or ask one sharp follow-up question.
+4. Sound like a real person typing casually. Lowercase is fine. Imperfect punctuation is fine.
+5. No em dashes (—). Use a comma or just end the sentence instead.
+6. No hyphens used as separators or list markers.
 
-1. BE CONCISE. 1-2 sentences maximum. No long paragraphs.
-2. BE SPECIFIC. Refer to exactly what they said. Don't just say "Great post!", say "The part about X really resonated".
-3. ADD VALUE OR COMMISERATION. Either agree and share a tiny similar struggle, OR respectfully disagree/pivot the thought, OR ask a highly specific follow-up question.
-4. BE IMPERFECT. Use lowercase letters sometimes. Forget a period at the end. Use words like "honestly", "yeah", "exactly", "lol", "wild".
+BANNED:
+- Em dash (—) anywhere
+- "game-changer", "this is gold", "so underrated", "let that sink in", "level up", "unpack", "delve", "embark", "resonate", "100% this"
+- Ending with "what do you think?" or any generic question to the room
+- Bullet points, bold text, any markdown formatting
+- Made-up stats or fake personal stories
 
-=== WHAT SCREAMS "I AM AN AI" (BANNED BEHAVIORS) ===
-❌ Banned phrases: "Game-changer", "This is gold", "100% this", "So underrated", "Let that sink in", "Double down", "Level up", "Read the room", "Unpack this", "Delve", "Embark"
-❌ Banned structures: Never end with "What's everyone else's take?" or generic engagement-bait questions.
-❌ Banned formatting: NEVER use bullet points in a comment. No bold words unless absolutely necessary.
-❌ Banned lying: NEVER make up specific numbers or fake past businesses (e.g., "When I sold my startup..."). If you don't have a relevant story, just agree with their observation.
+GOOD EXAMPLES:
+"honestly the hardest part is just showing up when nobody is reading yet"
+"the pricing thing hit. raised my rates last month and it was uncomfortable but worth it"
+"disagree a little, i think most people quit after 2 weeks not because of the platform but because they expected faster results"
+"yep. did exactly this and the difference was immediate"
+"this is what i tell everyone who asks but they never want to hear it"
 
-=== EXAMPLES OF EXCELLENT, HUMAN COMMENTS ===
-- "honestly the hardest part is just showing up consistently when nobody is reading"
-- "The bit about pricing too low really hit. Raised my rates last week and it was terrifying but worth it."
-- "Disagree a little here — I think the problem isn't the platform, it's that most people quit after 2 weeks"
-- "Yep. Started doing exactly this and the difference was immediate."
-- "This is basically what I tell everyone who asks about growing but they never want to hear it"
-
-Return ONLY the text of the comment. Absolutely no greetings, closures, quotation marks around the output, or explanations.`;
+Return ONLY the comment text. No quotes around it, no explanation, nothing else.`;
 
     if (language || context.platformPreferences?.language) {
         systemPrompt += `\n\nWrite in: ${language || context.platformPreferences?.language}`;
@@ -85,11 +87,13 @@ Return ONLY the text of the comment. Absolutely no greetings, closures, quotatio
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt }
             ],
-            temperature: 0.8, // Slightly more creative/varied
-            max_tokens: 250, // Force short outputs
+            temperature: 0.7,
+            max_tokens: 150,
         });
 
-        return response.choices[0]?.message?.content?.trim() || "Failed to generate comment";
+        const raw = response.choices[0]?.message?.content?.trim() || "";
+        // Strip leading - or " that sometimes leaks from the model
+        return raw.replace(/^[-–—"'\s]+/, "").replace(/['"]+$/, "") || "Failed to generate comment";
     } catch (error) {
         console.error("Engagement Comment Error:", error);
         throw new Error("Failed to generate comment");
