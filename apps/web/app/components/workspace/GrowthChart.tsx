@@ -30,7 +30,7 @@ export function GrowthChart() {
             const sorted = (json.data || []).sort((a: any, b: any) => a.month.localeCompare(b.month));
             setData(sorted.map((d: any) => ({
                 ...d,
-                label: new Date(d.month + "-01").toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
+                label: (() => { const [y, m] = d.month.split("-"); return new Date(Number(y), Number(m) - 1).toLocaleDateString("en-US", { month: "short", year: "2-digit" }); })(),
             })));
         } catch (e) {
             console.error("Failed to fetch subscribers", e);
