@@ -10,7 +10,7 @@ export default function PostQueuePage() {
 
     return (
         <div className="h-full p-8 overflow-y-auto relative ">
-            <div className="max-w-7xl mx-auto h-full flex flex-col gap-6">
+            <div className="max-w-6xl mx-auto h-full flex flex-col gap-6">
                 <div className="flex justify-between p-4">
                     <div className="flex flex-col gap-2">
                         <h1 className="text-3xl text-gray-100">Post Queue</h1>

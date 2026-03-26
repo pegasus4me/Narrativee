@@ -173,7 +173,7 @@ export default function InspirationsPage() {
 
     return (
         <div className="h-full p-8 overflow-y-auto">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl text-gray-100 mb-2">Inspirations</h1>

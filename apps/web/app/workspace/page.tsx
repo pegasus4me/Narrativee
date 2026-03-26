@@ -27,7 +27,7 @@ const Card = ({ title, subtitle, children, className = "" }: {
 export default function Workspace() {
     return (
         <div className="h-full overflow-y-auto">
-            <div className="max-w-7xl mx-auto px-8 py-10 flex flex-col gap-8">
+            <div className="max-w-6xl mx-auto px-8 py-10 flex flex-col gap-8">
 
                 {/* Header */}
                 <div>
