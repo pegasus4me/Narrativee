@@ -137,9 +137,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // Store content so it's always available at fire time, even if API is unreachable
             scheduledPosts[postId] = { postId, content, scheduledTimestamp, timezone };
             chrome.storage.local.set({ narrativee_scheduled_posts: scheduledPosts }, () => {
-                chrome.alarms.create(`narrativee_post_${postId}`, { when: scheduledTimestamp });
-                console.log(`📅 Alarm set for: ${new Date(scheduledTimestamp).toLocaleString()}`);
-                sendResponse({ success: true });
+                const alarmName = `narrativee_post_${postId}`;
+                chrome.alarms.clear(alarmName, () => {
+                    chrome.alarms.create(alarmName, { when: scheduledTimestamp });
+                    console.log(`📅 Alarm set for: ${new Date(scheduledTimestamp).toLocaleString()}`);
+                    sendResponse({ success: true });
+                });
             });
         });
         return true;

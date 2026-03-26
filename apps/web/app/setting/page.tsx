@@ -1,74 +1,36 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { authClient } from "../../lib/auth-client";
 import { reportApi } from "../../lib/apis";
-import { User, CreditCard, Settings as SettingsIcon, Logout, Delete, Moon, Sun, Globe, Tick, Share } from "clicons-react";
+import { User, CreditCard, Settings2, LogOut, Trash2, Globe } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api-config";
 
+type Tab = "profile" | "billing" | "preferences";
+
 export default function SettingsPage() {
     const { data: session } = authClient.useSession();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"profile" | "billing" | "preferences" | "scoring">("profile");
+    const [activeTab, setActiveTab] = useState<Tab>("profile");
     const [credits, setCredits] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [linkedAccounts, setLinkedAccounts] = useState<any[]>([]);
-    console.log("session", session);
+
     useEffect(() => {
         if (session?.user) {
             reportApi.getUserCredits().then(setCredits).catch(console.error);
-            console.log(session.user);
-            authClient.listAccounts().then((res) => {
-                if (res.data) {
-                    setLinkedAccounts(res.data);
-                }
-            });
         }
     }, [session]);
 
-    // Scoring Config State
-    const [scoringConfigs, setScoringConfigs] = useState<any[]>([]);
-    const [newEventName, setNewEventName] = useState("");
-    const [newScoreValue, setNewScoreValue] = useState(10);
-    const [scoringLoading, setScoringLoading] = useState(false);
-
-    const fetchScoringConfigs = useCallback(async () => {
-        if (!session?.user) return;
-        setScoringLoading(true);
-        try {
-            const configs = await reportApi.getScoringConfigs();
-            setScoringConfigs(configs || []);
-        } catch (error) {
-            console.error("Failed to fetch scoring configs:", error);
-        } finally {
-            setScoringLoading(false);
-        }
-    }, [session]);
-
-    useEffect(() => {
-        if (activeTab === "scoring") {
-            fetchScoringConfigs();
-        }
-    }, [activeTab, fetchScoringConfigs]);
-
-    // REWRITE: Just defining the logic inside the rendering or effect is messy.
-    // Let's look at `activeTab` rendering.
-
-    // I will insert the TAB BUTTON first.
 
     const handleManageSubscription = async () => {
         setIsLoading(true);
         try {
             const data = await reportApi.createPortalSession();
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                alert("Failed to open billing portal");
-            }
-        } catch (error) {
-            console.error("Error opening billing portal:", error);
+            if (data.url) window.location.href = data.url;
+            else alert("Failed to open billing portal");
+        } catch {
             alert("Something went wrong");
         } finally {
             setIsLoading(false);
@@ -80,294 +42,177 @@ export default function SettingsPage() {
         router.push("/");
     };
 
-    const handleConnectPowerBI = async () => {
-        try {
-            await authClient.linkSocial({
-                provider: "microsoft",
-                callbackURL: window.location.origin + "/setting",
-            });
-        } catch (error) {
-            console.error("Failed to link PowerBI:", error);
-            alert("Failed to connect PowerBI account");
-        }
-    };
-
-    const isPowerBIConnected = linkedAccounts.some(acc => acc.provider === "microsoft");
-
     if (!session?.user) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <p>Please log in to view settings.</p>
+            <div className="flex items-center justify-center h-full text-gray-500">
+                Please log in to view settings.
             </div>
         );
     }
 
+    const NAV: { id: Tab; label: string; icon: React.ElementType }[] = [
+        { id: "profile", label: "Profile", icon: User },
+        { id: "billing", label: "Billing & Plans", icon: CreditCard },
+        { id: "preferences", label: "Preferences", icon: Settings2 },
+    ];
+
     return (
-        <div className="max-w-4xl mx-auto p-8">
-            <h1 className="text-3xl font-bold mb-8 font-manrope text-black">Settings</h1>
+        <div className="max-w-5xl mx-auto px-8 py-10">
+            <div className="mb-8">
+                <h1 className="text-2xl font-semibold text-gray-100 font-urbanist">Settings</h1>
+                <p className="text-sm text-gray-500 mt-1">Manage your account, billing, and preferences.</p>
+            </div>
 
             <div className="flex flex-col md:flex-row gap-8">
-                {/* Sidebar Navigation */}
-                <aside className="w-full md:w-64 flex-shrink-0">
-                    <nav className="space-y-1">
-                        <button
-                            onClick={() => setActiveTab("profile")}
-                            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "profile" ? "bg-primary text-primary-900" : "text-gray-600 hover:bg-gray-100"
+                {/* Sidebar */}
+                <aside className="w-full md:w-52 flex-shrink-0">
+                    <nav className="flex flex-col gap-1">
+                        {NAV.map(({ id, label, icon: Icon }) => (
+                            <button
+                                key={id}
+                                onClick={() => setActiveTab(id)}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${
+                                    activeTab === id
+                                        ? "bg-white/[0.08] text-gray-100"
+                                        : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]"
                                 }`}
-                        >
-                            <User size={18} />
-                            Profile
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("billing")}
-                            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "billing" ? "bg-primary text-primary-900" : "text-gray-600 hover:bg-gray-100"
-                                }`}
-                        >
-                            <CreditCard size={18} />
-                            Billing & Plans
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("preferences")}
-                            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "preferences" ? "bg-primary text-primary-900" : "text-gray-600 hover:bg-gray-100"
-                                }`}
-                        >
-                            <SettingsIcon size={18} />
-                            Preferences
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("scoring")}
-                            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "scoring" ? "bg-primary text-primary-900" : "text-gray-600 hover:bg-gray-100"
-                                }`}
-                        >
-                            <Tick size={18} />
-                            Scoring Rules
-                        </button>
+                            >
+                                <Icon className="w-4 h-4 shrink-0" />
+                                {label}
+                            </button>
+                        ))}
 
+                        <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                            <button
+                                onClick={handleSignOut}
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-red-400 hover:bg-red-900/10 transition-colors"
+                            >
+                                <LogOut className="w-4 h-4 shrink-0" />
+                                Sign Out
+                            </button>
+                        </div>
                     </nav>
                 </aside>
 
                 {/* Main Content */}
-                <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 min-h-[500px]">
+                <div className="flex-1 min-h-[500px]">
+
+                    {/* ── PROFILE ── */}
                     {activeTab === "profile" && (
-                        <div className="space-y-8">
-                            <div>
-                                <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
+                        <div className="flex flex-col gap-6">
+                            <div className="bg-[#1a1b1d] rounded-2xl border border-white/[0.06] p-6">
+                                <h2 className="text-base font-semibold text-gray-100 mb-5">Profile Information</h2>
                                 <div className="flex items-center gap-4 mb-6">
                                     <Image
                                         src={session.user.image || "/default-avatar.png"}
                                         alt="Profile"
-                                        width={80}
-                                        height={80}
-                                        className="rounded-full border border-gray-200"
+                                        width={64}
+                                        height={64}
+                                        className="rounded-full border border-white/[0.08] object-cover"
                                     />
                                     <div>
-                                        <button className="text-sm text-primary-600 font-medium hover:underline">
-                                            Change Avatar
-                                        </button>
-                                        <p className="text-xs text-gray-500 mt-1">JPG, GIF or PNG. Max 1MB.</p>
+                                        <p className="text-sm font-medium text-gray-200">{session.user.name}</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">{session.user.email}</p>
                                     </div>
                                 </div>
 
                                 <div className="grid gap-4 max-w-md">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                        <label className="block text-xs font-medium text-gray-400 mb-1.5">Full Name</label>
                                         <input
                                             type="text"
                                             defaultValue={session.user.name || ""}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                                            className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm text-gray-200 outline-none focus:border-primary/50 transition-colors"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                        <label className="block text-xs font-medium text-gray-400 mb-1.5">Email Address</label>
                                         <input
                                             type="email"
                                             defaultValue={session.user.email || ""}
                                             disabled
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                                            className="w-full px-3 py-2.5 bg-white/[0.02] border border-white/[0.04] rounded-xl text-sm text-gray-600 cursor-not-allowed"
                                         />
                                     </div>
-                                </div>
-                            </div>
-
-                            <div className="pt-6 border-t border-gray-200">
-                                <h2 className="text-xl font-semibold mb-4 text-red-600">Danger Zone</h2>
-                                <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-100">
-                                    <div>
-                                        <p className="font-medium text-red-900">Delete Account</p>
-                                        <p className="text-sm text-red-700">Permanently delete your account and all data.</p>
-                                    </div>
-                                    <button className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 text-sm font-medium transition-colors flex items-center gap-2">
-                                        <Delete size={16} />
-                                        Delete
+                                    <button className="self-start px-4 py-2 bg-primary hover:bg-primary/90 text-white text-sm font-medium rounded-xl transition-colors">
+                                        Save Changes
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="pt-6 border-t border-gray-200">
-                                <button
-                                    onClick={handleSignOut}
-                                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium"
-                                >
-                                    <Logout size={18} />
-                                    Sign Out
-                                </button>
+                            <div className="bg-[#1a1b1d] rounded-2xl border border-red-900/30 p-6">
+                                <h2 className="text-base font-semibold text-red-400 mb-4">Danger Zone</h2>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-200">Delete Account</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">Permanently delete your account and all data.</p>
+                                    </div>
+                                    <button className="flex items-center gap-2 px-4 py-2 bg-red-900/20 border border-red-800/30 text-red-400 rounded-xl hover:bg-red-900/30 text-sm font-medium transition-colors">
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
 
+                    {/* ── BILLING ── */}
                     {activeTab === "billing" && (
-                        <div className="space-y-8">
-                            <div>
-                                <h2 className="text-xl font-semibold mb-4">Current Plan</h2>
-                                <div className="p-6 bg-black rounded-xl text-white relative overflow-hidden">
+                        <div className="flex flex-col gap-6">
+                            <div className="bg-[#1a1b1d] rounded-2xl border border-white/[0.06] p-6">
+                                <h2 className="text-base font-semibold text-gray-100 mb-5">Current Plan</h2>
+                                <div className="p-6 bg-[#111113] rounded-xl border border-white/[0.06] relative overflow-hidden">
                                     <div className="relative z-10">
-                                        <p className="text-gray-400 text-sm uppercase tracking-wider font-medium mb-1">Current Subscription</p>
-                                        <h3 className="text-3xl font-bold mb-4 capitalize">{(session.user as any).plan || "Free"} Plan</h3>
-
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">Current Subscription</p>
+                                        <h3 className="text-3xl font-semibold text-gray-100 font-urbanist capitalize mb-4">
+                                            {(session.user as any).plan || "Free"} Plan
+                                        </h3>
                                         <div className="flex items-center gap-2 mb-6">
-                                            <div className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium backdrop-blur-sm">
+                                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-900/20 border border-emerald-800/30 text-emerald-400 text-xs font-medium">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                                                 Active
-                                            </div>
-                                            {(session.user as any).plan !== "free" && (
-                                                <span className="text-gray-300 text-sm">Renews on Dec 31, 2025</span>
-                                            )}
+                                            </span>
                                         </div>
-
-                                        <div className="flex items-center justify-between pt-6 border-t border-white/10">
+                                        <div className="flex items-center justify-between pt-5 border-t border-white/[0.06]">
                                             <div>
-                                                <p className="text-gray-400 text-xs mb-1">Credits Remaining</p>
-                                                <p className="text-2xl font-bold">{credits !== null ? credits : "..."}</p>
+                                                <p className="text-xs text-gray-500 mb-1">Credits Remaining</p>
+                                                <p className="text-2xl font-semibold text-gray-100 font-urbanist">
+                                                    {credits !== null ? credits : "—"}
+                                                </p>
                                             </div>
                                             <button
                                                 onClick={handleManageSubscription}
                                                 disabled={isLoading}
-                                                className="px-4 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors disabled:opacity-70"
+                                                className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-xl font-medium text-sm transition-colors disabled:opacity-50"
                                             >
                                                 {isLoading ? "Loading..." : "Manage Subscription"}
                                             </button>
                                         </div>
                                     </div>
-
-                                    {/* Decorative circles */}
-                                    <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
-                                    <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-primary-500/10 rounded-full blur-2xl"></div>
                                 </div>
                             </div>
 
-                            <div>
-                                <h2 className="text-xl font-semibold mb-4">Billing History</h2>
+                            <div className="bg-[#1a1b1d] rounded-2xl border border-white/[0.06] p-6">
+                                <h2 className="text-base font-semibold text-gray-100 mb-4">Billing History</h2>
+                                <p className="text-sm text-gray-500">No invoices yet.</p>
                             </div>
                         </div>
                     )}
 
-
+                    {/* ── PREFERENCES ── */}
                     {activeTab === "preferences" && (
-                        <div className="space-y-8">
-                            <div>
-                                <h2 className="text-xl font-semibold mb-4">Appearance</h2>
-                                <div className="grid grid-cols-3 gap-4 max-w-lg">
-                                    <button className="p-4 border-2 border-primary-500 bg-primary-50 rounded-xl flex flex-col items-center gap-2 relative">
-                                        <div className="absolute top-2 right-2 text-primary-600"><Tick size={16} /></div>
-                                        <Sun size={24} className="text-primary-600" />
-                                        <span className="font-medium text-sm">Light</span>
-                                    </button>
-                                    <button className="p-4 border border-gray-200 rounded-xl flex flex-col items-center gap-2 hover:border-gray-300 transition-colors">
-                                        <Moon size={24} className="text-gray-600" />
-                                        <span className="font-medium text-sm text-gray-600">Dark</span>
-                                    </button>
-                                    <button className="p-4 border border-gray-200 rounded-xl flex flex-col items-center gap-2 hover:border-gray-300 transition-colors">
-                                        <span className="text-xl">💻</span>
-                                        <span className="font-medium text-sm text-gray-600">System</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="pt-6 border-t border-gray-200">
-                                <h2 className="text-xl font-semibold mb-4">Language</h2>
-                                <div className="max-w-md">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Interface Language</label>
+                        <div className="flex flex-col gap-6">
+                            <div className="bg-[#1a1b1d] rounded-2xl border border-white/[0.06] p-6">
+                                <h2 className="text-base font-semibold text-gray-100 mb-5">Language</h2>
+                                <div className="max-w-sm">
+                                    <label className="block text-xs font-medium text-gray-400 mb-1.5">Interface Language</label>
                                     <div className="relative">
-                                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                        <select className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg appearance-none bg-white focus:ring-primary-500 focus:border-primary-500">
+                                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                                        <select className="w-full pl-9 pr-4 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm text-gray-200 outline-none appearance-none focus:border-primary/50 transition-colors">
                                             <option value="en">English</option>
                                             <option value="fr">Français</option>
                                             <option value="es">Español</option>
                                         </select>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-2">
-                                        This will change the language of the interface. Generated reports will still be in the language of your source data.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                    )}
-
-                    {activeTab === "scoring" && (
-                        <div className="space-y-8">
-                            <div>
-                                <h2 className="text-xl font-semibold mb-4">Scoring Rules</h2>
-                                <p className="text-gray-500 mb-6">Configure how leads are scored based on events.</p>
-
-                                {/* List Configs */}
-                                <div className="space-y-4 mb-8">
-                                    {scoringLoading ? (
-                                        <p>Loading...</p>
-                                    ) : scoringConfigs.length === 0 ? (
-                                        <p className="text-sm text-gray-500">No scoring rules defined.</p>
-                                    ) : (
-                                        scoringConfigs.map((config: any) => (
-                                            <div key={config.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                                                <div>
-                                                    <p className="font-medium">{config.eventName}</p>
-                                                    <p className="text-sm text-gray-500">Score: +{config.scoreValue}</p>
-                                                </div>
-                                                <button
-                                                    onClick={() => reportApi.deleteScoringConfig(config.id).then(fetchScoringConfigs)}
-                                                    className="text-red-600 text-sm hover:underline"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-
-                                {/* Add New Config */}
-                                <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                                    <h3 className="font-medium mb-4">Add New Rule</h3>
-                                    <div className="flex gap-4">
-                                        <div className="flex-1">
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Event Name</label>
-                                            <input
-                                                type="text"
-                                                value={newEventName}
-                                                onChange={(e) => setNewEventName(e.target.value)}
-                                                placeholder="e.g. page_view"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
-                                            />
-                                        </div>
-                                        <div className="w-24">
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Score</label>
-                                            <input
-                                                type="number"
-                                                value={newScoreValue}
-                                                onChange={(e) => setNewScoreValue(Number(e.target.value))}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
-                                            />
-                                        </div>
-                                        <div className="flex items-end">
-                                            <button
-                                                onClick={() => reportApi.createScoringConfig(newEventName, newScoreValue).then(() => {
-                                                    setNewEventName("");
-                                                    fetchScoringConfigs();
-                                                })}
-                                                disabled={!newEventName}
-                                                className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
-                                            >
-                                                Add Rule
-                                            </button>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -376,7 +221,7 @@ export default function SettingsPage() {
 
 
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }

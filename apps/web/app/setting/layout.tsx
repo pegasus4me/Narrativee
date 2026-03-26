@@ -1,18 +1,17 @@
 import { SideBar } from "../components/commons/sideBar";
+import AuthGuard from "../components/commons/AuthGuard";
 
-export default function SettingsLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+export default function SettingsLayout({ children }: { children: React.ReactNode }) {
     return (
-        <>
-            <section className="h-screen flex flex-row overflow-hidden bg-white">
+        <div className="min-h-screen bg-[#161718]">
+            <div className="flex">
                 <SideBar />
-                <main className="flex-1 h-full relative overflow-y-auto bg-gray-50">
-                    {children}
+                <main className="flex-1 overflow-y-auto h-screen ml-20">
+                    <AuthGuard>
+                        {children}
+                    </AuthGuard>
                 </main>
-            </section>
-        </>
+            </div>
+        </div>
     );
 }
