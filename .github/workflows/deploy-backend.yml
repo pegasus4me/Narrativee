@@ -41,30 +41,5 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            # Update .env file (create if not exists)
-            echo "${{ secrets.ENV_FILE }}" > .env
-            
-            # Pull latest image
-            sudo docker pull safoantouil/narrative:latest
-            
-            # Stop and remove existing container
-            sudo docker stop narrative-backend || true
-            sudo docker rm narrative-backend || true
-            
-            # Run new container
-            sudo docker run -d \
-              --name narrative-backend \
-              --restart always \
-              -p 3002:3002 \
-              --env-file .env \
-              safoantouil/narrative:latest
-            
-            # Cleanup unused images to save space
-            sudo docker image prune -f
+      - name: Notify image ready
+        run: echo "✅ Image pushed to Docker Hub. SSH into EC2 and run: sudo docker pull safoantouil/narrative:latest && sudo docker stop narrative-backend && sudo docker rm narrative-backend && sudo docker run -d --name narrative-backend --restart always -p 3002:3002 --env-file /home/ubuntu/narrativee-backend/.env safoantouil/narrative:latest"
