@@ -7,6 +7,7 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import dns from 'node:dns';
 import path from 'node:path';
 import fs from 'node:fs';
+import { EmailService } from "../services/email-service";
 
 // Load .env: walk up from CWD until we find it (works for both turbo & docker)
 const loadEnv = () => {
@@ -70,6 +71,23 @@ export const auth = betterAuth({
     useSecureCookies: process.env.NODE_ENV === "production",
     // REMOVE THIS IN LOCAL DEVELOPEMENT
 
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          try {
+            await EmailService.sendWelcome({
+              email: user.email,
+              name: user.name ?? "",
+              promoCode: "WELCOME20",
+            });
+          } catch (e) {
+            console.error("Failed to send welcome email:", e);
+          }
+        }
+      }
+    }
   },
   user: {
     additionalFields: {
