@@ -4,6 +4,7 @@ import { PostsAPI, NotesAPI, Stats, NoteStats, Post, Note } from "@/lib/api/post
 import { MetricsAnalysis } from "./MetricsAnalysis";
 import { Card } from "@/components/ui/card";
 import { PostingHeatmap } from "./PostingHeatmap";
+import { GrowthRateCard } from "./GrowthRateCard";
 
 export function StatsOverview() {
     const [stats, setStats] = useState<Stats | null>(null);
@@ -120,8 +121,8 @@ export function StatsOverview() {
 
     if (loading) {
         return (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map((i) => (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {[1, 2, 3, 4, 5].map((i) => (
                     <div key={i} className="animate-pulse h-24 bg-[#1a1b1d] rounded-2xl border border-white/[0.06] w-full"></div>
                 ))}
             </div>
@@ -130,7 +131,8 @@ export function StatsOverview() {
 
     return (
         <div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <GrowthRateCard />
                 {statItems.map((stat, index) => (
                     <div
                         key={index}

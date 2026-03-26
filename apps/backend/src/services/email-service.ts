@@ -4,7 +4,33 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 
 const FROM = "Safoan <hello@narrativee.com>";
 
+interface WeeklyDigestData {
+    email: string;
+    name: string;
+    notesPosted: number;
+    totalLikes: number;
+    totalComments: number;
+    totalRestacks: number;
+    newSubscribers: number;
+    topNote: { content: string; likes: number } | null;
+}
+
 export const EmailService = {
+    async sendWeeklyDigest(data: WeeklyDigestData) {
+        if (!resend) {
+            console.error("❌ RESEND_API_KEY is missing — weekly digest skipped");
+            return;
+        }
+        const { data: result, error } = await resend.emails.send({
+            from: FROM,
+            to: data.email,
+            subject: "Your Narrativee weekly recap",
+            html: weeklyDigestHtml(data),
+        });
+        if (error) console.error("❌ Weekly digest error:", error);
+        else console.log("✅ Weekly digest sent to", data.email, "id:", result?.id);
+    },
+
     async sendWelcome({ email, name, promoCode }: { email: string; name: string; promoCode: string }) {
         if (!resend) {
             console.error("❌ RESEND_API_KEY is missing — welcome email skipped");
@@ -94,6 +120,79 @@ function welcomeEmailHtml({ name, promoCode }: { name: string; promoCode: string
         </table>
       </td>
     </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function weeklyDigestHtml(d: WeeklyDigestData) {
+    const firstName = d.name?.split(" ")[0] || "there";
+    const weekLabel = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    const topNoteHtml = d.topNote
+        ? `<div style="margin-top:24px;padding:16px;background:#111;border-left:3px solid #f97316;border-radius:6px;">
+            <p style="margin:0 0 8px;font-size:11px;color:#f97316;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Top note this week</p>
+            <p style="margin:0 0 8px;font-size:14px;color:#d1d5db;line-height:1.5;">"${d.topNote.content.substring(0, 120)}${d.topNote.content.length > 120 ? '...' : ''}"</p>
+            <p style="margin:0;font-size:12px;color:#6b7280;">${d.topNote.likes} likes</p>
+          </div>`
+        : "";
+
+    const stat = (value: number | string, label: string, color: string) =>
+        `<td style="text-align:center;padding:16px 8px;">
+            <div style="font-size:24px;font-weight:700;color:${color};">${value}</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:4px;">${label}</div>
+         </td>`;
+
+    return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background:#0f0f0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f0f0f;padding:48px 16px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1b1d;border-radius:16px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;max-width:560px;width:100%;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#1a1b1d 0%,#1e1a2e 100%);padding:32px 40px;border-bottom:1px solid rgba(255,255,255,0.06);">
+            <div style="font-size:18px;font-weight:700;color:#ffffff;">✦ Narrativee</div>
+            <p style="margin:4px 0 0;font-size:13px;color:#6b7280;">Weekly recap · ${weekLabel}</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr><td style="padding:32px 40px;">
+          <h1 style="margin:0 0 8px;font-size:22px;font-weight:600;color:#ffffff;">Hey ${firstName}, here's your week</h1>
+          <p style="margin:0 0 24px;font-size:14px;color:#9ca3af;line-height:1.6;">Here's what happened on your Substack this week.</p>
+
+          <!-- Stats grid -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#111;border-radius:12px;border:1px solid rgba(255,255,255,0.06);margin-bottom:8px;">
+            <tr>
+              ${stat(d.notesPosted, "Notes posted", "#ffffff")}
+              ${stat(`+${d.newSubscribers}`, "New subscribers", "#34d399")}
+              ${stat(d.totalLikes, "Likes", "#a78bfa")}
+              ${stat(d.totalComments, "Comments", "#fb923c")}
+            </tr>
+          </table>
+
+          ${topNoteHtml}
+
+          <!-- CTA -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:32px;">
+            <tr><td align="center">
+              <a href="https://narrativee.com/workspace" style="display:inline-block;background:#f97316;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:10px;">
+                View your dashboard →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:20px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
+            <p style="margin:0;font-size:12px;color:#4b5563;">© 2026 Narrativee · <a href="https://narrativee.com" style="color:#6b7280;text-decoration:none;">narrativee.com</a></p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
   </table>
 </body>
 </html>`;
