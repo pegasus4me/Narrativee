@@ -1,7 +1,6 @@
 "use client";
 
 import { StatsOverview } from "../components/workspace/StatsOverview";
-import { NotesList } from "../components/workspace/NotesList";
 import { SubsChart } from "../components/workspace/SubsChart";
 import { ActivityChart } from "../components/workspace/ActivityChart";
 import { PerformanceChart } from "../components/workspace/PerformanceChart";
@@ -66,11 +65,6 @@ export default function Workspace() {
                 {/* AI Analysis */}
                 <MetricsAnalysis />
 
-                {/* Notes table */}
-                <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-4">Notes Performance</p>
-                    <NotesList />
-                </div>
 
             </div>
         </div>
