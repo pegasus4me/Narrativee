@@ -18,7 +18,7 @@ import Header from "./components/commons/Header";
 import Footer from "./components/commons/Footer";
 import PrimaryButton from "./components/commons/PrimaryButton";
 import narrativee from "../public/narrativee.png";
-import postqueue from "../public/postqueue.png";
+import postqueue from "../public/post.png";
 
 import { ArrowRightIcon } from "clicons-react";
 function FAQItem({ question, answer }: { question: string; answer: string }) {
