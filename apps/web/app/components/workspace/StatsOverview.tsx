@@ -1,10 +1,6 @@
-import { ArrowUpRight, BarChart2, Eye, MessageSquare, ThumbsUp, Users, Calendar, Activity, Info } from "lucide-react";
+import { MessageSquare, ThumbsUp, Calendar, Activity, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PostsAPI, NotesAPI, Stats, NoteStats, Post, Note } from "@/lib/api/posts";
-import { MetricsAnalysis } from "./MetricsAnalysis";
-import { Card } from "@/components/ui/card";
-import { PostingHeatmap } from "./PostingHeatmap";
-import { GrowthRateCard } from "./GrowthRateCard";
 
 export function StatsOverview() {
     const [stats, setStats] = useState<Stats | null>(null);
@@ -121,8 +117,8 @@ export function StatsOverview() {
 
     if (loading) {
         return (
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {[1, 2, 3, 4, 5].map((i) => (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="animate-pulse h-24 bg-[#1a1b1d] rounded-2xl border border-white/[0.06] w-full"></div>
                 ))}
             </div>
@@ -131,8 +127,7 @@ export function StatsOverview() {
 
     return (
         <div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <GrowthRateCard />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {statItems.map((stat, index) => (
                     <div
                         key={index}
@@ -159,11 +154,6 @@ export function StatsOverview() {
                     </div>
                 ))}
             </div>
-                      {/* Heatmap */}
-                            <div className="mt-8 flex flex-row gap-6">
-                                <div className="flex-[2]"><MetricsAnalysis /></div>
-                                <div className="flex-1"><PostingHeatmap /></div>
-                            </div>
         </div>
     );
 }

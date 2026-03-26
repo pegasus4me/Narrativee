@@ -36,7 +36,7 @@ export function MetricsAnalysis() {
     };
 
     return (
-        <div className="mt-6 rounded-xl border border-violet-800/30 bg-gradient-to-br from-violet-950/30 to-[#1e1f21] overflow-hidden">
+        <div className="rounded-xl border border-violet-800/30 bg-gradient-to-br from-violet-950/30 to-[#1e1f21] overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-violet-800/20">
                 <div className="flex items-center gap-2">
