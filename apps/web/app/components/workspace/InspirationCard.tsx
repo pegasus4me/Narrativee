@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, Repeat2, MessageCircle, ExternalLink, Trash2, Tag, Plus, Calendar } from "lucide-react";
+import { Heart, Repeat2, MessageCircle, ExternalLink, Trash2, Plus, Calendar, BookmarkCheck } from "lucide-react";
 import { InspirationNote } from "@/app/types/inspiration";
-import PrimaryButton from "../commons/PrimaryButton";
 
 interface InspirationCardProps {
     note: InspirationNote;
@@ -13,13 +12,7 @@ interface InspirationCardProps {
     onUpdateNotes: (id: string, notes: string) => void;
 }
 
-export default function InspirationCard({
-    note,
-    onAddToQueue,
-    onDelete,
-    onUpdateTags,
-    onUpdateNotes
-}: InspirationCardProps) {
+export default function InspirationCard({ note, onAddToQueue, onDelete, onUpdateTags, onUpdateNotes }: InspirationCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isEditingTags, setIsEditingTags] = useState(false);
     const [isEditingNotes, setIsEditingNotes] = useState(false);
@@ -27,11 +20,8 @@ export default function InspirationCard({
     const [notesInput, setNotesInput] = useState(note.notes || "");
 
     const totalEngagement = note.engagement.likes + note.engagement.restacks + note.engagement.comments;
-    const savedDate = new Date(note.savedAt).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-    });
+    const savedDate = new Date(note.savedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const contentPreview = note.content.length > 220 ? note.content.substring(0, 220) + "..." : note.content;
 
     const handleAddTag = () => {
         if (tagInput.trim() && !note.tags.includes(tagInput.trim())) {
@@ -40,224 +30,126 @@ export default function InspirationCard({
         }
     };
 
-    const handleRemoveTag = (tagToRemove: string) => {
-        onUpdateTags(note.id, note.tags.filter(t => t !== tagToRemove));
-    };
-
     const handleSaveNotes = () => {
         onUpdateNotes(note.id, notesInput);
         setIsEditingNotes(false);
     };
 
-    const contentPreview = note.content.length > 200
-        ? note.content.substring(0, 200) + "..."
-        : note.content;
-
+    const scoreColor = totalEngagement > 50 ? "text-emerald-400 bg-emerald-900/20 border-emerald-800/30"
+        : totalEngagement > 20 ? "text-amber-400 bg-amber-900/20 border-amber-800/30"
+        : "text-gray-400 bg-gray-800/20 border-gray-700/30";
 
     return (
-        <div className="bg-[#1e1f21] rounded-lg p-5 border border-gray-700 hover:border-gray-600 transition-all group flex flex-col h-full">
-            <div className="flex-1 overflow-hidden">
-                {/* Header - Author Info */}
-                <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                        {note.author.avatar ? (
-                            <img
-                                src={note.author.avatar}
-                                alt={note.author.name}
-                                className="w-10 h-10 rounded-full object-cover"
-                            />
-                        ) : (
-                            <div className="w-10 h-10 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-400 font-medium text-sm">
-                                {note.author.name.charAt(0).toUpperCase()}
-                            </div>
-                        )}
-                        <div>
-                            <p className="text-gray-200 font-medium text-sm">{note.author.name}</p>
-                            {note.author.handle && (
-                                <p className="text-gray-500 text-xs">@{note.author.handle}</p>
-                            )}
-                            {note.author.publicationName && (
-                                <p className="text-gray-500 text-xs">{note.author.publicationName}</p>
-                            )}
+        <div className="bg-[#1a1b1d] rounded-xl border border-white/[0.06] hover:border-white/[0.1] transition-all flex flex-col group">
+            <div className="p-5 flex-1 flex flex-col gap-3">
+                {/* Author */}
+                <div className="flex items-center gap-3">
+                    {note.author.avatar ? (
+                        <img src={note.author.avatar} alt={note.author.name} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                    ) : (
+                        <div className="w-9 h-9 rounded-full bg-violet-900/40 flex items-center justify-center text-violet-400 font-semibold text-sm shrink-0">
+                            {note.author.name.charAt(0).toUpperCase()}
                         </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-200 truncate">{note.author.name}</p>
+                        {note.author.handle && <p className="text-xs text-gray-500">@{note.author.handle}</p>}
                     </div>
-
-                    {/* Quick Actions */}
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <a
-                            href={note.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-gray-800 rounded transition-colors"
-                            title="View on Substack"
-                        >
-                            <ExternalLink className="w-4 h-4" />
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <a href={note.url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-gray-600 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/5">
+                            <ExternalLink className="w-3.5 h-3.5" />
                         </a>
-                        <button
-                            onClick={() => onDelete(note.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-900/30 rounded transition-colors"
-                            title="Remove from inspirations"
-                        >
-                            <Trash2 className="w-4 h-4" />
+                        <button onClick={() => onDelete(note.id)} className="p-1.5 text-gray-600 hover:text-red-400 transition-colors rounded-lg hover:bg-red-900/20">
+                            <Trash2 className="w-3.5 h-3.5" />
                         </button>
                     </div>
                 </div>
 
                 {/* Content */}
-                <div className="mb-3">
+                <div>
                     <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
                         {isExpanded ? note.content : contentPreview}
                     </p>
-                    {note.content.length > 200 && (
-                        <button
-                            onClick={() => setIsExpanded(!isExpanded)}
-                            className="text-blue-400 text-xs mt-1 hover:underline"
-                        >
+                    {note.content.length > 220 && (
+                        <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-gray-500 hover:text-gray-300 mt-1 transition-colors">
                             {isExpanded ? "Show less" : "Read more"}
                         </button>
                     )}
                 </div>
 
-                {/* Engagement Metrics */}
-                <div className="flex items-center gap-4 mb-3 pb-3 border-b border-gray-700">
-                    <div className="flex items-center gap-1.5 text-xs">
-                        <Heart className="w-3.5 h-3.5 text-red-400" />
-                        <span className="text-gray-400">{note.engagement.likes}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs">
-                        <Repeat2 className="w-3.5 h-3.5 text-green-400" />
-                        <span className="text-gray-400">{note.engagement.restacks}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs">
-                        <MessageCircle className="w-3.5 h-3.5 text-blue-400" />
-                        <span className="text-gray-400">{note.engagement.comments}</span>
-                    </div>
-                    <div className="ml-auto flex items-center gap-1.5 text-xs text-gray-500">
-                        <Calendar className="w-3 h-3" />
-                        <span>Saved {savedDate}</span>
-                    </div>
+                {/* Stats */}
+                <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1 text-xs text-gray-500"><Heart className="w-3 h-3" /> {note.engagement.likes}</span>
+                    <span className="flex items-center gap-1 text-xs text-gray-500"><Repeat2 className="w-3 h-3" /> {note.engagement.restacks}</span>
+                    <span className="flex items-center gap-1 text-xs text-gray-500"><MessageCircle className="w-3 h-3" /> {note.engagement.comments}</span>
+                    <span className={`ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full border ${scoreColor}`}>{totalEngagement} score</span>
                 </div>
 
                 {/* Tags */}
-                <div className="mb-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <Tag className="w-3.5 h-3.5 text-gray-500" />
-                        {note.tags.length > 0 ? (
-                            note.tags.map(tag => (
-                                <span
-                                    key={tag}
-                                    className="px-2 py-0.5 bg-blue-900/30 text-blue-300 text-xs rounded-full flex items-center gap-1"
-                                >
-                                    {tag}
-                                    <button
-                                        onClick={() => handleRemoveTag(tag)}
-                                        className="hover:text-red-400"
-                                    >
-                                        ×
-                                    </button>
-                                </span>
-                            ))
-                        ) : (
-                            <span className="text-gray-500 text-xs">No tags</span>
-                        )}
-                        {isEditingTags ? (
-                            <div className="flex items-center gap-1">
-                                <input
-                                    type="text"
-                                    value={tagInput}
-                                    onChange={(e) => setTagInput(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            handleAddTag();
-                                        } else if (e.key === 'Escape') {
-                                            setIsEditingTags(false);
-                                            setTagInput("");
-                                        }
-                                    }}
-                                    placeholder="Tag name..."
-                                    className="px-2 py-0.5 bg-[#2a2b2d] border border-gray-600 text-gray-200 text-xs rounded focus:outline-none focus:border-blue-500"
-                                    autoFocus
-                                />
-                                <button
-                                    onClick={handleAddTag}
-                                    className="text-blue-400 hover:text-blue-300 text-xs"
-                                >
-                                    Add
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setIsEditingTags(false);
-                                        setTagInput("");
-                                    }}
-                                    className="text-gray-500 hover:text-gray-300 text-xs"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => setIsEditingTags(true)}
-                                className="flex items-center gap-1 text-gray-500 hover:text-gray-300 text-xs"
-                            >
-                                <Plus className="w-3 h-3" />
-                                Add tag
-                            </button>
-                        )}
-                    </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    {note.tags.map(tag => (
+                        <span key={tag} className="flex items-center gap-1 px-2 py-0.5 bg-violet-900/20 text-violet-400 text-[10px] rounded-full border border-violet-800/30 font-medium">
+                            {tag}
+                            <button onClick={() => onUpdateTags(note.id, note.tags.filter(t => t !== tag))} className="hover:text-red-400 transition-colors">×</button>
+                        </span>
+                    ))}
+                    {isEditingTags ? (
+                        <div className="flex items-center gap-1">
+                            <input
+                                type="text"
+                                value={tagInput}
+                                onChange={(e) => setTagInput(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === "Enter") handleAddTag(); if (e.key === "Escape") { setIsEditingTags(false); setTagInput(""); } }}
+                                placeholder="tag..."
+                                className="px-2 py-0.5 bg-white/5 border border-white/10 text-gray-200 text-xs rounded-lg focus:outline-none focus:border-violet-500/50 w-20"
+                                autoFocus
+                            />
+                            <button onClick={handleAddTag} className="text-violet-400 hover:text-violet-300 text-xs">Add</button>
+                            <button onClick={() => { setIsEditingTags(false); setTagInput(""); }} className="text-gray-600 hover:text-gray-400 text-xs">×</button>
+                        </div>
+                    ) : (
+                        <button onClick={() => setIsEditingTags(true)} className="flex items-center gap-0.5 text-gray-600 hover:text-gray-400 text-xs transition-colors">
+                            <Plus className="w-3 h-3" /> tag
+                        </button>
+                    )}
                 </div>
 
-                {/* Personal Notes */}
+                {/* Personal notes */}
                 {isEditingNotes ? (
-                    <div className="mb-3">
+                    <div>
                         <textarea
                             value={notesInput}
                             onChange={(e) => setNotesInput(e.target.value)}
-                            placeholder="Why did you save this? What inspires you about it?"
-                            className="w-full p-2 bg-[#2a2b2d] border border-gray-600 text-gray-200 text-xs rounded resize-none focus:outline-none focus:border-blue-500"
+                            placeholder="Why did you save this?"
+                            className="w-full p-2.5 bg-white/[0.03] border border-white/[0.06] text-gray-300 text-xs rounded-lg resize-none focus:outline-none focus:border-violet-500/50"
                             rows={3}
                         />
-                        <div className="flex gap-2 mt-1">
-                            <button
-                                onClick={handleSaveNotes}
-                                className="text-blue-400 hover:text-blue-300 text-xs"
-                            >
-                                Save
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setIsEditingNotes(false);
-                                    setNotesInput(note.notes || "");
-                                }}
-                                className="text-gray-500 hover:text-gray-300 text-xs"
-                            >
-                                Cancel
-                            </button>
+                        <div className="flex gap-2 mt-1.5">
+                            <button onClick={handleSaveNotes} className="text-violet-400 hover:text-violet-300 text-xs">Save</button>
+                            <button onClick={() => { setIsEditingNotes(false); setNotesInput(note.notes || ""); }} className="text-gray-600 hover:text-gray-400 text-xs">Cancel</button>
                         </div>
                     </div>
                 ) : note.notes ? (
-                    <div
-                        onClick={() => setIsEditingNotes(true)}
-                        className="mb-3 p-2 bg-[#252627] rounded text-xs text-gray-400 italic cursor-pointer hover:bg-[#2a2b2d]"
-                    >
+                    <div onClick={() => setIsEditingNotes(true)} className="p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-lg text-xs text-gray-500 italic cursor-pointer hover:border-white/10 transition-colors">
                         "{note.notes}"
                     </div>
                 ) : (
-                    <button
-                        onClick={() => setIsEditingNotes(true)}
-                        className="mb-3 text-gray-500 hover:text-gray-300 text-xs"
-                    >
-                        + Add personal notes
+                    <button onClick={() => setIsEditingNotes(true)} className="text-xs text-gray-600 hover:text-gray-400 text-left transition-colors">
+                        + Add personal note
                     </button>
                 )}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-700/30">
-                <PrimaryButton
+            {/* Footer */}
+            <div className="border-t border-white/[0.04] p-4 flex items-center justify-between gap-3">
+                <span className="flex items-center gap-1 text-[10px] text-gray-600"><Calendar className="w-3 h-3" /> {savedDate}</span>
+                <button
                     onClick={() => onAddToQueue(note)}
-                    className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/[0.06] text-gray-300 text-xs font-medium rounded-lg transition-all"
                 >
-                    Add to Post Queue
-                </PrimaryButton>
+                    <BookmarkCheck className="w-3.5 h-3.5 text-violet-400" />
+                    Add to Queue
+                </button>
             </div>
         </div>
     );
