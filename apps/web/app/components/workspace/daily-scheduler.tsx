@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ChevronRight, ChevronLeft, Plus, Clock, Trash2, ArrowRight, CheckCircle2, Circle, Calendar as CalendarIcon, User, Sparkles, Loader2, List, XCircle } from "lucide-react";
+import { ChevronRight, ChevronLeft, Plus, Clock, Trash2, ArrowRight, CheckCircle2, Circle, Calendar as CalendarIcon, User, Sparkles, Loader2, List, XCircle, Zap } from "lucide-react";
 import { API_URL } from "@/lib/api-config";
 import { enhancePost } from "@/app/actions/agent";
 
@@ -10,7 +10,7 @@ interface Post {
     content: string;
     time?: string;
     status: "draft" | "scheduled" | "published" | "cancelled";
-    date: string; // YYYY-MM-DD
+    date: string;
 }
 
 interface ProfileData {
@@ -18,6 +18,13 @@ interface ProfileData {
     handle?: string;
     image?: string;
 }
+
+const STATUS_CONFIG = {
+    published: { label: "Published", color: "text-emerald-400 bg-emerald-900/20 border-emerald-800/30", dot: "bg-emerald-400", icon: CheckCircle2 },
+    scheduled: { label: "Scheduled", color: "text-blue-400 bg-blue-900/20 border-blue-800/30", dot: "bg-blue-400", icon: Clock },
+    cancelled: { label: "Cancelled", color: "text-red-400 bg-red-900/20 border-red-800/30", dot: "bg-red-400", icon: XCircle },
+    draft: { label: "Draft", color: "text-gray-500 bg-gray-800/20 border-gray-700/30", dot: "bg-gray-500", icon: Circle },
+};
 
 export default function IDailyScheduler() {
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -29,41 +36,29 @@ export default function IDailyScheduler() {
     const [onboardingData, setOnboardingData] = useState<any>({});
     const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
     const [statusFilter, setStatusFilter] = useState<Post['status'] | "all">("all");
-
-    // AI Enhancement state
     const [isEnhancing, setIsEnhancing] = useState(false);
-    const [showEnhanceButton, setShowEnhanceButton] = useState(false);
-    const [enhanceButtonPosition, setEnhanceButtonPosition] = useState({ x: 0, y: 0 });
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [editContent, setEditContent] = useState("");
+    const [editTime, setEditTime] = useState("");
 
-    // Listen for extension handshake
     useEffect(() => {
         if (typeof window === 'undefined') return;
-
         const handleMessage = (event: MessageEvent) => {
-            if (event.data?.type === 'NARRATIVEE_EXTENSION_READY') {
-                setIsExtensionConnected(true);
-            }
+            if (event.data?.type === 'NARRATIVEE_EXTENSION_READY') setIsExtensionConnected(true);
             if (event.data?.type === 'NARRATIVEE_SCHEDULED_POST_FIRED') {
                 const { postId, status } = event.data;
                 if (status !== 'published' && status !== 'cancelled') return;
-                setPosts(prev => prev.map(p =>
-                    p.id === postId ? { ...p, status: status as Post['status'] } : p
-                ));
+                setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: status as Post['status'] } : p));
                 fetch(`${API_URL}/scheduled-notes/${postId}/status`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ status })
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include', body: JSON.stringify({ status })
                 }).catch(console.error);
             }
         };
-
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
     }, []);
 
-    // Fetch profile data from onboarding
     useEffect(() => {
         const fetchProfile = async () => {
             try {
@@ -71,282 +66,126 @@ export default function IDailyScheduler() {
                 if (res.ok) {
                     const data: any = await res.json();
                     setOnboardingData(data);
-                    setProfile({
-                        name: data.substackPublicationName || data.name,
-                        handle: data.substackHandle,
-                        image: data.substackPublicationLogo
-                    });
+                    setProfile({ name: data.substackPublicationName || data.name, handle: data.substackHandle, image: data.substackPublicationLogo });
                 }
-            } catch (e) {
-                console.error("Failed to fetch profile:", e);
-            }
+            } catch (e) { console.error("Failed to fetch profile:", e); }
         };
         fetchProfile();
     }, []);
 
-    // Form state for creating/editing
-    const [editContent, setEditContent] = useState("");
-    const [editTime, setEditTime] = useState("");
+    useEffect(() => {
+        const fetchNotes = async () => {
+            try {
+                const res = await fetch(`${API_URL}/scheduled-notes`, { credentials: 'include' });
+                if (res.ok) {
+                    const data: any = await res.json();
+                    const mapped: Post[] = (data.notes || []).map((n: any) => ({
+                        id: n.id, content: n.content,
+                        time: n.scheduledTime || undefined,
+                        status: n.status as Post['status'],
+                        date: n.scheduledDate,
+                    }));
+                    setPosts(mapped);
+                }
+            } catch (e) { console.error('Failed to fetch scheduled notes:', e); }
+        };
+        fetchNotes();
+    }, []);
 
-    // Helper: Format Date to YYYY-MM-DD
-    const formatDateKey = (date: Date): string => {
-        return date.toISOString().split('T')[0] || "";
-    };
-
-    // Helper: Format Display Date (e.g., "Friday, Feb 7")
-    const formatDisplayDate = (date: Date) => {
-        return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-    };
-
-    const formatMonthYear = (date: Date) => {
-        return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    };
-
+    const formatDateKey = (date: Date) => date.toISOString().split('T')[0] || "";
+    const formatDisplayDate = (date: Date) => date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    const formatMonthYear = (date: Date) => date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     const currentDateKey = formatDateKey(selectedDate);
     const isToday = currentDateKey === formatDateKey(new Date());
 
-    // --- Calendar Logic ---
     const getDaysInMonth = (date: Date) => {
         const year = date.getFullYear();
         const month = date.getMonth();
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-
         const days = [];
-        // Pad empty days at start of month
-        for (let i = 0; i < (firstDay === 0 ? 6 : firstDay - 1); i++) {
-            days.push(null);
-        }
-        // Add actual days
-        for (let i = 1; i <= daysInMonth; i++) {
-            days.push(new Date(year, month, i));
-        }
+        for (let i = 0; i < (firstDay === 0 ? 6 : firstDay - 1); i++) days.push(null);
+        for (let i = 1; i <= daysInMonth; i++) days.push(new Date(year, month, i));
         return days;
     };
 
     const calendarDays = getDaysInMonth(selectedDate);
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const getPostsForDate = (dateKey: string) => posts.filter(p => p.date === dateKey);
 
-    const getPostsForDate = (dateKey: string) => {
-        return posts.filter(p => p.date === dateKey);
-    };
+    const savePosts = (newPosts: Post[]) => setPosts(newPosts);
 
-    // Load from database
-    useEffect(() => {
-        const fetchNotes = async () => {
-            try {
-                const res = await fetch(`${API_URL}/scheduled-notes`, { credentials: 'include' });
-                console.log('[Scheduler] GET /scheduled-notes status:', res.status);
-                if (res.ok) {
-                    const data: any = await res.json();
-                    console.log('[Scheduler] Loaded notes from DB:', data.notes?.length || 0);
-
-                    const mapped: Post[] = (data.notes || []).map((n: any) => {
-                        return {
-                            id: n.id,
-                            content: n.content,
-                            time: n.scheduledTime || undefined,
-                            status: n.status as Post['status'],
-                            date: n.scheduledDate,
-                        };
-                    });
-                    setPosts(mapped);
-                } else {
-                    console.error('[Scheduler] GET failed:', await res.text());
-                }
-            } catch (e) {
-                console.error('Failed to fetch scheduled notes:', e);
-            }
-        };
-        fetchNotes();
-    }, []);
-
-    // Save helper — updates local state only (API calls happen at the call site)
-    const savePosts = (newPosts: Post[]) => {
-        setPosts(newPosts);
-    };
-
-    // Persist a single note to the DB
     const persistNote = async (post: Post) => {
         try {
-            const res = await fetch(`${API_URL}/scheduled-notes`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({
-                    id: post.id,
-                    content: post.content,
-                    scheduledDate: post.date,
-                    scheduledTime: post.time || null,
-                    status: post.status,
-                }),
+            await fetch(`${API_URL}/scheduled-notes`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ id: post.id, content: post.content, scheduledDate: post.date, scheduledTime: post.time || null, status: post.status }),
             });
-            console.log('[Scheduler] POST /scheduled-notes status:', res.status, await res.json());
-        } catch (e) {
-            console.error('Failed to save note:', e);
-        }
+        } catch (e) { console.error('Failed to save note:', e); }
     };
 
-    // Handle text selection to show enhance button
-    const handleTextSelection = () => {
-        const textarea = textareaRef.current;
-        if (!textarea) return;
-
-        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-
-        if (selectedText.length > 3) {
-            // Show button near cursor - position it above the textarea
-            const rect = textarea.getBoundingClientRect();
-            setEnhanceButtonPosition({
-                x: rect.left + rect.width / 2,
-                y: rect.top - 10
-            });
-            setShowEnhanceButton(true);
-        } else {
-            setShowEnhanceButton(false);
-        }
-    };
-
-    // Handle AI enhancement
     const handleEnhance = async () => {
         if (!editContent.trim() || isEnhancing) return;
-
         setIsEnhancing(true);
-        setShowEnhanceButton(false);
-
         try {
-            // Load rules from localStorage
             const savedRules = localStorage.getItem("narrativee_agent_rules");
             const rules: string[] = [];
             if (savedRules) {
-                try {
-                    const parsed = JSON.parse(savedRules);
-                    rules.push(...parsed.map((r: any) => r.content));
-                } catch (e) { }
+                try { const parsed = JSON.parse(savedRules); rules.push(...parsed.map((r: any) => r.content)); } catch (e) { }
             }
-
             const enhanced = await enhancePost(editContent, {
                 rules,
-                connectedSources: {
-                    publicationName: onboardingData.substackPublicationName,
-                    publicationUrl: onboardingData.substackPublicationUrl,
-                    profileUrl: onboardingData.substackProfileUrl,
-                    bio: onboardingData.substackBio
-                },
-                platformPreferences: {
-                    writingStyle: onboardingData.writingStyle,
-                    language: onboardingData.language
-                }
+                connectedSources: { publicationName: onboardingData.substackPublicationName, publicationUrl: onboardingData.substackPublicationUrl, profileUrl: onboardingData.substackProfileUrl, bio: onboardingData.substackBio },
+                platformPreferences: { writingStyle: onboardingData.writingStyle, language: onboardingData.language }
             });
-
             setEditContent(enhanced);
-        } catch (error) {
-            console.error("Enhancement failed:", error);
-        } finally {
-            setIsEnhancing(false);
-        }
+        } catch (error) { console.error("Enhancement failed:", error); }
+        finally { setIsEnhancing(false); }
     };
 
-    // Hide enhance button on click outside
-    useEffect(() => {
-        const handleClickOutside = () => setShowEnhanceButton(false);
-        if (showEnhanceButton) {
-            document.addEventListener('mousedown', handleClickOutside);
-            return () => document.removeEventListener('mousedown', handleClickOutside);
-        }
-    }, [showEnhanceButton]);
+    const dispatchMessage = (type: string, payload: any) => {
+        if (typeof window !== 'undefined') window.postMessage({ type, payload }, "*");
+    };
 
     const handleSavePost = async (scheduleViaExtension = false) => {
-        if (!editContent.trim()) {
-            setIsCreating(false);
-            setEditingId(null);
-            return;
-        }
+        if (!editContent.trim()) { setIsCreating(false); setEditingId(null); return; }
 
         if (isCreating) {
-            const newPost: Post = {
-                id: crypto.randomUUID(),
-                content: editContent,
-                time: editTime || undefined,
-                status: editTime ? "scheduled" : "draft",
-                date: currentDateKey
-            };
+            const newPost: Post = { id: crypto.randomUUID(), content: editContent, time: editTime || undefined, status: editTime ? "scheduled" : "draft", date: currentDateKey };
             savePosts([...posts, newPost]);
             await persistNote(newPost);
 
-            // Register the alarm in the extension if scheduling
             if (editTime && scheduleViaExtension) {
                 const [hours, minutes] = editTime.split(':').map(Number);
                 const scheduledDate = new Date(currentDateKey);
                 scheduledDate.setHours(hours ?? 0, minutes ?? 0, 0, 0);
-                const scheduledTimestamp = scheduledDate.getTime(); // UTC ms based on local clock
+                const scheduledTimestamp = scheduledDate.getTime();
                 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-                // Persist timestamp + timezone to DB so extension can use them
                 await fetch(`${API_URL}/scheduled-notes`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        id: newPost.id,
-                        content: editContent,
-                        scheduledDate: currentDateKey,
-                        scheduledTime: editTime,
-                        scheduledTimestamp,
-                        timezone,
-                        status: 'scheduled',
-                    }),
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                    body: JSON.stringify({ id: newPost.id, content: editContent, scheduledDate: currentDateKey, scheduledTime: editTime, scheduledTimestamp, timezone, status: 'scheduled' }),
                 }).catch(console.error);
-
-                dispatchMessage('NARRATIVEE_SCHEDULE_POST', {
-                    postId: newPost.id,
-                    content: editContent,
-                    scheduledTimestamp,
-                    timezone,
-                    apiUrl: API_URL,
-                });
+                dispatchMessage('NARRATIVEE_SCHEDULE_POST', { postId: newPost.id, content: editContent, scheduledTimestamp, timezone, apiUrl: API_URL });
             }
-
             setIsCreating(false);
         } else if (editingId) {
             const updatedPost = posts.find(p => p.id === editingId);
-            const updated = posts.map(p => p.id === editingId ? { ...p, content: editContent, time: editTime } : p);
-            savePosts(updated);
-            if (updatedPost) {
-                await persistNote({ ...updatedPost, content: editContent, time: editTime });
-            }
+            savePosts(posts.map(p => p.id === editingId ? { ...p, content: editContent, time: editTime } : p));
+            if (updatedPost) await persistNote({ ...updatedPost, content: editContent, time: editTime });
             setEditingId(null);
         }
-
         setEditContent('');
         setEditTime('');
     };
 
-    const startEditing = (post: Post) => {
-        setEditingId(post.id);
-        setEditContent(post.content);
-        setEditTime(post.time || "");
-        setIsCreating(false);
-    };
-
-    const startCreating = () => {
-        setIsCreating(true);
-        setEditingId(null);
-        setEditContent("");
-        setEditTime("");
-    };
+    const startEditing = (post: Post) => { setEditingId(post.id); setEditContent(post.content); setEditTime(post.time || ""); setIsCreating(false); };
+    const startCreating = () => { setIsCreating(true); setEditingId(null); setEditContent(""); setEditTime(""); };
 
     const deletePost = async (id: string) => {
-        if (confirm("Are you sure you want to delete this post?")) {
+        if (confirm("Delete this post?")) {
             savePosts(posts.filter(p => p.id !== id));
-            try {
-                await fetch(`${API_URL}/scheduled-notes/${id}`, {
-                    method: 'DELETE',
-                    credentials: 'include',
-                });
-            } catch (e) {
-                console.error('Failed to delete note:', e);
-            }
+            try { await fetch(`${API_URL}/scheduled-notes/${id}`, { method: 'DELETE', credentials: 'include' }); }
+            catch (e) { console.error('Failed to delete note:', e); }
         }
     };
 
@@ -361,326 +200,230 @@ export default function IDailyScheduler() {
     const movePostDate = (id: string, daysToAdd: number) => {
         const postToMove = posts.find(p => p.id === id);
         if (!postToMove) return;
-
         const [y = 0, m = 1, d = 1] = postToMove.date.split('-').map(Number);
         const dateObj = new Date(y, m - 1, d);
-
         dateObj.setDate(dateObj.getDate() + daysToAdd);
         const newDateKey = formatDateKey(dateObj);
-
         savePosts(posts.map(p => p.id === id ? { ...p, date: newDateKey } : p));
-        const movedPost = posts.find(p => p.id === id);
-        if (movedPost) {
-            persistNote({ ...movedPost, date: newDateKey });
-        }
-    };
-
-    // Dispatch message to Chrome Extension
-    const dispatchMessage = (type: string, payload: any) => {
-        if (typeof window !== 'undefined') {
-            window.postMessage({ type, payload }, "*");
-            console.log(`[Narrativee] Dispatched: ${type}`, payload);
-        }
+        persistNote({ ...postToMove, date: newDateKey });
     };
 
     const toggleStatus = async (id: string) => {
         const post = posts.find(p => p.id === id);
         if (!post) return;
-
-        const statusCycle: Record<string, Post['status']> = {
-            draft: "scheduled",
-            scheduled: "cancelled",
-            cancelled: "draft",
-            published: "draft",
-        };
-        const newStatus = statusCycle[post.status] || "draft";
-
+        const cycle: Record<string, Post['status']> = { draft: "scheduled", scheduled: "cancelled", cancelled: "draft", published: "draft" };
+        const newStatus = cycle[post.status] || "draft";
         savePosts(posts.map(p => p.id === id ? { ...p, status: newStatus } : p));
-
         try {
             await fetch(`${API_URL}/scheduled-notes/${id}/status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ status: newStatus }),
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', body: JSON.stringify({ status: newStatus }),
             });
-        } catch (e) {
-            console.error('Failed to update status:', e);
-        }
+        } catch (e) { console.error('Failed to update status:', e); }
     };
 
-    const filteredPosts = posts.filter(p =>
-        p.date === currentDateKey &&
-        (statusFilter === "all" || p.status === statusFilter)
-    );
+    const filteredPosts = posts.filter(p => p.date === currentDateKey && (statusFilter === "all" || p.status === statusFilter));
+    const totalToday = posts.filter(p => p.date === currentDateKey).length;
 
     return (
-        <div className="flex flex-col h-full rounded-lg overflow-hidden">
-            {/* Header Navigation */}
-            <div className="relative flex items-center justify-center px-5 py-3 bg-[#1e1f21]">
-                {/* Left side: Connection Indicator */}
-                <div className="absolute left-5 flex items-center gap-1" title={isExtensionConnected ? "Extension Connected" : "Extension Not Found"}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${isExtensionConnected ? 'bg-green-500' : 'bg-gray-600'}`} />
-                    <span className="text-[9px] text-gray-500">{isExtensionConnected ? 'Linked' : ''}</span>
-                    {!isToday && (
-                        <button onClick={() => setSelectedDate(new Date())} className=" text-xs text-gray-400 ml-5 hover:text-gray-200 font-medium">
-                            Go to Today
-                        </button>
-                    )}
+        <div className="flex flex-col h-full gap-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-semibold text-gray-100">Post Queue</h1>
+                    <p className="text-sm text-gray-500 mt-1">Schedule and manage your Substack notes.</p>
                 </div>
-
-
-                {/* Center: Date Navigation */}
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => changeDate(-1)}
-                        className="p-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-md transition-colors"
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                    </button>
-
-                    <div className="flex flex-col items-center justify-center min-w-[140px]">
-                        <span className="text-gray-200 font-medium text-xs flex items-center gap-2">
-                            {formatDisplayDate(selectedDate)}
-                        </span>
-                        <div className="flex items-center gap-2 mt-0.5">
-                            {isToday && <span className="text-[10px] text-blue-400 font-medium uppercase tracking-wider">Today</span>}
-                            {/* Connection Indicator */}
+                    {isExtensionConnected && (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-900/20 border border-emerald-800/30 rounded-xl">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            <span className="text-xs text-emerald-400 font-medium">Extension linked</span>
                         </div>
+                    )}
+                    {/* View Toggle */}
+                    <div className="flex items-center gap-1 bg-white/[0.03] rounded-xl border border-white/[0.06] p-1">
+                        <button
+                            onClick={() => setViewMode("list")}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors font-medium ${viewMode === "list" ? "bg-white/10 text-gray-100" : "text-gray-500 hover:text-gray-300"}`}
+                        >
+                            <List className="w-3 h-3" /> List
+                        </button>
+                        <button
+                            onClick={() => setViewMode("calendar")}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors font-medium ${viewMode === "calendar" ? "bg-white/10 text-gray-100" : "text-gray-500 hover:text-gray-300"}`}
+                        >
+                            <CalendarIcon className="w-3 h-3" /> Calendar
+                        </button>
                     </div>
-
-                    <button
-                        onClick={() => changeDate(1)}
-                        className="p-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-md transition-colors"
-                    >
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
-
-
-                </div>
-
-                {/* Right side: View Toggle */}
-                <div className="absolute right-5 flex bg-[#1e1f21] rounded-lg p-0.5 border border-[#2D2E2F]">
-                    <button
-                        onClick={() => setViewMode("list")}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === "list" ? "bg-[#2a2b2d] text-gray-200 shadow-sm border border-gray-600/50" : "text-gray-500 hover:text-gray-300"}`}
-                    >
-                        <List className="w-3.5 h-3.5" />
-                        List
-                    </button>
-                    <button
-                        onClick={() => setViewMode("calendar")}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === "calendar" ? "bg-[#2a2b2d] text-gray-200 shadow-sm border border-gray-600/50" : "text-gray-500 hover:text-gray-300"}`}
-                    >
-                        <CalendarIcon className="w-3.5 h-3.5" />
-                        Grid
-                    </button>
                 </div>
             </div>
 
-            {/* Content Area */}
-            <div className="flex-1 p-5 bg-[#161718] overflow-y-auto space-y-3">
-
-                {viewMode === "calendar" ? (
-                    <div className="bg-[#1e1f21]/40 rounded-xl border border-[#2D2E2F] p-5 h-full flex flex-col">
-                        <div className="grid grid-cols-7 gap-2 mb-2">
-                            {weekDays.map(day => (
-                                <div key={day} className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider py-2">
-                                    {day}
-                                </div>
-                            ))}
-                        </div>
-                        <div className="grid grid-cols-7 gap-2 flex-1">
-                            {calendarDays.map((date, i) => {
-                                if (!date) return <div key={`empty-${i}`} className="bg-transparent" />;
-
-                                const dateKey = formatDateKey(date);
-                                const isCurrentDate = dateKey === currentDateKey;
-                                const isCurrentToday = dateKey === formatDateKey(new Date());
-                                const dayPosts = getPostsForDate(dateKey);
-
-                                return (
-                                    <div
-                                        key={dateKey}
-                                        onClick={() => {
-                                            setSelectedDate(date);
-                                            setViewMode("list");
-                                        }}
-                                        className={`relative flex flex-col p-2 rounded-lg border cursor-pointer hover:border-gray-500 transition-all min-h-[80px]
-                                        ${isCurrentDate ? 'bg-blue-900/10 border-blue-500/50 ring-1 ring-blue-500/20' : 'bg-[#2a2b2d]/30 border-[#2D2E2F]'}
-                                    `}
-                                    >
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className={`text-sm font-medium ${isCurrentToday ? 'text-blue-400 bg-blue-400/10 w-6 h-6 flex items-center justify-center rounded-full' : isCurrentDate ? 'text-gray-200' : 'text-gray-400'}`}>
-                                                {date.getDate()}
-                                            </span>
-                                            {dayPosts.length > 0 && (
-                                                <span className="text-[10px] bg-gray-700/50 text-gray-300 px-1.5 py-0.5 rounded-full font-medium">
-                                                    {dayPosts.length}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1 overflow-y-auto flex flex-col gap-1 no-scrollbar mt-1">
-                                            {dayPosts.slice(0, 3).map(post => (
-                                                <div key={post.id} className="flex items-center gap-1.5">
-                                                    {post.status === 'published' ? (
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                                                    ) : post.status === 'scheduled' ? (
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                                                    ) : (
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-gray-500 shrink-0" />
-                                                    )}
-                                                    <span className="text-[10px] text-gray-400 truncate font-medium">
-                                                        {post.time || 'Draft'}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                            {dayPosts.length > 3 && (
-                                                <div className="text-[10px] text-gray-500 pl-3">
-                                                    +{dayPosts.length - 3} more
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
+            {viewMode === "calendar" ? (
+                /* ── CALENDAR VIEW ── */
+                <div className="bg-[#1a1b1d] rounded-2xl border border-white/[0.06] p-6 flex flex-col gap-4">
+                    {/* Month nav */}
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-gray-200">{formatMonthYear(selectedDate)}</span>
+                        <div className="flex items-center gap-1">
+                            <button onClick={() => { const d = new Date(selectedDate); d.setMonth(d.getMonth() - 1); setSelectedDate(d); }} className="p-1.5 text-gray-500 hover:text-gray-200 hover:bg-white/5 rounded-lg transition-colors">
+                                <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setSelectedDate(new Date())} className="px-3 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded-lg transition-colors font-medium">Today</button>
+                            <button onClick={() => { const d = new Date(selectedDate); d.setMonth(d.getMonth() + 1); setSelectedDate(d); }} className="p-1.5 text-gray-500 hover:text-gray-200 hover:bg-white/5 rounded-lg transition-colors">
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
                         </div>
                     </div>
-                ) : (
-                    <>
-                        {/* Status Filter Toggle */}
-                        <div className="flex gap-1 p-1 bg-[#1e1f21] rounded-lg border border-[#2D2E2F]">
-                            {(["all", "scheduled", "published", "cancelled"] as const).map(f => (
-                                <button
-                                    key={f}
-                                    onClick={() => setStatusFilter(f)}
-                                    className={`flex-1 text-[11px] font-medium py-1 rounded-md transition-all capitalize ${
-                                        statusFilter === f
-                                            ? f === 'published' ? 'bg-green-900/40 text-green-400'
-                                            : f === 'scheduled' ? 'bg-blue-900/40 text-blue-400'
-                                            : f === 'cancelled' ? 'bg-red-900/40 text-red-400'
-                                            : 'bg-[#2a2b2d] text-gray-200'
-                                            : 'text-gray-500 hover:text-gray-300'
-                                    }`}
+
+                    <div className="grid grid-cols-7 gap-1 mb-1">
+                        {weekDays.map(day => (
+                            <div key={day} className="text-center text-[10px] font-medium text-gray-600 uppercase tracking-wider py-1">{day}</div>
+                        ))}
+                    </div>
+                    <div className="grid grid-cols-7 gap-1">
+                        {calendarDays.map((date, i) => {
+                            if (!date) return <div key={`empty-${i}`} />;
+                            const dateKey = formatDateKey(date);
+                            const isSelected = dateKey === currentDateKey;
+                            const isCurrentToday = dateKey === formatDateKey(new Date());
+                            const dayPosts = getPostsForDate(dateKey);
+                            return (
+                                <div
+                                    key={dateKey}
+                                    onClick={() => { setSelectedDate(date); setViewMode("list"); }}
+                                    className={`relative flex flex-col p-2 rounded-xl border cursor-pointer transition-all min-h-[72px] ${isSelected ? 'bg-violet-900/20 border-violet-700/40' : 'bg-white/[0.02] border-white/[0.04] hover:border-white/10'}`}
                                 >
-                                    {f}
-                                </button>
-                            ))}
+                                    <span className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full mb-1 ${isCurrentToday ? 'bg-violet-600 text-white' : isSelected ? 'text-violet-300' : 'text-gray-500'}`}>
+                                        {date.getDate()}
+                                    </span>
+                                    <div className="flex flex-col gap-0.5">
+                                        {dayPosts.slice(0, 2).map(post => {
+                                            const cfg = STATUS_CONFIG[post.status];
+                                            return (
+                                                <div key={post.id} className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-medium ${cfg.color} border`}>
+                                                    <div className={`w-1 h-1 rounded-full ${cfg.dot} shrink-0`} />
+                                                    <span className="truncate">{post.time || 'Draft'}</span>
+                                                </div>
+                                            );
+                                        })}
+                                        {dayPosts.length > 2 && <span className="text-[9px] text-gray-600 pl-1">+{dayPosts.length - 2}</span>}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            ) : (
+                /* ── LIST VIEW ── */
+                <div className="flex flex-col gap-4">
+                    {/* Date Nav */}
+                    <div className="bg-[#1a1b1d] rounded-2xl border border-white/[0.06] px-5 py-4 flex items-center justify-between">
+                        <button onClick={() => changeDate(-1)} className="p-1.5 text-gray-500 hover:text-gray-200 hover:bg-white/5 rounded-lg transition-colors">
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-sm font-semibold text-gray-200">{formatDisplayDate(selectedDate)}</span>
+                            <div className="flex items-center gap-2">
+                                {isToday && <span className="text-[10px] text-violet-400 font-medium uppercase tracking-wider">Today</span>}
+                                {totalToday > 0 && <span className="text-[10px] text-gray-600">{totalToday} note{totalToday !== 1 ? 's' : ''}</span>}
+                            </div>
                         </div>
+                        <button onClick={() => changeDate(1)} className="p-1.5 text-gray-500 hover:text-gray-200 hover:bg-white/5 rounded-lg transition-colors">
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
 
-                        {/* List of Posts */}
+                    {/* Status Filter */}
+                    <div className="flex items-center gap-1 bg-white/[0.03] rounded-xl border border-white/[0.06] p-1 self-start">
+                        {(["all", "draft", "scheduled", "published", "cancelled"] as const).map(f => (
+                            <button
+                                key={f}
+                                onClick={() => setStatusFilter(f as any)}
+                                className={`px-3 py-1.5 text-xs rounded-lg transition-colors font-medium capitalize ${statusFilter === f
+                                    ? f === 'published' ? 'bg-emerald-900/40 text-emerald-400'
+                                    : f === 'scheduled' ? 'bg-blue-900/40 text-blue-400'
+                                    : f === 'cancelled' ? 'bg-red-900/40 text-red-400'
+                                    : f === 'draft' ? 'bg-white/10 text-gray-300'
+                                    : 'bg-white/10 text-gray-100'
+                                    : 'text-gray-500 hover:text-gray-300'}`}
+                            >
+                                {f}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Posts */}
+                    <div className="flex flex-col gap-3">
                         {filteredPosts.map((post) => (
-                            <div key={post.id} className={`bg-[#1e1f21]/20 p-3 rounded-md  transition-all group ${editingId === post.id ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-700 hover:border-gray-600'}`}>
-
+                            <div key={post.id} className={`bg-[#1a1b1d] rounded-xl border transition-all group ${editingId === post.id ? 'border-violet-500/50 ring-1 ring-violet-500/20' : 'border-white/[0.06] hover:border-white/[0.1]'}`}>
                                 {editingId === post.id ? (
-                                    // EDIT MODE
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Clock className="w-4 h-4 text-gray-500" />
+                                    <div className="p-5 space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <Clock className="w-3.5 h-3.5 text-gray-500" />
                                             <input
                                                 type="time"
                                                 value={editTime}
                                                 onChange={(e) => setEditTime(e.target.value)}
-                                                className="text-sm border border-gray-600 bg-[#2a2b2d] text-gray-200 rounded px-2 py-1 outline-none focus:border-blue-500"
+                                                className="text-xs border border-white/[0.06] bg-white/[0.03] text-gray-300 rounded-lg px-2.5 py-1.5 outline-none focus:border-violet-500/50"
                                             />
-
-                                            {/* Enhance Button - always visible when editing */}
                                             <button
                                                 onClick={handleEnhance}
                                                 disabled={isEnhancing || !editContent.trim()}
-                                                className="ml-auto flex items-center gap-1.5 px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded-md hover:from-purple-500 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                                className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg disabled:opacity-50 transition-all"
                                             >
-                                                {isEnhancing ? (
-                                                    <>
-                                                        <Loader2 className="w-3 h-3 animate-spin" />
-                                                        Enhancing...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Sparkles className="w-3 h-3" />
-                                                        Enhance
-                                                    </>
-                                                )}
+                                                {isEnhancing ? <><Loader2 className="w-3 h-3 animate-spin" /> Enhancing...</> : <><Sparkles className="w-3 h-3" /> Enhance</>}
                                             </button>
                                         </div>
                                         <textarea
                                             ref={textareaRef}
                                             value={editContent}
                                             onChange={(e) => setEditContent(e.target.value)}
-                                            onSelect={handleTextSelection}
-                                            onMouseUp={handleTextSelection}
-                                            className="w-full text-base text-gray-200 bg-transparent resize-none outline-none min-h-[80px]"
+                                            className="w-full text-sm text-gray-200 bg-transparent resize-none outline-none min-h-[100px] leading-relaxed"
                                             placeholder="What are you writing about?"
                                             autoFocus
                                         />
-                                        <div className="flex justify-end gap-2 pt-2 border-t border-gray-700">
-                                            <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-200 text-sm px-3 py-1">Cancel</button>
-                                            <button onClick={() => handleSavePost()} className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-md hover:bg-blue-500">Save</button>
+                                        <div className="flex justify-end gap-2 pt-3 border-t border-white/[0.04]">
+                                            <button onClick={() => setEditingId(null)} className="text-gray-500 hover:text-gray-300 text-xs px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors">Cancel</button>
+                                            <button onClick={() => handleSavePost()} className="bg-violet-600 hover:bg-violet-500 text-white text-xs px-4 py-1.5 rounded-lg transition-colors">Save</button>
                                         </div>
                                     </div>
                                 ) : (
-                                    // VIEW MODE - Substack-like card
-                                    <div className="relative">
-                                        {/* Profile + Content Row */}
+                                    <div className="p-5">
                                         <div className="flex gap-3">
-                                            {/* Avatar */}
                                             {profile.image ? (
-                                                <img
-                                                    src={profile.image}
-                                                    alt={profile.name || "Profile"}
-                                                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                                                />
+                                                <img src={profile.image} alt={profile.name || "Profile"} className="w-9 h-9 rounded-full object-cover shrink-0" />
                                             ) : (
-                                                <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
-                                                    <User className="w-5 h-5 text-gray-500" />
+                                                <div className="w-9 h-9 rounded-full bg-violet-900/40 flex items-center justify-center shrink-0">
+                                                    <User className="w-4 h-4 text-violet-400" />
                                                 </div>
                                             )}
-
-                                            {/* Content */}
                                             <div className="flex-1 min-w-0">
-                                                {/* Name + Handle + Time */}
-                                                <div className="flex items-center gap-2 mb-1.5">
-                                                    <span className="text-sm font-medium text-gray-200 truncate">
-                                                        {profile.name || "Your Name"}
-                                                    </span>
-                                                    {profile.handle && (
-                                                        <span className="text-xs text-gray-500">@{profile.handle}</span>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-sm font-medium text-gray-200 truncate">{profile.name || "Your Name"}</span>
+                                                    {profile.handle && <span className="text-xs text-gray-500">@{profile.handle}</span>}
+                                                    {post.time && (
+                                                        <><span className="text-gray-700">·</span><span className="text-xs text-gray-500 font-mono">{post.time}</span></>
                                                     )}
-                                                    <span className="text-gray-600">·</span>
-                                                    <span className={`text-xs font-mono ${post.time ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                        {post.time || "No time"}
-                                                    </span>
                                                 </div>
-
-                                                {/* Post Content */}
-                                                <div onClick={() => startEditing(post)} className="cursor-text">
-                                                    <p className="text-base text-gray-300 leading-relaxed whitespace-pre-wrap">{post.content}</p>
-                                                </div>
-
-                                                {/* Status + Actions Row */}
-                                                <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-700/50">
-                                                    <button onClick={() => toggleStatus(post.id)} className="text-xs flex items-center gap-1 hover:opacity-70 transition-opacity">
-                                                        {post.status === 'published' ? (
-                                                            <span className="flex items-center gap-1 text-green-400"><CheckCircle2 className="w-3 h-3" /> Published</span>
-                                                        ) : post.status === 'scheduled' ? (
-                                                            <span className="flex items-center gap-1 text-blue-400"><Clock className="w-3 h-3" /> Scheduled</span>
-                                                        ) : post.status === 'cancelled' ? (
-                                                            <span className="flex items-center gap-1 text-red-400"><XCircle className="w-3 h-3" /> Cancelled</span>
-                                                        ) : (
-                                                            <span className="flex items-center gap-1 text-gray-500"><Circle className="w-3 h-3" /> Draft</span>
-                                                        )}
+                                                <p onClick={() => startEditing(post)} className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap cursor-text">
+                                                    {post.content}
+                                                </p>
+                                                <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.04]">
+                                                    <button
+                                                        onClick={() => toggleStatus(post.id)}
+                                                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-colors ${STATUS_CONFIG[post.status].color}`}
+                                                    >
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[post.status].dot}`} />
+                                                        {STATUS_CONFIG[post.status].label}
                                                     </button>
-
-                                                    {/* Action Menu */}
                                                     <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <button onClick={() => movePostDate(post.id, -1)} title="Previous Day" className="rotate-180 p-1 text-gray-500 hover:text-gray-300 hover:bg-gray-700 rounded">
+                                                        <button onClick={() => movePostDate(post.id, -1)} title="Previous day" className="p-1.5 text-gray-600 hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors rotate-180">
                                                             <ArrowRight className="w-3.5 h-3.5" />
                                                         </button>
-                                                        <button onClick={() => movePostDate(post.id, 1)} title="Next Day" className="p-1 text-gray-500 hover:text-gray-300 hover:bg-gray-700 rounded">
+                                                        <button onClick={() => movePostDate(post.id, 1)} title="Next day" className="p-1.5 text-gray-600 hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors">
                                                             <ArrowRight className="w-3.5 h-3.5" />
                                                         </button>
-                                                        <button onClick={() => deletePost(post.id)} title="Delete" className="p-1 text-gray-500 hover:text-red-400 hover:bg-red-900/30 rounded">
+                                                        <button onClick={() => deletePost(post.id)} title="Delete" className="p-1.5 text-gray-600 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors">
                                                             <Trash2 className="w-3.5 h-3.5" />
                                                         </button>
                                                     </div>
@@ -692,64 +435,72 @@ export default function IDailyScheduler() {
                             </div>
                         ))}
 
-                        {/* Create New Block */}
+                        {/* Composer */}
                         {isCreating ? (
-                            <div className="bg-[#1e1f21] p-4 rounded-lg border border-blue-500 ring-1 ring-blue-500">
-                                <div className="space-y-3">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">New Post</span>
-                                        <div className="h-3 w-px bg-gray-600" />
-                                        <Clock className="w-3.5 h-3.5 text-gray-500" />
-                                        <input
-                                            type="time"
-                                            value={editTime}
-                                            onChange={(e) => setEditTime(e.target.value)}
-                                            className="text-sm border border-gray-600 bg-[#2a2b2d] text-gray-200 rounded px-2 py-1 outline-none focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <textarea
-                                        value={editContent}
-                                        onChange={(e) => setEditContent(e.target.value)}
-                                        className="w-full text-base text-gray-200 bg-transparent resize-none outline-none min-h-[80px]"
-                                        placeholder="What's on your mind?"
-                                        autoFocus
+                            <div className="bg-[#1a1b1d] rounded-xl border border-violet-500/50 ring-1 ring-violet-500/20 p-5 space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">New Note</span>
+                                    <div className="w-px h-3 bg-white/10" />
+                                    <Clock className="w-3.5 h-3.5 text-gray-600" />
+                                    <input
+                                        type="time"
+                                        value={editTime}
+                                        onChange={(e) => setEditTime(e.target.value)}
+                                        className="text-xs border border-white/[0.06] bg-white/[0.03] text-gray-300 rounded-lg px-2.5 py-1.5 outline-none focus:border-violet-500/50"
                                     />
-                                    <div className="flex justify-end gap-2 pt-2 border-t border-gray-700">
-                                        <button onClick={() => setIsCreating(false)} className="text-gray-400 hover:text-gray-200 text-sm px-3 py-1">Cancel</button>
-                                        <button onClick={() => {
-                                            // Post Now: immediate publish via extension
-                                            handleSavePost(false);
-                                            dispatchMessage("NARRATIVEE_PUBLISH_POST", {
-                                                content: editContent,
-                                                time: editTime,
-                                                date: currentDateKey
-                                            });
-                                        }} className="bg-[#2a2b2d] border border-gray-600 text-gray-200 text-sm px-3 py-1.5 rounded-md hover:bg-gray-700">
-                                            Post Now
+                                </div>
+                                <textarea
+                                    value={editContent}
+                                    onChange={(e) => setEditContent(e.target.value)}
+                                    className="w-full text-sm text-gray-200 bg-transparent resize-none outline-none min-h-[100px] leading-relaxed"
+                                    placeholder="What's on your mind?"
+                                    autoFocus
+                                />
+                                <div className="flex items-center justify-between pt-3 border-t border-white/[0.04]">
+                                    <button onClick={() => setIsCreating(false)} className="text-gray-500 hover:text-gray-300 text-xs px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors">Cancel</button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => { handleSavePost(false); dispatchMessage("NARRATIVEE_PUBLISH_POST", { content: editContent, time: editTime, date: currentDateKey }); }}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/[0.06] text-gray-300 text-xs font-medium rounded-lg transition-all"
+                                        >
+                                            <Zap className="w-3 h-3 text-orange-400" /> Post Now
                                         </button>
-                                        <button onClick={() => handleSavePost(true)} className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-md hover:bg-blue-500">Schedule</button>
+                                        <button onClick={() => handleSavePost(true)} className="flex items-center gap-1.5 px-4 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-lg transition-all">
+                                            <Clock className="w-3 h-3" /> Schedule
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         ) : (
-                            <div
+                            <button
                                 onClick={startCreating}
-                                className="rounded-lg p-5 flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 hover:border-gray-500 transition-colors cursor-pointer"
+                                className="flex items-center justify-center gap-2 w-full py-4 rounded-xl border border-dashed border-white/[0.08] text-gray-600 hover:text-gray-300 hover:border-white/20 transition-all text-sm"
                             >
-                                <Plus className="w-5 h-5 mb-1" />
-                                <span className="text-sm">Schedule new note</span>
-                            </div>
+                                <Plus className="w-4 h-4" /> New note
+                            </button>
                         )}
 
+                        {/* Empty state */}
                         {filteredPosts.length === 0 && !isCreating && (
-                            <div className="text-center py-8 text-gray-500 text-sm">
-                                No posts for {formatDisplayDate(selectedDate)}
+                            <div className="flex flex-col items-center justify-center py-16 gap-4">
+                                <div className="w-14 h-14 bg-white/[0.03] rounded-2xl border border-white/[0.06] flex items-center justify-center">
+                                    <CalendarIcon className="w-6 h-6 text-gray-600" />
+                                </div>
+                                <div className="text-center">
+                                    <h3 className="text-gray-400 font-medium mb-1">Nothing scheduled</h3>
+                                    <p className="text-gray-600 text-sm">No notes for {formatDisplayDate(selectedDate)}.</p>
+                                </div>
                             </div>
                         )}
-                    </>
-                )}
+                    </div>
 
-            </div>
+                    {!isToday && (
+                        <button onClick={() => setSelectedDate(new Date())} className="text-xs text-gray-500 hover:text-gray-300 self-center transition-colors">
+                            ← Back to today
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

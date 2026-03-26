@@ -81,11 +81,29 @@ export default function InspirationsPage() {
         }).catch(console.error);
     };
 
-    const handleAddToQueue = (note: InspirationNote) => {
-        const post = { id: crypto.randomUUID(), content: note.content, time: "", status: "draft" as const, date: new Date().toISOString().split("T")[0] };
-        const existing = JSON.parse(localStorage.getItem("narrativee_scheduler_posts_v3") || "[]");
-        localStorage.setItem("narrativee_scheduler_posts_v3", JSON.stringify([...existing, post]));
-        alert("Added to Post Queue!");
+    const handleAddToQueue = async (note: InspirationNote) => {
+        const post = {
+            id: crypto.randomUUID(),
+            content: note.content,
+            scheduledDate: new Date().toISOString().split("T")[0],
+            scheduledTime: null,
+            status: "draft",
+        };
+        try {
+            const res = await fetch(`${API_URL}/scheduled-notes`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(post),
+            });
+            if (res.ok) {
+                alert("Added to Post Queue!");
+            } else {
+                alert("Failed to add to queue.");
+            }
+        } catch {
+            alert("Failed to add to queue.");
+        }
     };
 
     const filteredAndSortedNotes = useMemo(() => {

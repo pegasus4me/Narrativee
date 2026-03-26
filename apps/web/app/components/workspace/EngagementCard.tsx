@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, Send, RefreshCw, MessageSquare, Heart, Repeat2, ExternalLink, X, Sparkles } from "lucide-react";
+import { BsPatchCheckFill } from "react-icons/bs";
 
 interface EngagementNote {
     id: string;
@@ -77,7 +78,10 @@ export default function EngagementCard({ note, onGenerateComment, onPostComment,
                         </div>
                     )}
                     <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-200 truncate">{note.author.name}</div>
+                        <div className="flex items-center gap-1 text-sm font-medium text-gray-200 truncate">
+                            {note.author.name}
+                            <BsPatchCheckFill className="w-3 h-3 text-primary shrink-0" />
+                        </div>
                         {note.author.handle && <div className="text-xs text-gray-500">@{note.author.handle}</div>}
                     </div>
                     <div className="flex items-center gap-1.5">

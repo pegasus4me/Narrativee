@@ -13,7 +13,7 @@ import { useGTMTracking } from "../hooks/useGTMTracking";
 
 export default function PricingPage() {
     const { data: session } = authClient.useSession();
-    const [isAnnual, setIsAnnual] = useState(true);
+    const [isAnnual, setIsAnnual] = useState(false);
     const router = useRouter();
     const { trackItemSelection, trackPageView } = useGTMTracking();
 
@@ -153,7 +153,7 @@ export default function PricingPage() {
                                     <div className="text-sm text-white/80">
                                     <span className="text-gray-500 font-medium">/ month</span>
                                     {plan.earlyBirdMonthlyPrice && !isAnnual && (
-                                        <span className="text-sm text-primary font-bold ml-2">for the first 3 months  🎉</span>
+                                        <span className="text-sm text-primary font-bold ml-2">for the first 3 months 🎉 using <span className="text-sm bg-primary px-2 text-white ">EARLYBIRD26</span></span>
                                     )}
                                     </div>
                                 </div>

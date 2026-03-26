@@ -9,28 +9,14 @@ export default function PostQueuePage() {
     const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
 
     return (
-        <div className="h-full p-8 overflow-y-auto relative ">
-            <div className="max-w-6xl mx-auto h-full flex flex-col gap-6">
-                <div className="flex justify-between p-4">
-                    <div className="flex flex-col gap-2">
-                        <h1 className="text-3xl text-gray-100">Post Queue</h1>
-                        <p className="text-gray-400">Manage your scheduled content and draft ideas.</p>
-                    </div>
-                    {/* Creation Tools */}
-                    <div className="">
-                        <ActionToolbar
-                            onGenerateNotes={() => setIsNoteModalOpen(true)}
-                        />
-                    </div>
-
+        <div className="h-full overflow-y-auto">
+            <div className="max-w-6xl mx-auto px-8 py-10 flex flex-col gap-0">
+                <div className="flex justify-end mb-4">
+                    <ActionToolbar onGenerateNotes={() => setIsNoteModalOpen(true)} />
                 </div>
-
-                <div className="flex-1 min-h-[800px]">
-                    <DailyScheduler />
-                </div>
+                <DailyScheduler />
             </div>
 
-            {/* Notes Generator Modal */}
             <NotesGeneratorModal
                 isOpen={isNoteModalOpen}
                 onClose={() => setIsNoteModalOpen(false)}

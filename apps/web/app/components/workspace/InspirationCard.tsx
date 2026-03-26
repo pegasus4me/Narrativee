@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Heart, Repeat2, MessageCircle, ExternalLink, Trash2, Plus, Calendar, BookmarkCheck } from "lucide-react";
+import { BsPatchCheckFill } from "react-icons/bs";
 import { InspirationNote } from "@/app/types/inspiration";
 
 interface InspirationCardProps {
@@ -52,7 +53,10 @@ export default function InspirationCard({ note, onAddToQueue, onDelete, onUpdate
                         </div>
                     )}
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-200 truncate">{note.author.name}</p>
+                        <p className="flex items-center gap-1 text-sm font-medium text-gray-200 truncate">
+                            {note.author.name}
+                            <BsPatchCheckFill className="w-3 h-3 text-primary shrink-0" />
+                        </p>
                         {note.author.handle && <p className="text-xs text-gray-500">@{note.author.handle}</p>}
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

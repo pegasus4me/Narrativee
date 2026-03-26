@@ -1215,13 +1215,30 @@
         // Auto-scroll to load more content
         console.log('🔄 Narrativee: Auto-scrolling to load more content...');
 
-        // Perform 15 scrolls with delays to load deeper history
-        for (let i = 0; i < 15; i++) {
+        // Scroll until no new content appears for 3 consecutive attempts (max 60 scrolls)
+        let noNewContentCount = 0;
+        let lastHeight = 0;
+        let lastElementCount = 0;
+        for (let i = 0; i < 60; i++) {
             window.scrollTo(0, document.body.scrollHeight);
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 1800));
 
-            // Check if we have enough items? optional, but let's just force depth for now
-            if (i % 5 === 0) console.log(`🔄 Narrativee: Scroll ${i + 1}/15...`);
+            const currentHeight = document.body.scrollHeight;
+            const currentCount = document.querySelectorAll('.feedUnit-NTpfyQ').length;
+
+            if (currentHeight === lastHeight && currentCount === lastElementCount) {
+                noNewContentCount++;
+                if (noNewContentCount >= 3) {
+                    console.log(`🔄 Narrativee: No new content after 3 attempts, stopping at scroll ${i + 1}`);
+                    break;
+                }
+            } else {
+                noNewContentCount = 0;
+            }
+
+            lastHeight = currentHeight;
+            lastElementCount = currentCount;
+            if (i % 5 === 0) console.log(`🔄 Narrativee: Scroll ${i + 1}, elements: ${currentCount}...`);
         }
 
         // Enhanced selectors for Substack Notes tab based on user's HTML
