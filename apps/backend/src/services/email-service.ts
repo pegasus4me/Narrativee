@@ -7,15 +7,21 @@ const FROM = "Safoan <hello@narrativee.com>";
 export const EmailService = {
     async sendWelcome({ email, name, promoCode }: { email: string; name: string; promoCode: string }) {
         if (!resend) {
-            console.warn("Resend API key is missing, skipping welcome email");
+            console.error("❌ RESEND_API_KEY is missing — welcome email skipped");
             return;
         }
-        await resend.emails.send({
+        console.log(`📧 Sending welcome email to ${email}...`);
+        const { data, error } = await resend.emails.send({
             from: FROM,
             to: email,
             subject: "Welcome to Narrativee 🎉",
             html: welcomeEmailHtml({ name, promoCode }),
         });
+        if (error) {
+            console.error("❌ Resend error:", error);
+        } else {
+            console.log("✅ Welcome email sent, id:", data?.id);
+        }
     },
 };
 
