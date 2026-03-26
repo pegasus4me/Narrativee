@@ -14,7 +14,7 @@ export const EmailService = {
         const { data, error } = await resend.emails.send({
             from: FROM,
             to: email,
-            subject: "Welcome to Narrativee 🎉",
+            subject: "Welcome to Narrativee",
             html: welcomeEmailHtml({ name, promoCode }),
         });
         if (error) {
@@ -62,7 +62,7 @@ function welcomeEmailHtml({ name, promoCode }: { name: string; promoCode: string
                   <td style="padding:24px;text-align:center;">
                     <p style="margin:0 0 8px;font-size:12px;color:#a78bfa;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Your welcome gift</p>
                     <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:4px;font-family:monospace;">${promoCode}</div>
-                    <p style="margin:12px 0 0;font-size:13px;color:#6b7280;">Use this code at checkout for an exclusive discount</p>
+                    <p style="margin:12px 0 0;font-size:13px;color:#6b7280;">Use this code at checkout for 50% off on your subscriptions for the first 3 months</p>
                   </td>
                 </tr>
               </table>
