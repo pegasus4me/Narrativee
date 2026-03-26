@@ -1,11 +1,15 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-const FROM = "Narrativee <hello@narrativee.com>";
+const FROM = "Safoan <hello@narrativee.com>";
 
 export const EmailService = {
     async sendWelcome({ email, name, promoCode }: { email: string; name: string; promoCode: string }) {
+        if (!resend) {
+            console.warn("Resend API key is missing, skipping welcome email");
+            return;
+        }
         await resend.emails.send({
             from: FROM,
             to: email,
