@@ -41,24 +41,8 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to EC2
-        env:
-          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_USER: ${{ secrets.EC2_USER }}
+      - name: Trigger deploy via webhook
         run: |
-          echo "$SSH_KEY" > key.pem
-          chmod 600 key.pem
-          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i key.pem $EC2_USER@$EC2_HOST "
-            sudo docker pull safoantouil/narrative:latest &&
-            sudo docker stop narrative-backend || true &&
-            sudo docker rm narrative-backend || true &&
-            sudo docker run -d \
-              --name narrative-backend \
-              --restart always \
-              -p 3002:3002 \
-              --env-file /home/ubuntu/narrativee-backend/.env \
-              safoantouil/narrative:latest &&
-            sudo docker image prune -f
-          "
-          rm -f key.pem
+          curl -s -X POST "https://api.narrativee.com/api/deploy-hook" \
+            -H "Authorization: Bearer ${{ secrets.DEPLOY_HOOK_SECRET }}" \
+            --max-time 10 || true

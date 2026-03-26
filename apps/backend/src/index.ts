@@ -49,6 +49,22 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Narrativee API is running' });
 });
 
+// Deploy webhook — triggered by GitHub Actions after image push
+app.post('/api/deploy-hook', (req: any, res: any) => {
+  const secret = process.env.DEPLOY_HOOK_SECRET;
+  const auth = req.headers['authorization'];
+  if (!secret || auth !== `Bearer ${secret}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  res.json({ ok: true });
+  // Run deploy script in background after responding
+  const { exec } = require('child_process');
+  exec('/home/ubuntu/deploy.sh', (err: any, stdout: any, stderr: any) => {
+    if (err) console.error('Deploy error:', stderr);
+    else console.log('Deploy output:', stdout);
+  });
+});
+
 // import eventsRouter from './routes/events';
 
 // ... (imports)
