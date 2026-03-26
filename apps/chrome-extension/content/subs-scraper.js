@@ -98,9 +98,9 @@
         }
 
         const now = new Date();
-        const day = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-        return [{ month: day, freeCount, paidCount, totalCount }];
+        return [{ month, freeCount, paidCount, totalCount }];
     }
 
 
