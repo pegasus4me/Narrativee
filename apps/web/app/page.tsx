@@ -210,31 +210,40 @@ export default function Home() {
         </AnimatedSection>
 
         {/* ─── PROBLEM SECTION ─────────────────────────────── */}
-        <section className="py-16 md:py-10 px-4">
-          <div className="container mx-auto">
-            <AnimatedSection className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl  text-gray-100 font-urbanist leading-tight max-w-6xl mx-auto">
+        <section className="py-20 md:py-28 px-4">
+          <div className="container mx-auto max-w-4xl">
+            <AnimatedSection className="mb-16">
+              <p className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope mb-4">Why I built this</p>
+              <h2 className="text-3xl md:text-5xl text-gray-100 font-urbanist leading-tight mb-6">
                 Growing on Substack is a full-time job
               </h2>
-              <p className="text-gray-400 text-lg mt-4 max-w-2xl mx-auto font-manrope">
-                You know you need to post notes consistently, engage with other creators,
-                and study what works — but who has time for all that?
+              <p className="text-gray-500 text-lg font-manrope font-light leading-relaxed max-w-2xl">
+                I hit a wall trying to grow my own Substack. Posting consistently, engaging with other writers, figuring out what actually worked — it was eating hours I didn&apos;t have. So I built the tool I wished existed.
               </p>
+              <div className="flex items-center gap-3 mt-5">
+                <Image src="/profile.jpg" alt="Founder" width={50} height={50} className="rounded-full object-cover border border-white/10" />
+               <div className="flex flex-col ">
+                 <p className="text-gray-500 text-sm font-manrope">
+                  Safoan, founder of Narrativee
+                </p>
+                <a href="https://safoan.substack.com" target="_blank" rel="noopener noreferrer" className="text-white hover:underline">
+                  safoan.substack.com
+                </a>
+               </div>
+              </div>
             </AnimatedSection>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
-                "You forget to post notes or run out of ideas mid-week",
-                "Engaging with other creators takes hours you don't have",
-                "You don't know which notes perform best or why",
-                "Your content sounds generic because you're writing in a rush",
+                "Running out of note ideas mid-week and posting nothing",
+                "Spending hours on engagement that barely moves the needle",
+                "No idea which notes resonate and which ones flop",
+                "Writing in a rush and sounding like everyone else",
               ].map((problem, i) => (
-                <AnimatedSection key={i} delay={i * 0.1}>
-                  <div className="flex items-start gap-4 p-5 rounded-xl bg-red-950/20 border border-red-900/30">
-                    <div className="w-8 h-8 rounded-full bg-red-900/40 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-red-400 text-sm font-bold">✕</span>
-                    </div>
-                    <p className="text-gray-300 font-manrope text-[15px] leading-relaxed">
+                <AnimatedSection key={i} delay={i * 0.08}>
+                  <div className="flex items-start gap-3 p-4 rounded-xl border border-white/[0.04] bg-white/[0.02]">
+                    <span className="text-gray-600 text-sm mt-0.5 shrink-0">✕</span>
+                    <p className="text-gray-500 font-manrope text-[15px] leading-relaxed">
                       {problem}
                     </p>
                   </div>
