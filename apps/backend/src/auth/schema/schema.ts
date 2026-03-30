@@ -1,5 +1,5 @@
-import { relations, sql } from 'drizzle-orm';
-import { pgTable, text, timestamp, boolean, integer, jsonb, uuid, primaryKey } from "drizzle-orm/pg-core";
+import { relations } from 'drizzle-orm';
+import { pgTable, text, timestamp, boolean, integer, jsonb, uuid } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -154,12 +154,55 @@ export const scheduledNotes = pgTable("scheduled_notes", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const campaigns = pgTable("campaigns", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  status: text("status").notNull().default("draft"), // draft | active | paused | completed
+  replyTemplate: text("reply_template").notNull(), // The reply text to post
+  dailyQuota: integer("daily_quota").notNull().default(5), // Max replies per day
+  repliedToday: integer("replied_today").notNull().default(0),
+  totalReplies: integer("total_replies").notNull().default(0),
+  lastQuotaResetAt: timestamp("last_quota_reset_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const campaignTargets = pgTable("campaign_targets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  campaignId: uuid("campaign_id").notNull().references(() => campaigns.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  // The original top-level comment we found our target replying to
+  parentCommentId: text("parent_comment_id").notNull(), // Substack comment ID
+  parentCommentUrl: text("parent_comment_url").notNull(),
+  parentPostUrl: text("parent_post_url").notNull(),
+  // The target commenter (2nd-degree)
+  targetAuthorName: text("target_author_name"),
+  targetAuthorHandle: text("target_author_handle"),
+  targetCommentId: text("target_comment_id").notNull(), // Their reply comment ID
+  targetCommentUrl: text("target_comment_url"), // Direct permalink to their comment
+  targetCommentContent: text("target_comment_content"), // Snippet of their reply
+  parentCommentContent: text("parent_comment_content"), // Snippet of the 1st-degree comment they replied to
+  originalNoteContent: text("original_note_content"), // The original note being discussed
+  // Reply tracking
+  status: text("status").notNull().default("pending"), // pending | replied | skipped | failed
+  repliedAt: timestamp("replied_at"),
+  replyCommentId: text("reply_comment_id"), // The ID of our reply comment once posted
+  replyText: text("reply_text"), // What our LLM actually posted
+  // Conversion tracking
+  targetRepliedBack: boolean("target_replied_back").default(false),
+  targetSubscribed: boolean("target_subscribed").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   posts: many(posts),
   notes: many(notes),
   scheduledNotes: many(scheduledNotes),
+  campaigns: many(campaigns),
 }));
 
 export const scheduledNotesRelations = relations(scheduledNotes, ({ one }) => ({
@@ -195,6 +238,25 @@ export const postsRelations = relations(posts, ({ one }) => ({
 export const notesRelations = relations(notes, ({ one }) => ({
   user: one(user, {
     fields: [notes.userId],
+    references: [user.id],
+  }),
+}));
+
+export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
+  user: one(user, {
+    fields: [campaigns.userId],
+    references: [user.id],
+  }),
+  targets: many(campaignTargets),
+}));
+
+export const campaignTargetsRelations = relations(campaignTargets, ({ one }) => ({
+  campaign: one(campaigns, {
+    fields: [campaignTargets.campaignId],
+    references: [campaigns.id],
+  }),
+  user: one(user, {
+    fields: [campaignTargets.userId],
     references: [user.id],
   }),
 }));

@@ -20,6 +20,7 @@ import { VscLayoutSidebarLeft } from "react-icons/vsc";
 import { BsDatabaseCheck } from "react-icons/bs";
 import { LuLibraryBig } from "react-icons/lu";
 import { TbMessageChatbot } from "react-icons/tb";
+import { MdOutlineCampaign } from "react-icons/md";
 import ProfileMenuSidebar from "./profileMenuSidebar";
 import ExtensionBanner from "../workspace/ExtensionBanner";
 
@@ -129,13 +130,9 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               <TbMessageChatbot size={20} className="shrink-0" />
               {isSidebarOpen && <span className="text-md font-medium">Engage</span>}
             </Link>
-            <Link href="#" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
-              <IoGitBranchOutline size={20} className="shrink-0" />
-              {isSidebarOpen && <span className="text-md font-medium">Cross Post <span className="text-xs text-gray-500 bg-yellow-500 px-2 py-0.5 rounded-full text-white">Soon</span></span>}
-            </Link>
-            <Link href="/setting" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
-              <FaMagic size={20} className="shrink-0" />
-              {isSidebarOpen && <span className="text-md font-medium">Feature request</span>}
+            <Link href="/workspace/campaigns" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <MdOutlineCampaign size={20} className="shrink-0" />
+              {isSidebarOpen && <span className="text-md font-medium">Campaigns</span>}
             </Link>
             <Link href="/workspace/inspirations" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
               <LuLibraryBig size={20} className="shrink-0" />

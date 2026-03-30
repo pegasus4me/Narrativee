@@ -162,8 +162,8 @@ export default function IDailyScheduler() {
 
             if (editTime && scheduleViaExtension) {
                 const [hours, minutes] = editTime.split(':').map(Number);
-                const scheduledDate = new Date(currentDateKey);
-                scheduledDate.setHours(hours ?? 0, minutes ?? 0, 0, 0);
+                const [y, m, d] = currentDateKey.split('-').map(Number);
+                const scheduledDate = new Date(y!, m! - 1, d!, hours ?? 0, minutes ?? 0, 0, 0);
                 const scheduledTimestamp = scheduledDate.getTime();
                 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 await fetch(`${API_URL}/scheduled-notes`, {
@@ -175,8 +175,26 @@ export default function IDailyScheduler() {
             setIsCreating(false);
         } else if (editingId) {
             const updatedPost = posts.find(p => p.id === editingId);
-            savePosts(posts.map(p => p.id === editingId ? { ...p, content: editContent, time: editTime } : p));
-            if (updatedPost) await persistNote({ ...updatedPost, content: editContent, time: editTime });
+            if (!updatedPost) { setEditingId(null); return; }
+            const newStatus: Post['status'] = editTime ? "scheduled" : "draft";
+            const updated = { ...updatedPost, content: editContent, time: editTime || undefined, status: newStatus };
+            savePosts(posts.map(p => p.id === editingId ? updated : p));
+            await persistNote(updated);
+
+            // Re-register alarm with new time (cancels old one first via service worker)
+            if (editTime) {
+                const [hours, minutes] = editTime.split(':').map(Number);
+                const [y, m, d] = updated.date.split('-').map(Number);
+                const scheduledDate = new Date(y!, m! - 1, d!, hours ?? 0, minutes ?? 0, 0, 0);
+                const scheduledTimestamp = scheduledDate.getTime();
+                if (scheduledTimestamp > Date.now()) {
+                    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    dispatchMessage('NARRATIVEE_SCHEDULE_POST', { postId: editingId, content: editContent, scheduledTimestamp, timezone, apiUrl: API_URL });
+                }
+            } else {
+                // Time cleared — cancel the alarm
+                dispatchMessage('NARRATIVEE_CANCEL_SCHEDULED_POST', { postId: editingId });
+            }
             setEditingId(null);
         }
         setEditContent('');
@@ -218,6 +236,10 @@ export default function IDailyScheduler() {
         if (!post) return;
         const cycle: Record<string, Post['status']> = { draft: "scheduled", scheduled: "cancelled", cancelled: "draft", published: "draft" };
         const newStatus = cycle[post.status] || "draft";
+
+        // draft → scheduled requires a time to register the alarm
+        if (post.status === "draft" && newStatus === "scheduled" && !post.time) return;
+
         savePosts(posts.map(p => p.id === id ? { ...p, status: newStatus } : p));
         try {
             await fetch(`${API_URL}/scheduled-notes/${id}/status`, {
@@ -225,6 +247,20 @@ export default function IDailyScheduler() {
                 credentials: 'include', body: JSON.stringify({ status: newStatus }),
             });
         } catch (e) { console.error('Failed to update status:', e); }
+
+        // Register or cancel alarm based on new status
+        if (newStatus === "scheduled" && post.time) {
+            const [hours, minutes] = post.time.split(':').map(Number);
+            const [y, m, d] = post.date.split('-').map(Number);
+            const scheduledDate = new Date(y!, m! - 1, d!, hours ?? 0, minutes ?? 0, 0, 0);
+            const scheduledTimestamp = scheduledDate.getTime();
+            if (scheduledTimestamp > Date.now()) {
+                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                dispatchMessage('NARRATIVEE_SCHEDULE_POST', { postId: id, content: post.content, scheduledTimestamp, timezone, apiUrl: API_URL });
+            }
+        } else if (newStatus === "cancelled" || newStatus === "draft") {
+            dispatchMessage('NARRATIVEE_CANCEL_SCHEDULED_POST', { postId: id });
+        }
     };
 
     const filteredPosts = posts.filter(p => p.date === currentDateKey && (statusFilter === "all" || p.status === statusFilter));

@@ -36,7 +36,7 @@ app.use(cors({
 
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   // allowedHeaders: ['Content-Type', 'Authorization'] // Removed to allow all headers (fixes Safari User-Agent issue)
 }));
 
@@ -156,6 +156,7 @@ import notesRouter from './routes/notes';
 import subscribersRouter from './routes/subscribers';
 import inspirationsRouter from './routes/inspirations';
 import scheduledNotesRouter from './routes/scheduled-notes';
+import campaignsRouter from './routes/campaigns';
 
 app.use('/api/user', userRouter);
 // app.use('/api/events', eventsRouter);
@@ -170,6 +171,7 @@ app.use('/api/notes', notesRouter);
 app.use('/api/subscribers', subscribersRouter);
 app.use('/api/inspirations', inspirationsRouter);
 app.use('/api/scheduled-notes', scheduledNotesRouter);
+app.use('/api/campaigns', campaignsRouter);
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

@@ -7,11 +7,13 @@
         "activeTab",
         "storage",
         "alarms",
-        "tabs"
+        "tabs",
+        "scripting"
     ],
     "host_permissions": [
         "*://*.substack.com/*",
         "http://localhost:3000/*",
+        "http://localhost:3002/*",
         "http://localhost:3010/*",
         "*://*.narrativee.com/*"
     ],
@@ -40,7 +42,8 @@
                 "content/engagement-scraper.js",
                 "content/stats-scraper.js",
                 "content/notes-scraper.js",
-                "content/subs-scraper.js"
+                "content/subs-scraper.js",
+                "content/campaign-scraper.js"
             ],
             "css": [
                 "styles/inject.css"

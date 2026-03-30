@@ -114,6 +114,62 @@
                 publicationUrl: event.data.publicationUrl
             });
         }
+
+        if (event.data?.type === 'NARRATIVEE_SCRAPE_CAMPAIGN_TARGETS') {
+            console.log('🎯 Campaign scrape requested from Web App');
+            chrome.runtime.sendMessage({
+                type: 'SCRAPE_CAMPAIGN_TARGETS',
+                campaignId: event.data.campaignId,
+                postUrl: event.data.postUrl
+            });
+        }
+
+        if (event.data?.type === 'NARRATIVEE_POST_CAMPAIGN_REPLY') {
+            console.log('🎯 Campaign reply requested from Web App');
+            chrome.runtime.sendMessage({
+                type: 'POST_CAMPAIGN_REPLY',
+                campaignId: event.data.campaignId,
+                targetId: event.data.targetId,
+                targetCommentId: event.data.targetCommentId,
+                postUrl: event.data.postUrl,
+                replyText: event.data.replyText
+            });
+        }
+
+        if (event.data?.type === 'NARRATIVEE_GENERATE_CAMPAIGN_REPLY') {
+            console.log('🎯 Campaign LLM reply generation requested from Web App');
+            const { campaignId, targetId, context, targetCommentId, postUrl } = event.data;
+
+            chrome.runtime.sendMessage({
+                type: 'GENERATE_CAMPAIGN_REPLY',
+                context,
+            }, (response) => {
+                if (chrome.runtime.lastError || !response?.success) {
+                    const err = chrome.runtime.lastError?.message || response?.error || 'LLM generation failed';
+                    console.error('🎯 Campaign: LLM generation failed', err);
+                    // Forward failure to web app so it can unlock UI
+                    window.postMessage({
+                        type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
+                        campaignId,
+                        targetId,
+                        success: false,
+                        error: err,
+                    }, '*');
+                    return;
+                }
+
+                console.log('🎯 Campaign: LLM reply generated, posting to Substack...');
+                // Now fire the actual reply with the LLM-generated text
+                chrome.runtime.sendMessage({
+                    type: 'POST_CAMPAIGN_REPLY',
+                    campaignId,
+                    targetId,
+                    targetCommentId,
+                    postUrl,
+                    replyText: response.reply,
+                });
+            });
+        }
     });
 
     // Initialize
@@ -1187,6 +1243,32 @@
                     type: 'NARRATIVEE_COMMENT_POSTED',
                     noteUrl: message.noteUrl,
                     success: message.success
+                }, '*');
+            }
+
+            // 7. Forward campaign targets scraped result to Web App
+            if (message.type === 'NARRATIVEE_CAMPAIGN_TARGETS_SCRAPED') {
+                console.log('🎯 Bridge: Forwarding campaign targets to web app', message.targets?.length);
+                window.postMessage({
+                    type: 'NARRATIVEE_CAMPAIGN_TARGETS_SCRAPED',
+                    campaignId: message.campaignId,
+                    postUrl: message.postUrl,
+                    targets: message.targets,
+                    error: message.error
+                }, '*');
+            }
+
+            // 8. Forward campaign reply result to Web App
+            if (message.type === 'NARRATIVEE_CAMPAIGN_REPLY_DONE') {
+                console.log('🎯 Bridge: Forwarding campaign reply result to web app');
+                window.postMessage({
+                    type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
+                    campaignId: message.campaignId,
+                    targetId: message.targetId,
+                    success: message.success,
+                    replyCommentId: message.replyCommentId,
+                    replyText: message.replyText,
+                    error: message.error
                 }, '*');
             }
         });

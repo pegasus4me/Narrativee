@@ -1,4 +1,6 @@
-// Background service worker - handles API calls to OpenRouter
+// Background service worker - handles API calls to OpenRouter / Narrativee backend
+
+const NARRATIVEE_API_URL = 'http://localhost:3002/api';
 
 // ==========================================
 // ALARM-BASED SCHEDULER
@@ -6,6 +8,33 @@
 
 // When the alarm fires, fetch fresh content from the API and open Substack to post it
 chrome.alarms.onAlarm.addListener(async (alarm) => {
+    // ── 4-hour notes performance cron ──
+    if (alarm.name === 'narrativee_notes_perf_cron') {
+        console.log('📝 Cron: Auto-syncing notes performance');
+        const data = await chrome.storage.local.get(['narrativee_profile_url']);
+        const profileUrl = data.narrativee_profile_url;
+        if (!profileUrl) {
+            console.warn('📝 Cron: No profileUrl stored, skipping');
+            return;
+        }
+        const notesUrl = profileUrl.replace(/\/$/, '') + '/notes';
+        chrome.tabs.create({ url: notesUrl, active: false }, (tab) => {
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                if (tabId !== tab.id || info.status !== 'complete') return;
+                chrome.tabs.onUpdated.removeListener(listener);
+                setTimeout(() => {
+                    chrome.tabs.sendMessage(tabId, { type: 'SCRAPE_OWN_NOTES' }, (response) => {
+                        if (!chrome.runtime.lastError && response?.notes?.length) {
+                            forwardToNarrativeeTab({ type: 'NARRATIVEE_NOTES_PERF_SCRAPED', notes: response.notes });
+                        }
+                        setTimeout(() => chrome.tabs.remove(tabId), 1000);
+                    });
+                }, 4000);
+            });
+        });
+        return;
+    }
+
     if (!alarm.name.startsWith('narrativee_post_')) return;
 
     const postId = alarm.name.replace('narrativee_post_', '');
@@ -441,6 +470,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({ success: false, error: 'No profile URL' });
             return true;
         }
+
+        // Persist profileUrl and ensure the 4-hour repeating alarm is set
+        chrome.storage.local.set({ narrativee_profile_url: message.profileUrl }, () => {
+            chrome.alarms.get('narrativee_notes_perf_cron', (existing) => {
+                if (!existing) {
+                    chrome.alarms.create('narrativee_notes_perf_cron', { periodInMinutes: 240 });
+                    console.log('📝 Background: 4-hour notes perf cron alarm set');
+                }
+            });
+        });
         // Normalize: strip trailing slash, add /notes
         notesUrl = notesUrl.replace(/\/$/, '') + '/notes';
 
@@ -633,6 +672,156 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                     setTimeout(tryInsert, 3000);
                 }
+            });
+        });
+        sendResponse({ success: true });
+        return true;
+    }
+
+    // ===== CAMPAIGN ENGAGEMENT =====
+
+    if (message.type === 'GENERATE_CAMPAIGN_REPLY') {
+        generateCampaignReply(message.context)
+            .then(reply => sendResponse({ success: true, reply }))
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        return true;
+    }
+
+    if (message.type === 'SCRAPE_CAMPAIGN_TARGETS') {
+        console.log('🎯 Campaign: Opening page to scrape:', message.postUrl);
+
+        chrome.tabs.create({ url: message.postUrl, active: false }, (tab) => {
+            const scrapeTabId = tab.id;
+
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                if (tabId !== scrapeTabId || info.status !== 'complete') return;
+                chrome.tabs.onUpdated.removeListener(listener);
+
+                // Wait 5s for the page JS to render comments, then send scrape command.
+                // The content script handles all waiting/expanding internally.
+                setTimeout(() => {
+                    chrome.tabs.sendMessage(scrapeTabId, {
+                        type: 'SCRAPE_CAMPAIGN_TARGETS',
+                        postUrl: message.postUrl,
+                    }, (response) => {
+                        const error = chrome.runtime.lastError?.message;
+                        if (error || !response) {
+                            console.error('🎯 Campaign: Scrape failed —', error || 'no response');
+                            forwardToNarrativeeTab({
+                                type: 'NARRATIVEE_CAMPAIGN_TARGETS_SCRAPED',
+                                campaignId: message.campaignId,
+                                postUrl: message.postUrl,
+                                targets: [],
+                                error: error || 'Content script did not respond',
+                            });
+                        } else {
+                            console.log('🎯 Campaign: Got', response.targets?.length || 0, 'targets');
+                            forwardToNarrativeeTab({
+                                type: 'NARRATIVEE_CAMPAIGN_TARGETS_SCRAPED',
+                                campaignId: message.campaignId,
+                                postUrl: message.postUrl,
+                                targets: response.targets || [],
+                                error: response.error || null,
+                            });
+                        }
+                        setTimeout(() => chrome.tabs.remove(scrapeTabId), 1500);
+                    });
+                }, 5000);
+            });
+        });
+        sendResponse({ success: true });
+        return true;
+    }
+
+    if (message.type === 'POST_CAMPAIGN_REPLY') {
+        console.log('🎯 Campaign: Posting reply to', message.targetCommentId, 'on', message.postUrl);
+
+        if (!message.postUrl) {
+            forwardToNarrativeeTab({
+                type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
+                campaignId: message.campaignId,
+                targetId: message.targetId,
+                success: false,
+                error: 'No URL available for this target — re-scrape to populate targetCommentUrl'
+            });
+            return true;
+        }
+
+        chrome.tabs.create({ url: message.postUrl, active: true }, (tab) => {
+            const replyTabId = tab.id;
+
+            function onReplyDone(msg, msgSender) {
+                if (msgSender.tab?.id !== replyTabId) return;
+                if (msg.type !== 'CAMPAIGN_REPLY_DONE') return;
+                chrome.runtime.onMessage.removeListener(onReplyDone);
+                clearTimeout(safetyTimeout);
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
+                    campaignId: message.campaignId,
+                    targetId: message.targetId,
+                    success: msg.success,
+                    replyCommentId: msg.replyCommentId,
+                    replyText: message.replyText
+                });
+                setTimeout(() => chrome.tabs.remove(replyTabId), 1500);
+            }
+            chrome.runtime.onMessage.addListener(onReplyDone);
+
+            const safetyTimeout = setTimeout(() => {
+                chrome.runtime.onMessage.removeListener(onReplyDone);
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
+                    campaignId: message.campaignId,
+                    targetId: message.targetId,
+                    success: false,
+                    error: 'Timeout'
+                });
+                chrome.tabs.remove(replyTabId);
+            }, 60000);
+
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                if (tabId !== replyTabId || info.status !== 'complete') return;
+                chrome.tabs.onUpdated.removeListener(listener);
+
+                let attempts = 0;
+                function tryReply() {
+                    attempts++;
+                    chrome.tabs.sendMessage(replyTabId, {
+                        type: 'POST_CAMPAIGN_REPLY',
+                        targetCommentId: message.targetCommentId,
+                        replyText: message.replyText
+                    }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            if (attempts < 4) { setTimeout(tryReply, 2000); return; }
+                            chrome.runtime.onMessage.removeListener(onReplyDone);
+                            clearTimeout(safetyTimeout);
+                            forwardToNarrativeeTab({
+                                type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
+                                campaignId: message.campaignId,
+                                targetId: message.targetId,
+                                success: false,
+                                error: 'Content script not responding'
+                            });
+                            chrome.tabs.remove(replyTabId);
+                            return;
+                        }
+                        // Success/failure comes back via CAMPAIGN_REPLY_DONE message from content script
+                        if (response && !response.success) {
+                            // Immediate failure from content script
+                            chrome.runtime.onMessage.removeListener(onReplyDone);
+                            clearTimeout(safetyTimeout);
+                            forwardToNarrativeeTab({
+                                type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
+                                campaignId: message.campaignId,
+                                targetId: message.targetId,
+                                success: false,
+                                error: response.error
+                            });
+                            chrome.tabs.remove(replyTabId);
+                        }
+                    });
+                }
+                setTimeout(tryReply, 4000);
             });
         });
         sendResponse({ success: true });
@@ -1084,4 +1273,35 @@ Format as a numbered outline. Keep it practical and actionable.`
     ];
 
     return await callOpenRouter(messages, 600);
+}
+
+// Generate a personalized campaign reply — calls the Narrativee backend (uses Grok API key server-side)
+async function generateCampaignReply(context) {
+    // Pull profile data from extension storage to send to backend
+    const settings = await chrome.storage.sync.get(['bio', 'goals', 'topics', 'style', 'articles']);
+
+    const response = await fetch(`${NARRATIVEE_API_URL}/campaigns/generate-reply`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            context: {
+                ...context,
+                bio: settings.bio || '',
+                goals: settings.goals || '',
+                topics: settings.topics || '',
+                style: settings.style || 'casual',
+                articles: settings.articles || '',
+            },
+        }),
+    });
+
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to generate reply');
+    }
+
+    const data = await response.json();
+    if (!data.reply) throw new Error('No reply generated');
+    return data.reply;
 }

@@ -204,19 +204,20 @@
         console.log('🎯 Engagement: Starting feed scrape...');
         const notes = [];
 
-        // Auto-scroll to load more content
-        for (let i = 0; i < 8; i++) {
+        // Auto-scroll to load more content — 20 scrolls with 1.5s gap gives ~30s of loading
+        for (let i = 0; i < 20; i++) {
             window.scrollTo(0, document.body.scrollHeight);
-            await new Promise(resolve => setTimeout(resolve, 1200));
-            if (i % 3 === 0) console.log(`🎯 Engagement: Scroll ${i + 1}/8...`);
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            if (i % 5 === 0) console.log(`🎯 Engagement: Scroll ${i + 1}/20...`);
         }
 
         // Scrape note elements
         // Filter elements that are NOT nested inside another article (ignores "Related Notes")
         const allPotential = Array.from(document.querySelectorAll('div[role="article"]'));
         const noteElements = allPotential.filter(el => {
-            // Check if it's a Note and NOT inside another Note
-            const isNote = el.getAttribute('aria-label') === 'Note' || el.querySelector('.feedCommentBodyInner-AOzMIC');
+            // isNote: aria-label="Note" OR has any feedCommentBodyInner class (hashed)
+            const isNote = el.getAttribute('aria-label') === 'Note'
+                || !!el.querySelector('[class*="feedCommentBodyInner"]');
             const isNested = el.parentElement.closest('div[role="article"]');
             return isNote && !isNested;
         });
@@ -241,9 +242,9 @@
 
     function extractEngagementNote(noteElement) {
         // Skip restacks
-        if (noteElement.querySelector('.gutteredContextRow-g8fRTb')) return null;
+        if (noteElement.querySelector('[class*="gutteredContextRow"]')) return null;
 
-        const contentEl = noteElement.querySelector('.feedCommentBodyInner-AOzMIC, .ProseMirror');
+        const contentEl = noteElement.querySelector('[class*="feedCommentBodyInner"], .ProseMirror');
         const content = contentEl?.textContent?.trim() || '';
 
         if (content.length < 20) return null;
@@ -259,17 +260,34 @@
             || noteElement.querySelector('img[width="36"], img[width="40"], img[width="48"]');
 
         // Engagement counts
-        const buttons = noteElement.querySelectorAll('.container-_91AK1 button');
         let likes = 0, comments = 0, restacks = 0;
+        const allClickables = noteElement.querySelectorAll('a, button, div[role="button"], div[aria-label]');
 
-        buttons.forEach(btn => {
-            const label = btn.getAttribute('aria-label') || '';
-            const countEl = btn.querySelector('[class*="size-13"]');
-            const count = parseInt(countEl?.textContent || '0') || 0;
+        allClickables.forEach(el => {
+            const label = (el.getAttribute('aria-label') || el.getAttribute('title') || '').toLowerCase();
+            const href = (el.getAttribute('href') || '').toLowerCase();
+            
+            // Only parse short text chunks to avoid grabbing numbers from post paragraphs
+            let count = 0;
+            const textContent = el.textContent?.trim() || '';
+            if (textContent.length > 0 && textContent.length < 15) {
+                const cleanText = textContent.replace(/,/g, '');
+                const match = cleanText.match(/([\d.]+)([KMkm]?)/);
+                if (match) {
+                    const num = parseFloat(match[1]);
+                    const suffix = match[2].toLowerCase();
+                    if (suffix === 'k') count = Math.floor(num * 1000);
+                    else if (suffix === 'm') count = Math.floor(num * 1000000);
+                    else count = Math.floor(num);
+                }
+            }
 
-            if (label.toLowerCase().includes('like')) likes = count;
-            else if (label.toLowerCase().includes('comment')) comments = count;
-            else if (label.toLowerCase().includes('restack')) restacks = count;
+            if (label.includes('like')) likes = likes || count;
+            else if (label.includes('comment') || href.includes('#comment')) comments = comments || count;
+            else if (label.includes('restack') || label.includes('repost')) restacks = restacks || count;
+            
+            // Fallback for comment count if it's an `a` tag linking to comments
+            if (href.includes('comments') && !comments) comments = count;
         });
 
         // Note URL extraction
