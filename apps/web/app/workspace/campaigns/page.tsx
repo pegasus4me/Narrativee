@@ -427,7 +427,7 @@ function CampaignsPage() {
         const data = await res.json() as { target: CampaignTarget | null; reason?: string };
         if (!data.target) {
             setIsReplying(false);
-            setError(data.reason === "daily_quota_reached" ? "Daily quota reached. Come back tomorrow." : "No pending targets left.");
+            setError("No pending targets left.");
             return;
         }
         const target = data.target;

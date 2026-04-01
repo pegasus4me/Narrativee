@@ -76,6 +76,34 @@
             }
         }
 
+        // Exclude units from "More from" or "Related Notes" sections.
+        // If a unit's ancestor has a previous sibling that is a section header, it's not a comment.
+        units = units.filter(el => {
+            let isRelated = false;
+            let current = el;
+            while (current && current !== document.body && current !== mainContainer?.parentElement) {
+                let prev = current.previousElementSibling;
+                while (prev) {
+                    const isUnit = prev.className && typeof prev.className === 'string' && 
+                                   (prev.className.includes('feedUnit-') || prev.className.includes('feedPermalinkUnit'));
+                    if (!isUnit) {
+                        const text = prev.textContent?.trim().toLowerCase() || '';
+                        if (text.length > 0 && text.length < 80) {
+                            if (text.includes('more notes') || text.includes('more from') || 
+                                text.includes('also by') || text.includes('related') || text === 'notes') {
+                                isRelated = true;
+                                break;
+                            }
+                        }
+                    }
+                    prev = prev.previousElementSibling;
+                }
+                if (isRelated) break;
+                current = current.parentElement;
+            }
+            return !isRelated;
+        });
+
         // Final safeguard: Comments rarely have aria-label="Note", while "Related Notes" do.
         units = units.filter(el => {
             const isStandaloneNote = el.getAttribute('aria-label') === 'Note' || el.querySelector('[aria-label="Note"]');
@@ -295,10 +323,30 @@
         console.log('🎯 Posting reply on:', location.href);
         await sleep(2000);
 
-        // Find the reply composer — it sits OUTSIDE the feedPermalinkUnit
+        // Find the reply composer — it sits OUTSIDE the feedPermalinkUnit 
+        // BUT it must NOT be the global "New Note" composer in the navigation sidebar!
         const permalinkEl = document.querySelector('[class*="feedPermalinkUnit"]');
         const composers = Array.from(document.querySelectorAll('[class*="inlineComposer"]'));
-        const composer = composers.find(el => !permalinkEl?.contains(el)) || composers[0];
+        
+        let composer = null;
+
+        // Strategy 1: Filter out anything inside <nav> or [role="navigation"] or the left sidebar
+        const validComposers = composers.filter(el => {
+            if (permalinkEl?.contains(el)) return false; // not inside the note itself
+            if (el.closest('nav, [role="navigation"], .left-sidebar, .right-sidebar, [aria-label="Primary navigation"]')) return false; 
+            return true;
+        });
+
+        // Strategy 2: Directly inspect the valid composers and pick ONLY the one that says "leave a reply"
+        composer = validComposers.find(c => {
+            const text = c.textContent?.trim().toLowerCase() || '';
+            return text.includes('reply') || text.includes('leave a ');
+        });
+
+        // Failsafe: if we couldn't find one that specifically says "reply", pick the closest one below the permalink
+        if (!composer && validComposers.length > 0) {
+            composer = validComposers[0];
+        }
 
         if (!composer) {
             return fail('Reply composer not found');
@@ -306,13 +354,31 @@
 
         composer.scrollIntoView({ block: 'center' });
         await sleep(500);
-        composer.click();
+
+        // Substack often requires clicking the actual placeholder text element to trigger the editor gracefully
+        const innerTextDiv = Array.from(composer.querySelectorAll('div, span, p')).find(el => {
+            const t = el.textContent?.trim().toLowerCase() || '';
+            return t.includes('reply') || t.includes('leave a ');
+        });
+        
+        if (innerTextDiv) {
+            innerTextDiv.click();
+        } else {
+            composer.click();
+        }
+        
         await sleep(1500);
 
-        // Wait for the editor to open
+        // Wait for the editor to open. 
+        // Ensure we pick the active editor that is NOT in the global navigation.
         const editor = await pollFor(
             () => Array.from(document.querySelectorAll('div[contenteditable="true"]'))
-                .find(el => el.getBoundingClientRect().width > 0),
+                .find(el => {
+                    const rect = el.getBoundingClientRect();
+                    const visible = rect.width > 0 && rect.height > 0;
+                    const notNav = !el.closest('nav, [role="navigation"], .left-sidebar');
+                    return visible && notNav;
+                }),
             8000, 500
         );
         if (!editor) return fail('Reply editor did not open');

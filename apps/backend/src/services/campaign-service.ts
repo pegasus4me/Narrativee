@@ -26,7 +26,7 @@ export const CampaignService = {
             userId,
             name: data.name,
             replyTemplate: data.replyTemplate,
-            dailyQuota: data.dailyQuota ?? 5,
+            dailyQuota: data.dailyQuota ?? 10,
         }).returning();
         return campaign;
     },

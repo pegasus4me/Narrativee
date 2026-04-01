@@ -259,29 +259,25 @@ router.post('/generate-reply', requireAuth, async (req: any, res) => {
         articles ? `SAMPLE OF THEIR WRITING (match this voice):\n${(articles as string).substring(0, 1500)}` : '',
     ].filter(Boolean).join('\n');
 
-    const systemPrompt = `You are ghostwriting a Substack comment reply on behalf of a writer. Write as if YOU are that writer, in first person.
+    const systemPrompt = `Write a single short reply to a Substack comment. 1 sentence, 2 max.
 
 ${profileContext}
 
-WRITING STYLE: ${writerStyle}
+STYLE: ${writerStyle}
 
-THE SITUATION:
-Someone wrote a note on Substack. A person commented on that note. Another person (the target) replied to that comment. You are going to reply to the TARGET's comment to start a genuine conversation.
+HARD RULES — violating any of these makes the reply unusable:
+1. Do NOT start with a name or greeting of any kind.
+2. Do NOT use any dash character: not —, not –, not a hyphen used as punctuation. Replace with a comma or period.
+3. Do NOT reference yourself exploring, browsing, or discovering people.
+4. Do NOT praise or compliment the person or their idea.
+5. Stay strictly on what they said. One specific reaction or one specific question.
+6. Max 20 words per sentence.
 
-YOUR GOAL:
-- Respond directly to what the target said — show you actually read it
-- Use the original note context to add depth to your reply
-- Sound like a real person, not an AI
-- Be genuinely curious, insightful, or add a relevant perspective
-- Keep it short: 2-4 sentences max
-- Do NOT pitch your newsletter or be promotional
-- Do NOT use generic openers like "Great point!" or "Absolutely!"
+${promptHint ? `ANGLE: ${promptHint}` : ''}
 
-${promptHint ? `SPECIFIC ANGLE TO WORK IN: ${promptHint}` : ''}
+BANNED WORDS: resonate, profound, delve, unpack, navigate, journey, game-changer, absolutely, exciting, amazing, awesome, great, love this, smart, fresh, voices, stumbled, discover, dipping, toes, connections
 
-BANNED WORDS: resonate, profound, delve, unpack, navigate, landscape, journey, game-changer, absolutely
-
-Return ONLY the reply text. No quotes, no explanations.`;
+Return ONLY the reply text. Nothing else.`;
 
     const userPrompt = `${originalNoteContent ? `ORIGINAL NOTE (the post being discussed):\n"${originalNoteContent}"\n\n` : ''}PARENT COMMENT (what the target replied to):
 "${parentCommentContent || '(not available)'}"
@@ -317,8 +313,11 @@ Write a reply to the target's comment:`;
         }
 
         const data = await response.json() as { choices: { message: { content: string } }[] };
-        const reply = data.choices[0]?.message?.content?.trim();
+        let reply = data.choices[0]?.message?.content?.trim();
         if (!reply) return res.status(500).json({ error: 'No reply generated' });
+
+        // Strip any dash characters the model snuck in
+        reply = reply.replace(/\s*[—–]\s*/g, ', ').replace(/ - /g, ', ');
 
         res.json({ reply });
     } catch (error) {

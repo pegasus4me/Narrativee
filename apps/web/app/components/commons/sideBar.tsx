@@ -9,7 +9,7 @@ import { authClient } from "../../../lib/auth-client";
 import { usePathname, useRouter } from "next/navigation";
 import { IoHomeOutline, IoSettingsOutline, IoGitBranchOutline } from "react-icons/io5";
 import { FaPenNib } from "react-icons/fa";
-import { MdKeyboardDoubleArrowLeft, MdKeyboardArrowDown } from "react-icons/md";
+import { MdKeyboardArrowDown, MdKeyboardArrowRight } from "react-icons/md";
 import Image from "next/image";
 import { FaMagic } from "react-icons/fa";
 import { API_URL } from "@/lib/api-config";
@@ -23,6 +23,12 @@ import { TbMessageChatbot } from "react-icons/tb";
 import { MdOutlineCampaign } from "react-icons/md";
 import ProfileMenuSidebar from "./profileMenuSidebar";
 import ExtensionBanner from "../workspace/ExtensionBanner";
+
+interface Campaign {
+  id: string;
+  name: string;
+  status: "draft" | "active" | "paused" | "completed";
+}
 
 interface Template {
   id: string;
@@ -58,6 +64,9 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const plan = useSideBarStore((state) => state.plan);
   const setPlan = useSideBarStore((state) => state.setPlan);
 
+  const [campaignsOpen, setCampaignsOpen] = useState(false);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+
   useEffect(() => {
     if (session?.user) {
       // Fetch org data
@@ -77,6 +86,12 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
             }
           }
         })
+        .catch(console.error);
+
+      // Fetch campaigns for sidebar
+      fetch(`${API_URL}/campaigns`, { credentials: 'include' })
+        .then(res => res.json())
+        .then((data: any) => { if (data.campaigns) setCampaigns(data.campaigns); })
         .catch(console.error);
     }
   }, [session?.user, setCredits, setPlan]);
@@ -130,10 +145,41 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               <TbMessageChatbot size={20} className="shrink-0" />
               {isSidebarOpen && <span className="text-md font-medium">Engage</span>}
             </Link>
-            <Link href="/workspace/campaigns" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
-              <MdOutlineCampaign size={20} className="shrink-0" />
-              {isSidebarOpen && <span className="text-md font-medium">Campaigns</span>}
-            </Link>
+            <div>
+              <div className={`w-full py-2 text-left text-sm text-gray-300 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+                <Link href="/workspace/campaigns" className="flex items-center gap-2 flex-1">
+                  <MdOutlineCampaign size={20} className="shrink-0" />
+                  {isSidebarOpen && <span className="text-md font-medium">Campaigns</span>}
+                </Link>
+                {isSidebarOpen && (
+                  <button
+                    onClick={() => setCampaignsOpen(o => !o)}
+                    className="ml-auto p-0.5 hover:bg-gray-700 rounded"
+                    aria-label="Toggle campaigns list"
+                  >
+                    {campaignsOpen ? <MdKeyboardArrowDown size={16} /> : <MdKeyboardArrowRight size={16} />}
+                  </button>
+                )}
+              </div>
+              {isSidebarOpen && campaignsOpen && (
+                <div className="ml-6 mt-1 space-y-0.5">
+                  {campaigns.length === 0 ? (
+                    <span className="text-xs text-gray-500 px-2">No campaigns yet</span>
+                  ) : (
+                    campaigns.map(c => (
+                      <Link
+                        key={c.id}
+                        href={`/workspace/campaigns?id=${c.id}`}
+                        className="flex items-center gap-2 px-2 py-1.5 text-xs text-gray-400 hover:bg-gray-700 hover:text-gray-200 rounded-md transition-colors truncate"
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.status === 'active' ? 'bg-green-400' : c.status === 'paused' ? 'bg-yellow-400' : 'bg-gray-500'}`} />
+                        <span className="truncate">{c.name}</span>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
             <Link href="/workspace/inspirations" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
               <LuLibraryBig size={20} className="shrink-0" />
               {isSidebarOpen && <span className="text-md font-medium">Inspiration</span>}
