@@ -4,7 +4,8 @@ import { eq, and, desc, sql } from "drizzle-orm";
 
 interface CreateCampaignData {
     name: string;
-    replyTemplate: string;
+    replyTemplate?: string;
+    sequenceSteps?: string[];
     dailyQuota?: number;
 }
 
@@ -22,10 +23,12 @@ interface AddTargetsData {
 
 export const CampaignService = {
     async createCampaign(userId: string, data: CreateCampaignData) {
+        const steps = data.sequenceSteps ?? (data.replyTemplate ? [data.replyTemplate] : [""]);
         const [campaign] = await db.insert(campaigns).values({
             userId,
             name: data.name,
-            replyTemplate: data.replyTemplate,
+            replyTemplate: steps[0] ?? "",
+            sequenceSteps: steps,
             dailyQuota: data.dailyQuota ?? 10,
         }).returning();
         return campaign;
@@ -46,9 +49,13 @@ export const CampaignService = {
     },
 
     async updateCampaign(userId: string, campaignId: string, data: Partial<CreateCampaignData & { status: string }>) {
+        const patch: Record<string, unknown> = { ...data, updatedAt: new Date() };
+        if (data.sequenceSteps) {
+            patch.replyTemplate = data.sequenceSteps[0] ?? "";
+        }
         const [updated] = await db
             .update(campaigns)
-            .set({ ...data, updatedAt: new Date() })
+            .set(patch)
             .where(and(eq(campaigns.id, campaignId), eq(campaigns.userId, userId)))
             .returning();
         return updated;
@@ -100,10 +107,41 @@ export const CampaignService = {
         });
     },
 
+    /**
+     * Returns the next target eligible for a follow-up sequence step:
+     * status = "replied", targetRepliedBack = true, and sequenceStep < total steps.
+     */
+    async getNextSequenceFollowUp(campaignId: string, totalSteps: number) {
+        const targets = await db.query.campaignTargets.findMany({
+            where: and(
+                eq(campaignTargets.campaignId, campaignId),
+                eq(campaignTargets.status, "replied"),
+                eq(campaignTargets.targetRepliedBack, true),
+            ),
+            orderBy: [desc(campaignTargets.repliedAt)],
+        });
+        return targets.find(t => (t.sequenceStep ?? 0) < totalSteps) ?? null;
+    },
+
+    /**
+     * Given a campaign and a target, returns the angle hint for the current step.
+     */
+    getStepHint(sequenceSteps: string[], sequenceStep: number): string {
+        return sequenceSteps[sequenceStep] ?? sequenceSteps[sequenceSteps.length - 1] ?? "";
+    },
+
     async markTargetReplied(targetId: string, replyCommentId: string, replyText?: string) {
+        const target = await db.query.campaignTargets.findFirst({ where: eq(campaignTargets.id, targetId) });
         await db
             .update(campaignTargets)
-            .set({ status: "replied", repliedAt: new Date(), replyCommentId, replyText: replyText || null, updatedAt: new Date() })
+            .set({
+                status: "replied",
+                repliedAt: new Date(),
+                replyCommentId,
+                replyText: replyText || null,
+                sequenceStep: (target?.sequenceStep ?? 0) + 1,
+                updatedAt: new Date(),
+            })
             .where(eq(campaignTargets.id, targetId));
     },
 

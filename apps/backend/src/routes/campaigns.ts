@@ -51,13 +51,14 @@ router.get('/:id', requireAuth, async (req: any, res) => {
  */
 router.post('/', requireAuth, async (req: any, res) => {
     try {
-        const { name, replyTemplate, dailyQuota } = req.body;
-        if (!name || !replyTemplate) {
-            return res.status(400).json({ error: 'name and replyTemplate are required' });
+        const { name, replyTemplate, sequenceSteps, dailyQuota } = req.body;
+        if (!name) {
+            return res.status(400).json({ error: 'name is required' });
         }
         const campaign = await CampaignService.createCampaign(req.session.user.id, {
             name,
             replyTemplate,
+            sequenceSteps,
             dailyQuota,
         });
         res.status(201).json({ campaign });
@@ -73,10 +74,11 @@ router.post('/', requireAuth, async (req: any, res) => {
  */
 router.patch('/:id', requireAuth, async (req: any, res) => {
     try {
-        const { name, replyTemplate, dailyQuota, status } = req.body;
+        const { name, replyTemplate, sequenceSteps, dailyQuota, status } = req.body;
         const updated = await CampaignService.updateCampaign(req.session.user.id, req.params.id, {
             name,
             replyTemplate,
+            sequenceSteps,
             dailyQuota,
             status,
         });
@@ -221,8 +223,27 @@ router.get('/:id/next-target', requireAuth, async (req: any, res) => {
             return res.json({ target: null, reason: 'daily_quota_reached' });
         }
 
-        const target = await CampaignService.getNextPendingTarget(req.params.id);
-        res.json({ target: target ?? null });
+        const campaign = await CampaignService.getCampaignById(req.session.user.id, req.params.id);
+        if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
+
+        const steps: string[] = Array.isArray(campaign.sequenceSteps) && campaign.sequenceSteps.length > 0
+            ? campaign.sequenceSteps as string[]
+            : [campaign.replyTemplate];
+
+        // First priority: new pending targets (step 0)
+        let target = await CampaignService.getNextPendingTarget(req.params.id);
+
+        // Second priority: follow-up on targets that replied back and still have steps
+        if (!target && steps.length > 1) {
+            target = await CampaignService.getNextSequenceFollowUp(req.params.id, steps.length);
+        }
+
+        if (!target) return res.json({ target: null });
+
+        const stepIndex = target.sequenceStep ?? 0;
+        const promptHint = CampaignService.getStepHint(steps, stepIndex);
+
+        res.json({ target, stepIndex, promptHint, totalSteps: steps.length });
     } catch (error) {
         console.error("Error fetching next target", error);
         res.status(500).json({ error: 'Failed to fetch next target' });
@@ -259,7 +280,31 @@ router.post('/generate-reply', requireAuth, async (req: any, res) => {
         articles ? `SAMPLE OF THEIR WRITING (match this voice):\n${(articles as string).substring(0, 1500)}` : '',
     ].filter(Boolean).join('\n');
 
-    const systemPrompt = `Write a single short reply to a Substack comment. 1 sentence, 2 max.
+    // When the user has defined a campaign goal (promptHint), the reply must be
+    // goal-driven outreach — not a generic engagement comment. Use a different
+    // system prompt that leads with the goal and drops rules that conflict with it.
+    const isGoalDriven = Boolean(promptHint?.trim());
+
+    const systemPrompt = isGoalDriven
+        ? `You are writing a short outreach reply on Substack on behalf of someone.
+
+${profileContext}
+
+CAMPAIGN GOAL: ${promptHint}
+
+Your job: write a 1-2 sentence reply to the target's comment that naturally leads toward the campaign goal above. The reply must feel personal and relevant to what they said — not generic. Tie what they said to the goal.
+
+HARD RULES:
+1. Do NOT start with a name or greeting.
+2. Do NOT use any dash character (—, –, or hyphen as punctuation). Use a comma or period instead.
+3. Do NOT be salesy, spammy, or pushy. Sound like a real person.
+4. Max 20 words per sentence.
+5. End with a single direct question that connects their comment to the goal.
+
+BANNED WORDS: resonate, profound, delve, unpack, navigate, journey, game-changer, absolutely, exciting, amazing, awesome, great, love this, stumbled, discover, connections
+
+Return ONLY the reply text. Nothing else.`
+        : `Write a single short reply to a Substack comment. 1 sentence, 2 max.
 
 ${profileContext}
 
@@ -272,8 +317,6 @@ HARD RULES — violating any of these makes the reply unusable:
 4. Do NOT praise or compliment the person or their idea.
 5. Stay strictly on what they said. One specific reaction or one specific question.
 6. Max 20 words per sentence.
-
-${promptHint ? `ANGLE: ${promptHint}` : ''}
 
 BANNED WORDS: resonate, profound, delve, unpack, navigate, journey, game-changer, absolutely, exciting, amazing, awesome, great, love this, smart, fresh, voices, stumbled, discover, dipping, toes, connections
 

@@ -40,6 +40,15 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const postId = alarm.name.replace('narrativee_post_', '');
     console.log('⏰ Alarm fired for post:', postId);
 
+    // Keep the MV3 service worker alive during the entire posting flow.
+    // Chrome can terminate idle service workers after ~30s; polling chrome.storage
+    // prevents that while we wait for the tab to load and the post to complete.
+    let keepAliveInterval = setInterval(() => {
+        chrome.storage.local.get(['narrativee_keepalive'], () => {});
+    }, 20000);
+
+    const stopKeepAlive = () => clearInterval(keepAliveInterval);
+
     // Get auth cookie / API base from storage
     const storageData = await chrome.storage.local.get(['narrativee_api_url']);
     const apiBase = storageData.narrativee_api_url || 'https://api.narrativee.com';
@@ -61,6 +70,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     if (!content) {
         console.warn('⏰ No content found for alarm:', postId);
+        stopKeepAlive();
         forwardScheduledPostResult(postId, false);
         return;
     }
@@ -75,7 +85,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     chrome.tabs.create({ url: 'https://substack.com/home' }, (tab) => {
         const postingTabId = tab?.id;
-        if (!postingTabId) return;
+        if (!postingTabId) { stopKeepAlive(); return; }
 
         console.log('⏰ Opened Substack tab for scheduled post', postingTabId);
 
@@ -88,6 +98,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
                 postResolved = true;
                 chrome.runtime.onMessage.removeListener(onNoteResult);
                 clearTimeout(giveUpTimeout);
+                stopKeepAlive();
                 console.log('⏰ Scheduled post confirmed posted!');
                 forwardScheduledPostResult(postId, 'published');
                 setTimeout(() => {
@@ -99,6 +110,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
                 postResolved = true;
                 chrome.runtime.onMessage.removeListener(onNoteResult);
                 clearTimeout(giveUpTimeout);
+                stopKeepAlive();
                 console.log('⏰ Scheduled post cancelled by user.');
                 forwardScheduledPostResult(postId, 'cancelled');
                 setTimeout(() => {
@@ -111,6 +123,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         // Give up after 90s
         const giveUpTimeout = setTimeout(() => {
             chrome.runtime.onMessage.removeListener(onNoteResult);
+            stopKeepAlive();
             if (!postResolved) {
                 console.warn('⏰ Scheduled post timed out — not confirmed');
                 forwardScheduledPostResult(postId, false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Play, Pause, Trash2, Users, MessageSquare, Target, ChevronRight, ArrowLeft, Check, X, SkipForward, Loader2, Rss, Heart, Repeat2, ExternalLink, TrendingUp, Clock } from "lucide-react";
 import { BsPatchCheckFill } from "react-icons/bs";
@@ -14,6 +14,7 @@ interface Campaign {
     name: string;
     status: "draft" | "active" | "paused" | "completed";
     replyTemplate: string;
+    sequenceSteps: string[];
     dailyQuota: number;
     repliedToday: number;
     totalReplies: number;
@@ -33,6 +34,7 @@ interface CampaignTarget {
     targetCommentId: string;
     targetCommentUrl: string | null;
     status: "pending" | "replied" | "skipped" | "failed";
+    sequenceStep: number;
     repliedAt: string | null;
     replyText: string | null;
     targetRepliedBack: boolean;
@@ -206,6 +208,10 @@ function CampaignsPage() {
     };
     const [isLoading, setIsLoading] = useState(false);
     const [isReplying, setIsReplying] = useState(false);
+    const [isAutoRunning, setIsAutoRunning] = useState(false);
+    const [autoRunCount, setAutoRunCount] = useState(0);
+    const isAutoRunningRef = useRef(false);
+    const handleFireNextReplyRef = useRef<(auto?: boolean) => Promise<void>>(async () => {});
     const [isAddingTargets, setIsAddingTargets] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { data: session } = authClient.useSession();
@@ -224,7 +230,7 @@ function CampaignsPage() {
     const [selectedTargetIds, setSelectedTargetIds] = useState<Set<string>>(new Set());
 
     // Create form state
-    const [createForm, setCreateForm] = useState({ name: "", replyTemplate: "", dailyQuota: 5 });
+    const [createForm, setCreateForm] = useState({ name: "", sequenceSteps: [""], dailyQuota: 5 });
 
     const fetchCampaigns = useCallback(async () => {
         setIsLoading(true);
@@ -302,11 +308,26 @@ function CampaignsPage() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ replyCommentId, replyText }),
                     }).then(() => fetchCampaign(campaignId));
+                    setAutoRunCount(prev => prev + 1);
+                    // If auto-run is active, fire the next reply after a short delay
+                    if (isAutoRunningRef.current) {
+                        setTimeout(() => {
+                            if (isAutoRunningRef.current) {
+                                handleFireNextReplyRef.current(true);
+                            }
+                        }, 3000);
+                    }
                 } else {
                     fetch(`${API_URL}/campaigns/${campaignId}/targets/${targetId}/skip`, {
                         method: "POST",
                         credentials: "include",
                     }).then(() => fetchCampaign(campaignId));
+                    // On failure, stop auto-run to avoid cascading errors
+                    if (isAutoRunningRef.current) {
+                        isAutoRunningRef.current = false;
+                        setIsAutoRunning(false);
+                        setAutoRunCount(0);
+                    }
                     setError(`Reply failed: ${replyError || "unknown error"}`);
                 }
             }
@@ -385,7 +406,7 @@ function CampaignsPage() {
             });
             const data = await res.json() as { campaign: Campaign };
             setCampaigns(prev => [data.campaign, ...prev]);
-            setCreateForm({ name: "", replyTemplate: "", dailyQuota: 5 });
+            setCreateForm({ name: "", sequenceSteps: [""], dailyQuota: 5 });
             setView("list");
         } catch {
             setError("Failed to create campaign");
@@ -419,18 +440,26 @@ function CampaignsPage() {
         if (selectedCampaign?.id === id) { setSelectedCampaign(null); router.push("/workspace/campaigns"); }
     };
 
-    const handleFireNextReply = async () => {
+    const handleFireNextReply = async (auto = false) => {
         if (!selectedCampaign) return;
         setIsReplying(true);
         setError(null);
         const res = await fetch(`${API_URL}/campaigns/${selectedCampaign.id}/next-target`, { credentials: "include" });
-        const data = await res.json() as { target: CampaignTarget | null; reason?: string };
+        const data = await res.json() as { target: CampaignTarget | null; reason?: string; stepIndex?: number; promptHint?: string; totalSteps?: number };
         if (!data.target) {
             setIsReplying(false);
-            setError("No pending targets left.");
+            if (auto) {
+                isAutoRunningRef.current = false;
+                setIsAutoRunning(false);
+                setAutoRunCount(0);
+                setError(data.reason === "daily_quota_reached" ? "Daily quota reached — auto-run stopped." : "No more pending targets.");
+            } else {
+                setError("No pending targets left.");
+            }
             return;
         }
         const target = data.target;
+        const promptHint = data.promptHint ?? selectedCampaign.replyTemplate;
         window.postMessage({
             type: "NARRATIVEE_GENERATE_CAMPAIGN_REPLY",
             campaignId: selectedCampaign.id,
@@ -440,12 +469,30 @@ function CampaignsPage() {
                 targetCommentContent: target.targetCommentContent,
                 targetAuthorName: target.targetAuthorName,
                 originalNoteContent: target.originalNoteContent,
-                promptHint: selectedCampaign.replyTemplate,
+                promptHint,
                 postUrl: target.parentPostUrl,
             },
             targetCommentId: target.targetCommentId,
             postUrl: target.targetCommentUrl || target.parentPostUrl,
         }, "*");
+    };
+
+    // Keep ref in sync so the message handler's setTimeout always calls the latest version
+    handleFireNextReplyRef.current = handleFireNextReply;
+
+    const handleStartAutoRun = () => {
+        if (!selectedCampaign) return;
+        isAutoRunningRef.current = true;
+        setIsAutoRunning(true);
+        setAutoRunCount(0);
+        setError(null);
+        handleFireNextReply(true);
+    };
+
+    const handleStopAutoRun = () => {
+        isAutoRunningRef.current = false;
+        setIsAutoRunning(false);
+        setAutoRunCount(0);
     };
 
     const handleSkipTarget = async (targetId: string) => {
@@ -502,17 +549,48 @@ function CampaignsPage() {
                         />
                     </div>
                     <div>
-                        <label className="text-sm text-gray-400 mb-1.5 block">
-                            AI angle hint <span className="text-gray-600 font-normal">(optional)</span>
-                        </label>
-                        <textarea
-                            value={createForm.replyTemplate}
-                            onChange={e => setCreateForm(p => ({ ...p, replyTemplate: e.target.value }))}
-                            placeholder="e.g. mention that consistency beats perfection..."
-                            rows={3}
-                            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-primary/50 resize-none"
-                        />
-                        <p className="text-xs text-gray-600 mt-1">The AI uses your knowledge base + this hint to write personalized replies to each target.</p>
+                        <div className="flex items-center justify-between mb-1.5">
+                            <label className="text-sm text-gray-400">
+                                Message sequence <span className="text-gray-600 font-normal">(optional)</span>
+                            </label>
+                            <button
+                                type="button"
+                                onClick={() => setCreateForm(p => ({ ...p, sequenceSteps: [...p.sequenceSteps, ""] }))}
+                                className="text-xs text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+                            >
+                                <Plus size={11} /> Add step
+                            </button>
+                        </div>
+                        <div className="space-y-2">
+                            {createForm.sequenceSteps.map((step, i) => (
+                                <div key={i} className="flex gap-2 items-start">
+                                    <span className="mt-3 text-xs text-gray-600 w-5 shrink-0 text-right">{i + 1}.</span>
+                                    <textarea
+                                        value={step}
+                                        onChange={e => setCreateForm(p => {
+                                            const steps = [...p.sequenceSteps];
+                                            steps[i] = e.target.value;
+                                            return { ...p, sequenceSteps: steps };
+                                        })}
+                                        placeholder={i === 0 ? "e.g. ask if they want to grow their newsletter" : "e.g. follow up — offer a free tip if they replied"}
+                                        rows={2}
+                                        className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-primary/50 resize-none"
+                                    />
+                                    {createForm.sequenceSteps.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setCreateForm(p => ({ ...p, sequenceSteps: p.sequenceSteps.filter((_, j) => j !== i) }))}
+                                            className="mt-2.5 text-gray-700 hover:text-red-400 transition-colors"
+                                        >
+                                            <X size={13} />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1.5">
+                            Step 1 is sent to every new target. Step 2+ are sent when they reply back.
+                        </p>
                     </div>
                     <div>
                         <label className="text-sm text-gray-400 mb-1.5 block">Daily quota</label>
@@ -566,14 +644,38 @@ function CampaignsPage() {
                         </div>
                         <div className="flex items-center gap-2">
                             {selectedCampaign.status === "active" && pendingTargets.length > 0 && (
-                                <button
-                                    onClick={handleFireNextReply}
-                                    disabled={isReplying}
-                                    className="flex items-center gap-1.5 text-sm px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-40 text-white rounded-xl transition-colors"
-                                >
-                                    {isReplying ? <Loader2 size={14} className="animate-spin" /> : <MessageSquare size={14} />}
-                                    {isReplying ? "Posting..." : `Reply to next (${pendingTargets.length})`}
-                                </button>
+                                isAutoRunning ? (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-gray-400">
+                                            <Loader2 size={12} className="animate-spin inline mr-1" />
+                                            {autoRunCount} replied&hellip;
+                                        </span>
+                                        <button
+                                            onClick={handleStopAutoRun}
+                                            className="flex items-center gap-1.5 text-sm px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 rounded-xl transition-colors"
+                                        >
+                                            <Pause size={14} /> Stop
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => handleFireNextReply(false)}
+                                            disabled={isReplying}
+                                            className="flex items-center gap-1.5 text-sm px-3 py-2 bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-40 border border-white/[0.06] text-gray-300 rounded-xl transition-colors"
+                                        >
+                                            {isReplying ? <Loader2 size={14} className="animate-spin" /> : <MessageSquare size={14} />}
+                                            {isReplying ? "Posting..." : "Reply to next"}
+                                        </button>
+                                        <button
+                                            onClick={handleStartAutoRun}
+                                            disabled={isReplying}
+                                            className="flex items-center gap-1.5 text-sm px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-40 text-white rounded-xl transition-colors"
+                                        >
+                                            <Play size={14} /> Run all ({pendingTargets.length})
+                                        </button>
+                                    </div>
+                                )
                             )}
                             <button
                                 onClick={() => handleToggleStatus(selectedCampaign)}
@@ -596,6 +698,75 @@ function CampaignsPage() {
                             <button onClick={() => setError(null)} className="opacity-60 hover:opacity-100 ml-2">✕</button>
                         </div>
                     )}
+
+                    {/* Sequence editor */}
+                    {(() => {
+                        const steps: string[] = Array.isArray(selectedCampaign.sequenceSteps) && selectedCampaign.sequenceSteps.length > 0
+                            ? selectedCampaign.sequenceSteps as string[]
+                            : [selectedCampaign.replyTemplate ?? ""];
+                        const saveSequence = async (newSteps: string[]) => {
+                            await fetch(`${API_URL}/campaigns/${selectedCampaign.id}`, {
+                                method: "PATCH",
+                                credentials: "include",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ sequenceSteps: newSteps }),
+                            });
+                            await fetchCampaign(selectedCampaign.id);
+                        };
+                        return (
+                            <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <MessageSquare size={13} className="text-primary" />
+                                        <span className="text-sm font-medium text-gray-300">Message Sequence</span>
+                                        <span className="text-xs text-gray-600">{steps.length} step{steps.length !== 1 ? "s" : ""}</span>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            const newSteps = [...steps, ""];
+                                            await saveSequence(newSteps);
+                                        }}
+                                        className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+                                    >
+                                        <Plus size={11} /> Add step
+                                    </button>
+                                </div>
+                                <div className="space-y-2">
+                                    {steps.map((step, i) => (
+                                        <div key={i} className="flex gap-2 items-start">
+                                            <div className="mt-2.5 shrink-0 flex flex-col items-center gap-0.5">
+                                                <span className="text-xs text-gray-600 w-5 text-right">{i + 1}.</span>
+                                                {i > 0 && <span className="text-[9px] text-gray-700">↩ reply</span>}
+                                            </div>
+                                            <input
+                                                defaultValue={step}
+                                                onBlur={async e => {
+                                                    const newSteps = [...steps];
+                                                    newSteps[i] = e.target.value;
+                                                    await saveSequence(newSteps);
+                                                }}
+                                                placeholder={i === 0 ? "AI angle for first message…" : "AI angle for follow-up…"}
+                                                className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-primary/50"
+                                            />
+                                            {steps.length > 1 && (
+                                                <button
+                                                    onClick={async () => await saveSequence(steps.filter((_, j) => j !== i))}
+                                                    className="mt-2 text-gray-700 hover:text-red-400 transition-colors"
+                                                >
+                                                    <X size={13} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                {steps.length > 1 && (
+                                    <p className="text-xs text-gray-600 mt-2">
+                                        Step 1 → sent to every new target. Step 2+ → sent when they reply back.
+                                    </p>
+                                )}
+                            </div>
+                        );
+                    })()}
 
                     <div className="flex gap-6">
                         {/* Left: Feed + target picker */}
@@ -718,14 +889,23 @@ function CampaignsPage() {
                                             {repliedBack > 0 && <span className="text-blue-400">↩ {repliedBack}</span>}
                                             {subscribed > 0 && <span className="text-primary">★ {subscribed}</span>}
                                             {selectedCampaign.status === "active" && targets.filter(t => t.status === "pending").length > 0 && (
-                                                <button
-                                                    onClick={handleFireNextReply}
-                                                    disabled={isReplying}
-                                                    className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
-                                                >
-                                                    {isReplying ? <Loader2 size={11} className="animate-spin" /> : <Play size={11} />}
-                                                    {isReplying ? "Replying..." : `Reply to next (${targets.filter(t => t.status === "pending").length})`}
-                                                </button>
+                                                isAutoRunning ? (
+                                                    <button
+                                                        onClick={handleStopAutoRun}
+                                                        className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-xs font-medium rounded-lg transition-colors"
+                                                    >
+                                                        <Pause size={11} /> Stop ({autoRunCount} done)
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={handleStartAutoRun}
+                                                        disabled={isReplying}
+                                                        className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+                                                    >
+                                                        {isReplying ? <Loader2 size={11} className="animate-spin" /> : <Play size={11} />}
+                                                        {isReplying ? "Replying..." : `Run all (${targets.filter(t => t.status === "pending").length})`}
+                                                    </button>
+                                                )
                                             )}
                                         </div>
                                     );
@@ -751,6 +931,11 @@ function CampaignsPage() {
                                                             >
                                                                 <ExternalLink size={10} />
                                                             </a>
+                                                        )}
+                                                        {target.sequenceStep > 0 && (
+                                                            <span title={`Sequence step ${target.sequenceStep} sent`} className="text-[9px] px-1 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                                                                s{target.sequenceStep}
+                                                            </span>
                                                         )}
                                                         {target.targetRepliedBack && <span title="Replied back" className="text-blue-400 text-[10px]">↩</span>}
                                                         {target.targetSubscribed && <span title="Subscribed" className="text-primary text-[10px]">★</span>}

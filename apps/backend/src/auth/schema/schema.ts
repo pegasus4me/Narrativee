@@ -159,7 +159,8 @@ export const campaigns = pgTable("campaigns", {
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   status: text("status").notNull().default("draft"), // draft | active | paused | completed
-  replyTemplate: text("reply_template").notNull(), // The reply text to post
+  replyTemplate: text("reply_template").notNull().default(""), // kept for backwards compat
+  sequenceSteps: jsonb("sequence_steps").$type<string[]>().notNull().default([]), // ordered list of AI angle hints per step
   dailyQuota: integer("daily_quota").notNull().default(5), // Max replies per day
   repliedToday: integer("replied_today").notNull().default(0),
   totalReplies: integer("total_replies").notNull().default(0),
@@ -186,6 +187,7 @@ export const campaignTargets = pgTable("campaign_targets", {
   originalNoteContent: text("original_note_content"), // The original note being discussed
   // Reply tracking
   status: text("status").notNull().default("pending"), // pending | replied | skipped | failed
+  sequenceStep: integer("sequence_step").notNull().default(0), // which step of the campaign sequence has been sent (0 = none)
   repliedAt: timestamp("replied_at"),
   replyCommentId: text("reply_comment_id"), // The ID of our reply comment once posted
   replyText: text("reply_text"), // What our LLM actually posted
