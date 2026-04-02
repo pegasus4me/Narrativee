@@ -124,6 +124,14 @@
             });
         }
 
+        if (event.data?.type === 'NARRATIVEE_SEARCH_KEYWORD_NOTES') {
+            console.log('🔍 Keyword search requested from Web App:', event.data.keyword);
+            chrome.runtime.sendMessage({
+                type: 'SEARCH_KEYWORD_NOTES',
+                keyword: event.data.keyword
+            });
+        }
+
         if (event.data?.type === 'NARRATIVEE_POST_CAMPAIGN_REPLY') {
             console.log('🎯 Campaign reply requested from Web App');
             chrome.runtime.sendMessage({

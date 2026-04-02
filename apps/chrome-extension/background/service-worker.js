@@ -746,6 +746,65 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
+    if (message.type === 'SEARCH_KEYWORD_NOTES') {
+        console.log('🔍 Keyword Search: Opening explore page for keyword:', message.keyword);
+
+        chrome.tabs.create({ url: 'https://substack.com/explore', active: false }, (tab) => {
+            const searchTabId = tab.id;
+
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                if (tabId !== searchTabId || info.status !== 'complete') return;
+                chrome.tabs.onUpdated.removeListener(listener);
+
+                // Retry sending search command — content scripts may not be ready yet
+                let attempts = 0;
+                const maxAttempts = 8;
+
+                function trySearch() {
+                    attempts++;
+                    console.log(`🔍 Keyword Search: Attempt ${attempts}/${maxAttempts}`);
+
+                    chrome.tabs.sendMessage(searchTabId, {
+                        type: 'SEARCH_KEYWORD_NOTES',
+                        keyword: message.keyword,
+                    }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            console.warn('🔍 Keyword Search: Attempt failed:', chrome.runtime.lastError.message);
+                            if (attempts < maxAttempts) {
+                                setTimeout(trySearch, 3000);
+                            } else {
+                                console.error('🔍 Keyword Search: All attempts failed');
+                                forwardToNarrativeeTab({
+                                    type: 'NARRATIVEE_KEYWORD_SEARCH_RESULTS',
+                                    keyword: message.keyword,
+                                    notes: [],
+                                    error: 'Content script not responding',
+                                });
+                                chrome.tabs.remove(searchTabId);
+                            }
+                            return;
+                        }
+
+                        console.log('🔍 Keyword Search: Got', response?.notes?.length || 0, 'notes');
+                        forwardToNarrativeeTab({
+                            type: 'NARRATIVEE_KEYWORD_SEARCH_RESULTS',
+                            keyword: message.keyword,
+                            notes: response?.notes || [],
+                            error: response?.error || null,
+                        });
+
+                        setTimeout(() => chrome.tabs.remove(searchTabId), 1500);
+                    });
+                }
+
+                // Wait for the explore page to fully render before searching
+                setTimeout(trySearch, 5000);
+            });
+        });
+        sendResponse({ success: true });
+        return true;
+    }
+
     if (message.type === 'POST_CAMPAIGN_REPLY') {
         console.log('🎯 Campaign: Posting reply to', message.targetCommentId, 'on', message.postUrl);
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, Play, Pause, Trash2, Users, MessageSquare, Target, ChevronRight, ArrowLeft, Check, X, SkipForward, Loader2, Rss, Heart, Repeat2, ExternalLink, TrendingUp, Clock } from "lucide-react";
+import { Plus, Play, Pause, Trash2, Users, MessageSquare, Target, ChevronRight, ArrowLeft, Check, X, SkipForward, Loader2, Rss, Heart, Repeat2, ExternalLink, TrendingUp, Clock, Search } from "lucide-react";
 import { BsPatchCheckFill } from "react-icons/bs";
 import { API_URL } from "@/lib/api-config";
 import { authClient } from "@/lib/auth-client";
@@ -222,6 +222,10 @@ function CampaignsPage() {
     const [lastPulled, setLastPulled] = useState<Date | null>(null);
     const [minComments, setMinComments] = useState(30);
 
+    // Keyword search state
+    const [searchKeyword, setSearchKeyword] = useState("");
+    const [isKeywordSearching, setIsKeywordSearching] = useState(false);
+
     // Per-note scraping state: noteUrl → ScrapedTarget[]
     const [scrapingNoteUrl, setScrapingNoteUrl] = useState<string | null>(null);
     const [targetsByNote, setTargetsByNote] = useState<Record<string, ScrapedTarget[]>>({});
@@ -269,6 +273,19 @@ function CampaignsPage() {
                 setFeedNotes(notes);
                 setLastPulled(new Date());
                 setIsFeedLoading(false);
+            }
+
+            // Keyword search results
+            if (event.data?.type === "NARRATIVEE_KEYWORD_SEARCH_RESULTS") {
+                const notes: FeedNote[] = event.data.notes || [];
+                setFeedNotes(notes);
+                setLastPulled(new Date());
+                setIsKeywordSearching(false);
+                if (event.data.error) {
+                    setError(`Search failed: ${event.data.error}`);
+                } else if (notes.length === 0) {
+                    setError("No notes found for that keyword.");
+                }
             }
 
             // Targets scraped for a specific note
@@ -347,6 +364,19 @@ function CampaignsPage() {
         setTimeout(() => {
             setIsFeedLoading(p => { if (p) setError("Feed timed out. Make sure the extension is installed."); return false; });
         }, 60000);
+    };
+
+    const handleKeywordSearch = () => {
+        if (!searchKeyword.trim()) return;
+        setIsKeywordSearching(true);
+        setError(null);
+        setFeedNotes([]);
+        setTargetsByNote({});
+        setSelectedTargetIds(new Set());
+        window.postMessage({ type: "NARRATIVEE_SEARCH_KEYWORD_NOTES", keyword: searchKeyword.trim() }, "*");
+        setTimeout(() => {
+            setIsKeywordSearching(p => { if (p) setError("Keyword search timed out. Make sure the extension is installed."); return false; });
+        }, 90000);
     };
 
     const handleScrapeNote = (noteUrl: string) => {
@@ -775,12 +805,34 @@ function CampaignsPage() {
                             <div className="flex items-center gap-3 mb-4 flex-wrap">
                                 <button
                                     onClick={handlePullFeed}
-                                    disabled={isFeedLoading}
+                                    disabled={isFeedLoading || isKeywordSearching}
                                     className="flex items-center gap-2 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-gray-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50"
                                 >
                                     {isFeedLoading ? <Loader2 size={14} className="animate-spin" /> : <Rss size={14} className="text-primary" />}
                                     {isFeedLoading ? "Pulling feed..." : "Pull Feed"}
                                 </button>
+
+                                <span className="text-xs text-gray-600">or</span>
+
+                                {/* Keyword search */}
+                                <div className="flex items-center gap-1.5">
+                                    <input
+                                        type="text"
+                                        value={searchKeyword}
+                                        onChange={e => setSearchKeyword(e.target.value)}
+                                        onKeyDown={e => { if (e.key === "Enter") handleKeywordSearch(); }}
+                                        placeholder="Search keyword..."
+                                        className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-primary/50 w-44"
+                                    />
+                                    <button
+                                        onClick={handleKeywordSearch}
+                                        disabled={isKeywordSearching || !searchKeyword.trim()}
+                                        className="flex items-center gap-1.5 px-3 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary text-sm font-medium rounded-xl transition-all disabled:opacity-40"
+                                    >
+                                        {isKeywordSearching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+                                        {isKeywordSearching ? "Searching..." : "Search"}
+                                    </button>
+                                </div>
 
                                 {/* Min comments filter */}
                                 <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2">
@@ -820,11 +872,11 @@ function CampaignsPage() {
                             </div>
 
                             {/* Feed loading */}
-                            {isFeedLoading && (
+                            {(isFeedLoading || isKeywordSearching) && (
                                 <div className="flex flex-col items-center py-16 gap-3">
                                     <Loader2 size={24} className="animate-spin text-primary" />
-                                    <p className="text-sm text-gray-400">Scraping your Substack feed...</p>
-                                    <p className="text-xs text-gray-600">This may take 20–30 seconds</p>
+                                    <p className="text-sm text-gray-400">{isKeywordSearching ? `Searching Substack for "${searchKeyword}"...` : "Scraping your Substack feed..."}</p>
+                                    <p className="text-xs text-gray-600">{isKeywordSearching ? "This may take 30–60 seconds" : "This may take 20–30 seconds"}</p>
                                 </div>
                             )}
 
@@ -836,14 +888,14 @@ function CampaignsPage() {
                             )}
 
                             {/* Feed empty */}
-                            {!isFeedLoading && feedNotes.length === 0 && (
+                            {!isFeedLoading && !isKeywordSearching && feedNotes.length === 0 && (
                                 <div className="flex flex-col items-center py-16 gap-3">
                                     <div className="w-12 h-12 bg-white/[0.03] rounded-2xl border border-white/[0.06] flex items-center justify-center">
                                         <Rss size={20} className="text-gray-600" />
                                     </div>
-                                    <p className="text-gray-400 text-sm">Pull your feed to find notes</p>
+                                    <p className="text-gray-400 text-sm">Pull your feed or search by keyword</p>
                                     <p className="text-gray-600 text-xs max-w-xs text-center">
-                                        Click &ldquo;Pull Feed&rdquo; — the extension scrapes trending notes from Substack, then you pick which ones to pull 2nd-degree commenters from.
+                                        Click &ldquo;Pull Feed&rdquo; to scrape trending notes, or search by keyword on Substack Explore to find notes, then pull 2nd-degree commenters from them.
                                     </p>
                                     <button
                                         onClick={handlePullFeed}
