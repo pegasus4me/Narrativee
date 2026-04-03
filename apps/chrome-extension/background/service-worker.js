@@ -3,6 +3,443 @@
 const NARRATIVEE_API_URL = 'http://localhost:3002/api';
 
 // ==========================================
+// HEADLESS SUBSTACK UTILITIES
+// ==========================================
+
+async function headlessSubstackPost(content) {
+    try {
+        console.log('🚀 Headless Post: Formatting payload...');
+        const paragraphs = content.split('\n').filter(p => p.trim() !== '');
+        
+        let bodyContent = paragraphs.map(p => ({
+            type: "paragraph",
+            content: [{ type: "text", text: p }]
+        }));
+
+        const payload = {
+            bodyJson: {
+                type: "doc",
+                attrs: { schemaVersion: "v1" },
+                content: bodyContent
+            },
+            replyMinimumRole: "everyone"
+        };
+        
+        console.log('🚀 Headless Post: Sending API request to Substack...');
+        const init = {
+            method: 'POST',
+            headers: {
+                'accept': '*/*',
+                'content-type': 'application/json',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin'
+            },
+            body: JSON.stringify(payload)
+        };
+        
+        const response = await fetch('https://substack.com/api/v1/comment/feed', init);
+        
+        if (!response.ok) {
+            throw new Error(`Substack API error: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('🚀 Headless Post: Success!', data);
+        return { success: true, data };
+    } catch (e) {
+        console.error('🚀 Headless Post Error:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+// ==========================================
+// TARGET REPLY HEADLESS UTILITY
+// ==========================================
+
+async function headlessCampaignReply(targetCommentId, content) {
+    try {
+        console.log(`🎯 Headless Reply: Sending API request to reply to ${targetCommentId}...`);
+        
+        // Parse paragraphs to match Substack's ProseMirror JSON structure
+        const paragraphs = content.split('\n').filter(p => p.trim() !== '');
+        const bodyContent = paragraphs.map(p => ({
+            type: "paragraph",
+            content: [{ type: "text", text: p }]
+        }));
+
+        const payload = {
+            bodyJson: {
+                type: "doc",
+                attrs: { schemaVersion: "v1" },
+                content: bodyContent
+            },
+            parent_id: parseInt(targetCommentId, 10),
+            replyMinimumRole: "everyone"
+        };
+        
+        const init = {
+            method: 'POST',
+            headers: {
+                'accept': '*/*',
+                'content-type': 'application/json',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin'
+            },
+            body: JSON.stringify(payload)
+        };
+        
+        const response = await fetch('https://substack.com/api/v1/comment/feed', init);
+        
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`API error: ${response.status} - ${errText.slice(0, 50)}`);
+        }
+        
+        const data = await response.json();
+        console.log('🎯 Headless Reply: Success!', data);
+        return { success: true, data };
+    } catch (e) {
+        console.error('🎯 Headless Reply Error:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+async function headlessFeedPull() {
+    try {
+        console.log('🚀 Headless Feed: Calling Substack Feed API...');
+        const init = {
+            method: 'GET',
+            headers: {
+                'accept': '*/*',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin'
+            }
+        };
+        
+        let allItems = [];
+        let currentCursor = null;
+        const maxPages = 4; // Fetch up to ~60 items
+        
+        for (let page = 0; page < maxPages; page++) {
+            let url = 'https://substack.com/api/v1/reader/feed?tab=for-you&type=base';
+            if (currentCursor) {
+                url += `&cursor=${encodeURIComponent(currentCursor)}`;
+            }
+            
+            const response = await fetch(url, init);
+            if (!response.ok) {
+                console.warn(`Substack API error on page ${page + 1}: ${response.status}`);
+                break;
+            }
+            
+            const data = await response.json();
+            if (data.items && data.items.length > 0) {
+                allItems.push(...data.items);
+            }
+            
+            if (data.nextCursor) {
+                currentCursor = data.nextCursor;
+            } else {
+                break; // No more pages
+            }
+        }
+        
+        const notes = [];
+        const seenIds = new Set();
+        
+        for (const item of allItems) {
+            // We only want Notes (which Substack maps to "comment" internally)
+            if (item.type !== 'comment') continue;
+            
+            const obj = item.comment;
+            if (!obj) continue;
+            // Skip restacks
+            if (obj.restacked) continue;
+            
+            const id = obj.id;
+            if (!id || seenIds.has(id)) continue;
+            seenIds.add(id);
+            
+            const content = obj.body || obj.description || '';
+            if (content.length < 20) continue;
+            
+            const tracking = item.trackingParameters || {};
+            
+            const likes = obj.reaction_count || obj.likes || tracking.item_current_reaction_count || tracking.score_like || 0;
+            const comments = obj.children_count || obj.reply_count || obj.comment_count || obj.commentCount || tracking.item_current_reply_count || 0;
+            const restacks = obj.restacks || obj.restack_count || tracking.item_current_restack_count || 0;
+            
+            const handle = obj.handle || obj.publishedBylines?.[0]?.handle || '';
+            let noteUrl = obj.canonical_url || '';
+            
+            // Construct the canonical note url if missing
+            if (!noteUrl && handle && id && item.type === 'comment') {
+                noteUrl = `https://substack.com/@${handle}/note/c-${id}`;
+            } else if (!noteUrl && handle && id && item.type === 'post') {
+                noteUrl = `https://substack.com/@${handle}/p-${id}`;
+            }
+            
+            if (!noteUrl) continue;
+            
+            notes.push({
+                id: 'feed_' + id,
+                content: content.slice(0, 800),
+                author: {
+                    name: obj.name || obj.publishedBylines?.[0]?.name || 'Unknown',
+                    handle: handle,
+                    avatar: obj.photo_url || obj.publishedBylines?.[0]?.photo_url || '',
+                },
+                engagement: { likes, restacks, comments },
+                totalEngagement: likes + restacks + comments,
+                url: noteUrl,
+                timestamp: obj.date || obj.post_date || new Date().toISOString(),
+                scrapedAt: new Date().toISOString()
+            });
+        }
+        
+        console.log('🚀 Headless Feed: Successfully parsed', notes.length, 'notes');
+        return { success: true, notes };
+    } catch (e) {
+        console.error('🚀 Headless Feed Error:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+// ==========================================
+// TARGET SCRAPER HEADLESS UTILITY
+// ==========================================
+
+async function headlessScrapeTargets(campaignId, postUrl) {
+    try {
+        console.log('🎯 Headless Target Scraper: Fetching targets for', postUrl);
+        
+        // Explicitly block legacy posts/articles
+        if (postUrl.includes('/p/')) {
+            throw new Error('This appears to be an Article. Narrativee target extraction is now strictly optimized for Substack Notes only. Please pull a fresh feed or search for Notes!');
+        }
+
+        const match = postUrl.match(/\/c-(\d+)/) || postUrl.match(/\/p-(\d+)/);
+        if (!match) {
+            throw new Error('Could not extract Note ID from URL.');
+        }
+        const noteId = match[1];
+        const isPost = postUrl.includes('/p-');
+
+        const init = {
+            method: 'GET',
+            headers: {
+                'accept': '*/*',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin'
+            }
+        };
+
+        // Fetch up to 3 pages of comments
+        let allComments = [];
+        let currentCursor = null;
+        let currentOffset = 0;
+        const maxPages = 3;
+
+        for (let page = 0; page < maxPages; page++) {
+            let url;
+            if (isPost) {
+                url = `https://substack.com/api/v1/post/${noteId}/comments?sortBy=top&offset=${currentOffset}`;
+            } else {
+                url = `https://substack.com/api/v1/reader/comment/${noteId}/replies?comment_id=${noteId}`;
+                if (currentCursor) url += `&cursor=${encodeURIComponent(currentCursor)}`;
+            }
+
+            const response = await fetch(url, init);
+            if (!response.ok) break;
+
+            const data = await response.json();
+            
+            if (data.commentBranches && data.commentBranches.length > 0) {
+                // Notes use commentBranches
+                allComments.push(...data.commentBranches);
+            } else if (data.comments && data.comments.length > 0) {
+                // Posts use comments
+                allComments.push(...data.comments);
+            } else if (data.items && data.items.length > 0) {
+                allComments.push(...data.items);
+            }
+            
+            if (isPost) {
+                if (!data.comments || data.comments.length === 0) break;
+                currentOffset += data.comments.length;
+            } else {
+                if (data.nextCursor) {
+                    currentCursor = data.nextCursor;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        const targets = [];
+        const seen = new Set();
+        
+        // Recursive function to parse comments and their child threads
+        function processCommentThread(commentObj, parentCommentId, parentCommentUrl, parentCommentContent) {
+            if (!commentObj || targets.length >= 50) return;
+            
+            const data = commentObj.comment || commentObj;
+            const commentId = data.id;
+            if (!commentId) return;
+
+            const authorName = data.name || data.child_name || '';
+            const authorHandle = data.handle || '';
+            const commentText = data.body || '';
+            const targetUrl = `https://substack.com/note/c-${commentId}`;
+
+            if ((authorName || authorHandle) && !seen.has(commentId)) {
+                seen.add(commentId);
+                targets.push({
+                    parentCommentId: parentCommentId || noteId,
+                    parentCommentUrl: parentCommentUrl || postUrl,
+                    parentPostUrl: postUrl,
+                    parentCommentContent: parentCommentContent || 'Top level note',
+                    targetAuthorName: authorName,
+                    targetAuthorHandle: authorHandle,
+                    targetCommentId: commentId.toString(),
+                    targetCommentUrl: targetUrl,
+                    targetCommentContent: commentText,
+                    originalNoteContent: 'Top level note',
+                });
+            }
+
+            // Substack might place children in descendantComments, children, or replies
+            const children = commentObj.descendantComments || data.descendantComments || data.children || data.replies || [];
+            for (const child of children) {
+                if (targets.length >= 50) break;
+                processCommentThread(child, commentId.toString(), targetUrl, commentText);
+            }
+        }
+
+        for (const rootComment of allComments) {
+            if (targets.length >= 50) break;
+            processCommentThread(rootComment, noteId, postUrl, 'Top level note');
+        }
+
+        console.log('🎯 Headless Target Scraper: Successfully parsed', targets.length, 'targets');
+        return { success: true, targets };
+    } catch (e) {
+        console.error('🎯 Headless Target Scraper Error:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+// ==========================================
+// SEARCH HEADLESS UTILITY
+// ==========================================
+
+async function headlessSearchNotes(keyword) {
+    try {
+        console.log('🔍 Headless Search: Calling Substack Search API for:', keyword);
+        const init = {
+            method: 'GET',
+            headers: {
+                'accept': '*/*',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin'
+            }
+        };
+        
+        let allItems = [];
+        let currentCursor = null;
+        const maxPages = 4; // Fetch up to ~60-80 items
+        
+        for (let page = 0; page < maxPages; page++) {
+            let url = `https://substack.com/api/v1/top/search?query=${encodeURIComponent(keyword)}&fromSuggestedSearch=true`;
+            if (currentCursor) {
+                url += `&cursor=${encodeURIComponent(currentCursor)}`;
+            }
+            
+            const response = await fetch(url, init);
+            if (!response.ok) {
+                console.warn(`Substack API search error on page ${page + 1}: ${response.status}`);
+                break;
+            }
+            
+            const data = await response.json();
+            if (data.items && data.items.length > 0) {
+                allItems.push(...data.items);
+            }
+            
+            if (data.nextCursor) {
+                currentCursor = data.nextCursor;
+            } else {
+                break; // No more pages
+            }
+        }
+        
+        const notes = [];
+        const seenIds = new Set();
+        
+        for (const item of allItems) {
+            // We only want Notes (which Substack maps to "comment" internally)
+            if (item.type !== 'comment') continue;
+            
+            const obj = item.comment;
+            if (!obj) continue;
+            
+            // Skip restacks
+            if (obj.restacked) continue;
+            
+            const id = obj.id;
+            if (!id || seenIds.has(id)) continue;
+            seenIds.add(id);
+            
+            const content = obj.body || obj.description || '';
+            if (content.length < 20) continue;
+            
+            const tracking = item.trackingParameters || {};
+            
+            const likes = obj.reaction_count || obj.likes || tracking.item_current_reaction_count || tracking.score_like || 0;
+            const comments = obj.children_count || obj.reply_count || obj.comment_count || obj.commentCount || tracking.item_current_reply_count || 0;
+            const restacks = obj.restacks || obj.restack_count || tracking.item_current_restack_count || 0;
+            
+            const handle = obj.handle || obj.publishedBylines?.[0]?.handle || '';
+            let noteUrl = obj.canonical_url || '';
+            
+            if (!noteUrl && handle && id && item.type === 'comment') {
+                noteUrl = `https://substack.com/@${handle}/note/c-${id}`;
+            } else if (!noteUrl && handle && id && item.type === 'post') {
+                noteUrl = `https://substack.com/@${handle}/p-${id}`;
+            }
+            
+            if (!noteUrl) continue;
+            
+            notes.push({
+                id: 'search_' + id,
+                content: content.slice(0, 800),
+                author: {
+                    name: obj.name || obj.publishedBylines?.[0]?.name || 'Unknown',
+                    handle: handle,
+                    avatar: obj.photo_url || obj.publishedBylines?.[0]?.photo_url || '',
+                },
+                engagement: { likes, restacks, comments },
+                totalEngagement: likes + restacks + comments,
+                url: noteUrl,
+                timestamp: obj.date || obj.post_date || new Date().toISOString(),
+                scrapedAt: new Date().toISOString()
+            });
+        }
+        
+        console.log('🔍 Headless Search: Successfully parsed', notes.length, 'notes');
+        return { success: true, notes };
+    } catch (e) {
+        console.error('🔍 Headless Search Error:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+// ==========================================
 // ALARM-BASED SCHEDULER
 // ==========================================
 
@@ -83,68 +520,15 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     console.log('⏰ Posting scheduled note:', content.substring(0, 50));
 
-    chrome.tabs.create({ url: 'https://substack.com/home' }, (tab) => {
-        const postingTabId = tab?.id;
-        if (!postingTabId) { stopKeepAlive(); return; }
-
-        console.log('⏰ Opened Substack tab for scheduled post', postingTabId);
-
-        // Listen for NOTE_POSTED / NOTE_CANCELLED from content script
-        let postResolved = false;
-        function onNoteResult(msg, msgSender) {
-            if (msgSender.tab?.id !== postingTabId) return;
-
-            if (msg.type === 'NOTE_POSTED') {
-                postResolved = true;
-                chrome.runtime.onMessage.removeListener(onNoteResult);
-                clearTimeout(giveUpTimeout);
-                stopKeepAlive();
-                console.log('⏰ Scheduled post confirmed posted!');
-                forwardScheduledPostResult(postId, 'published');
-                setTimeout(() => {
-                    try { chrome.tabs.remove(postingTabId); } catch (e) {}
-                }, 3000);
-            }
-
-            if (msg.type === 'NOTE_CANCELLED') {
-                postResolved = true;
-                chrome.runtime.onMessage.removeListener(onNoteResult);
-                clearTimeout(giveUpTimeout);
-                stopKeepAlive();
-                console.log('⏰ Scheduled post cancelled by user.');
-                forwardScheduledPostResult(postId, 'cancelled');
-                setTimeout(() => {
-                    try { chrome.tabs.remove(postingTabId); } catch (e) {}
-                }, 1000);
-            }
+    headlessSubstackPost(content).then(result => {
+        stopKeepAlive();
+        if (result.success) {
+            console.log('⏰ Scheduled post confirmed posted!');
+            forwardScheduledPostResult(postId, 'published');
+        } else {
+            console.warn('⏰ Scheduled post failed', result.error);
+            forwardScheduledPostResult(postId, false);
         }
-        chrome.runtime.onMessage.addListener(onNoteResult);
-
-        // Give up after 90s
-        const giveUpTimeout = setTimeout(() => {
-            chrome.runtime.onMessage.removeListener(onNoteResult);
-            stopKeepAlive();
-            if (!postResolved) {
-                console.warn('⏰ Scheduled post timed out — not confirmed');
-                forwardScheduledPostResult(postId, false);
-            }
-        }, 90000);
-
-        chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-            if (tabId === postingTabId && info.status === 'complete') {
-                chrome.tabs.onUpdated.removeListener(listener);
-                console.log('⏰ Tab loaded, waiting for React hydration then injecting...');
-
-                // 2s delay lets Substack React finish hydrating after tab reports "complete"
-                setTimeout(() => {
-                    chrome.tabs.sendMessage(postingTabId, {
-                        type: 'INJECT_NARRATIVEE_DRAFT',
-                        draft: { content },
-                        autoPost: true
-                    });
-                }, 2000);
-            }
-        });
     });
 });
 
@@ -255,54 +639,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === 'OPEN_SUBSTACK_DRAFT') {
-        console.log('🚀 Background: Received OPEN_SUBSTACK_DRAFT', message.draft);
-
-        // Open Substack New Note/Post page directly
-        chrome.tabs.create({ url: 'https://substack.com/home' }, (tab) => {
-            if (chrome.runtime.lastError) {
-                console.error('🚀 Background: ERROR opening tab', chrome.runtime.lastError);
-                sendResponse({ success: false, error: chrome.runtime.lastError.message });
-            } else {
-                console.log('🚀 Background: Opened Substack tab', tab?.id);
-                const postingTabId = tab?.id;
-
-                // Send the draft directly to the new tab once it loads
-                chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                    if (tabId === postingTabId && info.status === 'complete') {
-                        chrome.tabs.onUpdated.removeListener(listener);
-                        console.log('🚀 Tab loaded, sending manual draft to inject');
-
-                        setTimeout(() => {
-                            chrome.tabs.sendMessage(postingTabId, {
-                                type: 'INJECT_NARRATIVEE_DRAFT',
-                                draft: message.draft,
-                                autoPost: false
-                            });
-                        }, 2000);
-                    }
-                });
-
-                // Listen for the NOTE_POSTED signal from content script (optional cleanup)
-                function onNotePosted(msg, msgSender) {
-                    if (msgSender.tab?.id === postingTabId && msg.type === 'NOTE_POSTED') {
-                        chrome.runtime.onMessage.removeListener(onNotePosted);
-                        clearTimeout(safetyTimeout);
-                        console.log('🚀 Background: Note posted confirmed, will close tab in 3s');
-                        setTimeout(() => {
-                            try { chrome.tabs.remove(postingTabId); } catch (e) { }
-                        }, 3000);
-                    }
+        console.log('🚀 Background: Received OPEN_SUBSTACK_DRAFT (Headless mode)', message.draft);
+        headlessSubstackPost(message.draft.content)
+            .then(result => {
+                if (result.success) {
+                    console.log('🚀 Background: Headless post successful!');
+                } else {
+                    console.error('🚀 Background: Headless post failed', result.error);
                 }
-                chrome.runtime.onMessage.addListener(onNotePosted);
-
-                const safetyTimeout = setTimeout(() => {
-                    chrome.runtime.onMessage.removeListener(onNotePosted);
-                    console.log('🚀 Background: Posting listener expired (2min)');
-                }, 120000);
-
-                sendResponse({ success: true, tabId: postingTabId });
-            }
-        });
+                sendResponse(result);
+            });
         return true;
     }
 
@@ -548,61 +894,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message.type === 'SCRAPE_ENGAGEMENT_FEED') {
         console.log('🎯 Background: Received SCRAPE_ENGAGEMENT_FEED');
-
-        // Open Substack explore/home feed in a new tab
-        const feedUrl = 'https://substack.com/home';
-        chrome.tabs.create({ url: feedUrl, active: false }, (tab) => {
-            console.log('🎯 Background: Opened feed tab', tab.id);
-
-            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                if (tabId === tab.id && info.status === 'complete') {
-                    chrome.tabs.onUpdated.removeListener(listener);
-                    console.log('🎯 Background: Feed tab loaded, waiting for content scripts...');
-
-                    // Retry sending scrape command - content scripts may not be ready yet
-                    let attempts = 0;
-                    const maxAttempts = 8;
-
-                    function tryScrape() {
-                        attempts++;
-                        console.log(`🎯 Background: Scrape attempt ${attempts}/${maxAttempts}`);
-
-                        chrome.tabs.sendMessage(tabId, { type: 'SCRAPE_ENGAGEMENT_FEED' }, (response) => {
-                            if (chrome.runtime.lastError) {
-                                console.warn('🎯 Background: Scrape attempt failed:', chrome.runtime.lastError.message);
-                                if (attempts < maxAttempts) {
-                                    setTimeout(tryScrape, 3000);
-                                } else {
-                                    console.error('🎯 Background: All scrape attempts failed');
-                                    // Notify Narrativee tab of failure
-                                    forwardToNarrativeeTab({
-                                        type: 'NARRATIVEE_ENGAGEMENT_FEED_LOADED',
-                                        notes: [],
-                                        error: 'Content script not responding'
-                                    });
-                                    chrome.tabs.remove(tabId);
-                                }
-                                return;
-                            }
-
-                            console.log('🎯 Background: Got', response?.notes?.length || 0, 'engagement notes');
-
-                            // Forward to Narrativee tab
-                            forwardToNarrativeeTab({
-                                type: 'NARRATIVEE_ENGAGEMENT_FEED_LOADED',
-                                notes: response?.notes || []
-                            });
-
-                            // Close the scrape tab
-                            chrome.tabs.remove(tabId);
-                        });
-                    }
-
-                    // Increased initial delay: Substack home is a heavy React app
-                    setTimeout(tryScrape, 6000);
-                }
-            });
+        
+        headlessFeedPull().then(result => {
+            if (result.success) {
+                console.log('🎯 Background: Headless feed pull successful!');
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_ENGAGEMENT_FEED_LOADED',
+                    notes: result.notes || []
+                });
+            } else {
+                console.error('🎯 Background: Headless feed pull failed', result.error);
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_ENGAGEMENT_FEED_LOADED',
+                    notes: [],
+                    error: result.error
+                });
+            }
         });
+        
         sendResponse({ success: true });
         return true;
     }
@@ -701,201 +1010,85 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === 'SCRAPE_CAMPAIGN_TARGETS') {
-        console.log('🎯 Campaign: Opening page to scrape:', message.postUrl);
-
-        chrome.tabs.create({ url: message.postUrl, active: false }, (tab) => {
-            const scrapeTabId = tab.id;
-
-            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                if (tabId !== scrapeTabId || info.status !== 'complete') return;
-                chrome.tabs.onUpdated.removeListener(listener);
-
-                // Wait 5s for the page JS to render comments, then send scrape command.
-                // The content script handles all waiting/expanding internally.
-                setTimeout(() => {
-                    chrome.tabs.sendMessage(scrapeTabId, {
-                        type: 'SCRAPE_CAMPAIGN_TARGETS',
-                        postUrl: message.postUrl,
-                    }, (response) => {
-                        const error = chrome.runtime.lastError?.message;
-                        if (error || !response) {
-                            console.error('🎯 Campaign: Scrape failed —', error || 'no response');
-                            forwardToNarrativeeTab({
-                                type: 'NARRATIVEE_CAMPAIGN_TARGETS_SCRAPED',
-                                campaignId: message.campaignId,
-                                postUrl: message.postUrl,
-                                targets: [],
-                                error: error || 'Content script did not respond',
-                            });
-                        } else {
-                            console.log('🎯 Campaign: Got', response.targets?.length || 0, 'targets');
-                            forwardToNarrativeeTab({
-                                type: 'NARRATIVEE_CAMPAIGN_TARGETS_SCRAPED',
-                                campaignId: message.campaignId,
-                                postUrl: message.postUrl,
-                                targets: response.targets || [],
-                                error: response.error || null,
-                            });
-                        }
-                        setTimeout(() => chrome.tabs.remove(scrapeTabId), 1500);
-                    });
-                }, 5000);
-            });
+        console.log('🎯 Campaign: Initializing headless target scraper for:', message.postUrl);
+        
+        headlessScrapeTargets(message.campaignId, message.postUrl).then(result => {
+            if (result.success) {
+                console.log('🎯 Campaign: Headless target scrape successful!', result.targets?.length);
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_CAMPAIGN_TARGETS_SCRAPED',
+                    campaignId: message.campaignId,
+                    postUrl: message.postUrl,
+                    targets: result.targets || [],
+                    error: null,
+                });
+            } else {
+                console.error('🎯 Campaign: Headless target scrape failed', result.error);
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_CAMPAIGN_TARGETS_SCRAPED',
+                    campaignId: message.campaignId,
+                    postUrl: message.postUrl,
+                    targets: [],
+                    error: result.error,
+                });
+            }
         });
+        
         sendResponse({ success: true });
         return true;
     }
 
     if (message.type === 'SEARCH_KEYWORD_NOTES') {
-        console.log('🔍 Keyword Search: Opening explore page for keyword:', message.keyword);
-
-        chrome.tabs.create({ url: 'https://substack.com/explore', active: false }, (tab) => {
-            const searchTabId = tab.id;
-
-            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                if (tabId !== searchTabId || info.status !== 'complete') return;
-                chrome.tabs.onUpdated.removeListener(listener);
-
-                // Retry sending search command — content scripts may not be ready yet
-                let attempts = 0;
-                const maxAttempts = 8;
-
-                function trySearch() {
-                    attempts++;
-                    console.log(`🔍 Keyword Search: Attempt ${attempts}/${maxAttempts}`);
-
-                    chrome.tabs.sendMessage(searchTabId, {
-                        type: 'SEARCH_KEYWORD_NOTES',
-                        keyword: message.keyword,
-                    }, (response) => {
-                        if (chrome.runtime.lastError) {
-                            console.warn('🔍 Keyword Search: Attempt failed:', chrome.runtime.lastError.message);
-                            if (attempts < maxAttempts) {
-                                setTimeout(trySearch, 3000);
-                            } else {
-                                console.error('🔍 Keyword Search: All attempts failed');
-                                forwardToNarrativeeTab({
-                                    type: 'NARRATIVEE_KEYWORD_SEARCH_RESULTS',
-                                    keyword: message.keyword,
-                                    notes: [],
-                                    error: 'Content script not responding',
-                                });
-                                chrome.tabs.remove(searchTabId);
-                            }
-                            return;
-                        }
-
-                        console.log('🔍 Keyword Search: Got', response?.notes?.length || 0, 'notes');
-                        forwardToNarrativeeTab({
-                            type: 'NARRATIVEE_KEYWORD_SEARCH_RESULTS',
-                            keyword: message.keyword,
-                            notes: response?.notes || [],
-                            error: response?.error || null,
-                        });
-
-                        setTimeout(() => chrome.tabs.remove(searchTabId), 1500);
-                    });
-                }
-
-                // Wait for the explore page to fully render before searching
-                setTimeout(trySearch, 5000);
-            });
+        console.log('🔍 Keyword Search: Initializing headless search for keyword:', message.keyword);
+        
+        headlessSearchNotes(message.keyword).then(result => {
+            if (result.success) {
+                console.log('🔍 Keyword Search: Headless search successful!');
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_KEYWORD_SEARCH_RESULTS',
+                    keyword: message.keyword,
+                    notes: result.notes || []
+                });
+            } else {
+                console.error('🔍 Keyword Search: Headless search failed', result.error);
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_KEYWORD_SEARCH_RESULTS',
+                    keyword: message.keyword,
+                    notes: [],
+                    error: result.error
+                });
+            }
         });
+        
         sendResponse({ success: true });
         return true;
     }
 
     if (message.type === 'POST_CAMPAIGN_REPLY') {
-        console.log('🎯 Campaign: Posting reply to', message.targetCommentId, 'on', message.postUrl);
+        console.log('🎯 Campaign: Initializing headless reply to', message.targetCommentId);
 
-        if (!message.postUrl) {
-            forwardToNarrativeeTab({
-                type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
-                campaignId: message.campaignId,
-                targetId: message.targetId,
-                success: false,
-                error: 'No URL available for this target — re-scrape to populate targetCommentUrl'
-            });
-            return true;
-        }
-
-        chrome.tabs.create({ url: message.postUrl, active: true }, (tab) => {
-            const replyTabId = tab.id;
-
-            function onReplyDone(msg, msgSender) {
-                if (msgSender.tab?.id !== replyTabId) return;
-                if (msg.type !== 'CAMPAIGN_REPLY_DONE') return;
-                chrome.runtime.onMessage.removeListener(onReplyDone);
-                clearTimeout(safetyTimeout);
+        headlessCampaignReply(message.targetCommentId, message.replyText).then(result => {
+            if (result.success) {
+                console.log('🎯 Campaign: Headless reply successful!');
                 forwardToNarrativeeTab({
                     type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
                     campaignId: message.campaignId,
                     targetId: message.targetId,
-                    success: msg.success,
-                    replyCommentId: msg.replyCommentId,
-                    replyText: message.replyText
+                    success: true,
+                    replyCommentId: result.data?.id || null // Usually returns the new comment id
                 });
-                setTimeout(() => chrome.tabs.remove(replyTabId), 1500);
-            }
-            chrome.runtime.onMessage.addListener(onReplyDone);
-
-            const safetyTimeout = setTimeout(() => {
-                chrome.runtime.onMessage.removeListener(onReplyDone);
+            } else {
+                console.error('🎯 Campaign: Headless reply failed', result.error);
                 forwardToNarrativeeTab({
                     type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
                     campaignId: message.campaignId,
                     targetId: message.targetId,
                     success: false,
-                    error: 'Timeout'
+                    error: result.error
                 });
-                chrome.tabs.remove(replyTabId);
-            }, 60000);
-
-            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                if (tabId !== replyTabId || info.status !== 'complete') return;
-                chrome.tabs.onUpdated.removeListener(listener);
-
-                let attempts = 0;
-                function tryReply() {
-                    attempts++;
-                    chrome.tabs.sendMessage(replyTabId, {
-                        type: 'POST_CAMPAIGN_REPLY',
-                        targetCommentId: message.targetCommentId,
-                        replyText: message.replyText
-                    }, (response) => {
-                        if (chrome.runtime.lastError) {
-                            if (attempts < 4) { setTimeout(tryReply, 2000); return; }
-                            chrome.runtime.onMessage.removeListener(onReplyDone);
-                            clearTimeout(safetyTimeout);
-                            forwardToNarrativeeTab({
-                                type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
-                                campaignId: message.campaignId,
-                                targetId: message.targetId,
-                                success: false,
-                                error: 'Content script not responding'
-                            });
-                            chrome.tabs.remove(replyTabId);
-                            return;
-                        }
-                        // Success/failure comes back via CAMPAIGN_REPLY_DONE message from content script
-                        if (response && !response.success) {
-                            // Immediate failure from content script
-                            chrome.runtime.onMessage.removeListener(onReplyDone);
-                            clearTimeout(safetyTimeout);
-                            forwardToNarrativeeTab({
-                                type: 'NARRATIVEE_CAMPAIGN_REPLY_DONE',
-                                campaignId: message.campaignId,
-                                targetId: message.targetId,
-                                success: false,
-                                error: response.error
-                            });
-                            chrome.tabs.remove(replyTabId);
-                        }
-                    });
-                }
-                setTimeout(tryReply, 4000);
-            });
+            }
         });
+
         sendResponse({ success: true });
         return true;
     }

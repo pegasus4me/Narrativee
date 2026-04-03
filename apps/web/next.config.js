@@ -14,6 +14,11 @@ const nextConfig = {
         hostname: 'substackcdn.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'substack-post-media.s3.amazonaws.com',
+        pathname: '/**',
+      },
     ],
   },
 };

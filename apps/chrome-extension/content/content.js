@@ -1244,6 +1244,17 @@
                 }, '*');
             }
 
+            // 5b. Forward keyword search results from Background to Web App
+            if (message.type === 'NARRATIVEE_KEYWORD_SEARCH_RESULTS') {
+                console.log('🔍 Bridge: Forwarding search results to web app', message.notes?.length, 'notes');
+                window.postMessage({
+                    type: 'NARRATIVEE_KEYWORD_SEARCH_RESULTS',
+                    keyword: message.keyword,
+                    notes: message.notes,
+                    error: message.error
+                }, '*');
+            }
+
             // 6. Forward comment posted result from Background to Web App
             if (message.type === 'NARRATIVEE_COMMENT_POSTED') {
                 console.log('🎯 Bridge: Forwarding comment posted result to web app');

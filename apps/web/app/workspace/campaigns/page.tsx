@@ -464,6 +464,20 @@ function CampaignsPage() {
         await fetchCampaign(selectedCampaign.id);
     };
 
+    const handleSkipAllPending = async () => {
+        if (!selectedCampaign) return;
+        const pendingTargets = selectedCampaign.targets?.filter(t => t.status === "pending") || [];
+        if (pendingTargets.length === 0) return;
+        if (!confirm(`Skip all ${pendingTargets.length} pending targets? They won't receive replies.`)) return;
+        
+        // Let the user know it's processing by setting a loading state if we want, or just await Promise.all
+        // since Promise.all on 50 items takes barely any time to dispatch to the backend.
+        await Promise.all(pendingTargets.map(t => 
+            fetch(`${API_URL}/campaigns/${selectedCampaign.id}/targets/${t.id}/skip`, { method: "POST", credentials: "include" })
+        ));
+        await fetchCampaign(selectedCampaign.id);
+    };
+
     const handleDelete = async (id: string) => {
         await fetch(`${API_URL}/campaigns/${id}`, { method: "DELETE", credentials: "include" });
         setCampaigns(prev => prev.filter(c => c.id !== id));
@@ -860,14 +874,22 @@ function CampaignsPage() {
                                 </div>
 
                                 {totalSelected > 0 && (
-                                    <button
-                                        onClick={handleAddSelected}
-                                        disabled={isAddingTargets}
-                                        className="ml-auto flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-40 text-white text-sm font-medium rounded-xl transition-colors"
-                                    >
-                                        {isAddingTargets ? <Loader2 size={14} className="animate-spin" /> : <Target size={14} />}
-                                        {isAddingTargets ? "Adding..." : `Add ${totalSelected} target${totalSelected !== 1 ? "s" : ""}`}
-                                    </button>
+                                    <div className="ml-auto flex items-center gap-4">
+                                        <button
+                                            onClick={() => setSelectedTargetIds(new Set())}
+                                            className="text-xs font-medium text-gray-500 hover:text-gray-300 transition-colors"
+                                        >
+                                            Deselect All
+                                        </button>
+                                        <button
+                                            onClick={handleAddSelected}
+                                            disabled={isAddingTargets}
+                                            className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-40 text-white text-sm font-medium rounded-xl transition-colors"
+                                        >
+                                            {isAddingTargets ? <Loader2 size={14} className="animate-spin" /> : <Target size={14} />}
+                                            {isAddingTargets ? "Adding..." : `Add ${totalSelected} target${totalSelected !== 1 ? "s" : ""}`}
+                                        </button>
+                                    </div>
                                 )}
                             </div>
 
@@ -949,14 +971,23 @@ function CampaignsPage() {
                                                         <Pause size={11} /> Stop ({autoRunCount} done)
                                                     </button>
                                                 ) : (
-                                                    <button
-                                                        onClick={handleStartAutoRun}
-                                                        disabled={isReplying}
-                                                        className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
-                                                    >
-                                                        {isReplying ? <Loader2 size={11} className="animate-spin" /> : <Play size={11} />}
-                                                        {isReplying ? "Replying..." : `Run all (${targets.filter(t => t.status === "pending").length})`}
-                                                    </button>
+                                                    <div className="ml-auto flex items-center gap-1.5">
+                                                        <button
+                                                            onClick={handleSkipAllPending}
+                                                            className="flex items-center gap-1 px-2.5 py-1.5 bg-gray-500/10 hover:bg-gray-500/20 text-gray-400 text-xs font-medium rounded-lg transition-colors"
+                                                            title="Skip all pending targets"
+                                                        >
+                                                            <SkipForward size={11} /> Skip all
+                                                        </button>
+                                                        <button
+                                                            onClick={handleStartAutoRun}
+                                                            disabled={isReplying}
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+                                                        >
+                                                            {isReplying ? <Loader2 size={11} className="animate-spin" /> : <Play size={11} />}
+                                                            {isReplying ? "Replying..." : `Run all (${targets.filter(t => t.status === "pending").length})`}
+                                                        </button>
+                                                    </div>
                                                 )
                                             )}
                                         </div>

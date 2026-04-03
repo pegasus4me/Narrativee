@@ -42,9 +42,7 @@
                 "content/engagement-scraper.js",
                 "content/stats-scraper.js",
                 "content/notes-scraper.js",
-                "content/subs-scraper.js",
-                "content/campaign-scraper.js",
-                "content/keyword-search-scraper.js"
+                "content/subs-scraper.js"
             ],
             "css": [
                 "styles/inject.css"
