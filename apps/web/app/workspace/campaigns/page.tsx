@@ -1069,9 +1069,11 @@ function CampaignsPage() {
                                                             <TrendingUp size={11} />
                                                         </button>
                                                     )}
+                                                </div>
                                             </div>
-                                        );
-                                    })}
+                                        </div>
+                                    );
+                                })}
                                 </div>
                             </div>
                         )}
