@@ -106,21 +106,28 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
     useEffect(() => {
         if (!isOpen) return;
         const handleMessage = (event: MessageEvent) => {
-            if (event.data?.type === 'NARRATIVEE_NOTES_SYNCED') {
+            if (event.data?.type === 'NARRATIVEE_NOTES_PERF_SCRAPED') {
                 const notes = event.data.notes;
                 const userHandle = onboardingData?.substackProfileUrl?.split('/').pop()?.split('?')[0]?.replace('@', '') ?? null;
                 const newPosts: SubstackPost[] = notes
                     .filter((n: any) => {
-                        if (!n.content) return false;
+                        const text = n.contentPreview || n.content || '';
+                        if (!text) return false;
                         if (userHandle && n.url && !n.url.includes(`@${userHandle}`)) return false;
-                        if (n.content.includes("Restack") && n.content.length < 50) return false;
                         return true;
                     })
-                    .map((n: any) => ({
-                        title: `Note from ${new Date(n.date).toLocaleDateString()}`,
-                        excerpt: n.content.substring(0, 150) + "...",
-                        content: n.content, publishedAt: n.date, url: n.url, type: 'note'
-                    }));
+                    .map((n: any) => {
+                        const text = n.contentPreview || n.content || '';
+                        const date = n.publishedAt || n.date;
+                        return {
+                            title: `Note from ${date ? new Date(date).toLocaleDateString() : 'unknown date'}`,
+                            excerpt: text.substring(0, 150) + '...',
+                            content: text,
+                            publishedAt: date,
+                            url: n.url,
+                            type: 'note' as const,
+                        };
+                    });
                 setSyncedNotes(prev => {
                     const existingContent = new Set(prev.map(p => p.content));
                     return [...newPosts.filter(p => !existingContent.has(p.content)), ...prev];
@@ -141,14 +148,13 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
         if (!onboardingData.substackProfileUrl) { setError("Profile URL not found."); return; }
         setIsSyncingNotes(true);
         setError(null);
-        window.postMessage({ type: 'NARRATIVEE_START_SYNC', profileUrl: onboardingData.substackProfileUrl }, '*');
+        window.postMessage({ type: 'NARRATIVEE_START_NOTES_PERF_SYNC', profileUrl: onboardingData.substackProfileUrl }, '*');
         setTimeout(() => {
             setIsSyncingNotes(prev => { if (prev) { setError("Sync timed out. Make sure the extension is installed."); return false; } return prev; });
         }, 45000);
     };
 
     const handleGenerate = async () => {
-        if (sourceMode === "feed" && !topic.trim()) return;
         if (sourceMode === "article" && selectedArticleIndex === null) { setError("Please select an article first."); return; }
 
         const currentCredits = useSideBarStore.getState().credits;
@@ -327,7 +333,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
                             {/* Topic */}
                             {sourceMode === "feed" && (
                                 <div className="space-y-2">
-                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Topic or Prompt</label>
+                                    <label className="text-xs font-medium text-gray-400 tracking-wider">Instructions <small className="text-gray-600 normal-case">( optional )</small></label>
                                     <textarea
                                         value={topic}
                                         onChange={(e) => setTopic(e.target.value)}
@@ -385,7 +391,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
 
                             <button
                                 onClick={handleGenerate}
-                                disabled={(sourceMode === "feed" && !topic.trim()) || (sourceMode === "article" && selectedArticleIndex === null) || isGenerating}
+                                disabled={(sourceMode === "article" && selectedArticleIndex === null) || isGenerating}
                                 className="w-full py-3 bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
                             >
                                 {isGenerating ? (

@@ -7,63 +7,10 @@ import { BsPatchCheckFill } from "react-icons/bs";
 import { API_URL } from "@/lib/api-config";
 import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
-// ── Types ──────────────────────────────────────────────────────────────────────
+import { CampaignFunnel } from "@/app/components/workspace/CampaignFunnel";
+import type { Campaign, CampaignTarget, FeedNote, ScrapedTarget, CampaignView } from "./types";
 
-interface Campaign {
-    id: string;
-    name: string;
-    status: "draft" | "active" | "paused" | "completed";
-    replyTemplate: string;
-    sequenceSteps: string[];
-    dailyQuota: number;
-    repliedToday: number;
-    totalReplies: number;
-    createdAt: string;
-    targets?: CampaignTarget[];
-}
-
-interface CampaignTarget {
-    id: string;
-    targetAuthorName: string | null;
-    targetAuthorHandle: string | null;
-    targetCommentContent: string | null;
-    parentCommentContent: string | null;
-    originalNoteContent: string | null;
-    parentPostUrl: string;
-    parentCommentUrl: string;
-    targetCommentId: string;
-    targetCommentUrl: string | null;
-    status: "pending" | "replied" | "skipped" | "failed";
-    sequenceStep: number;
-    repliedAt: string | null;
-    replyText: string | null;
-    targetRepliedBack: boolean;
-    targetSubscribed: boolean;
-}
-
-interface FeedNote {
-    id: string;
-    content: string;
-    author: { name: string; handle: string; avatar: string };
-    engagement: { likes: number; restacks: number; comments: number };
-    totalEngagement: number;
-    url: string;
-    timestamp: string;
-}
-
-interface ScrapedTarget {
-    parentCommentId: string;
-    parentCommentUrl: string;
-    parentPostUrl: string;
-    parentCommentContent: string;
-    targetAuthorName: string;
-    targetAuthorHandle: string;
-    targetCommentId: string;
-    targetCommentContent: string;
-    originalNoteContent: string;
-}
-
-type View = "list" | "detail" | "create";
+type View = CampaignView;
 
 // ── FeedNoteCard ───────────────────────────────────────────────────────────────
 
@@ -742,6 +689,9 @@ function CampaignsPage() {
                             <button onClick={() => setError(null)} className="opacity-60 hover:opacity-100 ml-2">✕</button>
                         </div>
                     )}
+
+                    {/* Campaign Funnel */}
+                    <CampaignFunnel targets={selectedCampaign.targets || []} />
 
                     {/* Sequence editor */}
                     {(() => {

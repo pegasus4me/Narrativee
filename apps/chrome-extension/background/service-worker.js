@@ -440,29 +440,22 @@ async function headlessSearchNotes(keyword) {
 }
 
 /**
- * Resolves a Substack profile URL (handle or @username) to a numerical user_id
+ * Resolves the current logged-in Substack user_id via the self-profile API.
+ * profileUrl is kept as a parameter for backwards compatibility but is no longer used.
  */
-async function resolveSubstackUserId(profileUrl) {
+async function resolveSubstackUserId(_profileUrl) {
     try {
-        console.log('🔄 Headless Resolver: Fetching profile to find user_id:', profileUrl);
-        const response = await fetch(profileUrl);
-        const html = await response.text();
-        
-        // Look for "user_id":123456 or similar in the initial state
-        const userIdMatch = html.match(/"user_id":\s*(\d+)/) || html.match(/user_id=(\d+)/);
-        if (userIdMatch && userIdMatch[1]) {
-            console.log('🔄 Headless Resolver: Found user_id:', userIdMatch[1]);
-            return userIdMatch[1];
-        }
-        
-        // Fallback: search for data-props or other JSON structures
-        const dataPropsMatch = html.match(/data-props="([^"]+)"/);
-        if (dataPropsMatch) {
-            const props = JSON.parse(dataPropsMatch[1].replace(/&quot;/g, '"'));
-            if (props.user?.id) return props.user.id;
-        }
-
-        throw new Error('Could not find user_id on profile page');
+        console.log('🔄 Headless Resolver: Fetching current user via Substack API...');
+        const response = await fetch('https://substack.com/api/v1/user/profile/self', {
+            credentials: 'include',
+            headers: { 'accept': 'application/json' }
+        });
+        if (!response.ok) throw new Error(`Substack API error: ${response.status}`);
+        const data = await response.json();
+        const userId = data.id || data.user_id || data.userId;
+        if (!userId) throw new Error('user_id not found in response');
+        console.log('🔄 Headless Resolver: Got user_id:', userId);
+        return String(userId);
     } catch (e) {
         console.error('🔄 Headless Resolver Error:', e);
         return null;
@@ -475,32 +468,52 @@ async function resolveSubstackUserId(profileUrl) {
 async function headlessSyncNotes(userId) {
     try {
         console.log('📝 Headless Sync: Fetching notes for user_id:', userId);
-        const url = `https://substack.com/api/v1/reader/feed/profile/${userId}`;
-        const response = await fetch(url, { credentials: 'include' });
-        
-        if (!response.ok) throw new Error(`Substack API error: ${response.status}`);
-        
-        const data = await response.json();
-        const items = data.items || [];
-        
-        const notes = items
-            .filter(item => item.type === 'comment' && item.comment)
-            .map(item => {
-                const c = item.comment;
-                return {
-                    id: c.id,
-                    content: c.body || '',
-                    date: c.date,
-                    url: `https://substack.com/@${c.handle}/note/c-${c.id}`,
-                    author: {
-                        name: c.name || 'Unknown',
-                        handle: c.handle || '',
-                        avatar: c.photo_url || ''
-                    }
-                };
+
+        let allItems = [];
+        let currentCursor = null;
+        const maxPages = 20; // up to ~300 notes — enough for full history
+
+        for (let page = 0; page < maxPages; page++) {
+            let url = `https://substack.com/api/v1/reader/feed/profile/${userId}`;
+            if (currentCursor) url += `?cursor=${encodeURIComponent(currentCursor)}`;
+
+            const response = await fetch(url, { credentials: 'include' });
+            if (!response.ok) throw new Error(`Substack API error: ${response.status}`);
+
+            const data = await response.json();
+            if (data.items && data.items.length > 0) {
+                allItems.push(...data.items);
+            }
+
+            if (data.nextCursor) {
+                currentCursor = data.nextCursor;
+            } else {
+                break; // no more pages
+            }
+        }
+
+        const seenIds = new Set();
+        const notes = [];
+
+        for (const item of allItems) {
+            if (item.type !== 'comment' || !item.comment) continue;
+            const c = item.comment;
+            if (!c.id || seenIds.has(c.id)) continue;
+            seenIds.add(c.id);
+
+            const tracking = item.trackingParameters || {};
+            notes.push({
+                substackNoteId: String(c.id),
+                contentPreview: (c.body || '').slice(0, 280),
+                publishedAt: c.date || c.post_date || null,
+                url: `https://substack.com/@${c.handle}/note/c-${c.id}`,
+                likes: c.reaction_count || c.likes || tracking.item_current_reaction_count || 0,
+                comments: c.children_count || c.reply_count || tracking.item_current_reply_count || 0,
+                restacks: c.restacks || c.restack_count || tracking.item_current_restack_count || 0,
             });
-            
-        console.log('📝 Headless Sync: Successfully parsed', notes.length, 'notes');
+        }
+
+        console.log('📝 Headless Sync: Successfully parsed', notes.length, 'notes with engagement data');
         return { success: true, notes };
     } catch (e) {
         console.error('📝 Headless Sync Error:', e);
