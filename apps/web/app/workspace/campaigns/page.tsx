@@ -85,18 +85,18 @@ function FeedNoteCard({ note, onPullCommenters, isScrapingThisNote, scrapedTarge
             {/* Note header */}
             <div className="p-4">
                 <div className="flex items-start gap-3">
-                    {note.author.avatar ? (
-                        <Image src={note.author.avatar} alt={note.author.name} width={32} height={32} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                    {note.author?.avatar ? (
+                        <Image src={note.author.avatar} alt={note.author.name || "User"} width={32} height={32} className="w-8 h-8 rounded-full object-cover shrink-0" />
                     ) : (
                         <div className="w-8 h-8 rounded-full bg-blue-900/40 flex items-center justify-center text-blue-400 font-semibold text-xs shrink-0">
-                            {note.author.name.charAt(0).toUpperCase()}
+                            {(note.author?.name || "U").charAt(0).toUpperCase()}
                         </div>
                     )}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1 mb-0.5">
-                            <span className="text-sm font-medium text-gray-200 truncate">{note.author.name}</span>
+                            <span className="text-sm font-medium text-gray-200 truncate">{note.author?.name || "Unknown Author"}</span>
                             <BsPatchCheckFill className="w-3 h-3 text-primary shrink-0" />
-                            {note.author.handle && <span className="text-xs text-gray-500 truncate">@{note.author.handle}</span>}
+                            {note.author?.handle && <span className="text-xs text-gray-500 truncate">@{note.author.handle}</span>}
                         </div>
                         <p className="text-xs text-gray-400 leading-relaxed line-clamp-3">
                             {note.content.length > 200 ? note.content.slice(0, 200) + "..." : note.content}
