@@ -439,6 +439,75 @@ async function headlessSearchNotes(keyword) {
     }
 }
 
+/**
+ * Resolves a Substack profile URL (handle or @username) to a numerical user_id
+ */
+async function resolveSubstackUserId(profileUrl) {
+    try {
+        console.log('🔄 Headless Resolver: Fetching profile to find user_id:', profileUrl);
+        const response = await fetch(profileUrl);
+        const html = await response.text();
+        
+        // Look for "user_id":123456 or similar in the initial state
+        const userIdMatch = html.match(/"user_id":\s*(\d+)/) || html.match(/user_id=(\d+)/);
+        if (userIdMatch && userIdMatch[1]) {
+            console.log('🔄 Headless Resolver: Found user_id:', userIdMatch[1]);
+            return userIdMatch[1];
+        }
+        
+        // Fallback: search for data-props or other JSON structures
+        const dataPropsMatch = html.match(/data-props="([^"]+)"/);
+        if (dataPropsMatch) {
+            const props = JSON.parse(dataPropsMatch[1].replace(/&quot;/g, '"'));
+            if (props.user?.id) return props.user.id;
+        }
+
+        throw new Error('Could not find user_id on profile page');
+    } catch (e) {
+        console.error('🔄 Headless Resolver Error:', e);
+        return null;
+    }
+}
+
+/**
+ * Headless fetch of a user's own notes
+ */
+async function headlessSyncNotes(userId) {
+    try {
+        console.log('📝 Headless Sync: Fetching notes for user_id:', userId);
+        const url = `https://substack.com/api/v1/reader/feed/profile/${userId}`;
+        const response = await fetch(url, { credentials: 'include' });
+        
+        if (!response.ok) throw new Error(`Substack API error: ${response.status}`);
+        
+        const data = await response.json();
+        const items = data.items || [];
+        
+        const notes = items
+            .filter(item => item.type === 'comment' && item.comment)
+            .map(item => {
+                const c = item.comment;
+                return {
+                    id: c.id,
+                    content: c.body || '',
+                    date: c.date,
+                    url: `https://substack.com/@${c.handle}/note/c-${c.id}`,
+                    author: {
+                        name: c.name || 'Unknown',
+                        handle: c.handle || '',
+                        avatar: c.photo_url || ''
+                    }
+                };
+            });
+            
+        console.log('📝 Headless Sync: Successfully parsed', notes.length, 'notes');
+        return { success: true, notes };
+    } catch (e) {
+        console.error('📝 Headless Sync Error:', e);
+        return { success: false, error: e.message };
+    }
+}
+
 // ==========================================
 // ALARM-BASED SCHEDULER
 // ==========================================
@@ -448,26 +517,19 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     // ── 4-hour notes performance cron ──
     if (alarm.name === 'narrativee_notes_perf_cron') {
         console.log('📝 Cron: Auto-syncing notes performance');
-        const data = await chrome.storage.local.get(['narrativee_profile_url']);
-        const profileUrl = data.narrativee_profile_url;
-        if (!profileUrl) {
-            console.warn('📝 Cron: No profileUrl stored, skipping');
-            return;
-        }
-        const notesUrl = profileUrl.replace(/\/$/, '') + '/notes';
-        chrome.tabs.create({ url: notesUrl, active: false }, (tab) => {
-            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                if (tabId !== tab.id || info.status !== 'complete') return;
-                chrome.tabs.onUpdated.removeListener(listener);
-                setTimeout(() => {
-                    chrome.tabs.sendMessage(tabId, { type: 'SCRAPE_OWN_NOTES' }, (response) => {
-                        if (!chrome.runtime.lastError && response?.notes?.length) {
-                            forwardToNarrativeeTab({ type: 'NARRATIVEE_NOTES_PERF_SCRAPED', notes: response.notes });
-                        }
-                        setTimeout(() => chrome.tabs.remove(tabId), 1000);
-                    });
-                }, 4000);
-            });
+        chrome.storage.local.get(['narrativee_profile_url'], async (res) => {
+            if (!res.narrativee_profile_url) return;
+
+            const userId = await resolveSubstackUserId(res.narrativee_profile_url);
+            if (!userId) return;
+
+            const sync = await headlessSyncNotes(userId);
+            if (sync.success) {
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_NOTES_PERF_SCRAPED',
+                    notes: sync.notes
+                });
+            }
         });
         return;
     }
@@ -655,28 +717,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'START_NOTES_SYNC') {
         console.log('🚀 Background: Received START_NOTES_SYNC for', message.profileUrl);
 
-        let targetUrl = message.profileUrl;
-        if (!targetUrl.endsWith('/notes')) {
-            targetUrl = targetUrl.replace(/\/$/, '') + '/notes';
-        }
+        (async () => {
+            const userId = await resolveSubstackUserId(message.profileUrl);
+            if (!userId) {
+                sendResponse({ success: false, error: 'Could not resolve user ID' });
+                return;
+            }
 
-        chrome.tabs.create({ url: targetUrl, active: false }, (tab) => {
-            console.log('🚀 Background: Opened notes tab', tab.id);
+            const sync = await headlessSyncNotes(userId);
+            if (sync.success) {
+                // Route the notes directly back to the sender
+                sendResponse({ success: true, notes: sync.notes });
 
-            // Wait for tab to load then scrape
-            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                if (tabId === tab.id && info.status === 'complete') {
-                    chrome.tabs.onUpdated.removeListener(listener);
-                    console.log('🚀 Background: Tab loaded, sending scrape command');
-
-                    chrome.tabs.sendMessage(tabId, {
-                        type: 'SCRAPE_NOTES_ON_LOAD',
-                        requestingTabId: sender.tab?.id
-                    });
-                }
-            });
-        });
-        sendResponse({ success: true });
+                // Also forward to any Narrativee tabs as legacy backup
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_NOTES_SYNCED',
+                    notes: sync.notes
+                });
+            } else {
+                sendResponse({ success: false, error: sync.error });
+            }
+        })();
         return true;
     }
 
@@ -839,56 +900,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
             });
         });
-        // Normalize: strip trailing slash, add /notes
-        notesUrl = notesUrl.replace(/\/$/, '') + '/notes';
 
-        chrome.tabs.create({ url: notesUrl, active: false }, (tab) => {
-            console.log('📝 Background: Opened notes tab', tab.id);
 
-            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                if (tabId === tab.id && info.status === 'complete') {
-                    chrome.tabs.onUpdated.removeListener(listener);
-                    console.log('📝 Background: Notes tab loaded, waiting for scripts...');
+        // Headless execution
+        (async () => {
+            const userId = await resolveSubstackUserId(message.profileUrl);
+            if (!userId) {
+                sendResponse({ success: false, error: 'Could not resolve user ID' });
+                return;
+            }
 
-                    let attempts = 0;
-                    const maxAttempts = 6;
+            const sync = await headlessSyncNotes(userId);
+            if (sync.success) {
+                sendResponse({ success: true, notes: sync.notes });
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_NOTES_PERF_SCRAPED',
+                    notes: sync.notes
+                });
+            } else {
+                sendResponse({ success: false, error: sync.error });
+            }
+        })();
 
-                    function tryScrape() {
-                        attempts++;
-                        console.log(`📝 Background: Scrape attempt ${attempts}/${maxAttempts}`);
-
-                        chrome.tabs.sendMessage(tabId, { type: 'SCRAPE_OWN_NOTES' }, (response) => {
-                            if (chrome.runtime.lastError) {
-                                console.warn('📝 Background: Attempt failed:', chrome.runtime.lastError.message);
-                                if (attempts < maxAttempts) {
-                                    setTimeout(tryScrape, 2000);
-                                } else {
-                                    forwardToNarrativeeTab({
-                                        type: 'NARRATIVEE_NOTES_PERF_SCRAPED',
-                                        notes: [],
-                                        error: 'Content script not responding'
-                                    });
-                                    chrome.tabs.remove(tabId);
-                                }
-                                return;
-                            }
-
-                            console.log('📝 Background: Got', response?.notes?.length || 0, 'own notes');
-                            forwardToNarrativeeTab({
-                                type: 'NARRATIVEE_NOTES_PERF_SCRAPED',
-                                notes: response?.notes || []
-                            });
-                            setTimeout(() => chrome.tabs.remove(tabId), 1000);
-                        });
-                    }
-
-                    // Allow extra time for the feed to render
-                    setTimeout(tryScrape, 4000);
-                }
-            });
-        });
-
-        sendResponse({ success: true });
         return true;
     }
 

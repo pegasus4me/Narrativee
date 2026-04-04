@@ -86,7 +86,7 @@ function FeedNoteCard({ note, onPullCommenters, isScrapingThisNote, scrapedTarge
             <div className="p-4">
                 <div className="flex items-start gap-3">
                     {note.author?.avatar ? (
-                        <Image src={note.author.avatar} alt={note.author.name || "User"} width={32} height={32} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                        <Image src={note.author.avatar!} alt={note.author?.name || "User"} width={32} height={32} className="w-8 h-8 rounded-full object-cover shrink-0" />
                     ) : (
                         <div className="w-8 h-8 rounded-full bg-blue-900/40 flex items-center justify-center text-blue-400 font-semibold text-xs shrink-0">
                             {(note.author?.name || "U").charAt(0).toUpperCase()}
@@ -994,8 +994,10 @@ function CampaignsPage() {
                                     );
                                 })()}
                                 <div className="space-y-2 max-h-[70vh] overflow-y-auto">
-                                    {selectedCampaign.targets?.map(target => (
-                                        <div key={target.id} className="bg-[#1a1b1d] rounded-xl border border-white/[0.06] p-3">
+                                    {(selectedCampaign.targets || []).map(target => {
+                                        if (!target) return null;
+                                        return (
+                                            <div key={target.id} className="bg-[#1a1b1d] rounded-xl border border-white/[0.06] p-3">
                                             <div className="flex items-start gap-2.5">
                                                 <div className="mt-0.5 shrink-0">{targetStatusIcon(target.status)}</div>
                                                 <div className="flex-1 min-w-0">
@@ -1067,10 +1069,9 @@ function CampaignsPage() {
                                                             <TrendingUp size={11} />
                                                         </button>
                                                     )}
-                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -1116,29 +1117,32 @@ function CampaignsPage() {
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {campaigns.map(campaign => (
-                            <button
-                                key={campaign.id}
-                                onClick={() => { fetchCampaign(campaign.id); router.push(`/workspace/campaigns?id=${campaign.id}`); }}
-                                className="w-full text-left bg-[#1a1b1d] rounded-xl border border-white/[0.06] p-4 hover:border-white/[0.1] transition-colors group"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <span className="text-sm font-medium text-white">{campaign.name}</span>
-                                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor(campaign.status)}`}>
-                                                {campaign.status}
-                                            </span>
+                        {(campaigns || []).map(campaign => {
+                            if (!campaign || !campaign.id) return null;
+                            return (
+                                <button
+                                    key={campaign.id}
+                                    onClick={() => { fetchCampaign(campaign.id); router.push(`/workspace/campaigns?id=${campaign.id}`); }}
+                                    className="w-full text-left bg-[#1a1b1d] rounded-xl border border-white/[0.06] p-4 hover:border-white/[0.1] transition-colors group"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <span className="text-sm font-medium text-white">{campaign.name || "Untitled Campaign"}</span>
+                                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor(campaign.status)}`}>
+                                                    {campaign.status}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-xs text-gray-500 flex items-center gap-1"><MessageSquare size={11} /> {campaign.totalReplies || 0} replies</span>
+                                                <span className="text-xs text-gray-500 flex items-center gap-1"><Target size={11} /> {campaign.repliedToday || 0}/{campaign.dailyQuota || 0} today</span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className="text-xs text-gray-500 flex items-center gap-1"><MessageSquare size={11} /> {campaign.totalReplies} replies</span>
-                                            <span className="text-xs text-gray-500 flex items-center gap-1"><Target size={11} /> {campaign.repliedToday}/{campaign.dailyQuota} today</span>
-                                        </div>
+                                        <ChevronRight size={16} className="text-gray-600 group-hover:text-gray-400 transition-colors shrink-0" />
                                     </div>
-                                    <ChevronRight size={16} className="text-gray-600 group-hover:text-gray-400 transition-colors shrink-0" />
-                                </div>
-                            </button>
-                        ))}
+                                </button>
+                            );
+                        })}
                     </div>
                 )}
             </div>
