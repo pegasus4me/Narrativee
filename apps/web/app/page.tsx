@@ -12,7 +12,6 @@ import {
   MessageSquare, Sparkles, ArrowRight, ChevronRight,
   Zap, TrendingUp, Clock, Users
 } from "lucide-react";
-import homepage from "../public/analytics.png";
 import { AnimatePresence } from "framer-motion";
 import Header from "./components/commons/Header";
 import Footer from "./components/commons/Footer";
@@ -189,9 +188,32 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="overflow-hidden"
+            className="relative px-6 pt-12 pb-4"
           >
-            <Image src={homepage} alt="Homepage" width={1500} height={1500} className="rounded-lg" />
+            {/* Top-left small: calendar */}
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.55 }}
+              className="absolute top-2 left-2 w-[38%] rounded-lg overflow-hidden border border-white/[0.06] shadow-xl z-10"
+            >
+              <Image src="/calendarGrid.png" alt="Narrativee Post Calendar" width={400} height={260} className="w-full h-auto" />
+            </motion.div>
+
+            {/* Bottom-right small: analytics */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
+              className="absolute bottom-2 right-2 w-[38%] rounded-lg overflow-hidden border border-white/[0.06] shadow-xl z-10"
+            >
+              <Image src="/analytics.png" alt="Narrativee Analytics" width={400} height={260} className="w-full h-auto" />
+            </motion.div>
+
+            {/* Main: campaigns */}
+            <div className="rounded-xl overflow-hidden border border-white/[0.06] shadow-2xl">
+              <Image src="/campaigns.png" alt="Narrativee Campaign Autopilot" width={700} height={440} className="w-full h-auto" />
+            </div>
           </motion.div>
         </section>
 
@@ -265,7 +287,36 @@ export default function Home() {
           </div>
           <div className="container mx-auto flex flex-col gap-32 ">
               
-            {/* 1 — Post Queue */}
+            {/* 1 — Campaigns */}
+            <AnimatedSection>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div>
+                  <span className="text-xs font-semibold text-primary uppercase tracking-widest font-manrope">Campaign Autopilot</span>
+                  <h3 className="text-3xl md:text-4xl font-medium text-gray-100 font-urbanist mt-3 mb-4 leading-tight">
+                    The unfair advantage other Substack writers don&apos;t have
+                  </h3>
+                  <p className="text-gray-500 text-lg font-manrope leading-relaxed font-light">
+                    Build reply campaigns that target commenters on high-traffic notes. Set your message sequence, define a daily quota, and let Narrativee handle the outreach while you track conversions in real time.
+                  </p>
+                  <ul className="mt-6 flex flex-col gap-3">
+                    {[
+                      "Target commenters on any Substack note",
+                      "Multi-step reply sequences",
+                      "Live conversion funnel: Targeted → Replied → Replied Back",
+                    ].map(t => (
+                      <li key={t} className="flex items-center gap-3 text-gray-400 font-manrope text-[15px] font-light">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />{t}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-xl overflow-hidden border border-white/[0.06]">
+                  <Image src="/campaigns.png" alt="Narrativee Campaign Autopilot" width={800} height={500} className="w-full h-auto" />
+                </div>
+              </div>
+            </AnimatedSection>
+
+            {/* 2 — Post Queue */}
             <AnimatedSection>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <div>

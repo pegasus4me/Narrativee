@@ -1,14 +1,13 @@
 {
     "manifest_version": 3,
     "name": "Narrativee",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Your AI copilot for Substack growth and engagement.",
     "permissions": [
         "activeTab",
         "storage",
         "alarms",
-        "tabs",
-        "scripting"
+        "tabs"
     ],
     "host_permissions": [
         "*://*.substack.com/*",
