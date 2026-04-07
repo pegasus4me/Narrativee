@@ -235,6 +235,27 @@ function CampaignsPage() {
 
     // Create form state
     const [createForm, setCreateForm] = useState({ name: "", sequenceSteps: [""], dailyQuota: 5 });
+    const [isEditingQuota, setIsEditingQuota] = useState(false);
+    const [quotaDraft, setQuotaDraft] = useState(0);
+
+    const handleSaveQuota = async () => {
+        if (!selectedCampaign) return;
+        const quota = Math.max(1, Math.min(200, quotaDraft));
+        try {
+            const res = await fetch(`${API_URL}/api/campaigns/${selectedCampaign.id}`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ dailyQuota: quota }),
+            });
+            if (res.ok) {
+                setSelectedCampaign(c => c ? { ...c, dailyQuota: quota } : c);
+                setCampaigns(cs => cs.map(c => c.id === selectedCampaign.id ? { ...c, dailyQuota: quota } : c));
+            }
+        } finally {
+            setIsEditingQuota(false);
+        }
+    };
 
     const fetchCampaigns = useCallback(async () => {
         setIsLoading(true);
@@ -683,7 +704,32 @@ function CampaignsPage() {
                                     {selectedCampaign.status}
                                 </span>
                                 <span className="text-xs text-gray-500">{selectedCampaign.totalReplies} total replies</span>
-                                <span className="text-xs text-gray-500">{selectedCampaign.repliedToday}/{selectedCampaign.dailyQuota} today</span>
+                                {isEditingQuota ? (
+                                    <span className="flex items-center gap-1">
+                                        <span className="text-xs text-gray-500">{selectedCampaign.repliedToday}/</span>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={200}
+                                            value={quotaDraft}
+                                            onChange={e => setQuotaDraft(parseInt(e.target.value) || 1)}
+                                            onKeyDown={e => { if (e.key === "Enter") handleSaveQuota(); if (e.key === "Escape") setIsEditingQuota(false); }}
+                                            autoFocus
+                                            className="w-12 text-xs bg-white/5 border border-white/10 rounded px-1 py-0.5 text-gray-200 text-center focus:outline-none focus:border-primary"
+                                        />
+                                        <button onClick={handleSaveQuota} className="text-primary hover:text-primary/80"><Check size={12} /></button>
+                                        <button onClick={() => setIsEditingQuota(false)} className="text-gray-600 hover:text-gray-400"><X size={12} /></button>
+                                    </span>
+                                ) : (
+                                    <button
+                                        onClick={() => { setQuotaDraft(selectedCampaign.dailyQuota); setIsEditingQuota(true); }}
+                                        className="text-xs text-gray-500 hover:text-gray-300 transition-colors group flex items-center gap-1"
+                                        title="Edit daily quota"
+                                    >
+                                        {selectedCampaign.repliedToday}/{selectedCampaign.dailyQuota} today
+                                        <span className="opacity-0 group-hover:opacity-100 text-[10px] text-gray-600">(edit)</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
