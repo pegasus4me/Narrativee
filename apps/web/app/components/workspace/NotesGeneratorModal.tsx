@@ -124,7 +124,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
                         return {
                             title: `Note from ${date ? new Date(date).toLocaleDateString() : 'unknown date'}`,
                             excerpt: body.substring(0, 150) + "...",
-                            content: body, publishedAt: date, url: n.url, type: 'note' as const,
+                            content: body, publishedAt: date, url: note.url as string | undefined, type: 'note' as const,
                         };
                     });
                 setSyncedNotes(prev => {
