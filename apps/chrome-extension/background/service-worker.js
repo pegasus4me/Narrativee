@@ -475,33 +475,40 @@ async function resolveSubstackUserId(profileUrl) {
 async function headlessSyncNotes(userId) {
     try {
         console.log('📝 Headless Sync: Fetching notes for user_id:', userId);
-        const url = `https://substack.com/api/v1/reader/feed/profile/${userId}`;
-        const response = await fetch(url, { credentials: 'include' });
-        
-        if (!response.ok) throw new Error(`Substack API error: ${response.status}`);
-        
-        const data = await response.json();
-        const items = data.items || [];
-        
-        const notes = items
-            .filter(item => item.type === 'comment' && item.comment)
-            .map(item => {
-                const c = item.comment;
-                return {
-                    id: c.id,
-                    content: c.body || '',
-                    date: c.date,
-                    url: `https://substack.com/@${c.handle}/note/c-${c.id}`,
-                    author: {
-                        name: c.name || 'Unknown',
-                        handle: c.handle || '',
-                        avatar: c.photo_url || ''
-                    }
-                };
-            });
-            
-        console.log('📝 Headless Sync: Successfully parsed', notes.length, 'notes');
-        return { success: true, notes };
+        const baseUrl = `https://substack.com/api/v1/reader/feed/profile/${userId}`;
+        const allNotes = [];
+        let cursor = null;
+        const MAX_PAGES = 20;
+
+        for (let page = 0; page < MAX_PAGES; page++) {
+            const url = cursor ? `${baseUrl}?cursor=${cursor}` : baseUrl;
+            const response = await fetch(url, { credentials: 'include' });
+            if (!response.ok) throw new Error(`Substack API error: ${response.status}`);
+
+            const data = await response.json();
+            const items = data.items || [];
+
+            const pageNotes = items
+                .filter(item => item.type === 'comment' && item.comment)
+                .map(item => {
+                    const c = item.comment;
+                    return {
+                        id: c.id,
+                        content: c.body || '',
+                        date: c.date,
+                        url: `https://substack.com/@${c.handle}/note/c-${c.id}`,
+                        author: { name: c.name || 'Unknown', handle: c.handle || '', avatar: c.photo_url || '' }
+                    };
+                });
+
+            allNotes.push(...pageNotes);
+
+            cursor = data.nextCursor || data.cursor || null;
+            if (!cursor || items.length === 0) break;
+        }
+
+        console.log('📝 Headless Sync: Successfully parsed', allNotes.length, 'notes');
+        return { success: true, notes: allNotes };
     } catch (e) {
         console.error('📝 Headless Sync Error:', e);
         return { success: false, error: e.message };

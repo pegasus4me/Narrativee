@@ -72,6 +72,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
     const [generatedNotes, setGeneratedNotes] = useState<GeneratedNote[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isSyncingNotes, setIsSyncingNotes] = useState(false);
+    const [lastSyncCount, setLastSyncCount] = useState<number | null>(null);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -107,20 +108,25 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
         if (!isOpen) return;
         const handleMessage = (event: MessageEvent) => {
             if (event.data?.type === 'NARRATIVEE_NOTES_SYNCED') {
-                const notes = event.data.notes;
-                const userHandle = onboardingData?.substackProfileUrl?.split('/').pop()?.split('?')[0]?.replace('@', '') ?? null;
+                const notes: unknown[] = event.data.notes;
                 const newPosts: SubstackPost[] = notes
-                    .filter((n: any) => {
-                        if (!n.content) return false;
-                        if (userHandle && n.url && !n.url.includes(`@${userHandle}`)) return false;
-                        if (n.content.includes("Restack") && n.content.length < 50) return false;
+                    .filter((n) => {
+                        const note = n as Record<string, unknown>;
+                        const body = (note.content || note.contentPreview || '') as string;
+                        if (!body) return false;
+                        if (body.includes("Restack") && body.length < 50) return false;
                         return true;
                     })
-                    .map((n: any) => ({
-                        title: `Note from ${new Date(n.date).toLocaleDateString()}`,
-                        excerpt: n.content.substring(0, 150) + "...",
-                        content: n.content, publishedAt: n.date, url: n.url, type: 'note'
-                    }));
+                    .map((n) => {
+                        const note = n as Record<string, unknown>;
+                        const body = (note.content || note.contentPreview || '') as string;
+                        const date = (note.date || note.publishedAt || '') as string;
+                        return {
+                            title: `Note from ${date ? new Date(date).toLocaleDateString() : 'unknown date'}`,
+                            excerpt: body.substring(0, 150) + "...",
+                            content: body, publishedAt: date, url: n.url, type: 'note' as const,
+                        };
+                    });
                 setSyncedNotes(prev => {
                     const existingContent = new Set(prev.map(p => p.content));
                     return [...newPosts.filter(p => !existingContent.has(p.content)), ...prev];
@@ -129,6 +135,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
                     const existingContent = new Set(prev.map(p => p.content));
                     return [...newPosts.filter(p => !existingContent.has(p.content)), ...prev];
                 });
+                setLastSyncCount(newPosts.length);
                 setError(null);
                 setIsSyncingNotes(false);
             }
@@ -148,7 +155,6 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
     };
 
     const handleGenerate = async () => {
-        if (sourceMode === "feed" && !topic.trim()) return;
         if (sourceMode === "article" && selectedArticleIndex === null) { setError("Please select an article first."); return; }
 
         const currentCredits = useSideBarStore.getState().credits;
@@ -288,9 +294,11 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
                                 >
                                     {isSyncingNotes
                                         ? <><Loader2 className="w-3 h-3 animate-spin" /> Syncing your notes...</>
-                                        : syncedNotes.length > 0
-                                            ? <><Sparkles className="w-3 h-3 text-primary" /> {syncedNotes.length} notes synced — sync again</>
-                                            : <><Sparkles className="w-3 h-3 text-primary" /> Sync your notes for better voice matching</>
+                                        : lastSyncCount !== null
+                                            ? <><Sparkles className="w-3 h-3 text-primary" /> {lastSyncCount} new notes synced — sync again</>
+                                            : syncedNotes.length > 0
+                                                ? <><Sparkles className="w-3 h-3 text-primary" /> {syncedNotes.length} notes synced — sync again</>
+                                                : <><Sparkles className="w-3 h-3 text-primary" /> Sync your notes for better voice matching</>
                                     }
                                 </button>
                                 <p className="text-[10px] text-gray-600 -mt-2 px-1">
@@ -327,11 +335,11 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
                             {/* Topic */}
                             {sourceMode === "feed" && (
                                 <div className="space-y-2">
-                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Topic or Prompt</label>
+                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Topic or Prompt <span className="normal-case text-gray-600">(optional)</span></label>
                                     <textarea
                                         value={topic}
                                         onChange={(e) => setTopic(e.target.value)}
-                                        placeholder="e.g. Productivity tips for writers, hot takes on AI in creative work..."
+                                        placeholder="e.g. Productivity tips for writers... (optional)"
                                         className="w-full px-3.5 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:border-primary/50 focus:outline-none resize-none"
                                         rows={3}
                                     />
@@ -385,7 +393,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
 
                             <button
                                 onClick={handleGenerate}
-                                disabled={(sourceMode === "feed" && !topic.trim()) || (sourceMode === "article" && selectedArticleIndex === null) || isGenerating}
+                                disabled={(sourceMode === "article" && selectedArticleIndex === null) || isGenerating}
                                 className="w-full py-3 bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
                             >
                                 {isGenerating ? (
