@@ -242,7 +242,7 @@ function CampaignsPage() {
         if (!selectedCampaign) return;
         const quota = Math.max(1, Math.min(200, quotaDraft));
         try {
-            const res = await fetch(`${API_URL}/api/campaigns/${selectedCampaign.id}`, {
+            const res = await fetch(`${API_URL}/campaigns/${selectedCampaign.id}`, {
                 method: "PATCH",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
