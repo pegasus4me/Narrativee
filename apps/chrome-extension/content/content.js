@@ -132,6 +132,14 @@
             });
         }
 
+        if (event.data?.type === 'NARRATIVEE_SEARCH_AUTHOR_NOTES') {
+            console.log('👤 Author search requested from Web App:', event.data.authorHandle);
+            chrome.runtime.sendMessage({
+                type: 'SEARCH_AUTHOR_NOTES',
+                authorHandle: event.data.authorHandle
+            });
+        }
+
         if (event.data?.type === 'NARRATIVEE_POST_CAMPAIGN_REPLY') {
             console.log('🎯 Campaign reply requested from Web App');
             chrome.runtime.sendMessage({
@@ -1250,6 +1258,17 @@
                 window.postMessage({
                     type: 'NARRATIVEE_KEYWORD_SEARCH_RESULTS',
                     keyword: message.keyword,
+                    notes: message.notes,
+                    error: message.error
+                }, '*');
+            }
+
+            // 5c. Forward author search results from Background to Web App
+            if (message.type === 'NARRATIVEE_AUTHOR_SEARCH_RESULTS') {
+                console.log('👤 Bridge: Forwarding author search results to web app', message.notes?.length, 'notes');
+                window.postMessage({
+                    type: 'NARRATIVEE_AUTHOR_SEARCH_RESULTS',
+                    authorHandle: message.authorHandle,
                     notes: message.notes,
                     error: message.error
                 }, '*');

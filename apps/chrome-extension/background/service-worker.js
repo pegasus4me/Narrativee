@@ -228,6 +228,39 @@ async function headlessScrapeTargets(campaignId, postUrl) {
         const noteId = match[1];
         const isPost = postUrl.includes('/p-');
 
+        // Extract the original note poster's handle from the URL (@handle/note/c-xxx)
+        const handleMatch = postUrl.match(/@([^/]+)\//);
+        let noteAuthorHandle = handleMatch ? handleMatch[1].toLowerCase() : null;
+        let noteAuthorName = null;
+        let noteAuthorUserId = null;
+
+        // Fetch the root note directly to get the author's user_id (most reliable identifier)
+        try {
+            const noteResp = await fetch(`https://substack.com/api/v1/reader/comment/${noteId}`, {
+                headers: { 'accept': '*/*', 'sec-fetch-dest': 'empty', 'sec-fetch-mode': 'cors', 'sec-fetch-site': 'same-origin' }
+            });
+            if (noteResp.ok) {
+                const noteData = await noteResp.json();
+                // API returns { item: { comment: { user_id, handle, name, ... } } }
+                const rootComment = noteData?.item?.comment || noteData?.comment || noteData;
+                console.log('🎯 Root note API response — handle:', rootComment.handle, 'name:', rootComment.name, 'user_id:', rootComment.user_id);
+                if (rootComment.user_id) {
+                    noteAuthorUserId = rootComment.user_id.toString();
+                }
+                if (rootComment.handle) {
+                    noteAuthorHandle = rootComment.handle.toLowerCase().replace(/^@/, '');
+                }
+                if (rootComment.name) {
+                    noteAuthorName = rootComment.name.toLowerCase();
+                }
+            } else {
+                console.warn('🎯 Root note API returned status:', noteResp.status);
+            }
+        } catch (e) {
+            console.warn('🎯 Could not fetch root note author, falling back to URL handle:', e.message);
+        }
+        console.log('🎯 Note author to exclude — user_id:', noteAuthorUserId, 'handle:', noteAuthorHandle, 'name:', noteAuthorName);
+
         const init = {
             method: 'GET',
             headers: {
@@ -238,11 +271,11 @@ async function headlessScrapeTargets(campaignId, postUrl) {
             }
         };
 
-        // Fetch up to 3 pages of comments
+        // Fetch up to 15 pages of comments
         let allComments = [];
         let currentCursor = null;
         let currentOffset = 0;
-        const maxPages = 3;
+        const maxPages = 15;
 
         for (let page = 0; page < maxPages; page++) {
             let url;
@@ -285,7 +318,7 @@ async function headlessScrapeTargets(campaignId, postUrl) {
         
         // Recursive function to parse comments and their child threads
         function processCommentThread(commentObj, parentCommentId, parentCommentUrl, parentCommentContent) {
-            if (!commentObj || targets.length >= 50) return;
+            if (!commentObj || targets.length >= 500) return;
             
             const data = commentObj.comment || commentObj;
             const commentId = data.id;
@@ -293,10 +326,23 @@ async function headlessScrapeTargets(campaignId, postUrl) {
 
             const authorName = data.name || data.child_name || '';
             const authorHandle = data.handle || '';
+            const authorUserId = (data.user_id || '').toString();
             const commentText = data.body || '';
             const targetUrl = `https://substack.com/note/c-${commentId}`;
 
-            if ((authorName || authorHandle) && !seen.has(commentId)) {
+            // Check if this commenter is the original note author (skip them)
+            const isNoteAuthor = (
+                // Primary: match by user_id (most reliable)
+                (noteAuthorUserId && authorUserId && authorUserId === noteAuthorUserId)
+                // Fallback: match by handle
+                || (noteAuthorHandle && authorHandle && authorHandle.toLowerCase().replace(/^@/, '') === noteAuthorHandle.replace(/^@/, ''))
+                // Fallback: match by name
+                || (noteAuthorName && authorName && authorName.toLowerCase() === noteAuthorName)
+            );
+            if (isNoteAuthor) {
+                console.log('🎯 Skipping note author:', authorName || authorHandle, '(user_id:', authorUserId, ')');
+            }
+            if ((authorName || authorHandle) && !seen.has(commentId) && !isNoteAuthor) {
                 seen.add(commentId);
                 targets.push({
                     parentCommentId: parentCommentId || noteId,
@@ -315,13 +361,13 @@ async function headlessScrapeTargets(campaignId, postUrl) {
             // Substack might place children in descendantComments, children, or replies
             const children = commentObj.descendantComments || data.descendantComments || data.children || data.replies || [];
             for (const child of children) {
-                if (targets.length >= 50) break;
+                if (targets.length >= 500) break;
                 processCommentThread(child, commentId.toString(), targetUrl, commentText);
             }
         }
 
         for (const rootComment of allComments) {
-            if (targets.length >= 50) break;
+            if (targets.length >= 500) break;
             processCommentThread(rootComment, noteId, postUrl, 'Top level note');
         }
 
@@ -445,24 +491,87 @@ async function headlessSearchNotes(keyword) {
 async function resolveSubstackUserId(profileUrl) {
     try {
         console.log('🔄 Headless Resolver: Fetching profile to find user_id:', profileUrl);
-        const response = await fetch(profileUrl);
-        const html = await response.text();
-        
-        // Look for "user_id":123456 or similar in the initial state
-        const userIdMatch = html.match(/"user_id":\s*(\d+)/) || html.match(/user_id=(\d+)/);
-        if (userIdMatch && userIdMatch[1]) {
-            console.log('🔄 Headless Resolver: Found user_id:', userIdMatch[1]);
-            return userIdMatch[1];
-        }
-        
-        // Fallback: search for data-props or other JSON structures
-        const dataPropsMatch = html.match(/data-props="([^"]+)"/);
-        if (dataPropsMatch) {
-            const props = JSON.parse(dataPropsMatch[1].replace(/&quot;/g, '"'));
-            if (props.user?.id) return props.user.id;
+        const handleMatch = profileUrl.match(/@([^/]+)/);
+        const handle = handleMatch ? handleMatch[1].toLowerCase() : null;
+
+        // Try to fetch profile page and extract from HTML
+        try {
+            const response = await fetch(profileUrl, { credentials: 'include' });
+            const html = await response.text();
+            
+            // Substack uses various patterns in the server-rendered HTML
+            const patterns = [
+                /"user_id":\s*(\d+)/,
+                /"author_id":\s*(\d+)/,
+                /"primary_user_id":\s*(\d+)/,
+                /user_id=(\d+)/,
+                new RegExp(`"id":\\s*(\\d+)[^}]*"handle":"${handle}"`, 'i')
+            ];
+
+            for (const pattern of patterns) {
+                const match = html.match(pattern);
+                if (match && match[1]) {
+                    console.log('🔄 Headless Resolver: Found ID via HTML regex:', match[1]);
+                    return match[1];
+                }
+            }
+            
+            // Extract from data-props
+            const dataPropsMatch = html.match(/data-props="([^"]+)"/);
+            if (dataPropsMatch) {
+                const props = JSON.parse(dataPropsMatch[1].replace(/&quot;/g, '"'));
+                const userId = props.user?.id || props.pub?.author_id || props.pub?.primary_user_id;
+                if (userId) return userId.toString();
+            }
+        } catch (e) {
+            console.warn('🔄 Headless Resolver: HTML fetch failed, trying API fallback', e);
         }
 
-        throw new Error('Could not find user_id on profile page');
+        // API Fallback: Use the Substack search API for people
+        if (handle) {
+            console.log('🔄 Headless Resolver: HTML parsing failed, using people search API fallback for', handle);
+            try {
+                const searchResp = await fetch(`https://substack.com/api/v1/search/people?query=${handle}`, {
+                    headers: { 'accept': '*/*', 'sec-fetch-dest': 'empty', 'sec-fetch-mode': 'cors', 'sec-fetch-site': 'same-origin' },
+                    credentials: 'include'
+                });
+                if (searchResp.ok) {
+                    const searchData = await searchResp.json();
+                    const results = Array.isArray(searchData) ? searchData : (searchData.results || searchData.users || []);
+                    
+                    const exactMatch = results.find(r => r.handle && r.handle.toLowerCase().replace(/^@/, '') === handle);
+                    const matchedId = exactMatch ? (exactMatch.id || exactMatch.user_id || exactMatch.profile_id) : null;
+                    
+                    if (matchedId) {
+                        console.log('🔄 Headless Resolver: Found ID via Search API:', matchedId);
+                        return matchedId.toString();
+                    }
+                }
+            } catch (e) {
+                console.warn('🔄 Headless Resolver: API Fallback failed', e);
+            }
+            
+            // Publication API Fallback: If it's a publication, hitting their archive API reveals the author ID
+            console.log('🔄 Headless Resolver: Search Failed, trying Publication Archive API fallback for', handle);
+            try {
+                const pubResp = await fetch(`https://${handle}.substack.com/api/v1/archive?sort=new&limit=1`);
+                if (pubResp.ok) {
+                    const pubData = await pubResp.json();
+                    if (pubData && pubData.length > 0 && pubData[0].publishedBylines) {
+                        // Find the author in the bylines that matches the handle, or just take the primary author
+                        const byline = pubData[0].publishedBylines.find(b => b.handle && b.handle.toLowerCase() === handle) || pubData[0].publishedBylines[0];
+                        if (byline && byline.id) {
+                            console.log('🔄 Headless Resolver: Found ID via Publication Archive API:', byline.id);
+                            return byline.id.toString();
+                        }
+                    }
+                }
+            } catch(e) {
+                console.warn('🔄 Headless Resolver: Publication Archive Fallback failed', e);
+            }
+        }
+
+        throw new Error('Could not resolve user_id for ' + profileUrl);
     } catch (e) {
         console.error('🔄 Headless Resolver Error:', e);
         return null;
@@ -492,12 +601,20 @@ async function headlessSyncNotes(userId) {
                 .filter(item => item.type === 'comment' && item.comment)
                 .map(item => {
                     const c = item.comment;
+                    const tracking = item.trackingParameters || {};
+                    const likes = c.reaction_count || tracking.item_current_reaction_count || 0;
+                    const comments = c.children_count || tracking.item_current_reply_count || 0;
+                    const restacks = c.restacks || tracking.item_current_restack_count || 0;
+
                     return {
                         id: c.id,
                         content: c.body || '',
                         date: c.date,
+                        timestamp: c.date || new Date().toISOString(),
                         url: `https://substack.com/@${c.handle}/note/c-${c.id}`,
-                        author: { name: c.name || 'Unknown', handle: c.handle || '', avatar: c.photo_url || '' }
+                        author: { name: c.name || 'Unknown', handle: c.handle || '', avatar: c.photo_url || '' },
+                        engagement: { likes, comments, restacks },
+                        totalEngagement: likes + comments + restacks
                     };
                 });
 
@@ -1100,6 +1217,59 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
         });
         
+        sendResponse({ success: true });
+        return true;
+    }
+
+    if (message.type === 'SEARCH_AUTHOR_NOTES') {
+        const authorHandle = (message.authorHandle || '').trim().replace(/^@/, '');
+        console.log('👤 Author Search: Looking up notes for @' + authorHandle);
+
+        (async () => {
+            try {
+                // 1. Resolve handle → user_id
+                const profileUrl = `https://substack.com/@${authorHandle}`;
+                const userId = await resolveSubstackUserId(profileUrl);
+                if (!userId) {
+                    forwardToNarrativeeTab({
+                        type: 'NARRATIVEE_AUTHOR_SEARCH_RESULTS',
+                        authorHandle,
+                        notes: [],
+                        error: `Could not find Substack user "@${authorHandle}". Check the handle and try again.`
+                    });
+                    return;
+                }
+
+                // 2. Fetch their notes using the proven sync logic
+                const sync = await headlessSyncNotes(userId);
+                
+                if (sync.success) {
+                    console.log('👤 Author Search: Found', sync.notes.length, 'notes for @' + authorHandle);
+                    forwardToNarrativeeTab({
+                        type: 'NARRATIVEE_AUTHOR_SEARCH_RESULTS',
+                        authorHandle,
+                        notes: sync.notes
+                    });
+                } else {
+                    console.error('👤 Author Search Error:', sync.error);
+                    forwardToNarrativeeTab({
+                        type: 'NARRATIVEE_AUTHOR_SEARCH_RESULTS',
+                        authorHandle,
+                        notes: [],
+                        error: sync.error
+                    });
+                }
+            } catch (e) {
+                console.error('👤 Author Search Critical Error:', e);
+                forwardToNarrativeeTab({
+                    type: 'NARRATIVEE_AUTHOR_SEARCH_RESULTS',
+                    authorHandle,
+                    notes: [],
+                    error: e.message
+                });
+            }
+        })();
+
         sendResponse({ success: true });
         return true;
     }

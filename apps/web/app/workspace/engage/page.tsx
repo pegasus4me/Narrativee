@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Rss, TrendingUp, MessageSquare, Clock, Zap } from "lucide-react";
+import { Loader2, Rss, TrendingUp, MessageSquare, Clock, Zap, Search, Users } from "lucide-react";
 import EngagementCard from "@/app/components/workspace/EngagementCard";
 import { generateEngagementComment } from "@/app/actions/engage";
 import { authClient } from "@/lib/auth-client";
@@ -34,6 +34,10 @@ export default function EngagePage() {
     const [isLoading, setIsLoading] = useState(false);
     const [sortMode, setSortMode] = useState<SortMode>("engagement");
     const [error, setError] = useState<string | null>(null);
+
+    // Author search state
+    const [searchAuthor, setSearchAuthor] = useState("");
+    const [isAuthorSearching, setIsAuthorSearching] = useState(false);
     const [commentedCount, setCommentedCount] = useState(0);
     const [lastPulled, setLastPulled] = useState<Date | null>(null);
     const { data: session } = authClient.useSession();
@@ -72,6 +76,24 @@ export default function EngagePage() {
                 setIsLoading(false);
                 setError(null);
             }
+            // Author search results
+            if (event.data?.type === 'NARRATIVEE_AUTHOR_SEARCH_RESULTS') {
+                const loadedNotes: EngagementNote[] = event.data.notes || [];
+                setNotes(loadedNotes);
+                setSkipped(new Set());
+                const now = new Date();
+                setLastPulled(now);
+                localStorage.setItem('narrativee_engage_notes', JSON.stringify(loadedNotes));
+                localStorage.setItem('narrativee_engage_pulled_at', now.toISOString());
+                setIsAuthorSearching(false);
+                if (event.data.error) {
+                    setError(event.data.error);
+                } else if (loadedNotes.length === 0) {
+                    setError(`No notes found for @${event.data.authorHandle}.`);
+                } else {
+                    setError(null);
+                }
+            }
             if (event.data?.type === 'NARRATIVEE_COMMENT_POSTED' && event.data.success) {
                 setCommentedCount(prev => prev + 1);
             }
@@ -87,6 +109,22 @@ export default function EngagePage() {
         setTimeout(() => {
             setIsLoading((prev) => {
                 if (prev) { setError("Feed scrape timed out. Make sure the extension is installed."); return false; }
+                return prev;
+            });
+        }, 60000);
+    };
+
+    const handleAuthorSearch = () => {
+        const handle = searchAuthor.trim().replace(/^@/, "");
+        if (!handle) return;
+        setIsAuthorSearching(true);
+        setError(null);
+        setNotes([]);
+        setSkipped(new Set());
+        window.postMessage({ type: 'NARRATIVEE_SEARCH_AUTHOR_NOTES', authorHandle: handle }, '*');
+        setTimeout(() => {
+            setIsAuthorSearching((prev) => {
+                if (prev) { setError("Author search timed out. Make sure the extension is installed."); return false; }
                 return prev;
             });
         }, 60000);
@@ -165,12 +203,37 @@ export default function EngagePage() {
                 <div className="flex items-center gap-3 flex-wrap">
                     <button
                         onClick={handlePullFeed}
-                        disabled={isLoading}
+                        disabled={isLoading || isAuthorSearching}
                         className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/[0.06] text-gray-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50"
                     >
                         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rss className="w-4 h-4 text-orange-400" />}
                         {isLoading ? "Pulling feed..." : "Pull Feed"}
                     </button>
+
+                    <span className="text-xs text-gray-600">or</span>
+
+                    {/* Author search */}
+                    <div className="flex items-center gap-1.5">
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">@</span>
+                            <input
+                                type="text"
+                                value={searchAuthor}
+                                onChange={e => setSearchAuthor(e.target.value)}
+                                onKeyDown={e => { if (e.key === "Enter") handleAuthorSearch(); }}
+                                placeholder="author handle"
+                                className="bg-white/[0.03] border border-white/[0.06] rounded-xl pl-7 pr-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/50 w-40"
+                            />
+                        </div>
+                        <button
+                            onClick={handleAuthorSearch}
+                            disabled={isAuthorSearching || !searchAuthor.trim() || isLoading}
+                            className="flex items-center gap-1.5 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 text-sm font-medium rounded-xl transition-all disabled:opacity-40"
+                        >
+                            {isAuthorSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
+                            {isAuthorSearching ? "Looking up..." : "Pull notes"}
+                        </button>
+                    </div>
 
                     {notes.length > 0 && (
                         <div className="flex items-center gap-1 bg-white/[0.03] rounded-xl border border-white/[0.06] p-1">
@@ -205,7 +268,7 @@ export default function EngagePage() {
                 )}
 
                 {/* Empty State */}
-                {!isLoading && notes.length === 0 && !error && (
+                {!isLoading && !isAuthorSearching && notes.length === 0 && !error && (
                     <div className="flex flex-col items-center justify-center py-24 gap-4">
                         <div className="w-14 h-14 bg-white/[0.03] rounded-2xl border border-white/[0.06] flex items-center justify-center">
                             <Rss className="w-6 h-6 text-gray-600" />
@@ -225,11 +288,11 @@ export default function EngagePage() {
                 )}
 
                 {/* Loading */}
-                {isLoading && (
+                {(isLoading || isAuthorSearching) && (
                     <div className="flex flex-col items-center justify-center py-24 gap-3">
                         <Loader2 className="w-7 h-7 animate-spin text-orange-400" />
-                        <p className="text-gray-400 text-sm">Scraping your Substack feed...</p>
-                        <p className="text-gray-600 text-xs">This may take 20–30 seconds</p>
+                        <p className="text-gray-400 text-sm">{isAuthorSearching ? `Looking up @${searchAuthor.replace(/^@/, '')}...` : "Scraping your Substack feed..."}</p>
+                        <p className="text-gray-600 text-xs">{isAuthorSearching ? "Resolving profile and fetching notes" : "This may take 20–30 seconds"}</p>
                     </div>
                 )}
 

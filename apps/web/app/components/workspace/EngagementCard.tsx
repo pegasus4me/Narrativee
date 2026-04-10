@@ -59,7 +59,11 @@ export default function EngagementCard({ note, onGenerateComment, onPostComment,
         }, 5000);
     };
 
-    const engagementScore = note.engagement.likes * 1 + note.engagement.comments * 3 + note.engagement.restacks * 5;
+    const likes = note.engagement?.likes || 0;
+    const comments = note.engagement?.comments || 0;
+    const restacks = note.engagement?.restacks || 0;
+    
+    const engagementScore = likes * 1 + comments * 3 + restacks * 5;
     const scoreColor = engagementScore > 50 ? "text-emerald-400 bg-emerald-900/20 border-emerald-800/30"
         : engagementScore > 20 ? "text-amber-400 bg-amber-900/20 border-amber-800/30"
         : "text-gray-400 bg-gray-800/20 border-gray-700/30";
@@ -70,19 +74,19 @@ export default function EngagementCard({ note, onGenerateComment, onPostComment,
             <div className="p-5 flex-1">
                 {/* Author Header */}
                 <div className="flex items-center gap-3 mb-3">
-                    {note.author.avatar ? (
-                        <img src={note.author.avatar} alt={note.author.name} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                    {note.author?.avatar ? (
+                        <img src={note.author.avatar} alt={note.author.name || 'Unknown'} className="w-9 h-9 rounded-full object-cover shrink-0" />
                     ) : (
                         <div className="w-9 h-9 rounded-full bg-blue-900/40 flex items-center justify-center text-blue-400 font-semibold text-sm shrink-0">
-                            {note.author.name.charAt(0).toUpperCase()}
+                            {(note.author?.name || 'U').charAt(0).toUpperCase()}
                         </div>
                     )}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1 text-sm font-medium text-gray-200 truncate">
-                            {note.author.name}
+                            {note.author?.name || 'Unknown User'}
                             <BsPatchCheckFill className="w-3 h-3 text-primary shrink-0" />
                         </div>
-                        {note.author.handle && <div className="text-xs text-gray-500">@{note.author.handle}</div>}
+                        {note.author?.handle && <div className="text-xs text-gray-500">@{note.author.handle}</div>}
                     </div>
                     <div className="flex items-center gap-1.5">
                         <a href={note.url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-gray-600 hover:text-gray-300 transition-colors rounded-lg hover:bg-white/5">
@@ -98,19 +102,19 @@ export default function EngagementCard({ note, onGenerateComment, onPostComment,
 
                 {/* Note Text */}
                 <p className="text-gray-300 text-sm leading-relaxed mb-4 whitespace-pre-line">
-                    {note.content.length > 280 ? note.content.slice(0, 280) + '...' : note.content}
+                    {note.content?.length > 280 ? note.content.slice(0, 280) + '...' : note.content || ''}
                 </p>
 
                 {/* Engagement Stats */}
                 <div className="flex items-center gap-3">
                     <span className="flex items-center gap-1 text-xs text-gray-500">
-                        <Heart className="w-3 h-3" /> {note.engagement.likes}
+                        <Heart className="w-3 h-3" /> {likes}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-gray-500">
-                        <Repeat2 className="w-3 h-3" /> {note.engagement.restacks}
+                        <Repeat2 className="w-3 h-3" /> {restacks}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-gray-500">
-                        <MessageSquare className="w-3 h-3" /> {note.engagement.comments}
+                        <MessageSquare className="w-3 h-3" /> {comments}
                     </span>
                     <span className={`ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full border ${scoreColor}`}>
                         {engagementScore} score

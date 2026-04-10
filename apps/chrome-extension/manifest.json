@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Narrativee",
-    "version": "1.0.4",
+    "version": "1.0.8",
     "description": "Your AI copilot for Substack growth and engagement.",
     "permissions": [
         "activeTab",
@@ -14,7 +14,8 @@
         "http://localhost:3000/*",
         "http://localhost:3002/*",
         "http://localhost:3010/*",
-        "*://*.narrativee.com/*"
+        "*://*.narrativee.com/*",
+        "*://*/*"
     ],
     "action": {
         "default_popup": "popup/popup.html",

@@ -151,7 +151,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
         window.postMessage({ type: 'NARRATIVEE_START_SYNC', profileUrl: onboardingData.substackProfileUrl }, '*');
         setTimeout(() => {
             setIsSyncingNotes(prev => { if (prev) { setError("Sync timed out. Make sure the extension is installed."); return false; } return prev; });
-        }, 45000);
+        }, 120000);
     };
 
     const handleGenerate = async () => {
