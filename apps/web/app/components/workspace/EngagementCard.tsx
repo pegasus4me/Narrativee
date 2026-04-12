@@ -102,7 +102,10 @@ export default function EngagementCard({ note, onGenerateComment, onPostComment,
 
                 {/* Note Text */}
                 <p className="text-gray-300 text-sm leading-relaxed mb-4 whitespace-pre-line">
-                    {note.content?.length > 280 ? note.content.slice(0, 280) + '...' : note.content || ''}
+                    {(() => {
+                        const text = note.content?.replace(/\n{2,}/g, '\n') || '';
+                        return text.length > 280 ? text.slice(0, 280) + '...' : text;
+                    })()}
                 </p>
 
                 {/* Engagement Stats */}

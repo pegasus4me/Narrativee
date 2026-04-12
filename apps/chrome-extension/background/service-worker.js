@@ -527,6 +527,17 @@ async function resolveSubstackUserId(profileUrl) {
             console.warn('🔄 Headless Resolver: HTML fetch failed, trying API fallback', e);
         }
 
+        // Targeted HTML Fallback: Even if data-props parsing failed, look explicitly for their JSON payload!
+        // This cleanly avoids grabbing the logged-in user's ID by checking for the handle literally
+        if (handle && typeof html !== 'undefined' && html) {
+             const htmlDesperate = html.match(new RegExp(`"handle":"${handle}"[^}]*"id":\\s*(\\d+)`, 'i')) ||
+                                   html.match(new RegExp(`"handle":"${handle}"[^}]*"user_id":\\s*(\\d+)`, 'i'));
+             if (htmlDesperate && htmlDesperate[1]) {
+                 console.log('🔄 Headless Resolver: Found ID via targeted HTML literal object regex:', htmlDesperate[1]);
+                 return htmlDesperate[1];
+             }
+        }
+
         // API Fallback: Use the Substack search API for people
         if (handle) {
             console.log('🔄 Headless Resolver: HTML parsing failed, using people search API fallback for', handle);
