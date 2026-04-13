@@ -50,7 +50,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
               >
                 Login
               </button>
-              <PrimaryButton className="border border-white/10 bg-transparent hover:bg-white/10">I want a demo</PrimaryButton>
+              <PrimaryButton className="border border-white/10 bg-transparent hover:bg-white/10" onClick={() => window.open('https://calendly.com/touilsafoan/let-s-talk', '_blank')}>I want a demo</PrimaryButton>
               <PrimaryButton onClick={onBetaSignup || (() => router.push('/auth/signup'))}>Get Started for free</PrimaryButton>
             </>
           )}
