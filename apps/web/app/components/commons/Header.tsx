@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Github, Menu, X, Star } from "lucide-react";
 import { authClient } from "../../../lib/auth-client";
-import logo from "../../../public/Narrativee.png"
+import logo from "../../../public/narrativee.png"
 import PrimaryButton from "./PrimaryButton";
 import ProfileMenu from "./ProfileMenu";
 
