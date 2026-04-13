@@ -60,7 +60,7 @@ const FEATURES = [
     icon: Target,
     label: "Campaign Autopilot",
     title: "Turn commenters into subscribers — automatically",
-    description: "Build reply campaigns targeting commenters on high-traffic notes. Set your sequence, define a daily quota, and let StackReach handle outreach while you track conversions live.",
+    description: "Build reply campaigns targeting commenters on high-traffic notes. Set your sequence, define a daily quota, and let Narrativee handle outreach while you track conversions live.",
     image: "/campaigns.png",
     span: "col-span-2",
   },
@@ -234,7 +234,7 @@ export default function Home() {
               <div className="flex items-center gap-3 mt-6">
                 <Image src="/profile.jpg" alt="Founder" width={44} height={44} className="rounded-full object-cover border border-white/10" />
                 <div>
-                  <p className="text-gray-300 text-sm font-semibold font-manrope">Safoan, founder of StackReach</p>
+                  <p className="text-gray-300 text-sm font-semibold font-manrope">Safoan, founder of Narrativee</p>
                   <a href="https://safoan.substack.com" target="_blank" rel="noopener noreferrer" className="text-primary text-sm hover:underline font-manrope">safoan.substack.com</a>
                 </div>
               </div>
@@ -267,7 +267,7 @@ export default function Home() {
                 Six tools. One dashboard.
               </h2>
               <p className="text-gray-400 text-lg font-manrope max-w-xl mx-auto">
-                StackReach bundles every tool Substack writers need to grow — without juggling six different apps.
+                Narrativee bundles every tool Substack writers need to grow — without juggling six different apps.
               </p>
             </AnimatedSection>
 
@@ -477,7 +477,7 @@ export default function Home() {
                 <FAQItem question="Will the AI-generated notes sound like me?" answer="Yes. Our AI reads your existing Substack posts and learns your sentence rhythm, vocabulary, tone, and style. It clones your voice so the notes are indistinguishable from what you'd write yourself. You can also pick a tone to fine-tune." />
                 <FAQItem question="Is this safe for my Substack account?" answer="Absolutely. The extension interacts with Substack through your browser the same way you would manually. There's no API abuse or automation that violates Substack's terms. It's like having an assistant who clicks the buttons for you." />
                 <FAQItem question="Can I edit notes before they're published?" answer="Of course. Every generated note lands in your Post Queue as a draft. You can edit, rewrite, reschedule, or delete any note before it goes live." />
-                <FAQItem question="What if I don't have a Substack yet?" answer="You'll need an active Substack publication to use StackReach. If you're just getting started, create your publication first — we'll be here." />
+                <FAQItem question="What if I don't have a Substack yet?" answer="You'll need an active Substack publication to use Narrativee. If you're just getting started, create your publication first — we'll be here." />
                 <FAQItem question="Is there a free plan?" answer="Yes, you can start for free with limited features. Check out our pricing section above for details on what's included in each plan." />
               </div>
             </AnimatedSection>

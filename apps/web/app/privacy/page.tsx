@@ -24,7 +24,7 @@ export default function PrivacyPolicy() {
                     <section>
                         <h2 className="text-xl font-medium text-white mb-4">Introduction</h2>
                         <p className="text-gray-400 leading-relaxed">
-                            StackReach ("we", "our", or "us") is dedicated to protecting your privacy. This Privacy Policy outlines how our web application and official Chrome Extension collect, use, and safeguard your data when you use our AI copilot for Substack growth.
+                            Narrativee ("we", "our", or "us") is dedicated to protecting your privacy. This Privacy Policy outlines how our web application and official Chrome Extension collect, use, and safeguard your data when you use our AI copilot for Substack growth.
                         </p>
                     </section>
 
@@ -36,17 +36,17 @@ export default function PrivacyPolicy() {
                         <div className="space-y-6">
                             <div>
                                 <h3 className="font-semibold text-gray-100 mb-2">1. Account Information</h3>
-                                <p className="text-gray-400">Information you provide when signing up on stackreach.com, including your email address, name, sub-domain, and billing details (securely processed by Stripe).</p>
+                                <p className="text-gray-400">Information you provide when signing up on narrativee.com, including your email address, name, sub-domain, and billing details (securely processed by Stripe).</p>
                             </div>
                             <div>
                                 <h3 className="font-semibold text-gray-100 mb-2">2. Chrome Extension Data</h3>
                                 <p className="text-gray-400">
-                                    When you install and use the StackReach Chrome Extension, we interact with your active Substack.com session:
+                                    When you install and use the Narrativee Chrome Extension, we interact with your active Substack.com session:
                                 </p>
                                 <ul className="text-gray-400 leading-relaxed space-y-2 mt-2 ml-4">
                                     <li className="flex gap-2"><span className="text-gray-300">—</span><span><strong>Website Content:</strong> We read posts from your Substack feed to provide AI commenting capabilities, and read your own posts to train your unique AI writing voice.</span></li>
                                     <li className="flex gap-2"><span className="text-gray-300">—</span><span><strong>User Activity:</strong> The extension automates actions on your behalf (like publishing scheduled notes or posting approved comments).</span></li>
-                                    <li className="flex gap-2"><span className="text-gray-300">—</span><span><strong>Substack Statistics:</strong> We sync your public audience and engagement metrics to your StackReach dashboard for display purposes. <strong>None of this scraped Substack data is saved to our databases.</strong> The extension merely acts as a facilitator entirely within your local browser.</span></li>
+                                    <li className="flex gap-2"><span className="text-gray-300">—</span><span><strong>Substack Statistics:</strong> We sync your public audience and engagement metrics to your Narrativee dashboard for display purposes. <strong>None of this scraped Substack data is saved to our databases.</strong> The extension merely acts as a facilitator entirely within your local browser.</span></li>
                                 </ul>
                             </div>
                         </div>
@@ -55,7 +55,7 @@ export default function PrivacyPolicy() {
                     <section className="bg-[#1a1b1c] border border-[#2e3033] text-white -mx-6 px-6 py-8 rounded-lg">
                         <h2 className="text-xl font-medium mb-4">Data Security & Storage (Zero Database Policy for Substack)</h2>
                         <p className="text-gray-400 leading-relaxed mb-4">
-                            Your trust is paramount. All interaction between Substack and StackReach happens entirely locally in your browser. Our backend servers do not store your Substack posts, comments, or scraped statistics.
+                            Your trust is paramount. All interaction between Substack and Narrativee happens entirely locally in your browser. Our backend servers do not store your Substack posts, comments, or scraped statistics.
                         </p>
                         <div className="flex gap-4 flex-wrap">
                             <div className="px-4 py-2 bg-white/10 rounded-lg text-sm">
@@ -98,7 +98,7 @@ export default function PrivacyPolicy() {
                         <ul className="text-gray-400 leading-relaxed space-y-3">
                             <li className="flex gap-3"><span className="text-gray-500">—</span><span><strong>activeTab & tabs:</strong> Required to interact with your active auth session on Substack.com to automate tasks.</span></li>
                             <li className="flex gap-3"><span className="text-gray-500">—</span><span><strong>storage:</strong> Used to securely save your writing style preferences, bio, and tone settings locally in your browser.</span></li>
-                            <li className="flex gap-3"><span className="text-gray-500">—</span><span><strong>Host permissions:</strong> We require access to `*.substack.com` to perform the automations, and `*.stackreach.com` to sync with your dashboard queue.</span></li>
+                            <li className="flex gap-3"><span className="text-gray-500">—</span><span><strong>Host permissions:</strong> We require access to `*.substack.com` to perform the automations, and `*.narrativee.com` to sync with your dashboard queue.</span></li>
                         </ul>
                     </section>
 
@@ -106,8 +106,8 @@ export default function PrivacyPolicy() {
                         <h2 className="text-xl font-medium text-white mb-4">Contact Us</h2>
                         <p className="text-gray-400 leading-relaxed">
                             If you have questions about this Privacy Policy, your Chrome Extension data, or general data practices, please contact us at{" "}
-                            <a href="mailto:contact@stackreach.com" className="text-white underline underline-offset-4 hover:text-primary transition-colors">
-                                contact@stackreach.com
+                            <a href="mailto:contact@narrativee.com" className="text-white underline underline-offset-4 hover:text-primary transition-colors">
+                                contact@narrativee.com
                             </a>
                         </p>
                     </section>
@@ -117,12 +117,12 @@ export default function PrivacyPolicy() {
             <footer className="py-12 px-6 border-t border-[#2e3033] mt-20">
                 <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
                     <Link href="/">
-                        <Image src={logo} alt="StackReach" width={100} />
+                        <Image src={logo} alt="Narrativee" width={100} />
                     </Link>
                     <div className="flex items-center gap-8 text-sm text-gray-500">
                         <a href="/privacy" className="text-white hover:text-primary transition-colors">Privacy</a>
                         <a href="/terms" className="hover:text-white transition-colors">Terms</a>
-                        <a href="mailto:contact@stackreach.com" className="hover:text-white transition-colors">Contact</a>
+                        <a href="mailto:contact@narrativee.com" className="hover:text-white transition-colors">Contact</a>
                     </div>
                 </div>
             </footer>

@@ -24,14 +24,14 @@ export default function TermsOfService() {
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Acceptance of Terms</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            By accessing or using StackReach ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
+                            By accessing or using Narrativee ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Description of Service</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            StackReach is a SaaS platform designed to help Substack creators grow their publications faster. The Service provides tools for scheduling and auto-publishing notes, generating AI-written content in your voice, automating engagement with trending posts, and tracking publication analytics — all from a single dashboard backed by a Chrome extension.
+                            Narrativee is a SaaS platform designed to help Substack creators grow their publications faster. The Service provides tools for scheduling and auto-publishing notes, generating AI-written content in your voice, automating engagement with trending posts, and tracking publication analytics — all from a single dashboard backed by a Chrome extension.
                         </p>
                     </section>
 
@@ -60,14 +60,14 @@ export default function TermsOfService() {
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Data Rights & Ownership</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            You retain all rights to the data you send to StackReach ("Customer Data"). By using the Service, you grant StackReach a license to collect, host, store, and analyzing Customer Data solely for the purpose of providing and improving the Service. You represent and warrant that you have obtained all necessary consents from your end-users to share their data with StackReach.
+                            You retain all rights to the data you send to Narrativee ("Customer Data"). By using the Service, you grant Narrativee a license to collect, host, store, and analyzing Customer Data solely for the purpose of providing and improving the Service. You represent and warrant that you have obtained all necessary consents from your end-users to share their data with Narrativee.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Intellectual Property</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            The Service, including its software, code, design, features, and documentation, is the exclusive property of StackReach and its licensors. You may not copy, modify, distribute, sell, or lease any part of our software or included documentation, nor may you reverse engineer or attempt to extract the source code of that software.
+                            The Service, including its software, code, design, features, and documentation, is the exclusive property of Narrativee and its licensors. You may not copy, modify, distribute, sell, or lease any part of our software or included documentation, nor may you reverse engineer or attempt to extract the source code of that software.
                         </p>
                     </section>
 
@@ -99,7 +99,7 @@ export default function TermsOfService() {
                     <section>
                         <h2 className="text-xl font-medium text-black mb-4">Limitation of Liability</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            To the maximum extent permitted by law, StackReach shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, or goodwill, arising from your use of the Service. Our total liability for any claim shall not exceed the amount paid by you to StackReach in the 12 months preceding the claim.
+                            To the maximum extent permitted by law, Narrativee shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, or goodwill, arising from your use of the Service. Our total liability for any claim shall not exceed the amount paid by you to Narrativee in the 12 months preceding the claim.
                         </p>
                     </section>
 
@@ -139,7 +139,7 @@ export default function TermsOfService() {
             <footer className="py-12 px-6 border-t border-gray-100 mt-20">
                 <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
                     <Link href="/">
-                        <Image src={logo} alt="StackReach" width={100} />
+                        <Image src={logo} alt="Narrativee" width={100} />
                     </Link>
                     <div className="flex items-center gap-8 text-sm text-gray-400">
                         <a href="/privacy" className="hover:text-black transition-colors">Privacy</a>

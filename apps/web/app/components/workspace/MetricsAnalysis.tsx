@@ -70,7 +70,7 @@ export function MetricsAnalysis() {
             {loading && (
                 <div className="px-5 py-8 flex flex-col items-center gap-3 text-gray-500">
                     <Sparkles className="w-6 h-6 text-violet-500 animate-pulse" />
-                    <p className="text-sm">StackReach is analysing your Substack metrics…</p>
+                    <p className="text-sm">Narrativee is analysing your Substack metrics…</p>
                 </div>
             )}
 

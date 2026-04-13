@@ -79,7 +79,7 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
         if (!isOpen) return;
         const fetchData = async () => {
             if (!session?.user) return;
-            const savedRules = localStorage.getItem("stackreach_agent_rules");
+            const savedRules = localStorage.getItem("narrativee_agent_rules");
             if (savedRules) {
                 try { setRules(JSON.parse(savedRules).map((r: any) => r.content)); } catch (e) { }
             }

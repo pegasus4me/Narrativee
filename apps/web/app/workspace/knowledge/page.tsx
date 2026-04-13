@@ -36,7 +36,7 @@ export default function KnowledgeBasePage() {
 
     // Load rules from local storage on mount
     useEffect(() => {
-        const savedRules = localStorage.getItem("stackreach_agent_rules");
+        const savedRules = localStorage.getItem("narrativee_agent_rules");
         if (savedRules) {
             try {
                 setRules(JSON.parse(savedRules));
@@ -48,7 +48,7 @@ export default function KnowledgeBasePage() {
 
     // Save rules to local storage whenever they change
     useEffect(() => {
-        localStorage.setItem("stackreach_agent_rules", JSON.stringify(rules));
+        localStorage.setItem("narrativee_agent_rules", JSON.stringify(rules));
     }, [rules]);
 
     // Fetch connected sources (simulating based on onboarding data logic)
