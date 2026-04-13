@@ -170,14 +170,29 @@ export default function Home() {
               </Link>
             </motion.div>
 
-            <motion.p
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-gray-600 text-sm font-manrope mb-16"
+              className="flex flex-col items-center gap-3 mb-16"
             >
-              7-day free trial · No credit card required
-            </motion.p>
+              <a
+                href="https://chromewebstore.google.com/detail/narrativee/hgokdadgfhfioepbogddoaofopahgkhj"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] transition-all text-sm font-medium text-white/80 font-manrope"
+              >
+                <svg viewBox="0 0 48 48" className="w-5 h-5 shrink-0" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="24" cy="24" r="10" fill="#fff"/>
+                  <path d="M24 14h14.4A20 20 0 1 0 24 44V34a10 10 0 0 1 0-20z" fill="#4CAF50"/>
+                  <path d="M24 14h14.4A20 20 0 0 0 9.6 9.6L17 22a10 10 0 0 1 7-8z" fill="#F44336"/>
+                  <path d="M9.6 9.6L17 22a10 10 0 0 0 7 16v8A20 20 0 0 1 9.6 9.6z" fill="#FFEB3B"/>
+                  <circle cx="24" cy="24" r="6" fill="#2196F3"/>
+                </svg>
+                Download the official Narrativee extension
+              </a>
+              <p className="text-gray-600 text-sm font-manrope">7-day free trial · No credit card required</p>
+            </motion.div>
 
             {/* Hero image */}
             <motion.div
