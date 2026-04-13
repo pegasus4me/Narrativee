@@ -6,7 +6,7 @@ import { authClient } from "@/lib/auth-client";
 import { API_URL } from "@/lib/api-config";
 import { Upload, Building2, Globe, ArrowRight, Check, Loader2, Sparkles, User, FileText, Languages } from "lucide-react";
 import Image from "next/image";
-import logo from "../../public/logodark.png";
+import logo from "../../public/narrativee.png";
 import PrimaryButton from "../components/commons/PrimaryButton";
 
 type Step = "input-url" | "verify" | "connect-publication" | "preferences" | "completing";
