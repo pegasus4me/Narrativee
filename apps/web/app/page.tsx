@@ -187,11 +187,10 @@ export default function Home() {
               className="relative rounded-2xl overflow-hidden shadow-lg border border-white/[0.07] p-2"
             >
               <iframe
-                src="https://streamable.com/e/is1ola?autoplay=1&muted=1&loop=1&nocontrols=1"
+                src="https://customer-qusdy8i1rves1ask.cloudflarestream.com/0f1674d204460b2341c841f80cd8b413/iframe?autoplay=true&muted=true&loop=true&controls=false&preload=true"
                 className="w-full aspect-video rounded-xl"
-                frameBorder="0"
+                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
                 allowFullScreen
-                allow="autoplay; fullscreen"
               />
             </motion.div>
           </div>
