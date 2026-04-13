@@ -186,13 +186,12 @@ export default function Home() {
               transition={{ duration: 0.85, delay: 0.35 }}
               className="relative rounded-2xl overflow-hidden shadow-lg border border-white/[0.07] p-2"
             >
-              <video
-                src="/campaigns_record.mov"
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-auto rounded-xl"
+              <iframe
+                src="https://streamable.com/e/is1ola?autoplay=1&muted=1&loop=1&nocontrols=1"
+                className="w-full aspect-video rounded-xl"
+                frameBorder="0"
+                allowFullScreen
+                allow="autoplay; fullscreen"
               />
             </motion.div>
           </div>
