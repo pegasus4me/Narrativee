@@ -24,7 +24,7 @@ const manrope = Manrope({
 })
 
 export const metadata: Metadata = {
-  title: "Narrativee",
+  title: "StackReach",
   description: "grow on substack",
 };
 

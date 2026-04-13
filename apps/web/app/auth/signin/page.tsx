@@ -72,7 +72,7 @@ export default function SignIn() {
             // Actually, `authClient` might not have the session updated in the hook immediately, but the cookie is there.
             // Let's rely on a direct fetch to our new endpoint.
             // Since we are on client, we need the full URL if it's ssr, but here relative is fine.
-            // BUT: The api is at API_URL (likely localhost:3002 or narrativee.com).
+            // BUT: The api is at API_URL (likely localhost:3002 or stackreach.com).
             // We need to import API_URL.
 
             // Let's verify where API_URL comes from.
@@ -122,7 +122,7 @@ export default function SignIn() {
               Sign in
             </h1>
             <p className="mt-2 text-gray-500 text-sm">
-              Welcome back to Narrativee
+              Welcome back to StackReach
             </p>
           </div>
 

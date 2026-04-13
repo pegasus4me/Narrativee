@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Github, Menu, X, Star } from "lucide-react";
 import { authClient } from "../../../lib/auth-client";
-import logo from "../../../public/narrativee.png"
+import logo from "../../../public/Narrativee.png"
 import PrimaryButton from "./PrimaryButton";
 import ProfileMenu from "./ProfileMenu";
 
@@ -20,12 +20,15 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="text-white container mx-auto">
+    <header className="text-white container mx-auto p-4 bg-gradient-to-r from-[#0d0d0f] via-white/30 to-[#0d0d0f] bg-[length:100%_1px] bg-bottom bg-no-repeat">
       {/* Main header bar */}
       <div className="relative flex items-center justify-between px-4 md:px-6 py-2">
         {/* Logo */}
-        <div className="w-[120px] md:w-[160px] z-10">
-          <Image src={logo} alt="Logo" width={160} height={100} className="w-full h-auto" />
+        <div className="flex items-center gap-2 z-10">
+          <div className="w-[120px] md:w-[160px]">
+            <Image src={logo} alt="Logo" width={160} height={100} className="w-full h-auto" />
+          </div>
+          <span className="text-[10px] font-semibold text-white/40 bg-white/10 border border-white/10 rounded-full px-1.5 py-0.5 font-manrope tracking-wide">v0.3</span>
         </div>
 
         {/* Desktop nav - Absolutely centered */}
@@ -47,6 +50,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
               >
                 Login
               </button>
+              <PrimaryButton className="border border-white/10 bg-transparent hover:bg-white/10">I want a demo</PrimaryButton>
               <PrimaryButton onClick={onBetaSignup || (() => router.push('/auth/signup'))}>Get Started for free</PrimaryButton>
             </>
           )}

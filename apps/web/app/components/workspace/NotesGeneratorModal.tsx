@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Sparkles, Loader2, Trash2, Check, Clock, FileText, Rss, ChevronDown, ChevronUp } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { API_URL } from "@/lib/api-config";
@@ -73,12 +73,13 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
     const [error, setError] = useState<string | null>(null);
     const [isSyncingNotes, setIsSyncingNotes] = useState(false);
     const [lastSyncCount, setLastSyncCount] = useState<number | null>(null);
+    const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (!isOpen) return;
         const fetchData = async () => {
             if (!session?.user) return;
-            const savedRules = localStorage.getItem("narrativee_agent_rules");
+            const savedRules = localStorage.getItem("stackreach_agent_rules");
             if (savedRules) {
                 try { setRules(JSON.parse(savedRules).map((r: any) => r.content)); } catch (e) { }
             }
@@ -138,6 +139,19 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
                 setLastSyncCount(newPosts.length);
                 setError(null);
                 setIsSyncingNotes(false);
+                if (syncTimeoutRef.current) {
+                    clearTimeout(syncTimeoutRef.current);
+                    syncTimeoutRef.current = null;
+                }
+            }
+
+            if (event.data?.type === 'NARRATIVEE_NOTES_SYNC_ERROR') {
+                if (syncTimeoutRef.current) {
+                    clearTimeout(syncTimeoutRef.current);
+                    syncTimeoutRef.current = null;
+                }
+                setError(event.data.error || "Failed to sync notes.");
+                setIsSyncingNotes(false);
             }
         };
         window.addEventListener('message', handleMessage);
@@ -149,8 +163,12 @@ export default function NotesGeneratorModal({ isOpen, onClose, onScheduleNotes }
         setIsSyncingNotes(true);
         setError(null);
         window.postMessage({ type: 'NARRATIVEE_START_SYNC', profileUrl: onboardingData.substackProfileUrl }, '*');
-        setTimeout(() => {
-            setIsSyncingNotes(prev => { if (prev) { setError("Sync timed out. Make sure the extension is installed."); return false; } return prev; });
+        
+        if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+        syncTimeoutRef.current = setTimeout(() => {
+            setIsSyncingNotes(false);
+            setError("Sync timed out. Make sure the extension is installed.");
+            syncTimeoutRef.current = null;
         }, 120000);
     };
 
