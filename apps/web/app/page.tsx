@@ -162,12 +162,17 @@ export default function Home() {
                 {session ? "Go to Dashboard" : "Start for Free"}
                 <ArrowRight className="w-4 h-4 ml-2 inline" />
               </PrimaryButton>
-              <Link
-                href="/pricing"
-                className="text-gray-400 font-medium text-base hover:text-white transition-colors font-manrope flex items-center gap-1.5"
+              <PrimaryButton
+                onClick={() => router.push("https://chromewebstore.google.com/detail/narrativee/hgokdadgfhfioepbogddoaofopahgkhj")}
+                className="bg-transparent w-fit border-white/10 hover:bg-white/10 text-gray-400 hover:text-white font-medium text-base transition-colors font-manrope flex items-center gap-1.5 px-6 py-3.5"
               >
-                View pricing <ChevronRight className="w-4 h-4" />
-              </Link>
+<img
+                                src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg"
+                                alt="Chrome"
+                                className="w-5 h-5"
+                            />
+                Download the extension
+              </PrimaryButton>
             </motion.div>
 
             <motion.div
@@ -176,22 +181,7 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="flex flex-col items-center gap-3 mb-16"
             >
-              <a
-                href="https://chromewebstore.google.com/detail/narrativee/hgokdadgfhfioepbogddoaofopahgkhj"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] transition-all text-sm font-medium text-white/80 font-manrope"
-              >
-                <svg viewBox="0 0 48 48" className="w-5 h-5 shrink-0" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="24" cy="24" r="10" fill="#fff"/>
-                  <path d="M24 14h14.4A20 20 0 1 0 24 44V34a10 10 0 0 1 0-20z" fill="#4CAF50"/>
-                  <path d="M24 14h14.4A20 20 0 0 0 9.6 9.6L17 22a10 10 0 0 1 7-8z" fill="#F44336"/>
-                  <path d="M9.6 9.6L17 22a10 10 0 0 0 7 16v8A20 20 0 0 1 9.6 9.6z" fill="#FFEB3B"/>
-                  <circle cx="24" cy="24" r="6" fill="#2196F3"/>
-                </svg>
-                Download the official Narrativee extension
-              </a>
-              <p className="text-gray-600 text-sm font-manrope">7-day free trial · No credit card required</p>
+            <p className="text-gray-600 text-sm font-manrope">7-day free trial · No credit card required</p>
             </motion.div>
 
             {/* Hero image */}
