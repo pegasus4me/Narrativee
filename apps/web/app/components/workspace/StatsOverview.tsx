@@ -4,11 +4,11 @@ import { MessageSquare, ThumbsUp, Calendar, Activity, Info } from "lucide-react"
 import { useAnalytics } from "./AnalyticsProvider";
 
 export function StatsOverview() {
-    const { postStats, feedNotes, feedLikes, feedComments, feedRestacks, loading } = useAnalytics();
+    const { feedNotes, feedLikes, feedComments, feedRestacks, loading } = useAnalytics();
 
-    // Use reader feed data as primary source for notes engagement
-    const totalLikes = feedLikes + (postStats?.totalLikes || 0);
-    const totalComments = feedComments + (postStats?.totalComments || 0);
+    // Use reader feed as the sole source of truth for notes engagement
+    const totalLikes = feedLikes;
+    const totalComments = feedComments;
     const totalRestacks = feedRestacks;
     const engagementScore = totalLikes * 1 + totalComments * 3 + totalRestacks * 5;
 
