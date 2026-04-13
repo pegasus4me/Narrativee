@@ -53,8 +53,8 @@ export default function EngagePage() {
     }, [session?.user]);
 
     useEffect(() => {
-        const savedNotes = localStorage.getItem('narrativee_engage_notes');
-        const savedTime = localStorage.getItem('narrativee_engage_pulled_at');
+        const savedNotes = localStorage.getItem('stackreach_engage_notes');
+        const savedTime = localStorage.getItem('stackreach_engage_pulled_at');
         if (savedNotes) {
             try { setNotes(JSON.parse(savedNotes)); } catch (e) { }
         }
@@ -71,8 +71,8 @@ export default function EngagePage() {
                 setSkipped(new Set());
                 const now = new Date();
                 setLastPulled(now);
-                localStorage.setItem('narrativee_engage_notes', JSON.stringify(loadedNotes));
-                localStorage.setItem('narrativee_engage_pulled_at', now.toISOString());
+                localStorage.setItem('stackreach_engage_notes', JSON.stringify(loadedNotes));
+                localStorage.setItem('stackreach_engage_pulled_at', now.toISOString());
                 setIsLoading(false);
                 setError(null);
             }
@@ -83,8 +83,8 @@ export default function EngagePage() {
                 setSkipped(new Set());
                 const now = new Date();
                 setLastPulled(now);
-                localStorage.setItem('narrativee_engage_notes', JSON.stringify(loadedNotes));
-                localStorage.setItem('narrativee_engage_pulled_at', now.toISOString());
+                localStorage.setItem('stackreach_engage_notes', JSON.stringify(loadedNotes));
+                localStorage.setItem('stackreach_engage_pulled_at', now.toISOString());
                 setIsAuthorSearching(false);
                 if (event.data.error) {
                     setError(event.data.error);

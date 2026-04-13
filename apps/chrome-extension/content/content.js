@@ -1169,6 +1169,16 @@
                 chrome.runtime.sendMessage({
                     type: 'START_NOTES_SYNC',
                     profileUrl: event.data.profileUrl
+                }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        window.postMessage({ type: 'NARRATIVEE_NOTES_SYNC_ERROR', error: chrome.runtime.lastError.message }, '*');
+                        return;
+                    }
+                    if (response && response.success && response.notes) {
+                        window.postMessage({ type: 'NARRATIVEE_NOTES_SYNCED', notes: response.notes }, '*');
+                    } else if (response && response.error) {
+                        window.postMessage({ type: 'NARRATIVEE_NOTES_SYNC_ERROR', error: response.error }, '*');
+                    }
                 });
             }
 
@@ -1231,6 +1241,14 @@
                 window.postMessage({
                     type: 'NARRATIVEE_NOTES_SYNCED',
                     notes: message.notes
+                }, '*');
+            }
+
+            if (message.type === 'NARRATIVEE_NOTES_SYNC_ERROR') {
+                console.error('🔄 Narrativee: Received sync error', message.error);
+                window.postMessage({
+                    type: 'NARRATIVEE_NOTES_SYNC_ERROR',
+                    error: message.error
                 }, '*');
             }
 

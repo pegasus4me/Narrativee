@@ -139,7 +139,7 @@ export default function OnboardingPage() {
 
                 {/* Logo */}
                 <div className="flex justify-center mb-8">
-                    <Image src={logo} alt="Narrativee" width={140} height={40} className="object-contain" />
+                    <Image src={logo} alt="StackReach" width={140} height={40} className="object-contain" />
                 </div>
 
                 {/* Progress Indicators (Simple dots) */}

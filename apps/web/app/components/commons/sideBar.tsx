@@ -13,7 +13,7 @@ import { MdKeyboardArrowDown, MdKeyboardArrowRight } from "react-icons/md";
 import Image from "next/image";
 import { FaMagic } from "react-icons/fa";
 import { API_URL } from "@/lib/api-config";
-import logo from "../../../public/narrativee.png"
+import logo from "../../../public/Narrativee.png"
 import logoSide from "../../../public/logo.png"
 import { VscLayoutSidebarRight } from "react-icons/vsc";
 import { VscLayoutSidebarLeft } from "react-icons/vsc";

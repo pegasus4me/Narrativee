@@ -501,11 +501,11 @@ async function resolveSubstackUserId(profileUrl) {
             
             // Substack uses various patterns in the server-rendered HTML
             const patterns = [
-                /"user_id":\s*(\d+)/,
-                /"author_id":\s*(\d+)/,
-                /"primary_user_id":\s*(\d+)/,
+                /\\?"user_id\\?":\s*(\d+)/,
+                /\\?"author_id\\?":\s*(\d+)/,
+                /\\?"primary_user_id\\?":\s*(\d+)/,
                 /user_id=(\d+)/,
-                new RegExp(`"id":\\s*(\\d+)[^}]*"handle":"${handle}"`, 'i')
+                new RegExp(`\\\\?"id\\\\?":\\s*(\\d+)[^}]*\\\\?"handle\\\\?":\\\\?"${handle}\\\\?"`, 'i')
             ];
 
             for (const pattern of patterns) {
@@ -530,8 +530,8 @@ async function resolveSubstackUserId(profileUrl) {
         // Targeted HTML Fallback: Even if data-props parsing failed, look explicitly for their JSON payload!
         // This cleanly avoids grabbing the logged-in user's ID by checking for the handle literally
         if (handle && typeof html !== 'undefined' && html) {
-             const htmlDesperate = html.match(new RegExp(`"handle":"${handle}"[^}]*"id":\\s*(\\d+)`, 'i')) ||
-                                   html.match(new RegExp(`"handle":"${handle}"[^}]*"user_id":\\s*(\\d+)`, 'i'));
+             const htmlDesperate = html.match(new RegExp(`\\\\?"handle\\\\?":\\\\?"${handle}\\\\?"[^}]*\\\\?"id\\\\?":\\s*(\\d+)`, 'i')) ||
+                                   html.match(new RegExp(`\\\\?"handle\\\\?":\\\\?"${handle}\\\\?"[^}]*\\\\?"user_id\\\\?":\\s*(\\d+)`, 'i'));
              if (htmlDesperate && htmlDesperate[1]) {
                  console.log('🔄 Headless Resolver: Found ID via targeted HTML literal object regex:', htmlDesperate[1]);
                  return htmlDesperate[1];
@@ -853,24 +853,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log('🚀 Background: Received START_NOTES_SYNC for', message.profileUrl);
 
         (async () => {
-            const userId = await resolveSubstackUserId(message.profileUrl);
-            if (!userId) {
-                sendResponse({ success: false, error: 'Could not resolve user ID' });
-                return;
-            }
+            try {
+                const userId = await resolveSubstackUserId(message.profileUrl);
+                if (!userId) {
+                    sendResponse({ success: false, error: 'Could not resolve user ID' });
+                    forwardToNarrativeeTab({ type: 'NARRATIVEE_NOTES_SYNC_ERROR', error: `Could not resolve user ID for ${message.profileUrl}` });
+                    return;
+                }
 
-            const sync = await headlessSyncNotes(userId);
-            if (sync.success) {
-                // Route the notes directly back to the sender
-                sendResponse({ success: true, notes: sync.notes });
+                const sync = await headlessSyncNotes(userId);
+                if (sync.success) {
+                    // Route the notes directly back to the sender
+                    sendResponse({ success: true, notes: sync.notes });
 
-                // Also forward to any Narrativee tabs as legacy backup
-                forwardToNarrativeeTab({
-                    type: 'NARRATIVEE_NOTES_SYNCED',
-                    notes: sync.notes
-                });
-            } else {
-                sendResponse({ success: false, error: sync.error });
+                    // Also forward to any Narrativee tabs as legacy backup
+                    forwardToNarrativeeTab({
+                        type: 'NARRATIVEE_NOTES_SYNCED',
+                        notes: sync.notes
+                    });
+                } else {
+                    sendResponse({ success: false, error: sync.error });
+                    forwardToNarrativeeTab({ type: 'NARRATIVEE_NOTES_SYNC_ERROR', error: sync.error });
+                }
+            } catch (e) {
+                console.error('🚀 Background: START_NOTES_SYNC caught error', e);
+                sendResponse({ success: false, error: e.message });
+                forwardToNarrativeeTab({ type: 'NARRATIVEE_NOTES_SYNC_ERROR', error: e.message });
             }
         })();
         return true;
