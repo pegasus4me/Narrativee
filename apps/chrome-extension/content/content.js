@@ -115,6 +115,51 @@
             });
         }
 
+        if (event.data?.type === 'NARRATIVEE_FETCH_PAID_SUBS_TIMESERIES') {
+            console.log('💳 Paid subs timeseries requested from Web App');
+            chrome.runtime.sendMessage({
+                type: 'FETCH_PAID_SUBS_TIMESERIES',
+                publicationUrl: event.data.publicationUrl
+            }, (response) => {
+                window.postMessage({
+                    type: 'NARRATIVEE_PAID_SUBS_TIMESERIES_RESULT',
+                    success: response?.success ?? false,
+                    data: response?.data ?? null,
+                    error: response?.error ?? null,
+                }, '*');
+            });
+        }
+
+        if (event.data?.type === 'NARRATIVEE_FETCH_SUBS_TIMESERIES') {
+            console.log('📈 Subs timeseries requested from Web App');
+            chrome.runtime.sendMessage({
+                type: 'FETCH_SUBS_TIMESERIES',
+                publicationUrl: event.data.publicationUrl
+            }, (response) => {
+                window.postMessage({
+                    type: 'NARRATIVEE_SUBS_TIMESERIES_RESULT',
+                    success: response?.success ?? false,
+                    data: response?.data ?? null,
+                    error: response?.error ?? null,
+                }, '*');
+            });
+        }
+
+        if (event.data?.type === 'NARRATIVEE_FETCH_PUBLISH_SUMMARY') {
+            console.log('📊 Publish summary requested from Web App');
+            chrome.runtime.sendMessage({
+                type: 'FETCH_PUBLISH_SUMMARY',
+                publicationUrl: event.data.publicationUrl
+            }, (response) => {
+                window.postMessage({
+                    type: 'NARRATIVEE_PUBLISH_SUMMARY_RESULT',
+                    success: response?.success ?? false,
+                    data: response?.data ?? null,
+                    error: response?.error ?? null,
+                }, '*');
+            });
+        }
+
         if (event.data?.type === 'NARRATIVEE_SCRAPE_CAMPAIGN_TARGETS') {
             console.log('🎯 Campaign scrape requested from Web App');
             chrome.runtime.sendMessage({

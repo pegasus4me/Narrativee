@@ -1,3 +1,4 @@
+//https://substack.com/api/v1/messages/inbox?tab=all
 
 import { Router } from 'express';
 import { auth } from '../auth/auth';

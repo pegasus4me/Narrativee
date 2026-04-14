@@ -1,32 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { API_URL } from "@/lib/api-config";
 import { format, subMonths, eachDayOfInterval, startOfWeek, startOfDay } from "date-fns";
-
-interface HeatmapCell {
-    date: string; // YYYY-MM-DD
-    count: number;
-}
+import { useAnalytics } from "./AnalyticsProvider";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const CELL = 14;
 const GAP = 3;
 
 export function PostingHeatmap() {
-    const [data, setData] = useState<HeatmapCell[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetch(`${API_URL}/notes/posting-heatmap`, { credentials: "include" })
-            .then(r => {
-                if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                return r.json();
-            })
-            .then((json: unknown) => setData((json as { data?: HeatmapCell[] }).data || []))
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    }, []);
+    const { heatmap, loading } = useAnalytics();
 
     const today = startOfDay(new Date());
     const startDate = startOfWeek(subMonths(today, 6));
@@ -42,7 +24,7 @@ export function PostingHeatmap() {
 
     const map = new Map<string, number>();
     let maxCount = 1;
-    for (const cell of data) {
+    for (const cell of heatmap) {
         map.set(cell.date, cell.count);
         if (cell.count > maxCount) maxCount = cell.count;
     }
@@ -56,7 +38,7 @@ export function PostingHeatmap() {
         return "#39d353";
     };
 
-    const totalNotes = data.reduce((sum, c) => sum + c.count, 0);
+    const totalNotes = heatmap.reduce((sum, c) => sum + c.count, 0);
 
     const monthLabels: { label: string; col: number }[] = [];
     let lastMonth = -1;
@@ -75,7 +57,6 @@ export function PostingHeatmap() {
 
     return (
         <div className="w-full">
-            <h2 className="text-base font-medium mb-4 text-gray-100">Posting Heatmap</h2>
             {loading ? (
                 <div className="h-32 flex items-center justify-center text-gray-600 text-sm animate-pulse">
                     Loading...

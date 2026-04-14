@@ -122,4 +122,94 @@ router.post('/fetch-profile', requireAuth, async (req, res) => {
     }
 });
 
+// GET /substack/user-id/:handle — resolve Substack handle to numeric user ID
+router.get('/user-id/:handle', requireAuth, async (req, res) => {
+    const { handle } = req.params;
+    try {
+        const response = await fetch(`https://substack.com/api/v1/user/${handle}/public_profile`, {
+            headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            },
+        });
+        if (!response.ok) return res.status(404).json({ error: 'User not found' });
+        const data = await response.json() as any;
+        return res.json({ id: data?.id ?? null });
+    } catch (error: any) {
+        return res.status(500).json({ error: 'Failed to resolve user ID', details: error.message });
+    }
+});
+
+// GET /substack/reader-feed/:userId — proxy Substack reader feed for a user
+router.get('/reader-feed/:userId', requireAuth, async (req, res) => {
+    const { userId } = req.params;
+    const { cursor } = req.query;
+    const url = `https://substack.com/api/v1/reader/feed/profile/${userId}${cursor ? `?cursor=${cursor}` : ''}`;
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            },
+        });
+        if (!response.ok) return res.status(response.status).json({ error: 'Feed fetch failed' });
+        const data = await response.json();
+        return res.json(data);
+    } catch (error: any) {
+        return res.status(500).json({ error: 'Failed to fetch reader feed', details: error.message });
+    }
+});
+
+// In-memory cache for subscriber timeseries, keyed by userId
+const subsTimeseriesCache = new Map<string, { data: any; updatedAt: number }>();
+
+// POST /substack/subs-timeseries — store pushed from Chrome extension
+router.post('/subs-timeseries', requireAuth, async (req: any, res) => {
+    const userId = req.session.user.id;
+    subsTimeseriesCache.set(userId, { data: req.body, updatedAt: Date.now() });
+    return res.json({ success: true });
+});
+
+// GET /substack/subs-timeseries — retrieve cached data
+router.get('/subs-timeseries', requireAuth, async (req: any, res) => {
+    const userId = req.session.user.id;
+    const cached = subsTimeseriesCache.get(userId);
+    if (!cached) return res.status(404).json({ error: 'No data yet' });
+    return res.json(cached.data);
+});
+
+// In-memory cache for paid subscriber timeseries, keyed by userId
+const paidSubsTimeseriesCache = new Map<string, { data: any; updatedAt: number }>();
+
+router.post('/paid-subs-timeseries', requireAuth, async (req: any, res) => {
+    const userId = req.session.user.id;
+    paidSubsTimeseriesCache.set(userId, { data: req.body, updatedAt: Date.now() });
+    return res.json({ success: true });
+});
+
+router.get('/paid-subs-timeseries', requireAuth, async (req: any, res) => {
+    const userId = req.session.user.id;
+    const cached = paidSubsTimeseriesCache.get(userId);
+    if (!cached) return res.status(404).json({ error: 'No data yet' });
+    return res.json(cached.data);
+});
+
+// In-memory cache for publish summary, keyed by userId
+const publishSummaryCache = new Map<string, { data: any; updatedAt: number }>();
+
+// POST /substack/publish-summary — store summary pushed from the Chrome extension
+router.post('/publish-summary', requireAuth, async (req: any, res) => {
+    const userId = req.session.user.id;
+    publishSummaryCache.set(userId, { data: req.body, updatedAt: Date.now() });
+    return res.json({ success: true });
+});
+
+// GET /substack/publish-summary — retrieve the cached summary
+router.get('/publish-summary', requireAuth, async (req: any, res) => {
+    const userId = req.session.user.id;
+    const cached = publishSummaryCache.get(userId);
+    if (!cached) return res.status(404).json({ error: 'No data yet — sync via extension' });
+    return res.json(cached.data);
+});
+
 export default router;

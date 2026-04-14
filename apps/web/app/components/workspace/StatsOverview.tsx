@@ -33,7 +33,7 @@ export function StatsOverview() {
     const statItems = [
         {
             label: "Total Likes",
-            value: totalLikes.toLocaleString(),
+            value: totalLikes.toString(),
             icon: ThumbsUp,
             color: "text-purple-400",
             bg: "bg-purple-900/20",
@@ -41,7 +41,7 @@ export function StatsOverview() {
         },
         {
             label: "Total Comments",
-            value: totalComments.toLocaleString(),
+            value: totalComments.toString(),
             icon: MessageSquare,
             color: "text-orange-400",
             bg: "bg-orange-900/20",
@@ -49,7 +49,7 @@ export function StatsOverview() {
         },
         {
             label: "Engagement Score",
-            value: engagementScore.toLocaleString(),
+            value: engagementScore.toString(),
             icon: Activity,
             color: "text-green-400",
             bg: "bg-green-900/20",

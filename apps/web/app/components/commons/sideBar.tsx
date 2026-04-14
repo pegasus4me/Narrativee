@@ -43,9 +43,9 @@ interface SideBarProps {
 }
 
 interface OrgData {
-  orgName?: string;
-  orgLogo?: string;
-  orgUrl?: string;
+  substackPublicationName?: string;
+  substackPublicationLogo?: string;
+
 }
 
 export function SideBar({ selectedTemplateId }: SideBarProps) {
@@ -116,7 +116,16 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
 
           <div className="flex items-center justify-between w-full mb-2 ">
             {isSidebarOpen ? (
-              <Image src={logo} alt="Logo" width={150} height={120} />
+              <div className="flex flex-col gap-0.5">
+                <Image src={logo} alt="Logo" width={150} height={120} />
+                {orgData?.substackPublicationName && (
+                 <div className="flex items-center gap-2 text-xs text-gray-400 bg-accent/10 px-2 py-1 rounded">
+                  
+                    <Image src={orgData.substackPublicationLogo || logoSide} alt="Publication Logo" width={16} height={16} className="rounded-full" />
+                    <span>{orgData.substackPublicationName}</span>
+                  </div>
+                )}
+              </div>
             ) : (
               null
             )}

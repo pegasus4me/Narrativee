@@ -592,13 +592,14 @@ async function resolveSubstackUserId(profileUrl) {
 /**
  * Headless fetch of a user's own notes
  */
-async function headlessSyncNotes(userId) {
+async function headlessSyncNotes(userId, filterHandle) {
     try {
-        console.log('📝 Headless Sync: Fetching notes for user_id:', userId);
+        console.log('📝 Headless Sync: Fetching notes for user_id:', userId, filterHandle ? `(filtering to @${filterHandle})` : '');
         const baseUrl = `https://substack.com/api/v1/reader/feed/profile/${userId}`;
         const allNotes = [];
         let cursor = null;
         const MAX_PAGES = 20;
+        const cleanHandle = filterHandle ? filterHandle.toLowerCase().replace(/^@/, '') : null;
 
         for (let page = 0; page < MAX_PAGES; page++) {
             const url = cursor ? `${baseUrl}?cursor=${cursor}` : baseUrl;
@@ -609,7 +610,15 @@ async function headlessSyncNotes(userId) {
             const items = data.items || [];
 
             const pageNotes = items
-                .filter(item => item.type === 'comment' && item.comment)
+                .filter(item => {
+                    if (item.type !== 'comment' || !item.comment) return false;
+                    const c = item.comment;
+                    // Must be a top-level note (not a reply)
+                    if (c.ancestor_path !== '') return false;
+                    // If a handle filter is set, only include notes from that author
+                    if (cleanHandle && (c.handle || '').toLowerCase() !== cleanHandle) return false;
+                    return true;
+                })
                 .map(item => {
                     const c = item.comment;
                     const tracking = item.trackingParameters || {};
@@ -618,7 +627,7 @@ async function headlessSyncNotes(userId) {
                     const restacks = c.restacks || tracking.item_current_restack_count || 0;
 
                     return {
-                        id: c.id,
+                        id: 'note_' + c.id,
                         content: c.body || '',
                         date: c.date,
                         timestamp: c.date || new Date().toISOString(),
@@ -832,6 +841,85 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         generateOutline(message.topic)
             .then(outline => sendResponse({ success: true, outline }))
             .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+    }
+
+    if (message.type === 'FETCH_PAID_SUBS_TIMESERIES') {
+        const { publicationUrl } = message;
+        const base = (publicationUrl || '').replace(/\/$/, '');
+        if (!base) { sendResponse({ success: false, error: 'No publication URL' }); return true; }
+
+        const from = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+        const url = `${base}/api/v1/publication/stats/subscribers/timeseries?from=${from}`;
+
+        fetch(url, { headers: { 'accept': '*/*' }, credentials: 'include' })
+            .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+            .then(data => {
+                fetch(`${NARRATIVEE_API_URL}/substack/paid-subs-timeseries`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(data),
+                }).catch(e => console.warn('Failed to cache paid subs timeseries:', e));
+                sendResponse({ success: true, data });
+            })
+            .catch(e => sendResponse({ success: false, error: e.message }));
+        return true;
+    }
+
+    if (message.type === 'FETCH_SUBS_TIMESERIES') {
+        const { publicationUrl } = message;
+        const base = (publicationUrl || '').replace(/\/$/, '');
+        if (!base) { sendResponse({ success: false, error: 'No publication URL' }); return true; }
+
+        // Fetch from 1 year ago
+        const from = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+        const url = `${base}/api/v1/publication/stats/emails/timeseries?from=${from}`;
+
+        fetch(url, { headers: { 'accept': '*/*' }, credentials: 'include' })
+            .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+            .then(data => {
+                // Push to Narrativee backend for caching
+                fetch(`${NARRATIVEE_API_URL}/substack/subs-timeseries`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(data),
+                }).catch(e => console.warn('Failed to cache subs timeseries:', e));
+
+                sendResponse({ success: true, data });
+            })
+            .catch(e => sendResponse({ success: false, error: e.message }));
+        return true;
+    }
+
+    if (message.type === 'FETCH_PUBLISH_SUMMARY') {
+        const { publicationUrl } = message;
+        const base = (publicationUrl || '').replace(/\/$/, '');
+        if (!base) {
+            sendResponse({ success: false, error: 'No publication URL' });
+            return true;
+        }
+        fetch(`${base}/api/v1/publish-dashboard/summary`, {
+            headers: { 'accept': '*/*' },
+            credentials: 'include',
+        })
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
+            .then(data => {
+                // Also push to Narrativee backend so the dashboard can read it
+                fetch(`${NARRATIVEE_API_URL}/substack/publish-summary`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(data),
+                }).catch(e => console.warn('Failed to cache publish summary:', e));
+
+                sendResponse({ success: true, data });
+            })
+            .catch(e => sendResponse({ success: false, error: e.message }));
         return true;
     }
 
@@ -1246,9 +1334,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         (async () => {
             try {
-                // 1. Resolve handle → user_id
-                const profileUrl = `https://substack.com/@${authorHandle}`;
-                const userId = await resolveSubstackUserId(profileUrl);
+                // 1. Resolve handle → user_id via the public profile API (reliable)
+                const profileRes = await fetch(`https://substack.com/api/v1/user/${authorHandle}/public_profile`, {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include',
+                });
+                if (!profileRes.ok) {
+                    forwardToNarrativeeTab({
+                        type: 'NARRATIVEE_AUTHOR_SEARCH_RESULTS',
+                        authorHandle,
+                        notes: [],
+                        error: `Could not find Substack user "@${authorHandle}". Check the handle and try again.`
+                    });
+                    return;
+                }
+                const profileData = await profileRes.json();
+                const userId = profileData?.id ? String(profileData.id) : null;
                 if (!userId) {
                     forwardToNarrativeeTab({
                         type: 'NARRATIVEE_AUTHOR_SEARCH_RESULTS',
@@ -1258,9 +1359,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     });
                     return;
                 }
+                console.log('👤 Author Search: Resolved @' + authorHandle + ' → userId ' + userId);
 
-                // 2. Fetch their notes using the proven sync logic
-                const sync = await headlessSyncNotes(userId);
+                // 2. Fetch their notes — filtered to only their own top-level notes
+                const sync = await headlessSyncNotes(userId, authorHandle);
                 
                 if (sync.success) {
                     console.log('👤 Author Search: Found', sync.notes.length, 'notes for @' + authorHandle);

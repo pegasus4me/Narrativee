@@ -1,30 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
-import { API_URL } from "@/lib/api-config";
-
-interface HourlyPoint {
-    hour: number;
-    label: string;
-    engagement: number;
-    noteCount: number;
-}
+import { useAnalytics } from "./AnalyticsProvider";
 
 export function ActivityChart() {
-    const [data, setData] = useState<HourlyPoint[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetch(`${API_URL}/notes/hourly-activity`, { credentials: "include" })
-            .then(r => {
-                if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                return r.json();
-            })
-            .then((json: any) => setData(json.data || []))
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    }, []);
+    const { hourlyActivity, loading } = useAnalytics();
 
     // Show only even-hour labels to avoid crowding
     const tickFormatter = (val: string) => {
@@ -33,16 +13,16 @@ export function ActivityChart() {
     };
 
     return (
-        <div className="bg-[#1e1f21] rounded-lg overflow-hidden">
-            <div className="flex items-center gap-2 mb-4 text-sm text-gray-400">
-                <span className="inline-block w-3 h-3 rounded-sm bg-emerald-500/60" /> Total engagement by hour posted
+        <div>
+            <div className="flex items-center gap-2 mb-3 text-xs text-gray-500">
+                <span className="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500/60" /> Total engagement by hour posted
             </div>
 
             {loading ? (
-                <div className="h-48 flex items-center justify-center text-gray-600 text-sm animate-pulse">Loading...</div>
+                <div className="h-40 flex items-center justify-center text-gray-600 text-sm animate-pulse">Loading...</div>
             ) : (
                 <ResponsiveContainer width="100%" height={200}>
-                    <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <AreaChart data={hourlyActivity} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                         <defs>
                             <linearGradient id="gradActivity" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
