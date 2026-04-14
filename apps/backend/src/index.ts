@@ -157,6 +157,7 @@ import subscribersRouter from './routes/subscribers';
 import inspirationsRouter from './routes/inspirations';
 import scheduledNotesRouter from './routes/scheduled-notes';
 import campaignsRouter from './routes/campaigns';
+import watchlistsRouter from './routes/watchlists';
 
 app.use('/api/user', userRouter);
 // app.use('/api/events', eventsRouter);
@@ -172,6 +173,7 @@ app.use('/api/subscribers', subscribersRouter);
 app.use('/api/inspirations', inspirationsRouter);
 app.use('/api/scheduled-notes', scheduledNotesRouter);
 app.use('/api/campaigns', campaignsRouter);
+app.use('/api/watchlists', watchlistsRouter);
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

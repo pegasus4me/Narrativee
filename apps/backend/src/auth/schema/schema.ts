@@ -262,3 +262,30 @@ export const campaignTargetsRelations = relations(campaignTargets, ({ one }) => 
     references: [user.id],
   }),
 }));
+
+// ─── Watchlists ──────────────────────────────────────────────────────────────
+
+export const watchlists = pgTable("watchlists", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const watchlistMembers = pgTable("watchlist_members", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  watchlistId: uuid("watchlist_id").notNull().references(() => watchlists.id, { onDelete: "cascade" }),
+  handle: text("handle").notNull(), // Substack handle without @
+  name: text("name"), // display name (optional, populated on add)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const watchlistsRelations = relations(watchlists, ({ one, many }) => ({
+  user: one(user, { fields: [watchlists.userId], references: [user.id] }),
+  members: many(watchlistMembers),
+}));
+
+export const watchlistMembersRelations = relations(watchlistMembers, ({ one }) => ({
+  watchlist: one(watchlists, { fields: [watchlistMembers.watchlistId], references: [watchlists.id] }),
+}));

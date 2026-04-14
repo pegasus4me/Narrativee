@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Loader2, Rss, TrendingUp, MessageSquare, Clock, Zap, Search, Users } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Loader2, Rss, TrendingUp, MessageSquare, Clock, Zap, Users } from "lucide-react";
 import EngagementCard from "@/app/components/workspace/EngagementCard";
+import { WatchlistPanel } from "@/app/components/workspace/WatchlistPanel";
 import { generateEngagementComment } from "@/app/actions/engage";
 import { authClient } from "@/lib/auth-client";
 import { API_URL } from "@/lib/api-config";
@@ -43,6 +44,11 @@ export default function EngagePage() {
     const { data: session } = authClient.useSession();
     const [onboardingData, setOnboardingData] = useState<any>({});
 
+    // Watchlist batch fetch state
+    const [isWatchlistFetching, setIsWatchlistFetching] = useState(false);
+    const watchlistHandlesRef = useRef<string[]>([]);
+    const watchlistAccumulatedRef = useRef<EngagementNote[]>([]);
+
     useEffect(() => {
         if (session?.user) {
             fetch(`${API_URL}/onboarding`, { credentials: 'include' })
@@ -79,6 +85,31 @@ export default function EngagePage() {
             // Author search results
             if (event.data?.type === 'NARRATIVEE_AUTHOR_SEARCH_RESULTS') {
                 const loadedNotes: EngagementNote[] = event.data.notes || [];
+
+                // Watchlist batch mode: accumulate and fire next handle
+                if (watchlistHandlesRef.current.length > 0) {
+                    watchlistAccumulatedRef.current = [...watchlistAccumulatedRef.current, ...loadedNotes];
+                    const nextHandle = watchlistHandlesRef.current.shift();
+                    if (nextHandle) {
+                        window.postMessage({ type: 'NARRATIVEE_SEARCH_AUTHOR_NOTES', authorHandle: nextHandle }, '*');
+                        return;
+                    }
+                    // All handles done — commit results
+                    const merged = watchlistAccumulatedRef.current;
+                    const deduped = Array.from(new Map(merged.map(n => [n.id, n])).values());
+                    setNotes(deduped);
+                    setSkipped(new Set());
+                    const now = new Date();
+                    setLastPulled(now);
+                    localStorage.setItem('narrativee_engage_notes', JSON.stringify(deduped));
+                    localStorage.setItem('narrativee_engage_pulled_at', now.toISOString());
+                    setIsWatchlistFetching(false);
+                    setError(deduped.length === 0 ? "No notes found for any creator in this list." : null);
+                    watchlistAccumulatedRef.current = [];
+                    return;
+                }
+
+                // Single author search mode
                 setNotes(loadedNotes);
                 setSkipped(new Set());
                 const now = new Date();
@@ -128,6 +159,27 @@ export default function EngagePage() {
                 return prev;
             });
         }, 60000);
+    };
+
+    const handleFetchWatchlist = (handles: string[], listName: string) => {
+        if (handles.length === 0) return;
+        setIsWatchlistFetching(true);
+        setError(null);
+        setNotes([]);
+        setSkipped(new Set());
+        watchlistAccumulatedRef.current = [];
+        // Load all handles into queue, fire the first one
+        const [first, ...rest] = handles;
+        watchlistHandlesRef.current = rest;
+        window.postMessage({ type: 'NARRATIVEE_SEARCH_AUTHOR_NOTES', authorHandle: first }, '*');
+        // Timeout safety: 30s per creator
+        setTimeout(() => {
+            if (watchlistHandlesRef.current.length > 0 || isWatchlistFetching) {
+                setIsWatchlistFetching(false);
+                watchlistHandlesRef.current = [];
+                setError("Watchlist fetch timed out. Make sure the extension is installed.");
+            }
+        }, handles.length * 30000);
     };
 
     const handleGenerateComment = async (note: EngagementNote): Promise<string> => {
@@ -259,6 +311,23 @@ export default function EngagePage() {
                         {filteredNotes.length > 0 && <span>{filteredNotes.length} notes</span>}
                     </div>
                 </div>
+
+                {/* Watchlist panel */}
+                <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4">
+                    <WatchlistPanel
+                        onFetchWatchlist={handleFetchWatchlist}
+                        isFetching={isWatchlistFetching}
+                    />
+                </div>
+
+                {/* Watchlist loading */}
+                {isWatchlistFetching && (
+                    <div className="flex flex-col items-center justify-center py-16 gap-3">
+                        <Loader2 className="w-7 h-7 animate-spin text-violet-400" />
+                        <p className="text-gray-400 text-sm">Fetching notes from your watchlist...</p>
+                        <p className="text-gray-600 text-xs">Loading each creator one by one</p>
+                    </div>
+                )}
 
                 {/* Error */}
                 {error && (
