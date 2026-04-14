@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { auth, db } from '../auth/auth';
 import { watchlists, watchlistMembers } from '../auth/schema/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 
 const router = Router();
 
@@ -20,12 +20,22 @@ const requireAuth = async (req: any, res: any, next: any) => {
 router.get('/', requireAuth, async (req: any, res) => {
     try {
         const userId = req.session.user.id;
-        const rows = await db.query.watchlists.findMany({
-            where: eq(watchlists.userId, userId),
-            with: { members: true },
-            orderBy: (w, { asc }) => [asc(w.createdAt)],
-        });
-        return res.json({ watchlists: rows });
+        const lists = await db.select().from(watchlists).where(eq(watchlists.userId, userId));
+        const listIds = lists.map(l => l.id);
+
+        const members = listIds.length > 0
+            ? await db.select().from(watchlistMembers).where(inArray(watchlistMembers.watchlistId, listIds))
+            : [];
+
+        const membersByList = new Map<string, typeof members>();
+        for (const m of members) {
+            const arr = membersByList.get(m.watchlistId) ?? [];
+            arr.push(m);
+            membersByList.set(m.watchlistId, arr);
+        }
+
+        const result = lists.map(l => ({ ...l, members: membersByList.get(l.id) ?? [] }));
+        return res.json({ watchlists: result });
     } catch (error) {
         console.error('[Watchlists] GET error:', error);
         return res.status(500).json({ error: 'Failed to fetch watchlists' });
@@ -94,7 +104,6 @@ router.post('/:id/members', requireAuth, async (req: any, res) => {
 
         const [member] = await db.insert(watchlistMembers)
             .values({ watchlistId: req.params.id, handle: cleanHandle, name: name?.trim() || null })
-            .onConflictDoNothing()
             .returning();
 
         return res.status(201).json({ member });
