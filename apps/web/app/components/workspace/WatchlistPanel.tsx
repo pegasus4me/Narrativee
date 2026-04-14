@@ -86,24 +86,34 @@ export function WatchlistPanel({ onFetchWatchlist, isFetching }: WatchlistPanelP
     }
 
     async function addMember(watchlistId: string) {
-        const handle = newHandle.trim().replace(/^@/, "");
-        if (!handle) return;
+        // Support multiple handles separated by comma, space, or newline
+        const handles = newHandle
+            .split(/[\s,]+/)
+            .map(h => h.trim().replace(/^@/, ""))
+            .filter(Boolean);
+        if (handles.length === 0) return;
         setAddingMember(true);
         try {
-            const res = await fetch(`${API_URL}/watchlists/${watchlistId}/members`, {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ handle }),
-            });
-            if (res.ok) {
-                const data = await res.json() as { member: WatchlistMember };
-                setWatchlists(prev => prev.map(w =>
-                    w.id === watchlistId ? { ...w, members: [...w.members, data.member] } : w
-                ));
-                setNewHandle("");
-                setAddingToId(null);
+            const added: WatchlistMember[] = [];
+            for (const handle of handles) {
+                const res = await fetch(`${API_URL}/watchlists/${watchlistId}/members`, {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ handle }),
+                });
+                if (res.ok) {
+                    const data = await res.json() as { member: WatchlistMember };
+                    if (data.member) added.push(data.member);
+                }
             }
+            if (added.length > 0) {
+                setWatchlists(prev => prev.map(w =>
+                    w.id === watchlistId ? { ...w, members: [...w.members, ...added] } : w
+                ));
+            }
+            // Clear input but keep it open so user can add more
+            setNewHandle("");
         } finally {
             setAddingMember(false);
         }
@@ -234,27 +244,35 @@ export function WatchlistPanel({ onFetchWatchlist, isFetching }: WatchlistPanelP
 
                                 {/* Add member inline */}
                                 {addingToId === list.id ? (
-                                    <div className="flex items-center gap-1.5 mt-1">
-                                        <span className="text-gray-600 text-sm">@</span>
-                                        <input
-                                            autoFocus
-                                            type="text"
-                                            value={newHandle}
-                                            onChange={e => setNewHandle(e.target.value)}
-                                            onKeyDown={e => { if (e.key === "Enter") addMember(list.id); if (e.key === "Escape") { setAddingToId(null); setNewHandle(""); } }}
-                                            placeholder="handle"
-                                            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/40"
-                                        />
-                                        <button
-                                            onClick={() => addMember(list.id)}
-                                            disabled={addingMember || !newHandle.trim()}
-                                            className="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs rounded-lg disabled:opacity-40 hover:bg-blue-500/20 transition-all"
-                                        >
-                                            {addingMember ? <Loader2 className="w-3 h-3 animate-spin" /> : "Add"}
-                                        </button>
-                                        <button onClick={() => { setAddingToId(null); setNewHandle(""); }} className="text-gray-600 hover:text-gray-400">
-                                            <X className="w-3.5 h-3.5" />
-                                        </button>
+                                    <div className="flex flex-col gap-1.5 mt-1">
+                                        <div className="flex items-center gap-1.5">
+                                            <input
+                                                autoFocus
+                                                type="text"
+                                                value={newHandle}
+                                                onChange={e => setNewHandle(e.target.value)}
+                                                onKeyDown={e => {
+                                                    if (e.key === "Enter") addMember(list.id);
+                                                    if (e.key === "Escape") { setAddingToId(null); setNewHandle(""); }
+                                                }}
+                                                placeholder="handle1, handle2, handle3..."
+                                                className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/40"
+                                            />
+                                            <button
+                                                onClick={() => addMember(list.id)}
+                                                disabled={addingMember || !newHandle.trim()}
+                                                className="px-2.5 py-1.5 bg-blue-500/15 text-blue-400 text-xs font-medium rounded-lg disabled:opacity-40 hover:bg-blue-500/25 transition-all shrink-0"
+                                            >
+                                                {addingMember ? <Loader2 className="w-3 h-3 animate-spin" /> : "Add"}
+                                            </button>
+                                            <button
+                                                onClick={() => { setAddingToId(null); setNewHandle(""); }}
+                                                className="text-gray-600 hover:text-gray-400 shrink-0"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                        <p className="text-[10px] text-gray-600 px-0.5">Separate multiple handles with commas or spaces. Press Enter to add.</p>
                                     </div>
                                 ) : (
                                     <button
