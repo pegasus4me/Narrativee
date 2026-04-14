@@ -48,6 +48,7 @@ export default function EngagePage() {
     const [isWatchlistFetching, setIsWatchlistFetching] = useState(false);
     const watchlistHandlesRef = useRef<string[]>([]);
     const watchlistAccumulatedRef = useRef<EngagementNote[]>([]);
+    const isBatchModeRef = useRef(false);
 
     useEffect(() => {
         if (session?.user) {
@@ -86,17 +87,20 @@ export default function EngagePage() {
             if (event.data?.type === 'NARRATIVEE_AUTHOR_SEARCH_RESULTS') {
                 const loadedNotes: EngagementNote[] = event.data.notes || [];
 
-                // Watchlist batch mode: accumulate and fire next handle
-                if (watchlistHandlesRef.current.length > 0) {
+                // Watchlist batch mode — detected via isBatchModeRef, not queue length
+                if (isBatchModeRef.current) {
                     watchlistAccumulatedRef.current = [...watchlistAccumulatedRef.current, ...loadedNotes];
                     const nextHandle = watchlistHandlesRef.current.shift();
                     if (nextHandle) {
+                        // More handles left — fire the next one
                         window.postMessage({ type: 'NARRATIVEE_SEARCH_AUTHOR_NOTES', authorHandle: nextHandle }, '*');
                         return;
                     }
-                    // All handles done — commit results
+                    // Queue empty — all handles done, commit accumulated results
+                    isBatchModeRef.current = false;
                     const merged = watchlistAccumulatedRef.current;
                     const deduped = Array.from(new Map(merged.map(n => [n.id, n])).values());
+                    watchlistAccumulatedRef.current = [];
                     setNotes(deduped);
                     setSkipped(new Set());
                     const now = new Date();
@@ -105,7 +109,6 @@ export default function EngagePage() {
                     localStorage.setItem('narrativee_engage_pulled_at', now.toISOString());
                     setIsWatchlistFetching(false);
                     setError(deduped.length === 0 ? "No notes found for any creator in this list." : null);
-                    watchlistAccumulatedRef.current = [];
                     return;
                 }
 
@@ -168,15 +171,18 @@ export default function EngagePage() {
         setNotes([]);
         setSkipped(new Set());
         watchlistAccumulatedRef.current = [];
-        // Load all handles into queue, fire the first one
+        isBatchModeRef.current = true;
+        // Load remaining handles into queue, fire the first one
         const [first, ...rest] = handles;
         watchlistHandlesRef.current = rest;
         window.postMessage({ type: 'NARRATIVEE_SEARCH_AUTHOR_NOTES', authorHandle: first }, '*');
         // Timeout safety: 30s per creator
         setTimeout(() => {
-            if (watchlistHandlesRef.current.length > 0 || isWatchlistFetching) {
-                setIsWatchlistFetching(false);
+            if (isBatchModeRef.current) {
+                isBatchModeRef.current = false;
                 watchlistHandlesRef.current = [];
+                watchlistAccumulatedRef.current = [];
+                setIsWatchlistFetching(false);
                 setError("Watchlist fetch timed out. Make sure the extension is installed.");
             }
         }, handles.length * 30000);
