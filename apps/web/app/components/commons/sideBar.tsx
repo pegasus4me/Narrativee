@@ -137,7 +137,10 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               {isSidebarOpen ? <VscLayoutSidebarLeft className={`w-5 h-5 text-gray-400 transition-transform ${!isSidebarOpen ? 'rotate-180' : ''}`} /> : <VscLayoutSidebarRight className={`w-5 h-5 text-gray-400 transition-transform ${!isSidebarOpen ? 'rotate-180' : ''}`} />}
             </button>
           </div>
-          <div className=" border-gray-700 space-y-4 mt-10 ">
+          <div className="border-gray-700 space-y-1 mt-10">
+
+            {/* — Overview — */}
+            {isSidebarOpen && <p className="px-4 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-widest text-gray-600">Overview</p>}
             <Link href="/workspace" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
               <IoHomeOutline size={20} className="shrink-0" />
               {isSidebarOpen && <span className="text-md font-medium">Home</span>}
@@ -146,6 +149,12 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               <BsDatabaseCheck size={20} className="shrink-0" />
               {isSidebarOpen && <span className="text-md font-medium">Knowledge base</span>}
             </Link>
+
+            {/* — Separator — */}
+            <div className={`${isSidebarOpen ? 'mx-4' : 'mx-2'} border-t border-white/[0.06] pt-3 mt-3`} />
+
+            {/* — Tools — */}
+            {isSidebarOpen && <p className="px-4 pb-0.5 text-[10px] font-semibold uppercase tracking-widest text-gray-600">Tools</p>}
             <Link href="/workspace/post-queue" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
               <FaPenNib size={20} className="shrink-0" />
               {isSidebarOpen && <span className="text-md font-medium">Posts queue</span>}
