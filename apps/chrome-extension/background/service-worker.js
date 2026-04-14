@@ -1,6 +1,6 @@
 // Background service worker - handles API calls to OpenRouter / Narrativee backend
 
-const NARRATIVEE_API_URL = 'http://localhost:3002/api';
+const NARRATIVEE_API_URL = 'https://api.narrativee.com/api';
 
 // ==========================================
 // HEADLESS SUBSTACK UTILITIES
@@ -592,7 +592,7 @@ async function resolveSubstackUserId(profileUrl) {
 /**
  * Headless fetch of a user's own notes
  */
-async function headlessSyncNotes(userId, filterHandle) {
+async function headlessSyncNotes(userId, filterHandle, maxNotes = 9999) {
     try {
         console.log('📝 Headless Sync: Fetching notes for user_id:', userId, filterHandle ? `(filtering to @${filterHandle})` : '');
         const baseUrl = `https://substack.com/api/v1/reader/feed/profile/${userId}`;
@@ -602,6 +602,8 @@ async function headlessSyncNotes(userId, filterHandle) {
         const cleanHandle = filterHandle ? filterHandle.toLowerCase().replace(/^@/, '') : null;
 
         for (let page = 0; page < MAX_PAGES; page++) {
+            if (allNotes.length >= maxNotes) break;
+
             const url = cursor ? `${baseUrl}?cursor=${cursor}` : baseUrl;
             const response = await fetch(url, { credentials: 'include' });
             if (!response.ok) throw new Error(`Substack API error: ${response.status}`);
@@ -615,8 +617,12 @@ async function headlessSyncNotes(userId, filterHandle) {
                     const c = item.comment;
                     // Must be a top-level note (not a reply)
                     if (c.ancestor_path !== '') return false;
-                    // If a handle filter is set, only include notes from that author
-                    if (cleanHandle && (c.handle || '').toLowerCase() !== cleanHandle) return false;
+                    // If filtering by handle, match case-insensitively
+                    // Also accept if no handle on item but context matches (some feed items omit handle)
+                    if (cleanHandle) {
+                        const itemHandle = (c.handle || '').toLowerCase();
+                        if (itemHandle && itemHandle !== cleanHandle) return false;
+                    }
                     return true;
                 })
                 .map(item => {
@@ -632,7 +638,7 @@ async function headlessSyncNotes(userId, filterHandle) {
                         date: c.date,
                         timestamp: c.date || new Date().toISOString(),
                         url: `https://substack.com/@${c.handle}/note/c-${c.id}`,
-                        author: { name: c.name || 'Unknown', handle: c.handle || '', avatar: c.photo_url || '' },
+                        author: { name: c.name || 'Unknown', handle: c.handle || filterHandle || '', avatar: c.photo_url || '' },
                         engagement: { likes, comments, restacks },
                         totalEngagement: likes + comments + restacks
                     };
@@ -644,8 +650,9 @@ async function headlessSyncNotes(userId, filterHandle) {
             if (!cursor || items.length === 0) break;
         }
 
-        console.log('📝 Headless Sync: Successfully parsed', allNotes.length, 'notes');
-        return { success: true, notes: allNotes };
+        const limited = allNotes.slice(0, maxNotes);
+        console.log('📝 Headless Sync: Successfully parsed', limited.length, 'notes (capped at', maxNotes, ')');
+        return { success: true, notes: limited };
     } catch (e) {
         console.error('📝 Headless Sync Error:', e);
         return { success: false, error: e.message };
@@ -1361,8 +1368,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
                 console.log('👤 Author Search: Resolved @' + authorHandle + ' → userId ' + userId);
 
-                // 2. Fetch their notes — filtered to only their own top-level notes
-                const sync = await headlessSyncNotes(userId, authorHandle);
+                // 2. Fetch their notes — filtered to only their own top-level notes, max 50
+                const sync = await headlessSyncNotes(userId, authorHandle, 50);
                 
                 if (sync.success) {
                     console.log('👤 Author Search: Found', sync.notes.length, 'notes for @' + authorHandle);
