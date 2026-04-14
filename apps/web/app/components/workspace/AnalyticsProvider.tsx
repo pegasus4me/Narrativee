@@ -334,12 +334,38 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
                 noteCount: hourMap.get(h)?.count ?? 0,
             }));
 
+            // Derive weekly performance from feed notes (so it works without DB sync)
+            // Fall back to DB perfRes only if feed has no notes
+            const derivedPerf: PerfPoint[] = [];
+            if (feedResult.notes.length > 0) {
+                const weekMap = new Map<string, { likes: number; comments: number; restacks: number; noteCount: number }>();
+                for (const n of feedResult.notes) {
+                    const d = new Date(n.date);
+                    // ISO week start (Monday)
+                    const day = d.getUTCDay();
+                    const diff = (day === 0 ? -6 : 1) - day;
+                    const monday = new Date(d);
+                    monday.setUTCDate(d.getUTCDate() + diff);
+                    const week = monday.toISOString().split("T")[0]!;
+                    const existing = weekMap.get(week) ?? { likes: 0, comments: 0, restacks: 0, noteCount: 0 };
+                    weekMap.set(week, {
+                        likes: existing.likes + n.likes,
+                        comments: existing.comments + n.comments,
+                        restacks: existing.restacks + n.restacks,
+                        noteCount: existing.noteCount + 1,
+                    });
+                }
+                for (const [week, vals] of Array.from(weekMap.entries()).sort(([a], [b]) => a.localeCompare(b))) {
+                    derivedPerf.push({ week, ...vals });
+                }
+            }
+
             setPosts(postsRes);
             setNotes(notesRes);
             setPostStats(postStatsRes);
             setNoteStats(noteStatsRes);
             setSubscribers(subsRes);
-            setPerformance(perfRes);
+            setPerformance(derivedPerf.length > 0 ? derivedPerf : perfRes);
             setHourlyActivity(derivedHourly);
             setHeatmap(mergedHeatmap);
             setFeedNotes(feedResult.notes);
