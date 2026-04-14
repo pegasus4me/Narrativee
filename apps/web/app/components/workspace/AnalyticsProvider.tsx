@@ -225,16 +225,16 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
     const [lastFetchedAt, setLastFetchedAt] = useState<Date | null>(null);
 
-    const safeFetch = async (url: string, label: string) => {
+    const safeFetch = async <T = unknown>(url: string, label: string): Promise<T[]> => {
         try {
             const r = await fetch(url, { credentials: "include" });
             if (!r.ok) {
                 console.error(`[Analytics] ${label} failed: HTTP ${r.status}`);
                 return [];
             }
-            const j = await r.json();
+            const j = await r.json() as { data?: T[] };
             console.log(`[Analytics] ${label}:`, Array.isArray(j.data) ? `${j.data.length} items` : j.data);
-            return j.data || [];
+            return j.data ?? [];
         } catch (e) {
             console.error(`[Analytics] ${label} error:`, e);
             return [];
@@ -282,9 +282,9 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
                 NotesAPI.getNotes().catch((e) => { console.error("[Analytics] notes error:", e); return []; }),
                 PostsAPI.getStats().catch((e) => { console.error("[Analytics] postStats error:", e); return null; }),
                 NotesAPI.getNoteStats().catch((e) => { console.error("[Analytics] noteStats error:", e); return null; }),
-                safeFetch(`${API_URL}/subscribers`, "subscribers"),
-                safeFetch(`${API_URL}/notes/performance-over-time`, "performance"),
-                safeFetch(`${API_URL}/notes/posting-heatmap`, "posting-heatmap"),
+                safeFetch<SubsPoint>(`${API_URL}/subscribers`, "subscribers"),
+                safeFetch<PerfPoint>(`${API_URL}/notes/performance-over-time`, "performance"),
+                safeFetch<HeatmapCell>(`${API_URL}/notes/posting-heatmap`, "posting-heatmap"),
                 // Fetch notes from Substack reader feed API (client-side, needs browser cookies)
                 substackHandle
                     ? fetchReaderFeedClient(substackHandle, API_URL).catch((e) => {

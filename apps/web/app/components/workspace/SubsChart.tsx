@@ -37,11 +37,11 @@ export function SubsChart() {
             })(),
         }));
 
-    const lastTotal = raw.findLast(d => d.total !== null)?.total ?? 0;
+    const lastTotal = [...raw].reverse().find(d => d.total !== null)?.total ?? 0;
     const firstTotal = raw.find(d => d.total !== null)?.total ?? 0;
     const totalDelta = lastTotal - firstTotal;
 
-    const lastPaid = raw.findLast(d => d.paid !== null)?.paid ?? 0;
+    const lastPaid = [...raw].reverse().find(d => d.paid !== null)?.paid ?? 0;
 
     const hasTotalData = raw.some(d => d.total !== null);
     const hasPaidData = raw.some(d => d.paid !== null);
@@ -103,8 +103,8 @@ export function SubsChart() {
                         <Tooltip
                             contentStyle={{ background: "#1a1b1d", border: "1px solid #374151", borderRadius: 8, fontSize: 12 }}
                             labelStyle={{ color: "#d1d5db" }}
-                            formatter={(val: any, name: string) => [
-                                val !== null ? val.toLocaleString() : "—",
+                            formatter={(val: unknown, name?: string) => [
+                                val !== null && val !== undefined ? Number(val).toLocaleString() : "—",
                                 name === "total" ? "Total subscribers" : "Paid subscribers",
                             ]}
                         />
