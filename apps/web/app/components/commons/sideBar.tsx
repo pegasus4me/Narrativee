@@ -198,6 +198,9 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                 </div>
               )}
             </div>
+                      {/* — Separator — */}
+            <div className={`${isSidebarOpen ? 'mx-4' : 'mx-2'} border-t border-white/[0.06] pt-3 mt-3`} />
+            {isSidebarOpen && <p className="px-4 pb-0.5 text-[10px] font-semibold uppercase tracking-widest text-gray-600">Inspiration Library</p>}
             <Link href="/workspace/inspirations" className={`w-full py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
               <LuLibraryBig size={20} className="shrink-0" />
               {isSidebarOpen && <span className="text-md font-medium">Inspiration</span>}
