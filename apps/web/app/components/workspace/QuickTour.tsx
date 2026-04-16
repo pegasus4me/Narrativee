@@ -84,7 +84,7 @@ export function QuickTour() {
                 {/* Progress bar */}
                 <div className="h-[2px] bg-white/[0.04]">
                     <div
-                        className="h-full bg-violet-500/70 transition-all duration-300"
+                        className="h-full bg-primary transition-all duration-300"
                         style={{ width: `${((step + 1) / steps.length) * 100}%` }}
                     />
                 </div>
@@ -125,9 +125,9 @@ export function QuickTour() {
                                 onClick={() => setStep(i)}
                                 className={`rounded-full transition-all duration-200 ${
                                     i === step
-                                        ? "w-5 h-1.5 bg-violet-500"
+                                        ? "w-5 h-1.5 bg-primary"
                                         : i < step
-                                        ? "w-1.5 h-1.5 bg-violet-500/30"
+                                        ? "w-1.5 h-1.5 bg-primary/30"
                                         : "w-1.5 h-1.5 bg-white/[0.08] hover:bg-white/20"
                                 }`}
                             />
@@ -153,7 +153,7 @@ export function QuickTour() {
                             )}
                             <button
                                 onClick={isLast ? dismiss : () => setStep(s => s + 1)}
-                                className="flex items-center gap-1 px-4 py-1.5 text-xs font-semibold text-white bg-violet-600/80 hover:bg-violet-600 border border-violet-500/30 rounded-xl transition-all"
+                                className="flex items-center gap-1 px-4 py-1.5 text-xs font-semibold text-white bg-primary hover:opacity-90 rounded-xl transition-all"
                             >
                                 {isLast ? "Get started" : <>Next <ChevronRight className="w-3.5 h-3.5" /></>}
                             </button>
