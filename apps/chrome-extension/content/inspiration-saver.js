@@ -92,6 +92,11 @@
             e.preventDefault();
             e.stopPropagation();
 
+            if (typeof chrome === 'undefined' || !chrome.storage) {
+                console.error('Chrome extension APIs not available on this page');
+                return;
+            }
+
             const noteData = extractNoteData(noteElement);
             if (!noteData) {
                 console.error('Failed to extract note data');
@@ -158,6 +163,9 @@
             }
         });
     }
+
+    // Only inject on Substack pages
+    if (!window.location.hostname.endsWith('substack.com')) return;
 
     // Initialize
     setTimeout(() => {
