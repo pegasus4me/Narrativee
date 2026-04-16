@@ -210,6 +210,8 @@ function CampaignsPage() {
     const [isReplying, setIsReplying] = useState(false);
     const [isAutoRunning, setIsAutoRunning] = useState(false);
     const [autoRunCount, setAutoRunCount] = useState(0);
+    const [nextReplyCountdown, setNextReplyCountdown] = useState<number | null>(null);
+    const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const isAutoRunningRef = useRef(false);
     const handleFireNextReplyRef = useRef<(auto?: boolean) => Promise<void>>(async () => {});
     const [isAddingTargets, setIsAddingTargets] = useState(false);
@@ -347,13 +349,28 @@ function CampaignsPage() {
                         body: JSON.stringify({ replyCommentId, replyText }),
                     }).then(() => fetchCampaign(campaignId));
                     setAutoRunCount(prev => prev + 1);
-                    // If auto-run is active, fire the next reply after a short delay
+                    // If auto-run is active, fire the next reply after a human-paced delay
+                    // 45–90s with jitter to avoid 429s and reduce shadowban risk
                     if (isAutoRunningRef.current) {
+                        const delayMs = 45000 + Math.floor(Math.random() * 45000);
+                        const delaySec = Math.round(delayMs / 1000);
+                        console.log(`🎯 Campaign: Next reply in ${delaySec}s`);
+                        setNextReplyCountdown(delaySec);
+                        if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+                        countdownIntervalRef.current = setInterval(() => {
+                            setNextReplyCountdown(prev => {
+                                if (prev === null || prev <= 1) {
+                                    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+                                    return null;
+                                }
+                                return prev - 1;
+                            });
+                        }, 1000);
                         setTimeout(() => {
                             if (isAutoRunningRef.current) {
                                 handleFireNextReplyRef.current(true);
                             }
-                        }, 3000);
+                        }, delayMs);
                     }
                 } else {
                     fetch(`${API_URL}/campaigns/${campaignId}/targets/${targetId}/skip`, {
@@ -558,6 +575,8 @@ function CampaignsPage() {
         isAutoRunningRef.current = false;
         setIsAutoRunning(false);
         setAutoRunCount(0);
+        setNextReplyCountdown(null);
+        if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     };
 
     const handleSkipTarget = async (targetId: string) => {
@@ -737,8 +756,13 @@ function CampaignsPage() {
                                 isAutoRunning ? (
                                     <div className="flex items-center gap-2">
                                         <span className="text-xs text-gray-400">
-                                            <Loader2 size={12} className="animate-spin inline mr-1" />
-                                            {autoRunCount} replied&hellip;
+                                            {isReplying ? (
+                                                <><Loader2 size={12} className="animate-spin inline mr-1" />{autoRunCount} replied, posting...</>
+                                            ) : nextReplyCountdown !== null ? (
+                                                <><Loader2 size={12} className="animate-spin inline mr-1" />{autoRunCount} replied &mdash; next in {nextReplyCountdown}s</>
+                                            ) : (
+                                                <><Loader2 size={12} className="animate-spin inline mr-1" />{autoRunCount} replied&hellip;</>
+                                            )}
                                         </span>
                                         <button
                                             onClick={handleStopAutoRun}
