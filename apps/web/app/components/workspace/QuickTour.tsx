@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, ChevronRight, ChevronLeft, BarChart2, Zap, BookOpen, PenLine, MessageSquare, Megaphone, ListFilter } from "lucide-react";
 import Image from "next/image";
+import PrimaryButton from "../commons/PrimaryButton";
 
 const TOUR_KEY = "narrativee_tour_v1";
 
@@ -11,7 +12,8 @@ interface Step {
     title: string;
     description: string;
     accent: string;
-    image: string;
+    image?: string;
+    cta?: React.ReactNode;
 }
 
 const steps: Step[] = [
@@ -62,7 +64,16 @@ const steps: Step[] = [
         title: "Chrome Extension",
         description: "The extension powers everything. It syncs your stats, posts scheduled notes, runs campaigns and pulls feeds. Keep it installed and stay logged into Substack.",
         accent: "text-yellow-400",
-        image: "/profile.jpg",
+        cta: (
+           <PrimaryButton onClick={() => window.open('https://chrome.google.com/webstore/detail/narrativee-for-substack/gpphfjkcdgfbhkmnlfbdccfddjljjoh', '_blank')} className="mt-2 flex items-center gap-2">
+                <img
+                                src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg"
+                                alt="Chrome"
+                                className="w-5 h-5"
+                            />
+                Get the extension
+            </PrimaryButton>
+        ),
     },
 ];
 
@@ -126,18 +137,24 @@ export function QuickTour() {
                         {current.description}
                     </p>
 
-                    {/* Feature image */}
-                    <div className="rounded-xl overflow-hidden border border-white/[0.06] bg-white/[0.02]">
-                        <Image
-                            key={current.image}
-                            src={current.image}
-                            alt={current.title}
-                            width={800}
-                            height={450}
-                            className="w-full h-auto object-cover"
-                            priority
-                        />
-                    </div>
+                    {/* Feature image or CTA */}
+                    {current.cta ? (
+                        <div className="">
+                            {current.cta}
+                        </div>
+                    ) : current.image ? (
+                        <div className="rounded-xl overflow-hidden border border-white/[0.06] bg-white/[0.02]">
+                            <Image
+                                key={current.image}
+                                src={current.image}
+                                alt={current.title}
+                                width={800}
+                                height={450}
+                                className="w-full h-auto object-cover"
+                                priority
+                            />
+                        </div>
+                    ) : null}
 
                     {/* Dot indicators */}
                     <div className="flex items-center gap-1.5">
