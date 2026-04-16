@@ -25,7 +25,7 @@ interface EngagementNote {
 interface EngagementCardProps {
     note: EngagementNote;
     onGenerateComment: (note: EngagementNote) => Promise<string>;
-    onPostComment: (noteUrl: string, comment: string) => void;
+    onPostComment: (noteUrl: string, comment: string) => Promise<boolean>;
     onSkip: (noteId: string) => void;
 }
 
@@ -49,14 +49,22 @@ export default function EngagementCard({ note, onGenerateComment, onPostComment,
         }
     };
 
-    const handlePost = () => {
+    const handlePost = async () => {
         if (!comment.trim()) return;
         setIsPosting(true);
-        onPostComment(note.url, comment);
-        setTimeout(() => {
+        setError(null);
+        try {
+            const success = await onPostComment(note.url, comment);
+            if (success) {
+                setPosted(true);
+            } else {
+                setError("Failed to post comment. Make sure the extension is installed and you are logged into Substack.");
+            }
+        } catch {
+            setError("Failed to post comment.");
+        } finally {
             setIsPosting(false);
-            setPosted(true);
-        }, 5000);
+        }
     };
 
     const likes = note.engagement?.likes || 0;

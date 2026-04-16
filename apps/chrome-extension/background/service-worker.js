@@ -1188,86 +1188,48 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === 'POST_ENGAGEMENT_COMMENT') {
-        console.log('🎯 Background: Posting comment to', message.noteUrl);
+        console.log('🎯 Background: Posting comment via API to', message.noteUrl);
 
-        // Open the note page
-        chrome.tabs.create({ url: message.noteUrl, active: false }, (tab) => {
-            const commentTabId = tab.id;
+        // Extract the numeric note ID from the URL (e.g. /note/c-244404329)
+        const noteIdMatch = message.noteUrl.match(/\/c-(\d+)/);
+        if (!noteIdMatch) {
+            console.error('🎯 Background: Could not extract note ID from URL', message.noteUrl);
+            forwardToNarrativeeTab({ type: 'NARRATIVEE_COMMENT_POSTED', noteUrl: message.noteUrl, success: false });
+            sendResponse({ success: false });
+            return true;
+        }
+        const parentId = parseInt(noteIdMatch[1], 10);
 
-            // Listen for completion signal from content script
-            function onPostComplete(msg, msgSender) {
-                if (msgSender.tab?.id === commentTabId && msg.type === 'ENGAGEMENT_COMMENT_DONE') {
-                    chrome.runtime.onMessage.removeListener(onPostComplete);
-                    clearTimeout(safetyTimeout);
-                    console.log('🎯 Background: Comment posting confirmed, closing tab');
+        const bodyJson = {
+            type: 'doc',
+            attrs: { schemaVersion: 'v1' },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: message.comment }] }]
+        };
 
-                    // Forward result to Narrativee tab
-                    forwardToNarrativeeTab({
-                        type: 'NARRATIVEE_COMMENT_POSTED',
-                        noteUrl: message.noteUrl,
-                        success: msg.success
-                    });
-
-                    // Wait a moment then close
-                    setTimeout(() => chrome.tabs.remove(commentTabId), 1500);
-                }
-            }
-            chrome.runtime.onMessage.addListener(onPostComplete);
-
-            // Safety timeout — close after 45s no matter what
-            const safetyTimeout = setTimeout(() => {
-                chrome.runtime.onMessage.removeListener(onPostComplete);
-                console.warn('🎯 Background: Comment posting timed out after 45s');
-                forwardToNarrativeeTab({
-                    type: 'NARRATIVEE_COMMENT_POSTED',
-                    noteUrl: message.noteUrl,
-                    success: false
-                });
-                chrome.tabs.remove(commentTabId);
-            }, 45000);
-
-            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                if (tabId === commentTabId && info.status === 'complete') {
-                    chrome.tabs.onUpdated.removeListener(listener);
-
-                    // Retry sending the insert command
-                    let attempts = 0;
-                    const maxAttempts = 5;
-
-                    function tryInsert() {
-                        attempts++;
-                        chrome.tabs.sendMessage(commentTabId, {
-                            type: 'INSERT_ENGAGEMENT_COMMENT',
-                            comment: message.comment,
-                            autoPost: message.autoPost || false
-                        }, (response) => {
-                            if (chrome.runtime.lastError) {
-                                console.warn(`🎯 Background: Insert attempt ${attempts} failed:`, chrome.runtime.lastError.message);
-                                if (attempts < maxAttempts) {
-                                    setTimeout(tryInsert, 2000);
-                                } else {
-                                    // All attempts failed
-                                    chrome.runtime.onMessage.removeListener(onPostComplete);
-                                    clearTimeout(safetyTimeout);
-                                    forwardToNarrativeeTab({
-                                        type: 'NARRATIVEE_COMMENT_POSTED',
-                                        noteUrl: message.noteUrl,
-                                        success: false
-                                    });
-                                    chrome.tabs.remove(commentTabId);
-                                }
-                                return;
-                            }
-                            console.log('🎯 Background: Comment insert command accepted');
-                            // Now we wait for the ENGAGEMENT_COMMENT_DONE message
-                        });
-                    }
-
-                    setTimeout(tryInsert, 3000);
-                }
-            });
+        fetch('https://substack.com/api/v1/comment/feed', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                bodyJson,
+                parent_id: parentId,
+                tabId: 'subscribed',
+                surface: 'permalink',
+                replyMinimumRole: 'everyone'
+            })
+        })
+        .then(res => {
+            const success = res.ok;
+            console.log('🎯 Background: Comment API response', res.status, success ? 'OK' : 'FAILED');
+            forwardToNarrativeeTab({ type: 'NARRATIVEE_COMMENT_POSTED', noteUrl: message.noteUrl, success });
+            sendResponse({ success });
+        })
+        .catch(err => {
+            console.error('🎯 Background: Comment API error', err);
+            forwardToNarrativeeTab({ type: 'NARRATIVEE_COMMENT_POSTED', noteUrl: message.noteUrl, success: false });
+            sendResponse({ success: false });
         });
-        sendResponse({ success: true });
+
         return true;
     }
 

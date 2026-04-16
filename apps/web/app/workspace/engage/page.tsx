@@ -130,6 +130,7 @@ export default function EngagePage() {
             }
             if (event.data?.type === 'NARRATIVEE_COMMENT_POSTED' && event.data.success) {
                 setCommentedCount(prev => prev + 1);
+                // Individual card promises also listen for this event
             }
         };
         window.addEventListener('message', handleMessage);
@@ -214,8 +215,24 @@ export default function EngagePage() {
         });
     };
 
-    const handlePostComment = (noteUrl: string, comment: string) => {
-        window.postMessage({ type: 'NARRATIVEE_POST_COMMENT', noteUrl, comment, autoPost: true }, '*');
+    const handlePostComment = (noteUrl: string, comment: string): Promise<boolean> => {
+        return new Promise((resolve) => {
+            const timeout = setTimeout(() => {
+                window.removeEventListener('message', handler);
+                resolve(false);
+            }, 15000);
+
+            function handler(event: MessageEvent) {
+                if (event.source !== window) return;
+                if (event.data?.type === 'NARRATIVEE_COMMENT_POSTED' && event.data.noteUrl === noteUrl) {
+                    clearTimeout(timeout);
+                    window.removeEventListener('message', handler);
+                    resolve(event.data.success === true);
+                }
+            }
+            window.addEventListener('message', handler);
+            window.postMessage({ type: 'NARRATIVEE_POST_COMMENT', noteUrl, comment }, '*');
+        });
     };
 
     const handleSkip = (noteId: string) => {
