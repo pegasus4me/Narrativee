@@ -9,59 +9,51 @@ interface Step {
     icon: React.ReactNode;
     title: string;
     description: string;
-    color: string;
-    bg: string;
+    accent: string;
 }
 
 const steps: Step[] = [
     {
-        icon: <BarChart2 className="w-7 h-7" />,
+        icon: <BarChart2 className="w-5 h-5" />,
         title: "Analytics Dashboard",
-        description: "See all your Substack stats in one place — total likes, comments, restacks, subscriber growth, best posting times, and engagement trends. All pulled live from your profile.",
-        color: "text-violet-400",
-        bg: "bg-violet-500/10",
+        description: "All your Substack stats in one place — likes, comments, restacks, subscriber growth, best posting times and engagement trends. Pulled live from your profile via the extension.",
+        accent: "text-violet-400",
     },
     {
-        icon: <BookOpen className="w-7 h-7" />,
+        icon: <BookOpen className="w-5 h-5" />,
         title: "Knowledge Base",
-        description: "Save your writing context — bio, goals, topics, and writing style. This powers all AI features so every generated reply and comment sounds like you.",
-        color: "text-blue-400",
-        bg: "bg-blue-500/10",
+        description: "Store your bio, goals, topics and writing style. Every AI-generated reply and comment pulls from this so it always sounds like you — not a bot.",
+        accent: "text-blue-400",
     },
     {
-        icon: <PenLine className="w-7 h-7" />,
+        icon: <PenLine className="w-5 h-5" />,
         title: "Posts Queue",
-        description: "Schedule your Substack notes in advance. The extension picks them up and posts automatically at the right time — no manual publishing needed.",
-        color: "text-emerald-400",
-        bg: "bg-emerald-500/10",
+        description: "Schedule your Substack notes in advance. The extension picks them up and publishes at the exact time you set — no manual posting needed.",
+        accent: "text-emerald-400",
     },
     {
-        icon: <MessageSquare className="w-7 h-7" />,
+        icon: <MessageSquare className="w-5 h-5" />,
         title: "Engage",
-        description: "Pull trending notes from your Substack feed or search any creator's notes. Generate AI comments that match your voice, then post directly — without leaving the app.",
-        color: "text-orange-400",
-        bg: "bg-orange-500/10",
+        description: "Pull trending notes from your feed or search any creator's notes. Generate AI comments in your voice and post directly without leaving the app.",
+        accent: "text-orange-400",
     },
     {
-        icon: <ListFilter className="w-7 h-7" />,
+        icon: <ListFilter className="w-5 h-5" />,
         title: "Creator Watchlists",
-        description: "Inside Engage, create lists of creators you follow. Pull all their latest notes at once to stay on top of the conversations that matter to your niche.",
-        color: "text-pink-400",
-        bg: "bg-pink-500/10",
+        description: "Inside Engage, create lists of creators you follow. Pull all their latest notes at once to stay on top of conversations in your niche.",
+        accent: "text-pink-400",
     },
     {
-        icon: <Megaphone className="w-7 h-7" />,
+        icon: <Megaphone className="w-5 h-5" />,
         title: "Campaigns",
-        description: "Run outreach campaigns to grow your audience. The extension finds commenters on relevant notes and auto-generates personalised replies to bring them back to your publication.",
-        color: "text-amber-400",
-        bg: "bg-amber-500/10",
+        description: "Run outreach campaigns to grow your audience. The extension finds commenters on relevant notes and sends personalised replies to bring them to your publication.",
+        accent: "text-amber-400",
     },
     {
-        icon: <Zap className="w-7 h-7" />,
+        icon: <Zap className="w-5 h-5" />,
         title: "Chrome Extension",
-        description: "The extension is the engine behind everything — it syncs your stats, posts scheduled notes, runs campaigns, and pulls feeds. Make sure it's installed and you're logged into Substack.",
-        color: "text-yellow-400",
-        bg: "bg-yellow-500/10",
+        description: "The extension powers everything — it syncs your stats, posts scheduled notes, runs campaigns and pulls feeds. Keep it installed and stay logged into Substack.",
+        accent: "text-yellow-400",
     },
 ];
 
@@ -71,8 +63,7 @@ export function QuickTour() {
 
     useEffect(() => {
         if (typeof window === "undefined") return;
-        const seen = localStorage.getItem(TOUR_KEY);
-        if (!seen) setVisible(true);
+        if (!localStorage.getItem(TOUR_KEY)) setVisible(true);
     }, []);
 
     function dismiss() {
@@ -87,43 +78,44 @@ export function QuickTour() {
     const isLast = step === steps.length - 1;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="relative w-full max-w-md mx-4 bg-[#1a1b1d] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="relative w-full max-w-md mx-4 bg-[#1a1b1d] border border-white/[0.06] rounded-2xl shadow-2xl overflow-hidden">
 
                 {/* Progress bar */}
-                <div className="h-0.5 bg-white/[0.06]">
+                <div className="h-[2px] bg-white/[0.04]">
                     <div
-                        className="h-full bg-violet-500 transition-all duration-300"
+                        className="h-full bg-violet-500/70 transition-all duration-300"
                         style={{ width: `${((step + 1) / steps.length) * 100}%` }}
                     />
                 </div>
 
-                {/* Close */}
+                {/* Dismiss */}
                 <button
                     onClick={dismiss}
-                    className="absolute top-4 right-4 text-gray-600 hover:text-gray-300 transition-colors"
+                    className="absolute top-4 right-4 p-1 text-gray-600 hover:text-gray-300 hover:bg-white/[0.06] rounded-lg transition-colors"
                 >
                     <X className="w-4 h-4" />
                 </button>
 
-                {/* Content */}
-                <div className="px-8 pt-8 pb-6 flex flex-col gap-5">
+                <div className="px-6 pt-6 pb-5 flex flex-col gap-5">
 
-                    {/* Step counter */}
-                    <p className="text-[11px] text-gray-600 font-medium uppercase tracking-widest">
-                        {step + 1} / {steps.length}
+                    {/* Step label */}
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-600">
+                        Step {step + 1} of {steps.length}
                     </p>
 
                     {/* Icon + title */}
-                    <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-xl ${current.bg} ${current.color} shrink-0`}>
+                    <div className="flex items-center gap-3">
+                        <div className={`p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] ${current.accent} shrink-0`}>
                             {current.icon}
                         </div>
-                        <h2 className="text-lg font-semibold text-gray-100 leading-tight">{current.title}</h2>
+                        <h2 className="text-base font-semibold text-gray-100">{current.title}</h2>
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm text-gray-400 leading-relaxed">{current.description}</p>
+                    <p className="text-sm text-gray-400 leading-relaxed border-l-2 border-white/[0.06] pl-4">
+                        {current.description}
+                    </p>
 
                     {/* Dot indicators */}
                     <div className="flex items-center gap-1.5">
@@ -131,13 +123,19 @@ export function QuickTour() {
                             <button
                                 key={i}
                                 onClick={() => setStep(i)}
-                                className={`rounded-full transition-all ${i === step ? "w-4 h-1.5 bg-violet-500" : "w-1.5 h-1.5 bg-white/20 hover:bg-white/40"}`}
+                                className={`rounded-full transition-all duration-200 ${
+                                    i === step
+                                        ? "w-5 h-1.5 bg-violet-500"
+                                        : i < step
+                                        ? "w-1.5 h-1.5 bg-violet-500/30"
+                                        : "w-1.5 h-1.5 bg-white/[0.08] hover:bg-white/20"
+                                }`}
                             />
                         ))}
                     </div>
 
                     {/* Navigation */}
-                    <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center justify-between pt-1 border-t border-white/[0.06]">
                         <button
                             onClick={dismiss}
                             className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
@@ -148,26 +146,17 @@ export function QuickTour() {
                             {!isFirst && (
                                 <button
                                     onClick={() => setStep(s => s - 1)}
-                                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-400 hover:text-gray-200 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] rounded-lg transition-all"
+                                    className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] rounded-xl transition-all"
                                 >
                                     <ChevronLeft className="w-3.5 h-3.5" /> Back
                                 </button>
                             )}
-                            {isLast ? (
-                                <button
-                                    onClick={dismiss}
-                                    className="flex items-center gap-1 px-4 py-1.5 text-sm font-medium text-white bg-violet-600 hover:bg-violet-500 rounded-lg transition-all"
-                                >
-                                    Get started
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => setStep(s => s + 1)}
-                                    className="flex items-center gap-1 px-4 py-1.5 text-sm font-medium text-white bg-violet-600 hover:bg-violet-500 rounded-lg transition-all"
-                                >
-                                    Next <ChevronRight className="w-3.5 h-3.5" />
-                                </button>
-                            )}
+                            <button
+                                onClick={isLast ? dismiss : () => setStep(s => s + 1)}
+                                className="flex items-center gap-1 px-4 py-1.5 text-xs font-semibold text-white bg-violet-600/80 hover:bg-violet-600 border border-violet-500/30 rounded-xl transition-all"
+                            >
+                                {isLast ? "Get started" : <>Next <ChevronRight className="w-3.5 h-3.5" /></>}
+                            </button>
                         </div>
                     </div>
                 </div>
