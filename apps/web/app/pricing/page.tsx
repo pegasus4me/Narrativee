@@ -142,19 +142,11 @@ export default function PricingPage() {
                                 <p className="text-white/80 font-medium mb-6 text-lg">{plan.category}</p>
 
                                 <div className="flex items-baseline gap-2 mb-4 flex-wrap">
-                            
-
                                     <span className="text-7xl font-bold text-white tracking-tight font-urbanist">
-                                        {plan.earlyBirdMonthlyPrice && !isAnnual && (
-                                            <span className="text-5xl text-primary font-medium line-through">${plan.monthlyPrice.toFixed(2)}</span>
-                                        )}
-                                        ${isAnnual ? plan.annualPrice : plan.earlyBirdMonthlyPrice || plan.monthlyPrice}
+                                        ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
                                     </span>
                                     <div className="text-sm text-white/80">
-                                    <span className="text-gray-500 font-medium">/ month</span>
-                                    {plan.earlyBirdMonthlyPrice && !isAnnual && (
-                                        <span className="text-sm text-primary font-bold ml-2">for the first 3 months 🎉 using <span className="text-sm bg-primary px-2 text-white ">EARLYBIRD26</span></span>
-                                    )}
+                                        <span className="text-gray-500 font-medium">/ month</span>
                                     </div>
                                 </div>
 

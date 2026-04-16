@@ -12,7 +12,6 @@ export interface PricingPlan {
     popular: boolean;
     cta: string;
     color: string;
-    earlyBirdMonthlyPrice?: number;
     features: { text: string; included: boolean; bold?: boolean }[];
 }
 
@@ -22,7 +21,6 @@ export const PricingPlans: PricingPlan[] = [
         category: "Personal Growth",
         description: "For creators who want to grow faster, post smarter, and level up using real insights.",
         monthlyPrice: 19.99,
-        earlyBirdMonthlyPrice: 9.99,
         annualPrice: 17.99,
         monthlyPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_MONTHLY || "price_1T8zvkLShg9EGCkGN3uS86kx" : "price_1T90DLL1bbAsFy34FNRk26eX",
         annualPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_YEARLY || "price_1T8zxGLShg9EGCkGuFDXGFKn" : "price_1T90DvL1bbAsFy34rG5hmUjR",
