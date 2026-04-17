@@ -416,20 +416,15 @@ export default function Home() {
 
             <AnimatedSection delay={0.1}>
               <div className="max-w-2xl mx-auto rounded-2xl border border-primary/30 bg-primary/5 p-8 md:p-12 flex flex-col md:flex-row gap-10 relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-white text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">
-                  Early bird — save 50%
-                </div>
 
                 {/* Left: price + cta */}
                 <div className="flex flex-col justify-between gap-6 md:min-w-[200px]">
                   <div>
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-widest font-manrope mb-3">Writer</p>
                     <div className="flex items-end gap-2 mb-1">
-                      <span className="text-lg text-primary line-through font-urbanist">$19.99</span>
-                      <span className="text-5xl font-bold text-white font-urbanist">$9.99</span>
+                      <span className="text-5xl font-bold text-white font-urbanist">$19.99</span>
                     </div>
-                    <p className="text-gray-500 text-sm font-manrope mb-1">/ month · first 3 months</p>
-                    <p className="text-xs text-primary font-bold font-manrope">Use code <span className="bg-primary text-white px-1.5 py-0.5 rounded">EARLYBIRD26</span></p>
+                    <p className="text-gray-500 text-sm font-manrope mb-1">/ month</p>
                   </div>
                   <button
                     onClick={() => router.push("/auth/signup")}
