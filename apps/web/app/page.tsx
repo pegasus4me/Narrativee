@@ -192,7 +192,7 @@ export default function Home() {
               className="relative rounded-2xl overflow-hidden shadow-lg border border-white/[0.07] p-2"
             >
               <iframe
-                src="https://customer-qusdy8i1rves1ask.cloudflarestream.com/0f1674d204460b2341c841f80cd8b413/iframe?autoplay=true&muted=true&loop=true&controls=false&preload=true"
+                src="https://www.loom.com/embed/9dc0903df56e43cd89176ae3321102d0"
                 className="w-full aspect-video rounded-xl"
                 allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
                 allowFullScreen
