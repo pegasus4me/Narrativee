@@ -73,10 +73,10 @@ export function WaitlistForm() {
             )}
           </button>
         </form>
-        <div className="flex items-center gap-2 px-1">
-          <span className="text-amber-400 text-sm">🎁</span>
-          <p className="text-sm text-zinc-400">
-            <span className="text-zinc-300 font-medium">Bonus:</span> Join now and get 40% off for the first 2 months when we launch.
+        <div className="flex items-start gap-2 px-1 mt-1">
+          <span className="text-amber-400 text-sm mt-0.5">🎁</span>
+          <p className="text-sm text-zinc-400 leading-snug">
+            <span className="text-zinc-300 font-medium">Bonus Bundle:</span> Join now and get 40% off your first 2 months <span className="text-zinc-500 mx-1">+</span> our free playbook: <span className="italic">"The Content Multiplier"</span>.
           </p>
         </div>
       </div>
@@ -88,14 +88,10 @@ export function WaitlistForm() {
               🎉 You're on the list!
             </DialogTitle>
             <DialogDescription className="text-zinc-400 text-base pt-2">
-              We've secured your spot and will notify you as soon as Narrativee is ready. Plus, we've locked in your 40% discount for the first 2 months!
+              We've secured your spot and locked in your 40% discount! The ebook will be sent to you soon via email, please make sure to check your spam folder.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-4">
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4 flex items-center justify-between">
-              <span className="text-sm text-zinc-300 font-medium tracking-wider">STATUS</span>
-              <span className="text-xs text-emerald-400 font-bold bg-emerald-400/10 px-2.5 py-1 rounded-full">VERIFIED</span>
-            </div>
             <button 
               onClick={() => setShowSuccessModal(false)}
               className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-white transition-all active:scale-95 mt-2"
