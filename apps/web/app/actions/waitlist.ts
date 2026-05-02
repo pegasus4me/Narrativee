@@ -2,11 +2,12 @@
 
 import { Resend } from "resend";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = "Safoan <hello@narrativee.com>";
 
 export async function joinWaitlist(email: string) {
   try {
+    const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
     // 1. Notify Discord
     await fetch("https://discord.com/api/webhooks/1498053728945569934/QKmykdAyZp4o0hBKejVnT8VGpjObW2TprgGx_6zjomv4PMcg2cKHLKjo8BU_L6AjHVCX", {
       method: "POST",
@@ -25,16 +26,17 @@ export async function joinWaitlist(email: string) {
         to: email,
         subject: "Welcome to Narrativee + Your Free Playbook",
         html: welcomeEmailHtml({ 
-            name: email.split("@")[0] || "there", 
-            promoCode: "NARRATIVEE40" 
+            name: email.split("@")[0] || "there"
         }),
       });
 
       if (error) {
         console.error("Failed to send welcome email:", error);
+        return { success: true, emailError: error.message };
       }
     } else {
       console.warn("RESEND_API_KEY not set. Skipping welcome email.");
+      return { success: true, emailError: "RESEND_API_KEY not set" };
     }
 
     return { success: true };
@@ -44,7 +46,7 @@ export async function joinWaitlist(email: string) {
   }
 }
 
-function welcomeEmailHtml({ name, promoCode }: { name: string; promoCode: string }) {
+function welcomeEmailHtml({ name }: { name: string }) {
     const firstName = name;
     return `<!DOCTYPE html>
 <html>
@@ -53,60 +55,47 @@ function welcomeEmailHtml({ name, promoCode }: { name: string; promoCode: string
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome to Narrativee</title>
 </head>
-<body style="margin:0;padding:0;background:#0f0f0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f0f0f;padding:48px 16px;">
+<body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:48px 16px;">
     <tr>
       <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1b1d;border-radius:16px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;max-width:560px;width:100%;">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;border:1px solid #e5e7eb;overflow:hidden;max-width:560px;width:100%;">
 
           <!-- Header -->
           <tr>
-            <td style="background:linear-gradient(135deg,#1a1b1d 0%,#1e1a2e 100%);padding:40px 40px 32px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);">
-              <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">✦ Narrativee</div>
-              <p style="margin:8px 0 0;color:#9ca3af;font-size:14px;">Your AI copilot for Substack growth</p>
+            <td style="background:#ffffff;padding:40px 40px 32px;text-align:center;border-bottom:1px solid #e5e7eb;">
+              <img src="https://narrativee.com/logoDark.png" alt="Narrativee" height="32" style="display:block;margin:0 auto;" />
+              <p style="margin:16px 0 0;color:#111827;font-size:18px;font-weight:600;">Your newsletter, repurposed everywhere.</p>
             </td>
           </tr>
 
           <!-- Body -->
           <tr>
             <td style="padding:40px;">
-              <h1 style="margin:0 0 16px;font-size:24px;font-weight:600;color:#ffffff;">Hey ${firstName} 👋</h1>
-              <p style="margin:0 0 24px;font-size:15px;color:#9ca3af;line-height:1.6;">
-                Welcome to the Narrativee waitlist. We've secured your spot! You're one step closer to growing your Substack faster — scheduling notes, analyzing metrics, and letting AI match your voice perfectly.
+              <h1 style="margin:0 0 16px;font-size:24px;font-weight:600;color:#111827;">Hey ${firstName}  👋</h1>
+              <p style="margin:0 0 16px;font-size:15px;color:#4b5563;line-height:1.6;">
+                It's Safoan from Narrativee, just wanted to welcome you to our waitlist and say thank you for joining us. I've secured your spot!
+              </p>
+              <p style="margin:0 0 24px;font-size:15px;color:#4b5563;line-height:1.6;">
+                As a fellow creator, I know the struggle of growing your newsletter across multiple platforms. 
+              </p>
+<p style="margin:0 0 16px;font-size:15px;color:#4b5563;line-height:1.6;">
+               I am on a mission to change that by helping you repurpose and distribute your content across all key channels in just a few clicks and efficiently.
+              </p>
+              <p style="margin:0 0 32px;font-size:15px;color:#111827;line-height:1.6;font-weight:500;text-align:center;">
+                Also, Keep an eye on your inbox—your free playbook will be sent to you shortly! 📘
               </p>
 
-              <!-- Promo code block -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#1e1a2e,#1a1b1d);border:1px solid rgba(139,92,246,0.3);border-radius:12px;margin-bottom:32px;">
-                <tr>
-                  <td style="padding:24px;text-align:center;">
-                    <p style="margin:0 0 8px;font-size:12px;color:#a78bfa;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Your welcome gift</p>
-                    <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:4px;font-family:monospace;">${promoCode}</div>
-                    <p style="margin:12px 0 0;font-size:13px;color:#6b7280;">Use this code at checkout for 40% off on your subscriptions for the first 2 months</p>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- CTA -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
-                <tr>
-                  <td align="center">
-                    <a href="https://narrativee.com/playbook.pdf" style="display:inline-block;background:#f97316;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:10px;">
-                      Download Free Playbook →
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="margin:0;font-size:14px;color:#6b7280;line-height:1.6;">
-                If you have any questions, just reply to this email — we're happy to help.
+              <p style="margin:0;font-size:14px;color:#64748b;line-height:1.6;">
+                If you have any questions, just reply to this email, I will be happy to help.
               </p>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
-              <p style="margin:0;font-size:12px;color:#4b5563;">© 2026 Narrativee · <a href="https://narrativee.com" style="color:#6b7280;text-decoration:none;">narrativee.com</a></p>
+            <td style="padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#94a3b8;">© 2026 Narrativee · <a href="https://narrativee.com" style="color:#64748b;text-decoration:none;">narrativee.com</a></p>
             </td>
           </tr>
 

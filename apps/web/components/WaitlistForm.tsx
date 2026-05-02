@@ -30,6 +30,10 @@ export function WaitlistForm() {
         throw new Error("Failed to submit to waitlist")
       }
       
+      if (result.emailError) {
+        console.warn("Waitlist joined, but email failed:", result.emailError)
+      }
+      
       setShowSuccessModal(true)
       setEmail("")
     } catch (error) {
