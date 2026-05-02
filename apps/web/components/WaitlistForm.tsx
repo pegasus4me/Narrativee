@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
+import { joinWaitlist } from "@/app/actions/waitlist"
 
 export function WaitlistForm() {
   const [email, setEmail] = useState("")
@@ -23,17 +24,9 @@ export function WaitlistForm() {
     setIsLoading(true)
     
     try {
-      const response = await fetch("https://discord.com/api/webhooks/1498053728945569934/QKmykdAyZp4o0hBKejVnT8VGpjObW2TprgGx_6zjomv4PMcg2cKHLKjo8BU_L6AjHVCX", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          content: `🎉 New Waitlist Signup: **${email}**`
-        }),
-      })
+      const result = await joinWaitlist(email)
 
-      if (!response.ok) {
+      if (!result.success) {
         throw new Error("Failed to submit to waitlist")
       }
       
