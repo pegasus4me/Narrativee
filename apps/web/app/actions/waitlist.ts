@@ -2,7 +2,7 @@
 
 import { Resend } from "resend";
 
-const FROM = "Safoan <hello@narrativee.com>";
+const FROM = "Safoan from Narrativee 🏄🏻 <hello@narrativee.com>";
 
 export async function joinWaitlist(email: string) {
   try {
