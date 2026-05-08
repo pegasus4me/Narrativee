@@ -13,7 +13,7 @@ export default function Home() {
       </header>
       <div className="w-full max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-8 py-10 md:py-6">
         {/* Left Side: Text Content */}
-        <div className="flex flex-col gap-8 md:w-5/12 animate-in fade-in slide-in-from-left duration-1000">
+        <div className="flex flex-col gap-8 md:w-5/12">
           {/* Heading */}
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05] text-white relative">
             Your newsletter,<br />
@@ -32,7 +32,7 @@ export default function Home() {
         </div>
 
         {/* Right Side: Image/Hero Illustration */}
-        <div className="relative w-full md:w-7/12 flex justify-center items-center animate-in fade-in zoom-in duration-1000 delay-200">
+        <div className="relative w-full md:w-7/12 flex justify-center items-center">
           <div className="relative w-full scale-110 md:scale-125 origin-center">
              <Image 
                 src={illustation} 
@@ -47,7 +47,7 @@ export default function Home() {
       </div>
 
       {/* Bottom Section: Social Proof & Features */}
-      <div className="w-full max-w-[90%] mx-auto mt-auto pt-12 border-t border-white/5 animate-in fade-in slide-in-from-bottom duration-1000 delay-500">
+      <div className="w-full max-w-[90%] mx-auto mt-auto pt-12 border-t border-white/5">
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-12 pb-12">
             {/* Left Column: Quote & Logos */}
             <div className="flex flex-col gap-8 md:gap-10">
