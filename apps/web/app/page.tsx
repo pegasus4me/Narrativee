@@ -19,16 +19,13 @@ export default function Home() {
             Your newsletter,<br />
             repurposed <span className="relative inline-block">
               <span className="bg-gradient-to-r from-indigo-400 to-indigo-600 bg-clip-text text-transparent relative z-0">everywhere.</span>
-              <span className="absolute -right-6 -bottom-8 md:-right-12 md:-bottom-12 pointer-events-none z-10">
-                <Image src={clickImage} alt="click" className="w-16 h-16 md:w-32 md:h-32 object-contain" />
-              </span>
+             
             </span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-base md:text-lg text-zinc-400 max-w-md leading-relaxed">
-            Narrativee helps you grow your newsletter by automating your content and amplifying your visibility across all key channels in <span className="text-indigo-400 font-bold">clicks</span>.
-          </p>
+            Narrativee helps you repurpose your newsletter content for every platform you use and post it in few clicks, preserving your voice         </p>
 
           {/* Waitlist Form */}
           <WaitlistForm />
