@@ -16,17 +16,14 @@ export default function Home() {
         <div className="flex flex-col gap-8 md:w-5/12">
           {/* Heading */}
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05] text-white relative">
-            Your newsletter,<br />
-            repurposed <span className="relative inline-block">
-              <span className="bg-gradient-to-r from-indigo-400 to-indigo-600 bg-clip-text text-transparent relative z-0">everywhere.</span>
-             
-            </span>
+           Publish your newsletter once. Stay active everywhere.
+
           </h1>
 
           {/* Subtitle */}
           <p className="text-base md:text-lg text-zinc-400 max-w-md leading-relaxed">
-            Narrativee helps you repurpose your newsletter content for every platform you use and post it in few clicks, preserving your voice         </p>
-
+            Narrativee turns every newsletter into platform-native content for your socials, without rewriting everything from scratch or losing your voice.
+          </p>
           {/* Waitlist Form */}
           <WaitlistForm />
         </div>
@@ -51,22 +48,11 @@ export default function Home() {
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-12 pb-12">
             {/* Left Column: Quote & Logos */}
             <div className="flex flex-col gap-8 md:gap-10">
-                {/* Founder Quote */}
-                <div className="flex items-center gap-4">
-                  <Image src={profileImage} alt="Safoan" className="w-14 h-14 rounded-full object-cover border border-white/10" />
-                  <div className="flex flex-col">
-                    <p className="text-sm md:text-base italic text-zinc-200 max-w-md leading-relaxed">
-                      "I was frustrated with content repurposing. Repeating the same lengthy process every single week was exhausting. Narrativee removed that bottleneck completely and let me focus on what actually matters, writing my newsletter."
-                    </p>
-                    <p className="text-xs text-zinc-400 mt-1.5">
-                      <span className="font-bold text-white">Safoan</span>, Founder of Narrativee & Newsletter Creator
-                    </p>
-                  </div>
-                </div>
+
 
                 {/* Logos */}
                 <div className="flex flex-col gap-4">
-                    <span className="text-sm font-light text-zinc-500">Works with your favorite social platforms</span>
+                    <span className="text-sm font-light text-white">Works with your favorite social platforms</span>
                 <div className="flex flex-wrap items-center gap-8">
 <img src="https://cdn.pixabay.com/photo/2021/06/15/12/28/tiktok-6338432_1280.png" alt="TikTok" className="h-6 md:h-8 w-auto" />
 <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" className="h-6 md:h-8 w-auto" />

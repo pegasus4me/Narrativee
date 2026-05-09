@@ -71,9 +71,8 @@ export function WaitlistForm() {
           </button>
         </form>
         <div className="flex items-start gap-2 px-1 mt-1">
-          <span className="text-amber-400 text-sm mt-0.5">🎁</span>
-          <p className="text-sm text-zinc-400 leading-snug">
-            <span className="text-zinc-300 font-medium">Bonus Bundle:</span> Join now and get 40% off your first 2 months <span className="text-zinc-500 mx-1">+</span> our free playbook: <span className="italic">"The Content Multiplier"</span>.
+          <p className="text-sm text-white leading-snug">
+           Join the waitlistnow and get 40% off your first 2 months 
           </p>
         </div>
       </div>
