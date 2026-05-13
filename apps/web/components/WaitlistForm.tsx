@@ -64,7 +64,7 @@ export function WaitlistForm() {
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <>
-                Get Early Access
+                secure your spot 
                 <MoveRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </>
             )}
@@ -72,7 +72,7 @@ export function WaitlistForm() {
         </form>
         <div className="flex items-start gap-2 px-1 mt-1">
           <p className="text-sm text-zinc-600 leading-snug">
-           Join the waitlistnow and get 40% off your first 2 months 
+           Join the waitlist and get 40% off your first 2 months 
           </p>
         </div>
       </div>
