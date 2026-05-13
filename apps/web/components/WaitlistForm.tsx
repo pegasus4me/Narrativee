@@ -53,7 +53,7 @@ export function WaitlistForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email address"
             required
-            className="flex-1 px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+            className="flex-1 px-4 py-3.5 rounded-xl bg-white border border-zinc-300 text-zinc-900 placeholder:text-zinc-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
           />
           <button
             type="submit"
@@ -71,19 +71,19 @@ export function WaitlistForm() {
           </button>
         </form>
         <div className="flex items-start gap-2 px-1 mt-1">
-          <p className="text-sm text-white leading-snug">
+          <p className="text-sm text-zinc-600 leading-snug">
            Join the waitlistnow and get 40% off your first 2 months 
           </p>
         </div>
       </div>
 
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="sm:max-w-md border-white/10 bg-[#020212]/95 backdrop-blur-xl text-white">
+        <DialogContent className="sm:max-w-md border-zinc-200 bg-white/95 backdrop-blur-xl text-zinc-900 shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold flex items-center gap-2 text-white">
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2 text-zinc-900">
               🎉 You're on the list!
             </DialogTitle>
-            <DialogDescription className="text-zinc-400 text-base pt-2">
+            <DialogDescription className="text-zinc-600 text-base pt-2">
               We've secured your spot and locked in your 40% discount! The ebook will be sent to you soon via email, please make sure to check your spam folder.
             </DialogDescription>
           </DialogHeader>
