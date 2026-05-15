@@ -16,13 +16,12 @@ export default function Home() {
         <div className="flex flex-col gap-8 md:w-5/12">
           {/* Heading */}
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05] text-zinc-900 relative">
-           Publish your newsletter once. Stay active everywhere.
-
+Turn your newsletter into posts that actually fit each platform
           </h1>
 
           {/* Subtitle */}
           <p className="text-base md:text-lg text-zinc-600 max-w-md leading-relaxed">
-            Narrativee turns every newsletter into platform-native content for your socials, without rewriting everything from scratch or losing your voice.
+            Narrativee helps newsletter creators turn their newsletter into platform-native posts for LinkedIn, Twitter and Instagram without rewriting from scratch
           </p>
           {/* Waitlist Form */}
           <WaitlistForm />
@@ -81,7 +80,7 @@ export default function Home() {
 }
 function FeatureCard({ icon, title, desc, iconBgClass }: { icon: React.ReactNode, title: string, desc: string, iconBgClass?: string }) {
   return (
-    <div className="flex items-center gap-4 border-r border-zinc-200 pr-4 md:pr-6 last:border-0 w-max md:w-auto flex-shrink-0">
+    <div className="flex items-start md:items-center gap-4 border-b md:border-b-0 lg:border-r border-zinc-200 pb-4 md:pb-0 lg:pr-6 last:border-0 w-full lg:w-auto">
       <div className={`p-2.5 rounded-full flex-shrink-0 ${iconBgClass || 'bg-zinc-100'}`}>
         {icon}
       </div>
