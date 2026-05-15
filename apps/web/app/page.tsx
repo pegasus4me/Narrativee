@@ -16,7 +16,7 @@ export default function Home() {
         <div className="flex flex-col gap-8 md:w-5/12">
           {/* Heading */}
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05] text-zinc-900 relative">
-Turn your newsletter into posts that actually fit each platform
+           turn your newsletter into native platform content
           </h1>
 
           {/* Subtitle */}
