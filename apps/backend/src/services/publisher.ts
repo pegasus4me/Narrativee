@@ -150,6 +150,6 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
         updatedAt: new Date(),
       })
       .where(eq(socialPosts.id, postId));
-    return false;
+    throw err;
   }
 }

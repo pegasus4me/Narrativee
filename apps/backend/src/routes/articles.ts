@@ -789,10 +789,7 @@ router.post('/drafts/:draftId/publish-now', verifyAuth, async (req: AuthRequest,
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    const success = await publishPostToSocialPlatform(draftId);
-    if (!success) {
-      return res.status(500).json({ error: 'Failed to publish post to social platform API' });
-    }
+    await publishPostToSocialPlatform(draftId);
 
     const [updated] = await db
       .select()

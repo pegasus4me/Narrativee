@@ -284,9 +284,13 @@ export default function PostQueuePage() {
         if (activeModalPost && activeModalPost.id === postId) {
           setActiveModalPost(null);
         }
+      } else {
+        const data = await res.json() as any;
+        alert(`Failed to publish: ${data.details || data.error || "Unknown error"}`);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to publish post immediately:", e);
+      alert(`Error publishing post: ${e.message || "Unknown error"}`);
     } finally {
       setPublishingId(null);
     }
