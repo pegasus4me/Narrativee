@@ -1323,7 +1323,7 @@ export default function CreatePage() {
                             className="h-4.5 w-4.5 rounded-md border-zinc-300 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 transition-colors"
                           />
                           <span className="text-xs font-medium text-zinc-600 group-hover:text-zinc-900 transition-colors">
-                            Attach original link
+                            Attach original article link
                           </span>
                         </label>
                         <button
