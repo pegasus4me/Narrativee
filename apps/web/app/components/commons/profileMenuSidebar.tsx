@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, MoreVertical } from "lucide-react";
 import { useSideBarStore } from "../../state/SideBar.store";
+import { DEFAULT_AVATAR } from "@/app/constants";
 
 interface ProfileMenuSidebarProps {
     isSidebarOpen: boolean;
@@ -55,10 +56,10 @@ export default function ProfileMenuSidebar({ isSidebarOpen }: ProfileMenuSidebar
             >
                 <div className="flex items-center gap-3 overflow-hidden">
                     <Image
-                        src={session?.data?.user?.image || 'https://static.vecteezy.com/system/resources/previews/059/545/358/non_2x/abstract-pixel-art-background-soft-purple-and-pale-yellow-mosaic-ideal-for-website-banners-digital-art-presentations-and-tech-designs-conveys-a-sense-of-modern-technology-and-digital-fluidity-vector.jpg'}
+                        src={session?.data?.user?.image || DEFAULT_AVATAR}
                         alt={session?.data?.user?.name || 'User'}
-                        width={isSidebarOpen ? 32 : 32}
-                        height={isSidebarOpen ? 32 : 32}
+                        width={isSidebarOpen ? 44 : 44}
+                        height={isSidebarOpen ? 44 : 44}
                         className="rounded-md shrink-0"
                     />
                     {isSidebarOpen && (
