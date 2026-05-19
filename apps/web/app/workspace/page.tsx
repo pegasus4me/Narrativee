@@ -516,7 +516,7 @@ export default function Workspace() {
             type="button"
             disabled={saving || loading}
             onClick={handleSaveSettings}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 shrink-0 shadow-sm"
+            className="inline-flex items-center justify-center gap-2 rounded-sm bg-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 shrink-0 shadow-sm"
           >
             {saving ? (
               <>

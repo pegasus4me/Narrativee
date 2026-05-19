@@ -616,7 +616,7 @@ export default function CreatePage() {
                 Platform Native Drafts
               </h2>
               <p className="mt-1 text-sm text-zinc-500">
-                Customize or tweak what Grok drafted for your channels before sending them to the pipeline.
+                Customize or tweak what drafted for your channels before sending them to the pipeline.
               </p>
             </div>
 
