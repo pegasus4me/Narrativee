@@ -47,7 +47,7 @@ export default function SignUp() {
       }, {
         onSuccess: () => {
           trackSignUp('email');
-          router.push("/onboarding");
+          router.push("/workspace");
         },
         onError: (ctx) => {
           setError(ctx.error.message);
