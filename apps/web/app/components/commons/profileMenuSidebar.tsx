@@ -55,7 +55,7 @@ export default function ProfileMenuSidebar({ isSidebarOpen }: ProfileMenuSidebar
             >
                 <div className="flex items-center gap-3 overflow-hidden">
                     <Image
-                        src={session?.data?.user?.image || '/default-avatar.png'}
+                        src={session?.data?.user?.image || 'https://static.vecteezy.com/system/resources/previews/059/545/358/non_2x/abstract-pixel-art-background-soft-purple-and-pale-yellow-mosaic-ideal-for-website-banners-digital-art-presentations-and-tech-designs-conveys-a-sense-of-modern-technology-and-digital-fluidity-vector.jpg'}
                         alt={session?.data?.user?.name || 'User'}
                         width={isSidebarOpen ? 32 : 32}
                         height={isSidebarOpen ? 32 : 32}
