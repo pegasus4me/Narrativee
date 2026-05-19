@@ -53,6 +53,13 @@ Return ONLY a JSON array of strings, e.g. ["Idea 1", "Idea 2"]. No markdown fenc
             if (cleanedText.endsWith('```')) cleanedText = cleanedText.substring(0, cleanedText.length - 3);
             cleanedText = cleanedText.trim();
 
+            // Extract the first '[' and the last ']' to isolate the JSON array
+            const firstBracket = cleanedText.indexOf('[');
+            const lastBracket = cleanedText.lastIndexOf(']');
+            if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+                cleanedText = cleanedText.substring(firstBracket, lastBracket + 1);
+            }
+
             const parsed = JSON.parse(cleanedText);
             if (Array.isArray(parsed)) {
                 return parsed.map((item: any) =>
