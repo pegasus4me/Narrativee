@@ -304,20 +304,42 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
           */}
           <div className="mt-auto w-full pb-4 space-y-2">
 
-            {/* 
-            {plan === 'free' && (
-              <div className={`px-2 ${!isSidebarOpen && 'flex justify-center'}`}>
+            {session?.user && (plan === 'free' || !plan) && isSidebarOpen && (
+              <div className="mx-2 p-3 bg-zinc-50 border border-zinc-200/50 rounded-xl space-y-2.5 font-urbanist">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Free Trial
+                  </span>
+                  <span className="text-[11px] font-medium text-zinc-500">
+                    {credits !== null ? `${credits}/20 credits` : "20 credits"}
+                  </span>
+                </div>
+                <div className="w-full bg-zinc-200 h-1.5 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-indigo-600 h-1.5 rounded-full transition-all duration-500" 
+                    style={{ width: `${Math.min(100, Math.max(0, ((credits ?? 20) / 20) * 100))}%` }}
+                  />
+                </div>
                 <Link
                   href="/pricing"
-                  className={`flex items-center justify-center gap-2 py-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 text-black text-sm font-bold rounded-lg transition-all shadow-md ${isSidebarOpen ? 'w-full' : 'w-10 h-10 rounded-full text-lg'}`}
+                  className="block text-center text-xs font-bold text-white bg-zinc-900 hover:bg-zinc-800 py-2 rounded-lg transition-colors shadow-xs"
                 >
-                  {isSidebarOpen ? 'Upgrade Now' : '↑'}
+                  Upgrade to Pro
                 </Link>
               </div>
             )}
-            */}
 
-
+            {session?.user && (plan === 'free' || !plan) && !isSidebarOpen && (
+              <div className="flex justify-center">
+                <Link
+                  href="/pricing"
+                  title={`Upgrade - ${credits ?? 0}/20 credits left`}
+                  className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600 transition-all"
+                >
+                  {credits !== null ? credits : "T"}
+                </Link>
+              </div>
+            )}
 
             {session?.user && (
               <div className={`flex ${!isSidebarOpen ? 'justify-center' : 'px-2'}`}>
