@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Rss,
   Plug,
+  X,
 } from "lucide-react";
 
 interface Channel {
@@ -153,6 +154,16 @@ function ChannelsPageContent() {
   const [syncTab, setSyncTab] = useState<"substack" | "custom_rss">("substack");
   const [showAuthModal, setShowAuthModal] = useState(false);
 
+  // Bluesky States
+  const [showBlueskyModal, setShowBlueskyModal] = useState(false);
+  const [blueskyHandle, setBlueskyHandle] = useState("");
+  const [blueskyPassword, setBlueskyPassword] = useState("");
+  const [isConnectingBluesky, setIsConnectingBluesky] = useState(false);
+  const [blueskyError, setBlueskyError] = useState("");
+
+  // Instagram Alert State
+  const [showInstagramModal, setShowInstagramModal] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
     if (isGuest) {
@@ -229,7 +240,51 @@ function ChannelsPageContent() {
       setShowAuthModal(true);
       return;
     }
+    if (platform === "bluesky") {
+      setBlueskyHandle("");
+      setBlueskyPassword("");
+      setBlueskyError("");
+      setShowBlueskyModal(true);
+      return;
+    }
+    if (platform === "instagram") {
+      setShowInstagramModal(true);
+      return;
+    }
     window.location.href = `${API_URL}/channels/connect/${platform}`;
+  };
+
+  const handleConnectBluesky = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!blueskyHandle || !blueskyPassword) return;
+
+    setIsConnectingBluesky(true);
+    setBlueskyError("");
+
+    try {
+      const res = await fetch(`${API_URL}/channels/connect/bluesky`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          identifier: blueskyHandle.trim(),
+          appPassword: blueskyPassword.trim(),
+        }),
+      });
+
+      const data = (await res.json()) as { error?: string; details?: string };
+
+      if (!res.ok) {
+        throw new Error(data.error || data.details || "Failed to connect Bluesky account");
+      }
+
+      setShowBlueskyModal(false);
+      fetchData();
+    } catch (err: any) {
+      setBlueskyError(err.message);
+    } finally {
+      setIsConnectingBluesky(false);
+    }
   };
 
   const handleDisconnectChannel = async (channelId: string) => {
@@ -734,6 +789,177 @@ function ChannelsPageContent() {
               >
                 Continue Exploring
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Bluesky Credentials Connection Modal */}
+      {showBlueskyModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity animate-in fade-in duration-300"
+            onClick={() => !isConnectingBluesky && setShowBlueskyModal(false)}
+          />
+
+          <div className="relative w-full max-w-md transform overflow-hidden rounded-3xl border border-zinc-100 bg-white p-8 shadow-2xl transition-all animate-in zoom-in-95 slide-in-from-bottom-8 duration-300">
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowBlueskyModal(false)}
+              disabled={isConnectingBluesky}
+              className="absolute top-4 right-4 p-2 rounded-xl text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 shadow-inner">
+                <img
+                  src={BLUESKY_LOGO}
+                  alt="Bluesky"
+                  className="h-7 w-7 object-contain"
+                />
+              </div>
+              <h3 className="text-2xl font-extrabold tracking-tight text-zinc-900">
+                Connect Bluesky
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+                Enter your handle and app password to connect your Bluesky channel.
+              </p>
+            </div>
+
+            <form onSubmit={handleConnectBluesky} className="mt-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2">
+                  Bluesky Handle
+                </label>
+                <input
+                  type="text"
+                  value={blueskyHandle}
+                  onChange={(e) => setBlueskyHandle(e.target.value)}
+                  placeholder="e.g. username.bsky.social"
+                  className="w-full min-h-[44px] rounded-xl bg-white px-4 text-sm text-zinc-900 border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-primary-500/25"
+                  required
+                  disabled={isConnectingBluesky}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2">
+                  App Password
+                </label>
+                <input
+                  type="password"
+                  value={blueskyPassword}
+                  onChange={(e) => setBlueskyPassword(e.target.value)}
+                  placeholder="e.g. abcd-efgh-ijkl-mnop"
+                  className="w-full min-h-[44px] rounded-xl bg-white px-4 text-sm text-zinc-900 border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-primary-500/25"
+                  required
+                  disabled={isConnectingBluesky}
+                />
+                <p className="mt-2 text-[11px] text-zinc-400 leading-normal">
+                  Don't use your main password. Generate an App Password in Bluesky:{" "}
+                  <strong className="text-zinc-600 font-medium">
+                    Settings &gt; Privacy &amp; Security &gt; App Passwords
+                  </strong>.
+                </p>
+              </div>
+
+              {blueskyError && (
+                <div className="rounded-xl bg-red-50 p-3 text-xs text-red-800 leading-normal border border-red-100">
+                  {blueskyError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isConnectingBluesky || !blueskyHandle || !blueskyPassword}
+                className="w-full min-h-[48px] rounded-md bg-primary font-bold text-white shadow-lg transition-all hover:bg-primary/90 disabled:opacity-50 text-sm flex items-center justify-center gap-2"
+              >
+                {isConnectingBluesky ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Connecting…
+                  </>
+                ) : (
+                  "Connect Account"
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Instagram Business Connection Alert Modal */}
+      {showInstagramModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity animate-in fade-in duration-300"
+            onClick={() => setShowInstagramModal(false)}
+          />
+
+          <div className="relative w-full max-w-md transform overflow-hidden rounded-3xl border border-zinc-100 bg-white p-8 shadow-2xl transition-all animate-in zoom-in-95 slide-in-from-bottom-8 duration-300">
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowInstagramModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-xl text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-50 text-pink-600 shadow-inner">
+                <img
+                  src={INSTAGRAM_LOGO}
+                  alt="Instagram"
+                  className="h-7 w-7 object-contain"
+                />
+              </div>
+              <h3 className="text-2xl font-extrabold tracking-tight text-zinc-900">
+                Instagram
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+                Meta requires an <strong>Instagram Creator or Instagram Business</strong> account linked to a Facebook Page to publish content automatically.
+              </p>
+            </div>
+
+            <div className="mt-6 space-y-4 text-left">
+              <div className="rounded-2xl bg-zinc-50 p-4 border border-zinc-100">
+                <h4 className="text-xs font-bold text-zinc-700 uppercase tracking-wider mb-2">
+                  Prerequisites Checklist:
+                </h4>
+                <ul className="space-y-2.5">
+                  <li className="flex items-start gap-2.5 text-xs text-zinc-600">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 mt-0.5" />
+                    <span>Instagram account switched to <strong>Creator</strong> or <strong>Business</strong> (in App Settings &gt; Account type).</span>
+                  </li>
+                  <li className="flex items-start gap-2.5 text-xs text-zinc-600">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 mt-0.5" />
+                    <span>Instagram account linked to a <strong>Facebook Page</strong> that you admin.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex flex-col gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowInstagramModal(false);
+                    window.location.href = `${API_URL}/channels/connect/instagram`;
+                  }}
+                  className="w-full min-h-[48px] rounded-md bg-primary font-bold text-white shadow-lg transition-all hover:bg-primary/90 text-sm flex items-center justify-center gap-2"
+                >
+                  <Instagram className="w-4 h-4" />
+                  Connect to Instagram
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowInstagramModal(false)}
+                  className="w-full min-h-[44px] rounded-md border border-zinc-200 bg-white font-bold text-zinc-600 transition-all hover:bg-zinc-50 text-sm"
+                >
+                  Go Back
+                </button>
+              </div>
             </div>
           </div>
         </div>
