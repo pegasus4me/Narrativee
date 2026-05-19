@@ -70,7 +70,9 @@ router.get('/connect/:platform', verifyAuth, async (req: AuthRequest, res) => {
     const hasMetaConfig = isMetaPlatform && (
         platform === 'threads'
             ? (process.env.THREADS_APP_ID && process.env.THREADS_APP_SECRET)
-            : (process.env.META_APP_ID && process.env.META_APP_SECRET)
+            : platform === 'instagram'
+                ? (process.env.INSTAGRAM_APP_ID && process.env.INSTAGRAM_APP_SECRET)
+                : (process.env.META_APP_ID && process.env.META_APP_SECRET)
     );
 
     if (isMetaPlatform && !hasMetaConfig) {
