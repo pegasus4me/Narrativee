@@ -311,20 +311,20 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                     Free Trial
                   </span>
                   <span className="text-[11px] font-medium text-zinc-500">
-                    {credits !== null ? `${credits}/20 credits` : "20 credits"}
+                    {credits !== null ? `${credits}/40 credits` : "40 credits"}
                   </span>
                 </div>
                 <div className="w-full bg-zinc-200 h-1.5 rounded-full overflow-hidden">
                   <div 
                     className="bg-indigo-600 h-1.5 rounded-full transition-all duration-500" 
-                    style={{ width: `${Math.min(100, Math.max(0, ((credits ?? 20) / 20) * 100))}%` }}
+                    style={{ width: `${Math.min(100, Math.max(0, ((credits ?? 40) / 40) * 100))}%` }}
                   />
                 </div>
                 <Link
                   href="/pricing"
-                  className="block text-center text-xs font-bold text-white bg-zinc-900 hover:bg-zinc-800 py-2 rounded-lg transition-colors shadow-xs"
+                  className="block text-center text-xs font-light text-white bg-primary hover:bg-zinc-800 py-2 rounded-lg transition-colors shadow-xs"
                 >
-                  Upgrade to Pro
+                   free in beta
                 </Link>
               </div>
             )}
@@ -333,7 +333,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               <div className="flex justify-center">
                 <Link
                   href="/pricing"
-                  title={`Upgrade - ${credits ?? 0}/20 credits left`}
+                  title={`Upgrade - ${credits ?? 0}/40 credits left`}
                   className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600 transition-all"
                 >
                   {credits !== null ? credits : "T"}

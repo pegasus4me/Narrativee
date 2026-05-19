@@ -98,7 +98,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                     .set({
                         plan: 'free',
                         subscriptionStatus: 'canceled',
-                        tokens: 20 // Reset to free trial limits
+                        tokens: 40 // Reset to free trial limits
                     })
                     .where(eq(user.stripeSubscriptionId, subscriptionId));
 
