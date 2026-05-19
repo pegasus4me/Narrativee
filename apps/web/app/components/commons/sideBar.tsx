@@ -15,6 +15,7 @@ import { Home, Lightbulb, CalendarDays, Link2, Instagram, Rss, BookOpen } from "
 import { LINKEDIN_LOGO, X_LOGO, THREADS_LOGO, FACEBOOK_LOGO } from "@/app/constants";
 import ProfileMenuSidebar from "./profileMenuSidebar";
 import PrimaryButton from "./PrimaryButton";
+import PricingPopUp from "../workspace/pricingPopUp";
 
 const PLATFORM_META: Record<string, { label: string; icon: React.ReactNode }> = {
   linkedin: {
@@ -66,6 +67,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const [campaignsOpen, setCampaignsOpen] = useState(false);
   const [channels, setChannels] = useState<any[]>([]);
   const [sources, setSources] = useState<any[]>([]);
+  const [showPricing, setShowPricing] = useState(false);
 
   useEffect(() => {
     if (session === undefined) return;
@@ -320,24 +322,26 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                     style={{ width: `${Math.min(100, Math.max(0, ((credits ?? 40) / 40) * 100))}%` }}
                   />
                 </div>
-                <Link
-                  href="/pricing"
-                  className="block text-center text-xs font-light text-white bg-primary hover:bg-zinc-800 py-2 rounded-lg transition-colors shadow-xs"
+                <button
+                  type="button"
+                  onClick={() => setShowPricing(true)}
+                  className="block w-full text-center text-xs font-light text-white bg-primary hover:bg-zinc-800 py-2 rounded-lg transition-colors shadow-xs"
                 >
-                   free in beta
-                </Link>
+                   pricing ( - 20% off ) 
+                </button>
               </div>
             )}
 
             {session?.user && (plan === 'free' || !plan) && !isSidebarOpen && (
               <div className="flex justify-center">
-                <Link
-                  href="/pricing"
+                <button
+                  type="button"
+                  onClick={() => setShowPricing(true)}
                   title={`Upgrade - ${credits ?? 0}/40 credits left`}
                   className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600 transition-all"
                 >
                   {credits !== null ? credits : "T"}
-                </Link>
+                </button>
               </div>
             )}
 
@@ -350,6 +354,8 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
           </div>
         </div>
       </aside>
+
+      <PricingPopUp isOpen={showPricing} onClose={() => setShowPricing(false)} />
     </>
   );
 }

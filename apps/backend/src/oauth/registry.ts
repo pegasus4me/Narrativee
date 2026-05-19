@@ -4,6 +4,7 @@ import { linkedinProvider } from './providers/linkedin';
 import { instagramProvider } from './providers/instagram';
 import { facebookProvider } from './providers/facebook';
 import { threadsProvider } from './providers/threads';
+import { blueskyProvider } from './providers/bluesky';
 
 /**
  * Provider Registry
@@ -21,6 +22,7 @@ const providers = new Map<string, OAuthProvider>([
     ['instagram', instagramProvider],
     ['facebook', facebookProvider],
     ['threads', threadsProvider],
+    ['bluesky', blueskyProvider],
 ]);
 
 /** Get a provider by platform name, or null if unsupported */

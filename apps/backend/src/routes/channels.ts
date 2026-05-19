@@ -5,6 +5,7 @@ import { channels } from '../auth/schema/schema';
 import { eq, and } from 'drizzle-orm';
 import { verifyAuth, AuthRequest } from '../middleware/auth';
 import { getProvider, getProviderList } from '../oauth/registry';
+import { authenticateBluesky } from '../oauth/providers/bluesky';
 
 const router = Router();
 
@@ -64,7 +65,8 @@ router.get('/connect/:platform', verifyAuth, async (req: AuthRequest, res) => {
     }
 
     // Intercept mock connection if credentials are not configured in environment
-    const isMetaPlatform = platform === 'facebook' || platform === 'instagram' || platform === 'threads';
+    // add bluesky to this
+    const isMetaPlatform = platform === 'facebook' || platform === 'instagram' || platform === 'threads' || platform === 'bluesky';
     const hasMetaConfig = isMetaPlatform && (
         platform === 'threads'
             ? (process.env.THREADS_APP_ID && process.env.THREADS_APP_SECRET)
@@ -233,6 +235,65 @@ router.get('/callback/:platform', async (req: any, res) => {
     } catch (err: any) {
         console.error(`OAuth callback error for ${platform}:`, err);
         res.redirect(`${FRONTEND_URL}/workspace/channels?error=token_exchange_failed`);
+    }
+});
+
+/**
+ * POST /api/channels/connect/bluesky
+ * Connects a Bluesky account using AT Protocol (handle + app password).
+ */
+router.post('/connect/bluesky', verifyAuth, async (req: AuthRequest, res) => {
+    try {
+        const { identifier, appPassword } = req.body;
+
+        if (!identifier || !appPassword) {
+            return res.status(400).json({ error: 'Bluesky handle and app password are required' });
+        }
+
+        console.log(`🦋 [Bluesky] Authenticating ${identifier}...`);
+        const { tokens, profile } = await authenticateBluesky(identifier, appPassword);
+        console.log(`✅ [Bluesky] Authenticated: ${profile.accountName} (${profile.providerAccountId})`);
+
+        // Upsert: if this account is already connected, update tokens
+        const existing = await db
+            .select()
+            .from(channels)
+            .where(
+                and(
+                    eq(channels.userId, req.user!.id),
+                    eq(channels.platform, 'bluesky'),
+                    eq(channels.providerAccountId, profile.providerAccountId)
+                )
+            );
+
+        if (existing.length > 0) {
+            await db
+                .update(channels)
+                .set({
+                    accessToken: tokens.accessToken,
+                    refreshToken: tokens.refreshToken ?? existing[0]!.refreshToken,
+                    expiresAt: tokens.expiresAt,
+                    accountName: profile.accountName,
+                    avatarUrl: profile.avatarUrl,
+                })
+                .where(eq(channels.id, existing[0]!.id));
+        } else {
+            await db.insert(channels).values({
+                userId: req.user!.id,
+                platform: 'bluesky',
+                providerAccountId: profile.providerAccountId,
+                accountName: profile.accountName,
+                avatarUrl: profile.avatarUrl,
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                expiresAt: tokens.expiresAt,
+            });
+        }
+
+        res.json({ success: true, platform: 'bluesky', accountName: profile.accountName });
+    } catch (error: any) {
+        console.error('❌ [Bluesky] Connection failed:', error.message);
+        res.status(400).json({ error: 'Failed to connect Bluesky', details: error.message });
     }
 });
 

@@ -17,9 +17,9 @@ export interface PricingPlan {
 
 export const PricingPlans: PricingPlan[] = [
     {
-        name: "Writer",
-        category: "Personal Growth",
-        description: "For creators who want to grow faster, post smarter, and level up using real insights.",
+        name: "Starter",
+        category: "",
+        description: "For creators who just started who want to automate their repurposing and scheduling process",
         monthlyPrice: 19.99,
         annualPrice: 17.99,
         monthlyPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_MONTHLY || "price_1T8zvkLShg9EGCkGN3uS86kx" : "price_1T90DLL1bbAsFy34FNRk26eX",
@@ -29,15 +29,33 @@ export const PricingPlans: PricingPlan[] = [
         cta: "Start your 7-day free trial",
         color: "primary",
         features: [
-            { text: "100 AI credits/month", included: true, bold: true },
-            { text: "Profile optimization insights", included: true },
-            { text: "40 notes queued simultaneously", included: true },
-            { text: "Performance analytics", included: true },
-            { text: "Inspiration library", included: true },
-            { text: "60 creator follow ups/month", included: true },
-            { text: "Priority email support", included: true },
-            { text: "Early access to new features", included: true },
-            { text: "cross post your notes to other platforms automatically", included: true }
+            { text: "40 AI credits / month", included: true, bold: true },
+            { text: "3 connected channels", included: true },
+            { text: "Basic content generation", included: true },
+            { text: "Post scheduling", included: true },
+            { text: "Email support", included: true },
+        ]
+    },
+    {
+        name: "Creator",
+        category: "Personal Growth",
+        description: "For creators who want to grow faster, push their distribution to next level.",
+        monthlyPrice: 25.99,
+        annualPrice: 23.99,
+        monthlyPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_MONTHLY || "price_1T8zvkLShg9EGCkGN3uS86kx" : "price_1T90DLL1bbAsFy34FNRk26eX",
+        annualPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_YEARLY || "price_1T8zxGLShg9EGCkGuFDXGFKn" : "price_1T90DvL1bbAsFy34rG5hmUjR",
+        savings: 60,
+        popular: true,
+        cta: "Start your 7-day free trial",
+        color: "primary",
+        features: [
+            { text: "100 AI credits / month", included: true, bold: true },
+            { text: "Unlimited channels", included: true },
+            { text: "Advanced tone-of-voice", included: true },
+            { text: "Priority scheduling", included: true },
+            { text: "Auto-publish to all platforms", included: true },
+            { text: "Knowledge base & templates", included: true },
+            { text: "Priority support", included: true },
         ]
     }
 ];

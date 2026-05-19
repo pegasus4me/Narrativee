@@ -35,7 +35,7 @@ interface Source {
   avatarUrl?: string;
 }
 
-import { LINKEDIN_LOGO, X_LOGO, INSTAGRAM_LOGO, FACEBOOK_LOGO, THREADS_LOGO } from "@/app/constants";
+import { LINKEDIN_LOGO, X_LOGO, INSTAGRAM_LOGO, FACEBOOK_LOGO, THREADS_LOGO, BLUESKY_LOGO } from "@/app/constants";
 
 const PLATFORM_META: Record<
   string,
@@ -53,7 +53,8 @@ const PLATFORM_META: Record<
     color: "text-[#0A66C2]",
     bg: "bg-[#0A66C2]/10 border-[#0A66C2]/20",
   },
-  x: {
+  /**
+   *   x: {
     label: "X (Twitter)",
     icon: (
       <img
@@ -64,6 +65,20 @@ const PLATFORM_META: Record<
     ),
     color: "text-black",
     bg: "bg-black/5 border-black/10",
+  },
+  
+   */
+  bluesky: {
+    label: "Bluesky",
+    icon: (
+      <img
+        src={BLUESKY_LOGO}
+        alt="Bluesky"
+        className="h-5 w-5 object-contain"
+      />
+    ),
+    color: "text-[#1877F2]",
+    bg: "bg-[#1877F2]/10 border-[#1877F2]/20",
   },
   instagram: {
     label: "Instagram",
@@ -192,6 +207,7 @@ function ChannelsPageContent() {
       ]);
 
       const channelsData = (await channelsRes.json()) as { channels?: Channel[] };
+      console.log(channelsData);
       const sourcesData = (await sourcesRes.json()) as { sources?: Source[] };
 
       setChannels(channelsData.channels || []);

@@ -5,3 +5,4 @@ export const THREADS_LOGO = "https://upload.wikimedia.org/wikipedia/commons/d/db
 export const FACEBOOK_LOGO = "https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg";
 export const SUBSTACK_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Substack_logo.svg/2048px-Substack_logo.svg.png";
 export const DEFAULT_AVATAR = "https://img.freepik.com/free-vector/blue-purple-mosaic-background_1164-812.jpg?semt=ais_rp_progressive&w=740&q=80"
+export const BLUESKY_LOGO = "https://upload.wikimedia.org/wikipedia/commons/7/7a/Bluesky_Logo.svg";
