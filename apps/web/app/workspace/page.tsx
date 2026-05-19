@@ -44,11 +44,11 @@ const cards = [
   },
   {
     href: "/workspace/post-queue",
-    eyebrow: "Soon",
+    eyebrow: "Pipeline",
     title: "Schedule",
-    description: "Spread drafts across the week—queue UI is on the way.",
+    description: "Spread drafts across the week. Visualize posts inside an interactive calendar grid.",
     icon: CalendarDays,
-    iconClass: "from-zinc-100 to-zinc-50 ring-zinc-200 text-zinc-700",
+    iconClass: "from-emerald-100 to-teal-50 ring-emerald-200/80 text-emerald-800",
   },
 ] as const;
 
@@ -57,9 +57,9 @@ const MOCK_SOURCES = [
 ];
 
 const MOCK_CHANNELS = [
-  { id: "mock-c1", platform: "linkedin", accountName: "Sarah Chen (Founder)", avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" },
-  { id: "mock-c2", platform: "x", accountName: "sarah_growth", avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" },
-  { id: "mock-c3", platform: "threads", accountName: "sarah_chen", avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" }
+  { id: "mock-c1", platform: "linkedin", accountName: "Sarah Chen (Founder)", avatarUrl: "https://images.squarespace-cdn.com/content/v1/687a750f2d0df239a6910948/df95c93a-1179-4c69-98f8-061719c5634b/Sarah+Chen.jpg" },
+  { id: "mock-c2", platform: "x", accountName: "sarah_growth", avatarUrl: "https://images.squarespace-cdn.com/content/v1/687a750f2d0df239a6910948/df95c93a-1179-4c69-98f8-061719c5634b/Sarah+Chen.jpg" },
+  { id: "mock-c3", platform: "threads", accountName: "sarah_chen", avatarUrl: "https://images.squarespace-cdn.com/content/v1/687a750f2d0df239a6910948/df95c93a-1179-4c69-98f8-061719c5634b/Sarah+Chen.jpg" }
 ];
 
 const MOCK_HOOKS = [
