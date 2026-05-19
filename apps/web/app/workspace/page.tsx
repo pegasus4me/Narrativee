@@ -549,52 +549,48 @@ export default function Workspace() {
               <button
                 type="button"
                 onClick={() => setActiveSettingsTab("voice")}
-                className={`flex items-center gap-2.5 w-full rounded-xl px-3.5 py-3 text-xs font-semibold transition-all text-left whitespace-nowrap md:whitespace-normal shrink-0 ${
+                className={`w-full rounded-xl px-3.5 py-3 text-xs font-semibold transition-all text-left whitespace-nowrap md:whitespace-normal shrink-0 ${
                   activeSettingsTab === "voice"
                     ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/60"
                     : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
                 }`}
               >
-                <Sparkles className={`h-4 w-4 shrink-0 ${activeSettingsTab === "voice" ? "text-indigo-600" : ""}`} />
                 <span>Agent Brand Voice</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveSettingsTab("hooks")}
-                className={`flex items-center gap-2.5 w-full rounded-xl px-3.5 py-3 text-xs font-semibold transition-all text-left whitespace-nowrap md:whitespace-normal shrink-0 ${
+                className={`w-full rounded-xl px-3.5 py-3 text-xs font-semibold transition-all text-left whitespace-nowrap md:whitespace-normal shrink-0 ${
                   activeSettingsTab === "hooks"
                     ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/60"
                     : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
                 }`}
               >
-                <Plus className={`h-4 w-4 shrink-0 ${activeSettingsTab === "hooks" ? "text-indigo-600" : ""}`} />
                 <span>Custom Hooks</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveSettingsTab("templates")}
-                className={`flex items-center gap-2.5 w-full rounded-xl px-3.5 py-3 text-xs font-semibold transition-all text-left whitespace-nowrap md:whitespace-normal shrink-0 ${
+                className={`w-full rounded-xl px-3.5 py-3 text-xs font-semibold transition-all text-left whitespace-nowrap md:whitespace-normal shrink-0 ${
                   activeSettingsTab === "templates"
                     ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/60"
                     : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
                 }`}
               >
-                <BookOpen className={`h-4 w-4 shrink-0 ${activeSettingsTab === "templates" ? "text-indigo-600" : ""}`} />
                 <span>Custom Templates</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveSettingsTab("banned")}
-                className={`flex items-center gap-2.5 w-full rounded-xl px-3.5 py-3 text-xs font-semibold transition-all text-left whitespace-nowrap md:whitespace-normal shrink-0 ${
+                className={`w-full rounded-xl px-3.5 py-3 text-xs font-semibold transition-all text-left whitespace-nowrap md:whitespace-normal shrink-0 ${
                   activeSettingsTab === "banned"
                     ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/60"
                     : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
                 }`}
               >
-                <Ban className={`h-4 w-4 shrink-0 ${activeSettingsTab === "banned" ? "text-rose-600" : ""}`} />
                 <span>Banned Words</span>
               </button>
             </div>
@@ -607,7 +603,7 @@ export default function Workspace() {
                   <div>
                     <h4 className="text-sm font-bold text-zinc-900">Custom Brand Voice Guidelines</h4>
                     <p className="text-xs text-zinc-500 font-light mt-0.5">
-                      Upload style sheets, successful newsletters, viral hooks, or tone training narratives. The Grok agent will mimic this profile exactly when creating social post drafts.
+                      Upload style sheets, successful newsletters, viral hooks, or tone training narratives.
                     </p>
                   </div>
 
@@ -673,7 +669,7 @@ export default function Workspace() {
                     <h5 className="text-[11px] font-bold  text-zinc-400 mt-2">Active Hooks</h5>
                     {customHooks.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-10 px-4 rounded-xl border border-dashed border-zinc-200 text-center bg-zinc-50/10">
-                        <p className="text-xs text-zinc-400">No custom hooks added. Grok will fall back to its premium curated hooks library.</p>
+                        <p className="text-xs text-zinc-400">No custom hooks added.</p>
                       </div>
                     ) : (
                       <div className="grid gap-2">
@@ -753,7 +749,7 @@ export default function Workspace() {
                     <h5 className="text-[11px] font-bold  text-zinc-400 mt-2">Active Templates</h5>
                     {customTemplates.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-10 px-4 rounded-xl border border-dashed border-zinc-200 text-center bg-zinc-50/10">
-                        <p className="text-xs text-zinc-400">No custom templates defined. Grok will generate native posts using its built-in templates library.</p>
+                        <p className="text-xs text-zinc-400">No custom templates defined.</p>
                       </div>
                     ) : (
                       <div className="grid gap-3">
@@ -844,7 +840,7 @@ export default function Workspace() {
                     <h5 className="text-[11px] font-bold  text-zinc-400">Currently Prohibited Vocabulary</h5>
                     {bannedWords.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-10 px-4 rounded-xl border border-dashed border-zinc-200 text-center bg-zinc-50/10">
-                        <p className="text-xs text-zinc-400">No banned words declared. Grok will use standard vocabulary styling rules.</p>
+                        <p className="text-xs text-zinc-400">No banned words declared.</p>
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-2">
