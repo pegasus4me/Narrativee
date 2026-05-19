@@ -4,6 +4,7 @@ import { db } from '../auth/auth';
 import { articles, user, channels, socialPosts, contentSources } from '../auth/schema/schema';
 import { verifyAuth, AuthRequest } from '../middleware/auth';
 import { LLMService } from '../services/llm';
+import { publishPostToSocialPlatform } from '../services/publisher';
 
 const router = Router();
 
@@ -788,15 +789,16 @@ router.post('/drafts/:draftId/publish-now', verifyAuth, async (req: AuthRequest,
       return res.status(404).json({ error: 'Post not found' });
     }
 
+    const success = await publishPostToSocialPlatform(draftId);
+    if (!success) {
+      return res.status(500).json({ error: 'Failed to publish post to social platform API' });
+    }
+
     const [updated] = await db
-      .update(socialPosts)
-      .set({
-        status: 'published',
-        publishedAt: new Date(),
-        updatedAt: new Date(),
-      })
+      .select()
+      .from(socialPosts)
       .where(eq(socialPosts.id, draftId))
-      .returning();
+      .limit(1);
 
     res.json({ success: true, post: updated });
   } catch (error: any) {

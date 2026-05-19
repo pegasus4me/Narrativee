@@ -81,6 +81,10 @@ app.use('/api/sources', sourcesRouter);
 app.use('/api/articles', articlesRouter);
 app.use('/api/knowledge-base', knowledgeRouter);
 
+import { socialPosts } from "./auth/schema/schema";
+import { and, eq, lte } from "drizzle-orm";
+import { publishPostToSocialPlatform } from "./services/publisher";
+
 const server = app.listen(PORT, () => {
   console.log(`🚀 Express Server running on http://localhost:${PORT}`);
 });
@@ -89,3 +93,28 @@ const server = app.listen(PORT, () => {
 server.setTimeout(300000);
 server.keepAliveTimeout = 300000;
 server.headersTimeout = 301000;
+
+// ─── Scheduled Posts background publishing engine (runs every 15s) ─────────
+setInterval(async () => {
+  try {
+    const now = new Date();
+    const pendingPosts = await db
+      .select({ id: socialPosts.id })
+      .from(socialPosts)
+      .where(
+        and(
+          eq(socialPosts.status, "scheduled"),
+          lte(socialPosts.scheduledAt, now)
+        )
+      );
+
+    if (pendingPosts.length > 0) {
+      console.log(`[Scheduler] Found ${pendingPosts.length} pending scheduled posts due for publishing.`);
+      for (const post of pendingPosts) {
+        await publishPostToSocialPlatform(post.id);
+      }
+    }
+  } catch (err) {
+    console.error("[Scheduler] Error checking/publishing scheduled posts:", err);
+  }
+}, 15000);
