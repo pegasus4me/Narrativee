@@ -615,6 +615,42 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
   }
 });
 
+// PUT /api/articles/drafts/:draftId — update a draft's content directly (used by Post Queue)
+router.put('/drafts/:draftId', verifyAuth, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const { draftId } = req.params;
+    const { text } = req.body;
+
+    if (!isUuid(draftId)) {
+      return res.status(400).json({ error: 'Invalid draft ID' });
+    }
+
+    const [existing] = await db
+      .select()
+      .from(socialPosts)
+      .where(and(eq(socialPosts.id, draftId), eq(socialPosts.userId, userId)))
+      .limit(1);
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Draft not found' });
+    }
+
+    const sanitizedText = typeof text === 'string' ? text.replace(/\u2014/g, '-').replace(/—/g, '-') : text;
+
+    const [updated] = await db
+      .update(socialPosts)
+      .set({ content: { text: sanitizedText } })
+      .where(eq(socialPosts.id, draftId))
+      .returning();
+
+    res.json({ success: true, draft: updated });
+  } catch (error: any) {
+    console.error('[Articles] Update draft error:', error);
+    res.status(500).json({ error: 'Failed to update draft', details: error.message });
+  }
+});
+
 // PUT /api/articles/:articleId/drafts/:draftId — update a draft's content
 router.put('/:articleId/drafts/:draftId', verifyAuth, async (req: AuthRequest, res) => {
   try {
