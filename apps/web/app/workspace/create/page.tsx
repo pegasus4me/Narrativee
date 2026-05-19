@@ -168,6 +168,7 @@ export default function CreatePage() {
   const [generatingDrafts, setGeneratingDrafts] = useState(false);
   const [draftsError, setDraftsError] = useState("");
   const [showDraftsView, setShowDraftsView] = useState(false);
+  const [attachLink, setAttachLink] = useState(true);
 
   const generateDrafts = async () => {
     if (!selected || selectedAngles.size === 0) return;
@@ -177,7 +178,20 @@ export default function CreatePage() {
     if (isGuest) {
       // Simulate draft generation
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      setDrafts(MOCK_DRAFTS);
+      const simulatedDrafts = MOCK_DRAFTS.map(d => {
+        if (attachLink && MOCK_ARTICLE.url) {
+          const hasLink = d.content.text.includes(MOCK_ARTICLE.url);
+          return {
+            ...d,
+            content: {
+              ...d.content,
+              text: hasLink ? d.content.text : `${d.content.text}\n\nRead the full article: ${MOCK_ARTICLE.url}`
+            }
+          };
+        }
+        return d;
+      });
+      setDrafts(simulatedDrafts);
       setShowDraftsView(true);
       setGeneratingDrafts(false);
       return;
@@ -190,6 +204,7 @@ export default function CreatePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           selectedAngles: Array.from(selectedAngles).map((idx) => ideas[idx]),
+          attachLink,
         }),
       });
       const data = (await res.json()) as any;
@@ -1299,23 +1314,36 @@ export default function CreatePage() {
                         : " — tap the cards you want to turn into posts."}
                     </p>
                     {selectedAngles.size > 0 && (
-                      <button
-                        type="button"
-                        disabled={generatingDrafts}
-                        onClick={generateDrafts}
-                        className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-light text-white transition-colors hover:bg-primary/80 disabled:opacity-50"
-                      >
-                        {generatingDrafts ? (
-                          <>
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            Drafting posts...
-                          </>
-                        ) : (
-                          <>
-                            Generate Drafts
-                          </>
-                        )}
-                      </button>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <label className="flex items-center gap-2.5 cursor-pointer select-none group">
+                          <input
+                            type="checkbox"
+                            checked={attachLink}
+                            onChange={(e) => setAttachLink(e.target.checked)}
+                            className="h-4.5 w-4.5 rounded-md border-zinc-300 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 transition-colors"
+                          />
+                          <span className="text-xs font-medium text-zinc-600 group-hover:text-zinc-900 transition-colors">
+                            Attach original link
+                          </span>
+                        </label>
+                        <button
+                          type="button"
+                          disabled={generatingDrafts}
+                          onClick={generateDrafts}
+                          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-light text-white transition-colors hover:bg-primary/80 disabled:opacity-50 shrink-0"
+                        >
+                          {generatingDrafts ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              Drafting posts...
+                            </>
+                          ) : (
+                            <>
+                              Generate Drafts
+                            </>
+                          )}
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

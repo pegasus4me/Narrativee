@@ -326,8 +326,8 @@ export default function Workspace() {
         <div className="mb-8 rounded-2xl border border-indigo-500/20 bg-primary/10 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 font-urbanist animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex items-start gap-3">
             <div>
-              <strong className="text-sm font-bold text-zinc-900 block">Workspace Sandbox Mode</strong>
-              <span className="text-xs text-zinc-500 block mt-0.5">You are playing with a live sandbox demo. Sign in or create a free account to unlock real pipelines!</span>
+              <strong className="text-2xl font-bold text-zinc-900 block">Workspace Sandbox Mode</strong>
+              <span className="text-md font-text-zinc-500 block mt-0.5">You are playing with a live sandbox demo. Sign in or create a free account to unlock real pipelines!</span>
             </div>
           </div>
           <div className="flex items-center gap-3">

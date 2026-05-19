@@ -507,7 +507,7 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.id;
     const { id } = req.params;
-    const { selectedAngles } = req.body;
+    const { selectedAngles, attachLink } = req.body;
 
     if (!isUuid(id)) {
       return res.status(404).json({ error: 'Article not found' });
@@ -518,10 +518,10 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
     }
 
     // 1. Fetch the article
-    let article: { title: string; content: string } | undefined;
+    let article: { title: string; content: string; url: string | null } | undefined;
     try {
       [article] = await db
-        .select({ title: articles.title, content: articles.content })
+        .select({ title: articles.title, content: articles.content, url: articles.url })
         .from(articles)
         .where(and(eq(articles.id, id), eq(articles.userId, userId)))
         .limit(1);
@@ -563,7 +563,7 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
     const generatedPosts: any[] = [];
     for (const angle of selectedAngles) {
       for (const channel of activeChannels) {
-        const draftText = await LLMService.generateSocialDraft(
+        let draftText = await LLMService.generateSocialDraft(
           channel.platform,
           angle,
           article.title,
@@ -571,6 +571,10 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
           writingStyle,
           userId
         );
+
+        if (attachLink && article.url) {
+          draftText += `\n\nRead the full article: ${article.url}`;
+        }
 
         const [newPost] = await db
           .insert(socialPosts)
