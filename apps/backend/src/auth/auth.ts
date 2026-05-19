@@ -75,6 +75,14 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
+        before: async (user) => {
+          return {
+            data: {
+              ...user,
+              image: user.image || "https://static.vecteezy.com/system/resources/previews/059/545/358/non_2x/abstract-pixel-art-background-soft-purple-and-pale-yellow-mosaic-ideal-for-website-banners-digital-art-presentations-and-tech-designs-conveys-a-sense-of-modern-technology-and-digital-fluidity-vector.jpg"
+            }
+          };
+        },
         after: async (user) => {
           try {
             await EmailService.sendWelcome({
