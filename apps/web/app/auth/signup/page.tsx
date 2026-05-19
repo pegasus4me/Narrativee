@@ -191,7 +191,7 @@ export default function SignUp() {
             <div className="text-center mt-8">
               <p className="text-gray-500 text-sm">
                 Already have an account?{" "}
-                <a href="/auth/signin" className="text-amber-500 font-medium hover:underline transition-colors">
+                <a href="/auth/signin" className="text-primary-500 font-medium hover:underline transition-colors">
                   Sign in
                 </a>
               </p>
@@ -206,7 +206,7 @@ export default function SignUp() {
       </div>
 
       {/* Right Side: Gradient - Matching SignIn Page */}
-        <div className="hidden lg:flex w-1/2 rounded-l-md relative items-center justify-center overflow-hidden bg-primary">
+      <div className="hidden lg:flex w-1/2 rounded-l-md relative items-center justify-center overflow-hidden bg-primary">
         {/* Background Texture/Mask */}
         <div
           className="absolute inset-0 z-0 opacity-80 mix-blend-overlay"

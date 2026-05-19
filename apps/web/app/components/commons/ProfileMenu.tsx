@@ -52,20 +52,28 @@ export default function ProfileMenu() {
             <div className="flex items-center gap-3">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-2 px-3 py-2 text-white transition-colors cursor-pointer focus:outline-none"
+                    className="flex items-center gap-3 px-3 py-2 text-zinc-800 transition-colors cursor-pointer hover:bg-zinc-100 rounded-lg focus:outline-none"
                 >
                     <Image
                         src={session?.data?.user?.image || '/default-avatar.png'}
                         alt={session?.data?.user?.name || 'User'}
                         width={32}
                         height={32}
-                        className="rounded-full"
+                        className="rounded-md shrink-0"
                     />
+                    <div className="flex flex-col text-left overflow-hidden">
+                        <span className="text-sm font-medium text-zinc-900 truncate max-w-[120px]">
+                            {session.data.user.name}
+                        </span>
+                        <span className="text-xs text-zinc-500 truncate max-w-[120px]">
+                            {session.data.user.email}
+                        </span>
+                    </div>
                 </button>
             </div>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-xs border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute border right-0 mt-2 w-48 bg-red border rounded-xs border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
                     <div className="px-4 py-2 border-b border-gray-100">
                         <p className="text-sm font-medium text-gray-900 truncate">{session.data.user.name}</p>
                         <p className="text-xs text-gray-500 truncate">{session.data.user.email}</p>

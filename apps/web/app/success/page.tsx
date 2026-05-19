@@ -45,7 +45,7 @@ export default function SuccessPage() {
                 </p>
 
                 <div className="text-sm text-gray-500">
-                    Redirecting to home in <span className="font-bold text-amber-600">{countdown}</span> seconds...
+                    Redirecting to home in <span className="font-bold text-primary-600">{countdown}</span> seconds...
                 </div>
             </div>
         </div>

@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --filter='!docs'",
     "lint": "turbo run lint",
     "prune": "turbo prune narrative-backend --docker",
     "pages:build": "npx @cloudflare/next-on-pages",

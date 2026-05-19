@@ -51,7 +51,7 @@ export default function ProfileMenuSidebar({ isSidebarOpen }: ProfileMenuSidebar
             {/* The trigger button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center w-full transition-colors rounded-lg hover:bg-gray-800 focus:outline-none ${isSidebarOpen ? 'p-2 justify-between' : 'p-1 justify-center'}`}
+                className={`flex items-center w-full focus:outline-none ${isSidebarOpen ? 'p-2 justify-between' : 'p-1 justify-center'}`}
             >
                 <div className="flex items-center gap-3 overflow-hidden">
                     <Image
@@ -59,17 +59,12 @@ export default function ProfileMenuSidebar({ isSidebarOpen }: ProfileMenuSidebar
                         alt={session?.data?.user?.name || 'User'}
                         width={isSidebarOpen ? 32 : 32}
                         height={isSidebarOpen ? 32 : 32}
-                        className="rounded-full shrink-0"
+                        className="rounded-md shrink-0"
                     />
                     {isSidebarOpen && (
                         <div className="flex flex-col text-left overflow-hidden">
-                            <span className="flex items-center text-sm font-medium text-gray-200">
-                                <span className="truncate max-w-[120px]">{session.data.user.name}</span>
-                                {plan && (
-                                    <span className={`text-[10px] bg-orange-500 px-1.5 py-0.5 rounded tracking-wider font-bold ml-2 `}>
-                                        {plan === 'free' ? 'Trial' : plan.replace(' 🖋️', '')}
-                                    </span>
-                                )}
+                            <span className="flex items-center text-sm font-light">
+                                <span className="truncate max-w-[120px] ">{session.data.user.name}</span>
                             </span>
                             <span className="text-xs text-gray-500 truncate w-32">{session.data.user.email}</span>
                         </div>

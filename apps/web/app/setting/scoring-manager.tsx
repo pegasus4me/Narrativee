@@ -58,7 +58,7 @@ export function ScoringManager() {
                         placeholder="e.g. view_pricing"
                         value={eventName}
                         onChange={(e) => setEventName(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
                     />
                 </div>
                 <div className="md:col-span-1">
@@ -68,7 +68,7 @@ export function ScoringManager() {
                         min="1"
                         value={scoreValue}
                         onChange={(e) => setScoreValue(Number(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
                     />
                 </div>
                 <div className="md:col-span-1">

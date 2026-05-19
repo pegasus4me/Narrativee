@@ -16,6 +16,6 @@ export default defineConfig({
 
   // Your Supabase connection string
   dbCredentials: {
-    url:  process.env.LOCAL_DATABASE_URL!,  // match backend's auth.ts
+    url: process.env.LOCAL_DATABASE_URL!,  // match backend's auth.ts
   },
 });

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Github, Menu, X, Star } from "lucide-react";
 import { authClient } from "../../../lib/auth-client";
-import logo from "../../../public/narrativee.png"
+import logo from "../../../public/logo.png"
 import PrimaryButton from "./PrimaryButton";
 import ProfileMenu from "./ProfileMenu";
 
@@ -20,19 +20,18 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="text-white container mx-auto p-4 bg-gradient-to-r from-[#0d0d0f] via-white/30 to-[#0d0d0f] bg-[length:100%_1px] bg-bottom bg-no-repeat">
+    <header className="">
       {/* Main header bar */}
-      <div className="relative flex items-center justify-between px-4 md:px-6 py-2">
+      <div className="relative flex items-center justify-between px-4 md:px-6 py-2 text-black">
         {/* Logo */}
         <div className="flex items-center gap-2 z-10">
           <div className="w-[120px] md:w-[160px]">
             <Image src={logo} alt="Logo" width={160} height={100} className="w-full h-auto" />
           </div>
-          <span className="text-[10px] font-semibold text-white/40 bg-white/10 border border-white/10 rounded-full px-1.5 py-0.5 font-manrope tracking-wide">v0.3</span>
         </div>
 
         {/* Desktop nav - Absolutely centered */}
-        <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 text-white items-center gap-8 text-sm font-medium font-manrope">
+        <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2  items-center gap-8 text-sm font-medium font-manrope">
           <Link href="/pricing" className="hover:opacity-70">Pricing</Link>
           <Link href="/#features" className="hover:opacity-70">Features</Link>
           <Link href="/#solution" className="hover:opacity-70">Solution</Link>
@@ -41,16 +40,15 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
         {/* Desktop CTA */}
         <div className="hidden md:flex gap-4 items-center z-10">
           {session ? (
-            <ProfileMenu />
+            < ProfileMenu />
           ) : (
             <>
               <button
-                className="text-sm font-medium text-white hover:opacity-70 transition-opacity"
+                className="text-sm font-medium  hover:opacity-70 transition-opacity"
                 onClick={onBetaSignup || (() => router.push('/auth/signin'))}
               >
                 Login
               </button>
-              <PrimaryButton className="border border-white/10 bg-transparent hover:bg-white/10" onClick={() => window.open('https://calendly.com/touilsafoan/let-s-talk', '_blank')}>I want a demo</PrimaryButton>
               <PrimaryButton onClick={onBetaSignup || (() => router.push('/auth/signup'))}>Get Started for free</PrimaryButton>
             </>
           )}
@@ -77,7 +75,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
           </nav>
           <div className="flex flex-col gap-3">
             {session ? (
-              <ProfileMenu />
+              < ProfileMenu  />
             ) : (
               <>
                 <button

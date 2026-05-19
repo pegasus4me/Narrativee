@@ -253,7 +253,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
                 className="w-full py-6 flex items-center justify-between text-left focus:outline-none group"
                 onClick={() => setIsOpen(!isOpen)}
             >
-                <h3 className="text-lg font-manrope text-white group-hover:text-amber-600 transition-colors">
+                <h3 className="text-lg font-manrope text-white group-hover:text-primary-600 transition-colors">
                     {question}
                 </h3>
                 <span className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>

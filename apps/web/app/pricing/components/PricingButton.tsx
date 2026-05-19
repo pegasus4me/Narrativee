@@ -4,7 +4,7 @@ import { Button } from "@repo/ui/button";
 import { ReactNode } from "react";
 
 interface PricingButtonProps {
-    color: "gray" | "amber" | "black";
+    color: "gray" | "primary" | "black";
     onClick?: () => void;
     children: ReactNode;
 }
@@ -12,7 +12,7 @@ interface PricingButtonProps {
 export default function PricingButton({ color, onClick, children }: PricingButtonProps) {
     const colorStyles = {
         gray: "bg-gray-100 p-2 text-gray-900 hover:bg-gray-200 rounded-md",
-        amber: "bg-amber-400 text-black p-2 hover:bg-amber-500 rounded-md",
+        primary: "bg-primary-400 text-black p-2 hover:bg-primary-500 rounded-md",
         black: "bg-gray-900 p-2 text-white hover:bg-gray-800 rounded-md",
     };
 

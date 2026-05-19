@@ -55,13 +55,13 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #020212;
+  --background: #ffffff;
   --foreground: #e5e7eb;
   --card: #1e1f21;
   --card-foreground: #e5e7eb;
   --popover: #1e1f21;
   --popover-foreground: #e5e7eb;
-  --primary: #FF5800;
+  --primary: #483BFF;
   --primary-foreground: #ffffff;
   --secondary: #36A5FF;
   --secondary-foreground: #ffffff;
@@ -136,7 +136,7 @@
 }
 
 .bg-mesh {
-  background-color: #161718;
+  background-color: #ffffff;
   background-image:
     radial-gradient(at 40% 20%, hsla(210, 100%, 30%, 0.15) 0px, transparent 50%),
     radial-gradient(at 80% 0%, hsla(189, 100%, 30%, 0.1) 0px, transparent 50%),

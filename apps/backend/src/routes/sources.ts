@@ -1,0 +1,192 @@
+import { Router } from 'express';
+import { db } from '../auth/auth';
+import { contentSources, articles } from '../auth/schema/schema';
+import { eq, and } from 'drizzle-orm';
+import { verifyAuth, AuthRequest } from '../middleware/auth';
+import Parser from 'rss-parser';
+
+const router = Router();
+const parser = new Parser();
+
+// GET /api/sources - List connected content sources
+router.get('/', verifyAuth, async (req: AuthRequest, res) => {
+    try {
+        const userId = req.user!.id;
+        const sources = await db.select().from(contentSources).where(eq(contentSources.userId, userId));
+        
+        // Automatically backfill any missing avatars by fetching the feed in the background/parallel
+        const backfilledSources = await Promise.all(sources.map(async (source) => {
+            if (!source.avatarUrl && (source.platform === 'substack' || source.platform === 'custom_rss') && source.url) {
+                try {
+                    console.log(`[Substack] Dynamically backfilling avatar for: ${source.url}`);
+                    const feed = await parser.parseURL(source.url);
+                    const avatarUrl = feed.image?.url || (typeof feed.image === 'string' ? feed.image : null);
+                    if (avatarUrl) {
+                        await db.update(contentSources).set({ avatarUrl }).where(eq(contentSources.id, source.id));
+                        return { ...source, avatarUrl };
+                    }
+                } catch (err: any) {
+                    console.error(`[Substack] Dynamic backfill failed for ${source.url}:`, err.message);
+                }
+            }
+            return source;
+        }));
+
+        // Also get article counts for each source
+        const allArticles = await db.select({ sourceId: articles.sourceId }).from(articles).where(eq(articles.userId, userId));
+        
+        const sourcesWithCounts = backfilledSources.map(source => ({
+            ...source,
+            articleCount: allArticles.filter(a => a.sourceId === source.id).length
+        }));
+
+        res.json({ sources: sourcesWithCounts });
+    } catch (error: any) {
+        res.status(500).json({ error: 'Failed to fetch content sources', details: error.message });
+    }
+});
+
+// POST /api/sources - Add a new Substack or Custom RSS blog connection
+router.post('/', verifyAuth, async (req: AuthRequest, res) => {
+    try {
+        const userId = req.user!.id;
+        const { platform, url } = req.body;
+        
+        const targetPlatform = platform === 'substack' ? 'substack' : 'custom_rss';
+        
+        if (!url) {
+            return res.status(400).json({ error: 'URL is required' });
+        }
+
+        // Normalize URL to get the feed
+        let feedUrl = url.trim();
+        if (!feedUrl.startsWith('http')) {
+            feedUrl = `https://${feedUrl}`;
+        }
+
+        let feedParsed = false;
+        let feed;
+
+        // If it's substack, normalize it to /feed
+        if (targetPlatform === 'substack' && !feedUrl.endsWith('/feed')) {
+            feedUrl = feedUrl.replace(/\/$/, '') + '/feed';
+        }
+
+        // 1. Try parsing the feed URL directly
+        try {
+            console.log(`[Sources] Fetching RSS feed from: ${feedUrl}`);
+            feed = await parser.parseURL(feedUrl);
+            feedParsed = true;
+        } catch (err: any) {
+            console.warn(`[Sources] Direct feed parsing failed for ${feedUrl}:`, err.message);
+        }
+
+        // 2. If direct parse failed and it's a blog (custom_rss), try common RSS endpoints
+        if (!feedParsed && targetPlatform === 'custom_rss') {
+            const commonPaths = ['/feed', '/rss', '/feed.xml', '/rss.xml', '/index.xml'];
+            const baseUrl = feedUrl.replace(/\/$/, '');
+            for (const path of commonPaths) {
+                try {
+                    const fallbackUrl = `${baseUrl}${path}`;
+                    console.log(`[Sources] Trying fallback RSS endpoint: ${fallbackUrl}`);
+                    feed = await parser.parseURL(fallbackUrl);
+                    feedUrl = fallbackUrl;
+                    feedParsed = true;
+                    break;
+                } catch (err: any) {
+                    // Try next path
+                }
+            }
+        }
+
+        if (!feedParsed || !feed) {
+            const errorMsg = targetPlatform === 'substack'
+                ? 'Could not parse Substack RSS feed. Make sure the URL is correct.'
+                : 'Could not parse RSS feed. Make sure the blog URL is correct and publishes an RSS feed.';
+            return res.status(400).json({ error: errorMsg });
+        }
+
+        // Extract feed logo / avatar URL
+        const avatarUrl = feed.image?.url || (typeof feed.image === 'string' ? feed.image : null);
+
+        // Check if this source already exists
+        const existingSources = await db.select().from(contentSources).where(
+            and(eq(contentSources.userId, userId), eq(contentSources.url, feedUrl))
+        );
+
+        let sourceId: string;
+
+        if (existingSources.length > 0) {
+            sourceId = existingSources[0].id;
+            console.log(`[Sources] Source already exists, updating synced timestamp and avatar`);
+            await db.update(contentSources)
+                .set({ 
+                    lastSyncedAt: new Date(),
+                    avatarUrl: avatarUrl || existingSources[0].avatarUrl
+                })
+                .where(eq(contentSources.id, sourceId));
+        } else {
+            console.log(`[Sources] Creating new content source`);
+            const [newSource] = await db.insert(contentSources).values({
+                userId,
+                platform: targetPlatform,
+                url: feedUrl, // Save the feed URL
+                avatarUrl,
+                lastSyncedAt: new Date(),
+            }).returning();
+            sourceId = newSource.id;
+        }
+
+        // Insert articles
+        console.log(`[Substack] Found ${feed.items.length} articles, syncing to DB...`);
+        let newArticlesCount = 0;
+
+        // Fetch existing articles for this source to avoid duplicates
+        const existingArticles = await db.select({ url: articles.url }).from(articles).where(eq(articles.sourceId, sourceId));
+        const existingUrls = new Set(existingArticles.map(a => a.url).filter(Boolean));
+
+        const articlesToInsert = feed.items
+            .filter(item => item.link && !existingUrls.has(item.link))
+            .map(item => ({
+                userId,
+                sourceId,
+                title: item.title || 'Untitled',
+                content: item['content:encoded'] || item.content || item.contentSnippet || '',
+                url: item.link || '',
+                publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
+            }));
+
+        if (articlesToInsert.length > 0) {
+            await db.insert(articles).values(articlesToInsert);
+            newArticlesCount = articlesToInsert.length;
+        }
+
+        res.json({ 
+            success: true, 
+            message: `Successfully synced ${newArticlesCount} new articles`,
+            feedTitle: feed.title
+        });
+
+    } catch (error: any) {
+        console.error('[Substack] Sync error:', error);
+        res.status(500).json({ error: 'Failed to add content source', details: error.message });
+    }
+});
+
+// DELETE /api/sources/:id - Disconnect a source
+router.delete('/:id', verifyAuth, async (req: AuthRequest, res) => {
+    try {
+        const userId = req.user!.id;
+        const sourceId = req.params.id;
+
+        await db.delete(contentSources).where(
+            and(eq(contentSources.id, sourceId), eq(contentSources.userId, userId))
+        );
+
+        res.json({ success: true });
+    } catch (error: any) {
+        res.status(500).json({ error: 'Failed to delete source', details: error.message });
+    }
+});
+
+export default router;
