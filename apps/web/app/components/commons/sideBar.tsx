@@ -166,7 +166,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
           <div>
             <Link href="/workspace/create" className="w-full block">
               <PrimaryButton
-                className="w-full mt-4 text-[16px]4"
+                className="w-full mt-4 text-[16px]4 bg-primary"
               >
                 + New
               </PrimaryButton>

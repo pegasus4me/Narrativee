@@ -57,9 +57,9 @@ const MOCK_SOURCES = [
 ];
 
 const MOCK_CHANNELS = [
-  { id: "mock-c1", platform: "linkedin", accountName: "Sarah Chen (Founder)" },
-  { id: "mock-c2", platform: "x", accountName: "sarah_growth" },
-  { id: "mock-c3", platform: "threads", accountName: "sarah_chen" }
+  { id: "mock-c1", platform: "linkedin", accountName: "Sarah Chen (Founder)", avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" },
+  { id: "mock-c2", platform: "x", accountName: "sarah_growth", avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" },
+  { id: "mock-c3", platform: "threads", accountName: "sarah_chen", avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" }
 ];
 
 const MOCK_HOOKS = [
@@ -277,7 +277,42 @@ export default function Workspace() {
     <div className="w-full min-w-0 px-5 py-8 sm:px-8 md:px-10 lg:px-12 xl:px-14">
       {/* Header section */}
       <header className="mb-10 border-b border-zinc-100 pb-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+          {channelsList.length > 0 && (
+            <div className="flex -space-x-2 overflow-hidden mr-1">
+              {channelsList.map((c, idx) => {
+                const logoUrl =
+                  c.platform === "linkedin"
+                    ? LINKEDIN_LOGO
+                    : c.platform === "x"
+                    ? X_LOGO
+                    : c.platform === "facebook"
+                    ? FACEBOOK_LOGO
+                    : c.platform === "threads"
+                    ? THREADS_LOGO
+                    : INSTAGRAM_LOGO;
+
+                const fallbackLetter = (c.accountName || c.platform || "?").charAt(0).toUpperCase();
+
+                return (
+                  <div
+                    key={c.id || idx}
+                    title={`${c.platform?.toUpperCase()}: ${c.accountName || ""}`}
+                    className="relative inline-block h-12 w-12 rounded-full ring-2 ring-white bg-zinc-100 flex items-center justify-center shadow-sm shrink-0 transition-transform hover:scale-105 hover:z-10"
+                  >
+                    {c.avatarUrl ? (
+                      <img src={c.avatarUrl} alt={c.accountName} className="h-full w-full rounded-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-bold text-zinc-500">{fallbackLetter}</span>
+                    )}
+                    <div className="absolute -bottom-0.5 -right-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-white p-0.5 border border-zinc-200 shadow-xs">
+                      <img src={logoUrl} alt={c.platform} className="h-full w-full object-contain" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl">
               Hey {session.data?.user?.name || (isGuest ? "Creator" : "there")} 👋
