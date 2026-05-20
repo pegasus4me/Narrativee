@@ -177,7 +177,8 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
       console.log(`[Publisher] Posting to Instagram for user ${post.userId}`);
       const imageUrl = content.imageUrl || content.mediaUrl || "https://img.freepik.com/free-vector/blue-purple-mosaic-background_1164-812.jpg?semt=ais_rp_progressive&w=740&q=80";
 
-      const containerRes = await fetch(`https://graph.facebook.com/v19.0/${channel.providerAccountId}/media`, {
+      // Use graph.instagram.com (Instagram API tokens from direct IG login)
+      const containerRes = await fetch(`https://graph.instagram.com/v21.0/${channel.providerAccountId}/media`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -200,7 +201,7 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
       // Wait a moment for container processing
       await new Promise(resolve => setTimeout(resolve, 3000));
 
-      const publishRes = await fetch(`https://graph.facebook.com/v19.0/${channel.providerAccountId}/media_publish`, {
+      const publishRes = await fetch(`https://graph.instagram.com/v21.0/${channel.providerAccountId}/media_publish`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
