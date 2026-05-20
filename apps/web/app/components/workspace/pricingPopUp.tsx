@@ -54,6 +54,8 @@ export default function PricingPopUp({ isOpen, onClose }: PricingPopUpProps) {
         }),
       });
 
+      console.log("Response:", response);
+
       if (!response.ok) {
         const error = (await response.json()) as { error?: string };
         alert(`Failed to start checkout: ${error.error || "Unknown error"}`);
