@@ -38,7 +38,6 @@ export default function PricingPopUp({ isOpen, onClose }: PricingPopUpProps) {
 
     try {
       const priceId = isAnnual ? plan.annualPriceId : plan.monthlyPriceId;
-
       if (!priceId) {
         console.error("Price ID missing for plan:", plan.name);
         return;

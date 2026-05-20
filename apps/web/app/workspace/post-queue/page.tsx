@@ -23,6 +23,7 @@ import { LINKEDIN_LOGO, X_LOGO, FACEBOOK_LOGO, INSTAGRAM_LOGO, THREADS_LOGO } fr
 import TimeZoneComponent from "@/app/components/workspace/timezone";
 import { API_URL } from "@/lib/api-config";
 import { authClient } from "@/lib/auth-client";
+import TimezoneSelect, { getBrowserTimezone, toUTCISOString } from "@/app/components/workspace/TimezoneSelect";
 
 const platformLogos: Record<string, string> = {
   linkedin: LINKEDIN_LOGO,
@@ -53,6 +54,7 @@ export default function PostQueuePage() {
   const [reschedulingPostId, setReschedulingPostId] = useState<string | null>(null);
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
+  const [newTimezone, setNewTimezone] = useState(() => getBrowserTimezone());
   const [savingRescheduleId, setSavingRescheduleId] = useState<string | null>(null);
 
   const [publishingId, setPublishingId] = useState<string | null>(null);
@@ -187,7 +189,7 @@ export default function PostQueuePage() {
   const handleReschedule = async (postId: string) => {
     if (!newDate || !newTime) return;
     if (isGuest) {
-      const scheduledAt = new Date(`${newDate}T${newTime}:00`).toISOString();
+      const scheduledAt = toUTCISOString(newDate, newTime, newTimezone);
       setPosts((prev) =>
         prev.map((p) => (p.id === postId ? { ...p, scheduledAt, status: "scheduled" } : p))
       );
@@ -203,7 +205,7 @@ export default function PostQueuePage() {
     }
     setSavingRescheduleId(postId);
     try {
-      const scheduledAt = new Date(`${newDate}T${newTime}:00`).toISOString();
+      const scheduledAt = toUTCISOString(newDate, newTime, newTimezone);
       const res = await fetch(`${API_URL}/articles/drafts/${postId}/schedule`, {
         method: "POST",
         credentials: "include",

@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { LINKEDIN_LOGO, X_LOGO, FACEBOOK_LOGO, INSTAGRAM_LOGO, THREADS_LOGO } from "@/app/constants";
 import { authClient } from "../../../lib/auth-client";
+import TimezoneSelect, { getBrowserTimezone, toUTCISOString } from "@/app/components/workspace/TimezoneSelect";
 
 const MOCK_ARTICLE = {
   id: "mock-a1",
@@ -229,6 +230,7 @@ export default function CreatePage() {
   const [schedulingDraftId, setSchedulingDraftId] = useState<string | null>(null);
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("09:00");
+  const [scheduledTimezone, setScheduledTimezone] = useState(() => getBrowserTimezone());
   const [scheduling, setScheduling] = useState(false);
 
   const suggestAutoScheduleSlot = async () => {
@@ -304,7 +306,7 @@ export default function CreatePage() {
     if (!schedulingDraftId || !scheduledDate || !scheduledTime) return;
     setScheduling(true);
     try {
-      const scheduledAt = new Date(`${scheduledDate}T${scheduledTime}:00`).toISOString();
+      const scheduledAt = toUTCISOString(scheduledDate, scheduledTime, scheduledTimezone);
       const res = await fetch(`${API_URL}/articles/drafts/${schedulingDraftId}/schedule`, {
         method: "POST",
         credentials: "include",
@@ -1385,6 +1387,19 @@ export default function CreatePage() {
                   value={scheduledTime}
                   onChange={(e) => setScheduledTime(e.target.value)}
                   className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-xs text-zinc-800 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Timezone selector */}
+            <div className="mt-3">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                Timezone
+              </label>
+              <div className="w-full rounded-xl border border-zinc-200 px-3 py-2">
+                <TimezoneSelect
+                  value={scheduledTimezone}
+                  onChange={setScheduledTimezone}
                 />
               </div>
             </div>
