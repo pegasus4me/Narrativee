@@ -304,7 +304,7 @@ export default function CreatePage() {
     if (!schedulingDraftId || !scheduledDate || !scheduledTime) return;
     setScheduling(true);
     try {
-      const scheduledAt = `${scheduledDate}T${scheduledTime}:00`;
+      const scheduledAt = new Date(`${scheduledDate}T${scheduledTime}:00`).toISOString();
       const res = await fetch(`${API_URL}/articles/drafts/${schedulingDraftId}/schedule`, {
         method: "POST",
         credentials: "include",

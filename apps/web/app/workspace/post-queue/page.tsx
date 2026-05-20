@@ -189,7 +189,7 @@ export default function PostQueuePage() {
   const handleReschedule = async (postId: string) => {
     if (!newDate || !newTime) return;
     if (isGuest) {
-      const scheduledAt = `${newDate}T${newTime}:00`;
+      const scheduledAt = new Date(`${newDate}T${newTime}:00`).toISOString();
       setPosts((prev) =>
         prev.map((p) => (p.id === postId ? { ...p, scheduledAt, status: "scheduled" } : p))
       );
@@ -205,7 +205,7 @@ export default function PostQueuePage() {
     }
     setSavingRescheduleId(postId);
     try {
-      const scheduledAt = `${newDate}T${newTime}:00`;
+      const scheduledAt = new Date(`${newDate}T${newTime}:00`).toISOString();
       const res = await fetch(`${API_URL}/articles/drafts/${postId}/schedule`, {
         method: "POST",
         credentials: "include",
