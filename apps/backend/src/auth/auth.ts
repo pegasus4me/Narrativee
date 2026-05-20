@@ -99,8 +99,11 @@ export const auth = betterAuth({
           posthog.identify({
             distinctId: user.id,
             properties: {
-              $set: { email: user.email, name: user.name },
-              $set_once: { created_at: new Date().toISOString() },
+              email: user.email,
+              name: user.name,
+              is_social_signup: !!user.image, // detects Google / Microsoft signup
+              plan: user.plan,
+
             },
           });
           posthog.capture({
