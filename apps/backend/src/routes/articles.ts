@@ -5,6 +5,7 @@ import { articles, user, channels, socialPosts, contentSources } from '../auth/s
 import { verifyAuth, AuthRequest } from '../middleware/auth';
 import { LLMService } from '../services/llm';
 import { publishPostToSocialPlatform } from '../services/publisher';
+import { posthog } from '../lib/posthog';
 
 const router = Router();
 
@@ -491,6 +492,17 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
     const newTokens = tokens - ANGLE_EXTRACTION_COST;
     await db.update(user).set({ tokens: newTokens }).where(eq(user.id, userId));
 
+    posthog.capture({
+      distinctId: userId,
+      event: 'angles_extracted',
+      properties: {
+        article_id: id,
+        angles_count: ideas.length,
+        credits_used: ANGLE_EXTRACTION_COST,
+        credits_remaining: newTokens,
+      },
+    });
+
     res.json({
       ideas,
       cached: false,
@@ -499,6 +511,7 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
     });
   } catch (error: any) {
     console.error('[Articles] Ideas extraction error:', error);
+    posthog.captureException(error, req.user!.id);
     res.status(500).json({ error: 'Failed to extract ideas', details: error.message });
   }
 });
@@ -604,6 +617,21 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
     const newTokens = tokens - cost;
     await db.update(user).set({ tokens: newTokens }).where(eq(user.id, userId));
 
+    posthog.capture({
+      distinctId: userId,
+      event: 'drafts_generated',
+      properties: {
+        article_id: id,
+        angles_count: selectedAngles.length,
+        channels_count: activeChannels.length,
+        drafts_count: generatedPosts.length,
+        platforms: activeChannels.map((c) => c.platform),
+        credits_used: cost,
+        credits_remaining: newTokens,
+        attach_link: !!attachLink,
+      },
+    });
+
     res.json({
       success: true,
       drafts: generatedPosts,
@@ -611,6 +639,7 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
     });
   } catch (error: any) {
     console.error('[Articles] Drafts generation error:', error);
+    posthog.captureException(error, req.user!.id);
     res.status(500).json({ error: 'Failed to generate drafts', details: error.message });
   }
 });
@@ -761,9 +790,21 @@ router.post('/drafts/:draftId/schedule', verifyAuth, async (req: AuthRequest, re
       .where(eq(socialPosts.id, draftId))
       .returning();
 
+    posthog.capture({
+      distinctId: userId,
+      event: 'post_scheduled',
+      properties: {
+        draft_id: draftId,
+        scheduled_at: scheduledAt,
+        channel_id: existing.channelId,
+        article_id: existing.articleId,
+      },
+    });
+
     res.json({ success: true, post: updated });
   } catch (error: any) {
     console.error('[Articles] Schedule post error:', error);
+    posthog.captureException(error, req.user!.id);
     res.status(500).json({ error: 'Failed to schedule post', details: error.message });
   }
 });
@@ -807,8 +848,8 @@ router.post('/drafts/:draftId/unschedule', verifyAuth, async (req: AuthRequest, 
 
 // POST /api/articles/drafts/:draftId/publish-now — publish a post immediately
 router.post('/drafts/:draftId/publish-now', verifyAuth, async (req: AuthRequest, res) => {
+  const userId = req.user!.id;
   try {
-    const userId = req.user!.id;
     const { draftId } = req.params;
 
     if (!isUuid(draftId)) {
@@ -833,9 +874,20 @@ router.post('/drafts/:draftId/publish-now', verifyAuth, async (req: AuthRequest,
       .where(eq(socialPosts.id, draftId))
       .limit(1);
 
+    posthog.capture({
+      distinctId: userId,
+      event: 'post_published',
+      properties: {
+        draft_id: draftId,
+        channel_id: existing.channelId,
+        article_id: existing.articleId,
+      },
+    });
+
     res.json({ success: true, post: updated });
   } catch (error: any) {
     console.error('[Articles] Publish post error:', error);
+    posthog.captureException(error, userId);
     res.status(500).json({ error: 'Failed to publish post', details: error.message });
   }
 });
@@ -864,9 +916,21 @@ router.delete('/drafts/:draftId', verifyAuth, async (req: AuthRequest, res) => {
       .delete(socialPosts)
       .where(eq(socialPosts.id, draftId));
 
+    posthog.capture({
+      distinctId: userId,
+      event: 'post_deleted',
+      properties: {
+        draft_id: draftId,
+        channel_id: existing.channelId,
+        article_id: existing.articleId,
+        previous_status: existing.status,
+      },
+    });
+
     res.json({ success: true });
   } catch (error: any) {
     console.error('[Articles] Delete post error:', error);
+    posthog.captureException(error, req.user!.id);
     res.status(500).json({ error: 'Failed to delete post', details: error.message });
   }
 });

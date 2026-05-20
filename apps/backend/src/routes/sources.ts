@@ -4,6 +4,7 @@ import { contentSources, articles } from '../auth/schema/schema';
 import { eq, and } from 'drizzle-orm';
 import { verifyAuth, AuthRequest } from '../middleware/auth';
 import Parser from 'rss-parser';
+import { posthog } from '../lib/posthog';
 
 const router = Router();
 const parser = new Parser();
@@ -161,14 +162,27 @@ router.post('/', verifyAuth, async (req: AuthRequest, res) => {
             newArticlesCount = articlesToInsert.length;
         }
 
-        res.json({ 
-            success: true, 
+        posthog.capture({
+            distinctId: userId,
+            event: 'source_added',
+            properties: {
+                platform: targetPlatform,
+                feed_url: feedUrl,
+                feed_title: feed.title,
+                articles_synced: newArticlesCount,
+                is_new_source: existingSources.length === 0,
+            },
+        });
+
+        res.json({
+            success: true,
             message: `Successfully synced ${newArticlesCount} new articles`,
             feedTitle: feed.title
         });
 
     } catch (error: any) {
         console.error('[Substack] Sync error:', error);
+        posthog.captureException(error, req.user!.id);
         res.status(500).json({ error: 'Failed to add content source', details: error.message });
     }
 });
@@ -183,8 +197,15 @@ router.delete('/:id', verifyAuth, async (req: AuthRequest, res) => {
             and(eq(contentSources.id, sourceId), eq(contentSources.userId, userId))
         );
 
+        posthog.capture({
+            distinctId: userId,
+            event: 'source_removed',
+            properties: { source_id: sourceId },
+        });
+
         res.json({ success: true });
     } catch (error: any) {
+        posthog.captureException(error, req.user!.id);
         res.status(500).json({ error: 'Failed to delete source', details: error.message });
     }
 });

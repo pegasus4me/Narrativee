@@ -6,6 +6,7 @@ import { eq, and } from 'drizzle-orm';
 import { verifyAuth, AuthRequest } from '../middleware/auth';
 import { getProvider, getProviderList } from '../oauth/registry';
 import { authenticateBluesky } from '../oauth/providers/bluesky';
+import { posthog } from '../lib/posthog';
 
 const router = Router();
 
@@ -114,6 +115,12 @@ router.get('/connect/:platform', verifyAuth, async (req: AuthRequest, res) => {
                 expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000), // 1 year
             });
         }
+
+        posthog.capture({
+            distinctId: req.user!.id,
+            event: 'channel_connected',
+            properties: { platform, sandbox: true, account_name: mockAccountName },
+        });
 
         // Redirect back to frontend with success
         return res.redirect(`${FRONTEND_URL}/workspace/channels?connected=${platform}&sandbox=true`);
@@ -232,10 +239,17 @@ router.get('/callback/:platform', async (req: any, res) => {
             });
         }
 
+        posthog.capture({
+            distinctId: userId,
+            event: 'channel_connected',
+            properties: { platform, account_name: profile.accountName },
+        });
+
         // Redirect back to the frontend with success
         res.redirect(`${FRONTEND_URL}/workspace/channels?connected=${platform}`);
     } catch (err: any) {
         console.error(`OAuth callback error for ${platform}:`, err);
+        posthog.captureException(err, userId);
         res.redirect(`${FRONTEND_URL}/workspace/channels?error=token_exchange_failed`);
     }
 });
@@ -292,9 +306,16 @@ router.post('/connect/bluesky', verifyAuth, async (req: AuthRequest, res) => {
             });
         }
 
+        posthog.capture({
+            distinctId: req.user!.id,
+            event: 'channel_connected',
+            properties: { platform: 'bluesky', account_name: profile.accountName },
+        });
+
         res.json({ success: true, platform: 'bluesky', accountName: profile.accountName });
     } catch (error: any) {
         console.error('❌ [Bluesky] Connection failed:', error.message);
+        posthog.captureException(error, req.user!.id);
         res.status(400).json({ error: 'Failed to connect Bluesky', details: error.message });
     }
 });
@@ -316,8 +337,15 @@ router.delete('/:channelId', verifyAuth, async (req: AuthRequest, res) => {
             return res.status(404).json({ error: 'Channel not found' });
         }
 
+        posthog.capture({
+            distinctId: req.user!.id,
+            event: 'channel_disconnected',
+            properties: { platform: result[0]!.platform, channel_id: channelId },
+        });
+
         res.json({ success: true, deleted: result[0] });
     } catch (error: any) {
+        posthog.captureException(error, req.user!.id);
         res.status(500).json({ error: 'Failed to disconnect channel', details: error.message });
     }
 });

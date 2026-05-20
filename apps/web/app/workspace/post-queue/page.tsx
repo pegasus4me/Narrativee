@@ -17,12 +17,10 @@ import {
   Send,
   Calendar,
   X,
-  ExternalLink,
-  AlertCircle,
-  Instagram
 } from "lucide-react";
 import { LINKEDIN_LOGO, X_LOGO, FACEBOOK_LOGO, INSTAGRAM_LOGO, THREADS_LOGO } from "@/app/constants";
 
+import TimeZoneComponent from "@/app/components/workspace/timezone";
 import { API_URL } from "@/lib/api-config";
 import { authClient } from "@/lib/auth-client";
 
@@ -442,32 +440,13 @@ export default function PostQueuePage() {
           <div className="flex items-start gap-3">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl">
-                Scheduled queue
+                Calendar 
               </h1>
             </div>
           </div>
         </div>
 
-        <nav
-          className="flex shrink-0 flex-wrap gap-1 rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-1 text-xs font-medium text-zinc-500"
-          aria-label="Repurpose steps"
-        >
-          <Link
-            href="/workspace/channels"
-            className="rounded-lg px-3 py-2 transition-colors hover:bg-white/80 hover:text-zinc-800"
-          >
-            Connect
-          </Link>
-          <Link
-            href="/workspace/create"
-            className="rounded-lg px-3 py-2 transition-colors hover:bg-white/80 hover:text-zinc-800"
-          >
-            Angles
-          </Link>
-          <span className="rounded-lg bg-white px-3 py-2 text-zinc-900 ring-1 ring-zinc-200/60">
-            Queue
-          </span>
-        </nav>
+       <TimeZoneComponent timezone={Intl.DateTimeFormat().resolvedOptions().timeZone} />
       </header>
 
       {loading ? (

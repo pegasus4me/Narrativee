@@ -8,6 +8,7 @@ import dns from 'node:dns';
 import path from 'node:path';
 import fs from 'node:fs';
 import { EmailService } from "../services/email-service";
+import { posthog } from "../lib/posthog";
 
 // Load .env: walk up from CWD until we find it (works for both turbo & docker)
 const loadEnv = () => {
@@ -95,6 +96,21 @@ export const auth = betterAuth({
           } catch (e) {
             console.error("Failed to send welcome email:", e);
           }
+          posthog.identify({
+            distinctId: user.id,
+            properties: {
+              $set: { email: user.email, name: user.name },
+              $set_once: { created_at: new Date().toISOString() },
+            },
+          });
+          posthog.capture({
+            distinctId: user.id,
+            event: 'user_signed_up',
+            properties: {
+              email: user.email,
+              name: user.name,
+            },
+          });
         }
       }
     }

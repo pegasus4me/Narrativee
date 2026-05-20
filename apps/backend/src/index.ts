@@ -74,12 +74,21 @@ import channelsRouter from './routes/channels';
 import sourcesRouter from './routes/sources';
 import articlesRouter from './routes/articles';
 import knowledgeRouter from './routes/knowledge';
+import { posthog } from './lib/posthog';
 
 app.use('/api/user', userRouter);
 app.use('/api/channels', channelsRouter);
 app.use('/api/sources', sourcesRouter);
 app.use('/api/articles', articlesRouter);
 app.use('/api/knowledge-base', knowledgeRouter);
+
+// Global error handler — captures unhandled errors to PostHog
+app.use((err: any, req: any, res: any, next: any) => {
+  const userId = req.user?.id;
+  posthog.captureException(err, userId);
+  console.error('[Unhandled Error]', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 import { socialPosts } from "./auth/schema/schema";
 import { and, eq, lte } from "drizzle-orm";
@@ -93,6 +102,16 @@ const server = app.listen(PORT, () => {
 server.setTimeout(300000);
 server.keepAliveTimeout = 300000;
 server.headersTimeout = 301000;
+
+// Flush PostHog events before process exit
+process.on('SIGINT', async () => {
+  await posthog.shutdown();
+  process.exit(0);
+});
+process.on('SIGTERM', async () => {
+  await posthog.shutdown();
+  process.exit(0);
+});
 
 // ─── Scheduled Posts background publishing engine (runs every 15s) ─────────
 setInterval(async () => {

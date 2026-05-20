@@ -5,6 +5,7 @@ import { db } from '../auth/auth';
 import { user } from '../auth/schema/schema';
 import { eq } from 'drizzle-orm';
 import { verifyAuth, AuthRequest } from '../middleware/auth';
+import { posthog } from '../lib/posthog';
 
 const router = Router();
 
@@ -57,6 +58,16 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                         })
                         .where(eq(user.id, userId));
 
+                    posthog.capture({
+                        distinctId: userId,
+                        event: 'subscription_started',
+                        properties: {
+                            plan,
+                            stripe_customer_id: customerId,
+                            stripe_subscription_id: subscriptionId,
+                        },
+                    });
+
                     console.log(`✅ User ${userId} upgraded to ${plan} with 100 credits`);
                 } else {
                     console.error('❌ No userId found in session metadata');
@@ -85,6 +96,16 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                         })
                         .where(eq(user.id, foundUser.id));
 
+                    posthog.capture({
+                        distinctId: foundUser.id,
+                        event: 'subscription_renewed',
+                        properties: {
+                            stripe_subscription_id: subscriptionId,
+                            stripe_customer_id: customerId,
+                            tokens_reset_to: newTokens,
+                        },
+                    });
+
                     console.log(`✅ User ${foundUser.id} subscription renewed. Tokens reset to ${newTokens}`);
                 }
                 break;
@@ -94,6 +115,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                 const subscription = event.data.object as any;
                 const subscriptionId = subscription.id;
 
+                const canceledUsers = await db.select({ id: user.id }).from(user).where(eq(user.stripeSubscriptionId, subscriptionId));
+
                 await db.update(user)
                     .set({
                         plan: 'free',
@@ -101,6 +124,14 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                         tokens: 40 // Reset to free trial limits
                     })
                     .where(eq(user.stripeSubscriptionId, subscriptionId));
+
+                if (canceledUsers[0]) {
+                    posthog.capture({
+                        distinctId: canceledUsers[0].id,
+                        event: 'subscription_canceled',
+                        properties: { stripe_subscription_id: subscriptionId },
+                    });
+                }
 
                 console.log(`🚫 Subscription ${subscriptionId} canceled`);
                 break;
@@ -146,9 +177,20 @@ router.post('/create-checkout-session', express.json(), verifyAuth, async (req: 
             cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/pricing?canceled=true`,
         });
 
+        posthog.capture({
+            distinctId: req.user.id,
+            event: 'checkout_session_created',
+            properties: {
+                plan_name: planName,
+                price_id: priceId,
+                is_annual: !!isAnnual,
+            },
+        });
+
         return res.json({ url: session.url });
     } catch (error: any) {
         console.error('Error creating checkout session:', error);
+        posthog.captureException(error, req.user!.id);
         return res.status(500).json({ error: error.message });
     }
 });
