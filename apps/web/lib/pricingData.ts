@@ -20,16 +20,12 @@ export const PricingPlans: PricingPlan[] = [
         name: "Starter",
         category: "",
         description: "For creators who just started who want to automate their repurposing and scheduling process",
-        monthlyPrice: 9.99,
-        annualPrice: 7.99,
-        monthlyPriceId: isProd
-            ? process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY || "price_1TZBIKLShg9EGCkGBRZwmLVl"
-            : "price_1TZBIKLShg9EGCkGBRZwmLVl",
-        annualPriceId: isProd
-            ? process.env.NEXT_PUBLIC_STRIPE_STARTER_YEARLY || "price_1TZBJ9LShg9EGCkGZUXpcRlc"
-            : "price_1TZBJ9LShg9EGCkGZUXpcRlc",
-        savings: 20,
-        popular: false,
+        monthlyPrice: 19.99,
+        annualPrice: 17.99,
+        monthlyPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_MONTHLY || "price_1T8zvkLShg9EGCkGN3uS86kx" : "price_1T90DLL1bbAsFy34FNRk26eX",
+        annualPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_YEARLY || "price_1T8zxGLShg9EGCkGuFDXGFKn" : "price_1T90DvL1bbAsFy34rG5hmUjR",
+        savings: 60,
+        popular: true,
         cta: "Start your 7-day free trial",
         color: "primary",
         features: [
@@ -46,13 +42,9 @@ export const PricingPlans: PricingPlan[] = [
         description: "For creators who want to grow faster, push their distribution to next level.",
         monthlyPrice: 25.99,
         annualPrice: 23.99,
-        monthlyPriceId: isProd
-            ? process.env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY || "price_1TZBJlLShg9EGCkGkYbeh9Uf"
-            : "price_1TZBJlLShg9EGCkGkYbeh9Uf",
-        annualPriceId: isProd
-            ? process.env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY || "price_1TZBFyLShg9EGCkGVqt5dthM"
-            : "price_1TZBFyLShg9EGCkGVqt5dthM",
-        savings: 24,
+        monthlyPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_MONTHLY || "price_1T8zvkLShg9EGCkGN3uS86kx" : "price_1T90DLL1bbAsFy34FNRk26eX",
+        annualPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_YEARLY || "price_1T8zxGLShg9EGCkGuFDXGFKn" : "price_1T90DvL1bbAsFy34rG5hmUjR",
+        savings: 60,
         popular: true,
         cta: "Start your 7-day free trial",
         color: "primary",
