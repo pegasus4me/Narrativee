@@ -5,6 +5,7 @@ import { GoogleTagManager } from '@next/third-parties/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import "./globals.css";
 import { Toaster } from "sonner";
+import { PostHogProvider } from "./components/providers/PostHogProvider";
 
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
@@ -42,8 +43,10 @@ export default function RootLayout({
       >
         <GoogleTagManager gtmId="GTM-5BCN3HMQ" />
         <GoogleAnalytics gaId="G-L8W7KEVHQ4" />
-        {children}
-        <Toaster />
+        <PostHogProvider>
+          {children}
+          <Toaster />
+        </PostHogProvider>
       </body>
     </html>
   );
