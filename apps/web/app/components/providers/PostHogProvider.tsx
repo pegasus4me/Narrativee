@@ -26,9 +26,9 @@ function PostHogPageview() {
 
 // Initialize PostHog once on the client side
 if (typeof window !== "undefined") {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
-    person_profiles: "identified_only",
+  posthog.init('phc_cOCA9zK75sqDuz5q0zVbaw6eUFU6CK4z0EydxaI50iU', {
+    api_host: 'https://us.i.posthog.com',
+    defaults: '2026-01-30',
     capture_pageview: false, // We handle it manually above (App Router safe)
     capture_pageleave: true,
   });
