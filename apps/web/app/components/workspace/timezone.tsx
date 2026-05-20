@@ -12,5 +12,6 @@ export default function TimeZoneComponent({ timezone }: { timezone: string }) {
                 </div>
             </DropdownMenuTrigger>
         </DropdownMenu>
+        
     );
 }
