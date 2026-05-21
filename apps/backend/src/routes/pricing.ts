@@ -171,7 +171,7 @@ router.post('/create-checkout-session', express.json(), verifyAuth, async (req: 
             },
             customer_email: req.user.email,
             success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/success`,
-            cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/pricing?canceled=true`,
+            cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/e`,
         });
 
         posthog.capture({

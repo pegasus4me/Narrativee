@@ -30,7 +30,7 @@ export const PricingPlans: PricingPlan[] = [
         color: "primary",
         features: [
             { text: "40 AI credits / month", included: true, bold: true },
-            { text: "3 connected channels", included: true },
+            { text: "unlimited channels", included: true },
             { text: "Basic content generation", included: true },
             { text: "Post scheduling", included: true },
             { text: "Email support", included: true },
@@ -42,8 +42,8 @@ export const PricingPlans: PricingPlan[] = [
         description: "For creators who want to grow faster, push their distribution to next level.",
         monthlyPrice: 25.99,
         annualPrice: 23.99,
-        monthlyPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_MONTHLY || "price_1T8zvkLShg9EGCkGN3uS86kx" : "price_1T90DLL1bbAsFy34FNRk26eX",
-        annualPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_YEARLY || "price_1T8zxGLShg9EGCkGuFDXGFKn" : "price_1T90DvL1bbAsFy34rG5hmUjR",
+        monthlyPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY || "price_1TZBJlLShg9EGCkGkYbeh9Uf" : "price_1T90DLL1bbAsFy34FNRk26eX",
+        annualPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY || "price_1TZBFyLShg9EGCkGVqt5dthM" : "price_1T90DvL1bbAsFy34rG5hmUjR",
         savings: 60,
         popular: true,
         cta: "Start your 7-day free trial",
@@ -51,6 +51,7 @@ export const PricingPlans: PricingPlan[] = [
         features: [
             { text: "100 AI credits / month", included: true, bold: true },
             { text: "Unlimited channels", included: true },
+            
             { text: "Advanced tone-of-voice", included: true },
             { text: "Priority scheduling", included: true },
             { text: "Auto-publish to all platforms", included: true },
