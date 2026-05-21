@@ -27,8 +27,7 @@ export const EmailService = {
             subject: "Your Narrativee weekly recap",
             html: weeklyDigestHtml(data),
         });
-        if (error) console.error("❌ Weekly digest error:", error);
-        else console.log("✅ Weekly digest sent to", data.email, "id:", result?.id);
+        if (error) console.error('[Email] Weekly digest error:', error);
     },
 
     async sendWelcome({ email, name, promoCode }: { email: string; name: string; promoCode: string }) {
@@ -36,17 +35,14 @@ export const EmailService = {
             console.error("❌ RESEND_API_KEY is missing — welcome email skipped");
             return;
         }
-        console.log(`📧 Sending welcome email to ${email}...`);
-        const { data, error } = await resend.emails.send({
+        const { error } = await resend.emails.send({
             from: FROM,
             to: email,
             subject: "Welcome to Narrativee",
             html: welcomeEmailHtml({ name, promoCode }),
         });
         if (error) {
-            console.error("❌ Resend error:", error);
-        } else {
-            console.log("✅ Welcome email sent, id:", data?.id);
+            console.error('[Email] Welcome email error:', error);
         }
     },
 };

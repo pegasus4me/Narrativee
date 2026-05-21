@@ -19,7 +19,6 @@ export const threadsProvider: OAuthProvider = {
     ],
 
     getAuthorizationUrl(state: string, redirectUri: string): string {
-        console.log('THREADS OAUTH REDIRECT_URI:', redirectUri);
         const appId = process.env.THREADS_APP_ID?.trim()!
         const params = new URLSearchParams({
             client_id: appId,

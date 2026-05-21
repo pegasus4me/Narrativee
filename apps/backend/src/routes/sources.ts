@@ -19,7 +19,7 @@ router.get('/', verifyAuth, async (req: AuthRequest, res) => {
         const backfilledSources = await Promise.all(sources.map(async (source) => {
             if (!source.avatarUrl && (source.platform === 'substack' || source.platform === 'custom_rss') && source.url) {
                 try {
-                    console.log(`[Substack] Dynamically backfilling avatar for: ${source.url}`);
+
                     const feed = await parser.parseURL(source.url);
                     const avatarUrl = feed.image?.url || (typeof feed.image === 'string' ? feed.image : null);
                     if (avatarUrl) {
@@ -75,7 +75,7 @@ router.post('/', verifyAuth, async (req: AuthRequest, res) => {
 
         // 1. Try parsing the feed URL directly
         try {
-            console.log(`[Sources] Fetching RSS feed from: ${feedUrl}`);
+
             feed = await parser.parseURL(feedUrl);
             feedParsed = true;
         } catch (err: any) {
@@ -89,7 +89,7 @@ router.post('/', verifyAuth, async (req: AuthRequest, res) => {
             for (const path of commonPaths) {
                 try {
                     const fallbackUrl = `${baseUrl}${path}`;
-                    console.log(`[Sources] Trying fallback RSS endpoint: ${fallbackUrl}`);
+
                     feed = await parser.parseURL(fallbackUrl);
                     feedUrl = fallbackUrl;
                     feedParsed = true;
@@ -119,7 +119,7 @@ router.post('/', verifyAuth, async (req: AuthRequest, res) => {
 
         if (existingSources.length > 0) {
             sourceId = existingSources[0].id;
-            console.log(`[Sources] Source already exists, updating synced timestamp and avatar`);
+
             await db.update(contentSources)
                 .set({ 
                     lastSyncedAt: new Date(),
@@ -127,7 +127,7 @@ router.post('/', verifyAuth, async (req: AuthRequest, res) => {
                 })
                 .where(eq(contentSources.id, sourceId));
         } else {
-            console.log(`[Sources] Creating new content source`);
+
             const [newSource] = await db.insert(contentSources).values({
                 userId,
                 platform: targetPlatform,
@@ -139,7 +139,7 @@ router.post('/', verifyAuth, async (req: AuthRequest, res) => {
         }
 
         // Insert articles
-        console.log(`[Substack] Found ${feed.items.length} articles, syncing to DB...`);
+
         let newArticlesCount = 0;
 
         // Fetch existing articles for this source to avoid duplicates

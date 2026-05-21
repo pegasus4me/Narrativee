@@ -142,7 +142,7 @@ router.get('/connect/:platform', verifyAuth, async (req: AuthRequest, res) => {
     const redirectUri = `${BASE_URL}/api/channels/callback/${platform}`;
     const authUrl = provider.getAuthorizationUrl(state, redirectUri, codeVerifier);
 
-    console.log(`🔗 [${platform}] OAuth redirect URL:`, authUrl);
+
     res.redirect(authUrl);
 });
 
@@ -187,13 +187,13 @@ router.get('/callback/:platform', async (req: any, res) => {
 
     try {
         const redirectUri = `${BASE_URL}/api/channels/callback/${platform}`;
-        console.log(`🔄 [${platform}] Exchanging code for tokens, redirectUri=${redirectUri}`);
+
 
         // Exchange code for tokens
         let tokens;
         try {
             tokens = await provider.exchangeCodeForTokens(code as string, redirectUri, codeVerifier);
-            console.log(`✅ [${platform}] Token exchange succeeded`);
+
         } catch (tokenErr: any) {
             console.error(`❌ [${platform}] Token exchange failed:`, tokenErr.message);
             return res.redirect(`${FRONTEND_URL}/workspace/channels?error=token_exchange_failed&detail=${encodeURIComponent(tokenErr.message)}`);
@@ -203,7 +203,7 @@ router.get('/callback/:platform', async (req: any, res) => {
         let profile;
         try {
             profile = await provider.fetchProfile(tokens.accessToken);
-            console.log(`✅ [${platform}] Profile fetched:`, profile);
+
         } catch (profileErr: any) {
             console.error(`❌ [${platform}] Profile fetch failed:`, profileErr.message);
             return res.redirect(`${FRONTEND_URL}/workspace/channels?error=profile_fetch_failed&detail=${encodeURIComponent(profileErr.message)}`);
@@ -272,9 +272,9 @@ router.post('/connect/bluesky', verifyAuth, async (req: AuthRequest, res) => {
             return res.status(400).json({ error: 'Bluesky handle and app password are required' });
         }
 
-        console.log(`🦋 [Bluesky] Authenticating ${identifier}...`);
+
         const { tokens, profile } = await authenticateBluesky(identifier, appPassword);
-        console.log(`✅ [Bluesky] Authenticated: ${profile.accountName} (${profile.providerAccountId})`);
+
 
         // Upsert: if this account is already connected, update tokens
         const existing = await db

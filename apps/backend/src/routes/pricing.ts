@@ -23,7 +23,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
 
     try {
         event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-        console.log(`📨 Webhook received: ${event.type}`);
+
     } catch (err: any) {
         console.error(`Webhook signature verification failed: ${err.message}`);
         return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -32,20 +32,17 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
     try {
         switch (event.type) {
             case 'checkout.session.completed': {
-                console.log('🔔 Checkout session completed event received');
                 const session = event.data.object as any;
                 const userId = session.metadata?.userId;
                 const subscriptionId = session.subscription;
                 const customerId = session.customer;
-
-                console.log('📦 Session data:', { userId, subscriptionId, customerId, metadata: session.metadata });
 
                 if (userId) {
                     // Determine plan based on price ID or metadata
                     // For simplicity, assuming metadata or checking line items
                     // Ideally, pass plan name in metadata during checkout creation
                     const plan = session.metadata?.plan || 'paid';
-                    console.log(`👤 Updating user ${userId} to plan ${plan}`);
+
 
                     await db.update(user)
                         .set({
@@ -68,7 +65,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                         },
                     });
 
-                    console.log(`✅ User ${userId} upgraded to ${plan} with 100 credits`);
+
                 } else {
                     console.error('❌ No userId found in session metadata');
                 }
@@ -106,7 +103,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                         },
                     });
 
-                    console.log(`✅ User ${foundUser.id} subscription renewed. Tokens reset to ${newTokens}`);
+
                 }
                 break;
             }
@@ -133,7 +130,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                     });
                 }
 
-                console.log(`🚫 Subscription ${subscriptionId} canceled`);
+
                 break;
             }
         }
