@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql, gte } from 'drizzle-orm';
 import { db } from '../auth/auth';
 import { articles, user, channels, socialPosts, contentSources } from '../auth/schema/schema';
 import { verifyAuth, AuthRequest } from '../middleware/auth';
@@ -456,6 +456,7 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
       });
     }
 
+    // Pre-check credits before calling LLM
     const [u] = await db.select({ tokens: user.tokens }).from(user).where(eq(user.id, userId)).limit(1);
     const tokens = u?.tokens ?? 0;
     if (tokens < ANGLE_EXTRACTION_COST) {
@@ -488,9 +489,19 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
       throw updErr;
     }
 
+    // Atomic credit deduction to prevent race conditions
+    const [deducted] = await db
+      .update(user)
+      .set({ tokens: sql`${user.tokens} - ${ANGLE_EXTRACTION_COST}` })
+      .where(and(eq(user.id, userId), gte(user.tokens, ANGLE_EXTRACTION_COST)))
+      .returning({ tokens: user.tokens });
 
-    const newTokens = tokens - ANGLE_EXTRACTION_COST;
-    await db.update(user).set({ tokens: newTokens }).where(eq(user.id, userId));
+    if (!deducted) {
+      return res.status(402).json({
+        error: 'Insufficient credits',
+        message: 'Credits were consumed by another request.',
+      });
+    }
 
     posthog.capture({
       distinctId: userId,
@@ -499,7 +510,7 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
         article_id: id,
         angles_count: ideas.length,
         credits_used: ANGLE_EXTRACTION_COST,
-        credits_remaining: newTokens,
+        credits_remaining: deducted.tokens,
       },
     });
 
@@ -507,7 +518,7 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
       ideas,
       cached: false,
       anglesExtractedAt: now,
-      creditsRemaining: newTokens,
+      creditsRemaining: deducted.tokens,
     });
   } catch (error: any) {
     console.error('[Articles] Ideas extraction error:', error);
@@ -613,9 +624,19 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
       }
     }
 
-    // 5. Deduct credits
-    const newTokens = tokens - cost;
-    await db.update(user).set({ tokens: newTokens }).where(eq(user.id, userId));
+    // 5. Atomic credit deduction to prevent race conditions
+    const [deducted] = await db
+      .update(user)
+      .set({ tokens: sql`${user.tokens} - ${cost}` })
+      .where(and(eq(user.id, userId), gte(user.tokens, cost)))
+      .returning({ tokens: user.tokens });
+
+    if (!deducted) {
+      return res.status(402).json({
+        error: 'Insufficient credits',
+        message: 'Credits were consumed by another request.',
+      });
+    }
 
     posthog.capture({
       distinctId: userId,
@@ -627,7 +648,7 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
         drafts_count: generatedPosts.length,
         platforms: activeChannels.map((c) => c.platform),
         credits_used: cost,
-        credits_remaining: newTokens,
+        credits_remaining: deducted.tokens,
         attach_link: !!attachLink,
       },
     });
@@ -635,7 +656,7 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
     res.json({
       success: true,
       drafts: generatedPosts,
-      creditsRemaining: newTokens,
+      creditsRemaining: deducted.tokens,
     });
   } catch (error: any) {
     console.error('[Articles] Drafts generation error:', error);
@@ -680,40 +701,12 @@ router.put('/drafts/:draftId', verifyAuth, async (req: AuthRequest, res) => {
   }
 });
 
-// PUT /api/articles/:articleId/drafts/:draftId — update a draft's content
-router.put('/:articleId/drafts/:draftId', verifyAuth, async (req: AuthRequest, res) => {
-  try {
-    const userId = req.user!.id;
-    const { articleId, draftId } = req.params;
-    const { text } = req.body;
-
-    if (!isUuid(articleId) || !isUuid(draftId)) {
-      return res.status(404).json({ error: 'Not found' });
-    }
-
-    const [existing] = await db
-      .select()
-      .from(socialPosts)
-      .where(and(eq(socialPosts.id, draftId), eq(socialPosts.userId, userId)))
-      .limit(1);
-
-    if (!existing) {
-      return res.status(404).json({ error: 'Draft not found' });
-    }
-
-    const sanitizedText = typeof text === 'string' ? text.replace(/\u2014/g, '-').replace(/—/g, '-') : text;
-
-    const [updated] = await db
-      .update(socialPosts)
-      .set({ content: { text: sanitizedText } })
-      .where(eq(socialPosts.id, draftId))
-      .returning();
-
-    res.json({ success: true, draft: updated });
-  } catch (error: any) {
-    console.error('[Articles] Update draft error:', error);
-    res.status(500).json({ error: 'Failed to update draft', details: error.message });
-  }
+// Legacy endpoint — delegates to /drafts/:draftId (articleId is unused)
+router.put('/:articleId/drafts/:draftId', verifyAuth, async (req: AuthRequest, res, next) => {
+  req.params.draftId = req.params.draftId;
+  // Forward to the canonical handler above by re-dispatching
+  req.url = `/drafts/${req.params.draftId}`;
+  router.handle(req, res, next);
 });
 
 // GET /api/articles/drafts/queue — fetch all scheduled/published posts

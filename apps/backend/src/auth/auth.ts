@@ -91,7 +91,7 @@ export const auth = betterAuth({
             await EmailService.sendWelcome({
               email: user.email,
               name: user.name ?? "",
-              promoCode: "EARLYBIRD26",
+              promoCode: process.env.WELCOME_PROMO_CODE || "EARLYBIRD26",
             });
           } catch (e) {
             console.error("Failed to send welcome email:", e);

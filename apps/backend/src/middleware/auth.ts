@@ -1,7 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import dotenv from 'dotenv';
 import { auth } from '../auth/auth';
-dotenv.config();
 
 export interface AuthRequest extends Request {
   user?: {
