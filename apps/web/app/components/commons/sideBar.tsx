@@ -1,21 +1,22 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
-
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSideBarStore } from "../../state/SideBar.store";
 import { authClient } from "../../../lib/auth-client";
 import { usePathname, useRouter } from "next/navigation";
-import { API_URL } from "@/lib/api-config";
 import logo from "../../../public/logo.png"
 import Image from "next/image";
-import { Home, Lightbulb, CalendarDays, Link2, Instagram, Rss, BookOpen } from "lucide-react";
+import { Home, Lightbulb, CalendarDays, Link2, Instagram, Rss } from "lucide-react";
 
 import { LINKEDIN_LOGO, X_LOGO, THREADS_LOGO, FACEBOOK_LOGO } from "@/app/constants";
 import ProfileMenuSidebar from "./profileMenuSidebar";
 import PrimaryButton from "./PrimaryButton";
 import PricingPopUp from "../workspace/pricingPopUp";
+import { useChannels } from "@/app/hooks/api/useChannels";
+import { useSources } from "@/app/hooks/api/useSources";
+import { useCredits } from "@/app/hooks/api/useCredits";
+import { MOCK_CHANNELS_SIDEBAR, MOCK_SOURCES_SIDEBAR } from "@/app/components/workspace/shared/mockData";
 
 const PLATFORM_META: Record<string, { label: string; icon: React.ReactNode }> = {
   linkedin: {
@@ -51,97 +52,32 @@ interface SideBarProps {
 
 
 export function SideBar({ selectedTemplateId }: SideBarProps) {
-  const params = useParams();
   const path = usePathname()
   const router = useRouter()
-  console.log("PATH", path)
   const isSidebarOpen = useSideBarStore((state) => state.opened);
   const toggleSidebar = useSideBarStore((state) => state.toggleSidebar);
   const { data: session } = authClient.useSession();
 
-  const credits = useSideBarStore((state) => state.credits);
+  const isLoggedIn = !!session?.user;
   const setCredits = useSideBarStore((state) => state.setCredits);
-  const plan = useSideBarStore((state) => state.plan);
   const setPlan = useSideBarStore((state) => state.setPlan);
+  const credits = useSideBarStore((state) => state.credits);
+  const plan = useSideBarStore((state) => state.plan);
 
-  const [campaignsOpen, setCampaignsOpen] = useState(false);
-  const [channels, setChannels] = useState<any[]>([]);
-  const [sources, setSources] = useState<any[]>([]);
   const [showPricing, setShowPricing] = useState(false);
 
+  const { data: channelsData } = useChannels(isLoggedIn);
+  const { data: sourcesData } = useSources(isLoggedIn);
+  const { data: creditsData } = useCredits(isLoggedIn);
+
+  const channels = isLoggedIn ? (channelsData ?? []) : MOCK_CHANNELS_SIDEBAR;
+  const sources = isLoggedIn ? (sourcesData ?? []) : MOCK_SOURCES_SIDEBAR;
+
   useEffect(() => {
-    if (session === undefined) return;
-
-    if (session?.user) {
-      // Fetch user credits
-      fetch(`${API_URL}/user/credits`, { credentials: 'include' })
-        .then(res => res.json())
-        .then((data: any) => {
-          if (data.success && typeof data.credits === 'number') {
-            setCredits(data.credits);
-            if (data.plan) {
-              setPlan(data.plan);
-            }
-          }
-        })
-        .catch(console.error);
-
-      // Fetch connected channels
-      fetch(`${API_URL}/channels`, { credentials: 'include' })
-        .then(res => res.json())
-        .then((data: any) => {
-          if (data.channels) {
-            setChannels(data.channels);
-          }
-        })
-        .catch(console.error);
-
-      // Fetch connected newsletters
-      fetch(`${API_URL}/sources`, { credentials: 'include' })
-        .then(res => res.json())
-        .then((data: any) => {
-          if (data.sources) {
-            setSources(data.sources);
-          }
-        })
-        .catch(console.error);
-    } else {
-      // Guest Sandbox Mode: Populate beautiful fake data in sidebar!
-      setChannels([
-        {
-          id: "mock-channel-1",
-          platform: "linkedin",
-          accountName: "Sarah Chen (Founder)",
-          avatarUrl: "https://images.squarespace-cdn.com/content/v1/687a750f2d0df239a6910948/df95c93a-1179-4c69-98f8-061719c5634b/Sarah+Chen.jpg"
-        },
-        {
-          id: "mock-channel-2",
-          platform: "x",
-          accountName: "sarah_growth",
-          avatarUrl: "https://images.squarespace-cdn.com/content/v1/687a750f2d0df239a6910948/df95c93a-1179-4c69-98f8-061719c5634b/Sarah+Chen.jpg"
-        },
-        {
-          id: "mock-channel-3",
-          platform: "threads",
-          accountName: "sarah_chen",
-          avatarUrl: "https://images.squarespace-cdn.com/content/v1/687a750f2d0df239a6910948/df95c93a-1179-4c69-98f8-061719c5634b/Sarah+Chen.jpg"
-        },
-        {
-          id: "mock-channel-4",
-          platform: "instagram",
-          accountName: "sarah_insta",
-          avatarUrl: "https://images.squarespace-cdn.com/content/v1/687a750f2d0df239a6910948/df95c93a-1179-4c69-98f8-061719c5634b/Sarah+Chen.jpg"
-        }
-      ]);
-      setSources([
-        {
-          id: "mock-source-1",
-          url: "https://creators.substack.com/feed",
-          avatarUrl: null
-        }
-      ]);
+    if (creditsData !== undefined) {
+      setCredits(creditsData);
     }
-  }, [session, setCredits, setPlan]);
+  }, [creditsData, setCredits]);
 
   return (
     <>

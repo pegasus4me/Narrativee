@@ -36,6 +36,7 @@
     "@repo/ui": "workspace:*",
     "@supabase/supabase-js": "^2.86.0",
     "@tailwindcss/postcss": "^4.1.17",
+    "@tanstack/react-query": "^5.100.11",
     "@tanstack/react-table": "^8.21.3",
     "@xyflow/react": "^12.10.0",
     "axios": "^1.13.2",
