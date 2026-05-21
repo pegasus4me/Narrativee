@@ -2,6 +2,7 @@ import { db } from "../auth/auth";
 import { channels, socialPosts } from "../auth/schema/schema";
 import { eq } from "drizzle-orm";
 import { getProvider } from "../oauth/registry";
+import { decrypt, encrypt } from "../utils/encryption";
 
 /**
  * Publishes a draft social post to X (Twitter) or LinkedIn using connected OAuth credentials.
@@ -29,22 +30,24 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
     return false;
   }
 
-  let accessToken = channel.accessToken;
+  let accessToken = decrypt(channel.accessToken);
   
   // 3. Refresh token if expired or about to expire (within 5 minutes)
-  const isExpired = channel.expiresAt && (new Date(channel.expiresAt).getTime() - 5 * 60 * 1000 < Date.now());
+  const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
+  const isExpired = channel.expiresAt && (new Date(channel.expiresAt).getTime() - TOKEN_EXPIRY_BUFFER_MS < Date.now());
   if (isExpired && channel.refreshToken) {
     console.log(`[Publisher] Access token for channel ${channel.id} is expired. Refreshing...`);
     const provider = getProvider(channel.platform);
     if (provider && provider.refreshAccessToken) {
       try {
-        const tokens = await provider.refreshAccessToken(channel.refreshToken);
+        const decryptedRefresh = decrypt(channel.refreshToken);
+        const tokens = await provider.refreshAccessToken(decryptedRefresh);
         if (tokens) {
           accessToken = tokens.accessToken;
           await db.update(channels)
             .set({
-              accessToken: tokens.accessToken,
-              refreshToken: tokens.refreshToken ?? channel.refreshToken,
+              accessToken: encrypt(tokens.accessToken),
+              refreshToken: encrypt(tokens.refreshToken ?? decryptedRefresh),
               expiresAt: tokens.expiresAt,
             })
             .where(eq(channels.id, channel.id));

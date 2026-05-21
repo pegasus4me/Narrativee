@@ -1,20 +1,18 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import { db } from '../auth/auth';
-import { channels } from '../auth/schema/schema';
-import { eq, and } from 'drizzle-orm';
+import { channels, oauthStates } from '../auth/schema/schema';
+import { eq, and, lte } from 'drizzle-orm';
 import { verifyAuth, AuthRequest } from '../middleware/auth';
 import { getProvider, getProviderList } from '../oauth/registry';
 import { authenticateBluesky } from '../oauth/providers/bluesky';
 import { posthog } from '../lib/posthog';
+import { encrypt } from '../utils/encryption';
 
 const router = Router();
 
 const BASE_URL = process.env.BACKEND_URL || 'http://localhost:3002';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-
-// In-memory state store for CSRF protection (use Redis in production)
-const pendingStates = new Map<string, { userId: string; platform: string; expiresAt: number; codeVerifier?: string }>();
 
 // ─── Generic OAuth Routes ──────────────────────────────────────────────────
 
@@ -110,8 +108,8 @@ router.get('/connect/:platform', verifyAuth, async (req: AuthRequest, res) => {
                 providerAccountId: mockAccountId,
                 accountName: mockAccountName,
                 avatarUrl: mockAvatarUrl,
-                accessToken: 'mock_token_secret',
-                refreshToken: 'mock_refresh_token',
+                accessToken: encrypt('mock_token_secret'),
+                refreshToken: encrypt('mock_refresh_token'),
                 expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000), // 1 year
             });
         }
@@ -131,17 +129,20 @@ router.get('/connect/:platform', verifyAuth, async (req: AuthRequest, res) => {
     // Generate a PKCE code verifier (random 43 character string)
     const codeVerifier = crypto.randomBytes(32).toString('base64url');
 
-    pendingStates.set(state, {
+    // Store state in DB for multi-instance safety
+    const OAUTH_STATE_TTL_MS = 10 * 60 * 1000; // 10 min
+    await db.insert(oauthStates).values({
+        state,
         userId: req.user!.id,
         platform,
         codeVerifier,
-        expiresAt: Date.now() + 10 * 60 * 1000, // 10 min expiry
+        expiresAt: new Date(Date.now() + OAUTH_STATE_TTL_MS),
     });
 
     const redirectUri = `${BASE_URL}/api/channels/callback/${platform}`;
     const authUrl = provider.getAuthorizationUrl(state, redirectUri, codeVerifier);
 
-    console.log(`🔗 [${platform}] OAuth redirect URL:`, authUrl);
+
     res.redirect(authUrl);
 });
 
@@ -163,16 +164,21 @@ router.get('/callback/:platform', async (req: any, res) => {
         return res.redirect(`${FRONTEND_URL}/workspace/channels?error=missing_params`);
     }
 
-    // Verify CSRF state
-    const pending = pendingStates.get(state as string);
-    if (!pending || pending.platform !== platform || pending.expiresAt < Date.now()) {
-        pendingStates.delete(state as string);
+    // Verify CSRF state from DB
+    const [pending] = await db
+        .select()
+        .from(oauthStates)
+        .where(eq(oauthStates.state, state as string))
+        .limit(1);
+
+    if (!pending || pending.platform !== platform || pending.expiresAt < new Date()) {
+        if (pending) await db.delete(oauthStates).where(eq(oauthStates.state, state as string));
         return res.redirect(`${FRONTEND_URL}/workspace/channels?error=invalid_state`);
     }
 
     const userId = pending.userId;
-    const codeVerifier = pending.codeVerifier;
-    pendingStates.delete(state as string);
+    const codeVerifier = pending.codeVerifier ?? undefined;
+    await db.delete(oauthStates).where(eq(oauthStates.state, state as string));
 
     const provider = getProvider(platform);
     if (!provider) {
@@ -181,13 +187,13 @@ router.get('/callback/:platform', async (req: any, res) => {
 
     try {
         const redirectUri = `${BASE_URL}/api/channels/callback/${platform}`;
-        console.log(`🔄 [${platform}] Exchanging code for tokens, redirectUri=${redirectUri}`);
+
 
         // Exchange code for tokens
         let tokens;
         try {
             tokens = await provider.exchangeCodeForTokens(code as string, redirectUri, codeVerifier);
-            console.log(`✅ [${platform}] Token exchange succeeded`);
+
         } catch (tokenErr: any) {
             console.error(`❌ [${platform}] Token exchange failed:`, tokenErr.message);
             return res.redirect(`${FRONTEND_URL}/workspace/channels?error=token_exchange_failed&detail=${encodeURIComponent(tokenErr.message)}`);
@@ -197,7 +203,7 @@ router.get('/callback/:platform', async (req: any, res) => {
         let profile;
         try {
             profile = await provider.fetchProfile(tokens.accessToken);
-            console.log(`✅ [${platform}] Profile fetched:`, profile);
+
         } catch (profileErr: any) {
             console.error(`❌ [${platform}] Profile fetch failed:`, profileErr.message);
             return res.redirect(`${FRONTEND_URL}/workspace/channels?error=profile_fetch_failed&detail=${encodeURIComponent(profileErr.message)}`);
@@ -219,8 +225,8 @@ router.get('/callback/:platform', async (req: any, res) => {
             await db
                 .update(channels)
                 .set({
-                    accessToken: tokens.accessToken,
-                    refreshToken: tokens.refreshToken ?? existing[0]!.refreshToken,
+                    accessToken: encrypt(tokens.accessToken),
+                    refreshToken: tokens.refreshToken ? encrypt(tokens.refreshToken) : (existing[0]!.refreshToken ?? ''),
                     expiresAt: tokens.expiresAt,
                     accountName: profile.accountName,
                     avatarUrl: profile.avatarUrl,
@@ -233,8 +239,8 @@ router.get('/callback/:platform', async (req: any, res) => {
                 providerAccountId: profile.providerAccountId,
                 accountName: profile.accountName,
                 avatarUrl: profile.avatarUrl,
-                accessToken: tokens.accessToken,
-                refreshToken: tokens.refreshToken,
+                accessToken: encrypt(tokens.accessToken),
+                refreshToken: tokens.refreshToken ? encrypt(tokens.refreshToken) : undefined,
                 expiresAt: tokens.expiresAt,
             });
         }
@@ -248,7 +254,7 @@ router.get('/callback/:platform', async (req: any, res) => {
         // Redirect back to the frontend with success
         res.redirect(`${FRONTEND_URL}/workspace/channels?connected=${platform}`);
     } catch (err: any) {
-        console.error(`OAuth callback error for ${platform}:`, err);
+        console.error(`[${platform}] OAuth callback error:`, err);
         posthog.captureException(err, userId);
         res.redirect(`${FRONTEND_URL}/workspace/channels?error=token_exchange_failed`);
     }
@@ -266,9 +272,9 @@ router.post('/connect/bluesky', verifyAuth, async (req: AuthRequest, res) => {
             return res.status(400).json({ error: 'Bluesky handle and app password are required' });
         }
 
-        console.log(`🦋 [Bluesky] Authenticating ${identifier}...`);
+
         const { tokens, profile } = await authenticateBluesky(identifier, appPassword);
-        console.log(`✅ [Bluesky] Authenticated: ${profile.accountName} (${profile.providerAccountId})`);
+
 
         // Upsert: if this account is already connected, update tokens
         const existing = await db
@@ -286,8 +292,8 @@ router.post('/connect/bluesky', verifyAuth, async (req: AuthRequest, res) => {
             await db
                 .update(channels)
                 .set({
-                    accessToken: tokens.accessToken,
-                    refreshToken: tokens.refreshToken ?? existing[0]!.refreshToken,
+                    accessToken: encrypt(tokens.accessToken),
+                    refreshToken: tokens.refreshToken ? encrypt(tokens.refreshToken) : (existing[0]!.refreshToken ?? ''),
                     expiresAt: tokens.expiresAt,
                     accountName: profile.accountName,
                     avatarUrl: profile.avatarUrl,
@@ -300,8 +306,8 @@ router.post('/connect/bluesky', verifyAuth, async (req: AuthRequest, res) => {
                 providerAccountId: profile.providerAccountId,
                 accountName: profile.accountName,
                 avatarUrl: profile.avatarUrl,
-                accessToken: tokens.accessToken,
-                refreshToken: tokens.refreshToken,
+                accessToken: encrypt(tokens.accessToken),
+                refreshToken: tokens.refreshToken ? encrypt(tokens.refreshToken) : undefined,
                 expiresAt: tokens.expiresAt,
             });
         }
@@ -350,12 +356,14 @@ router.delete('/:channelId', verifyAuth, async (req: AuthRequest, res) => {
     }
 });
 
-// ─── Cleanup expired states (runs every 5 min) ─────────────────────────────
-setInterval(() => {
-    const now = Date.now();
-    for (const [key, val] of pendingStates) {
-        if (val.expiresAt < now) pendingStates.delete(key);
+// ─── Cleanup expired OAuth states from DB (runs every 5 min) ───────────────
+const OAUTH_CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+setInterval(async () => {
+    try {
+        await db.delete(oauthStates).where(lte(oauthStates.expiresAt, new Date()));
+    } catch (err) {
+        console.error('[OAuth] Failed to clean up expired states:', err);
     }
-}, 5 * 60 * 1000);
+}, OAUTH_CLEANUP_INTERVAL_MS);
 
 export default router;

@@ -18,15 +18,13 @@ router.get('/credits', verifyAuth, async (req: AuthRequest, res: Response) => {
         const credits = userData.length > 0 ? (userData[0].tokens ?? 0) : 0;
         const plan = (userData.length > 0 && userData[0].plan) ? userData[0].plan : 'free';
 
-        console.log(`[Credits API] User ${req.user.id} - Credits: ${credits}, Plan: ${plan}`);
-
         return res.json({
             success: true,
             credits,
             plan
         });
     } catch (error: any) {
-        console.error('Error fetching user credits:', error);
+        console.error('[User] Error fetching credits:', error);
         return res.status(500).json({
             error: 'Failed to fetch credits',
             message: error.message
@@ -34,47 +32,8 @@ router.get('/credits', verifyAuth, async (req: AuthRequest, res: Response) => {
     }
 });
 
-// Deduct user credits
-router.post('/credits/deduct', verifyAuth, async (req: AuthRequest, res: Response) => {
-    try {
-        if (!req.user) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        const { amount } = req.body;
-        const deductionAmount = typeof amount === 'number' && amount > 0 ? amount : 1;
-
-        // Fetch current tokens
-        const userData = await db.select({ tokens: user.tokens }).from(user).where(eq(user.id, req.user.id)).limit(1);
-
-        if (userData.length === 0) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        const currentTokens = userData[0].tokens ?? 0;
-
-        if (currentTokens < deductionAmount) {
-            return res.status(402).json({
-                error: 'Insufficient credits',
-                message: 'You do not have enough credits to perform this action.'
-            });
-        }
-
-        // Deduct
-        const newTokens = currentTokens - deductionAmount;
-        await db.update(user).set({ tokens: newTokens }).where(eq(user.id, req.user.id));
-
-        return res.json({
-            success: true,
-            credits: newTokens
-        });
-    } catch (error: any) {
-        console.error('Error deducting user credits:', error);
-        return res.status(500).json({
-            error: 'Failed to deduct credits',
-            message: error.message
-        });
-    }
-});
+// NOTE: Generic /credits/deduct endpoint was removed for security.
+// Credits are now only deducted server-side as part of specific business actions
+// (e.g., angle extraction, draft generation) to prevent unauthorized manipulation.
 
 export default router;

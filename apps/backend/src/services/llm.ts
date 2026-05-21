@@ -22,7 +22,6 @@ export class LLMService {
      * Extracts between 3 to 5 atomic ideas from long-form article content
      */
     static async extractAtomicIdeas(title: string, content: string): Promise<string[]> {
-        console.log(`[LLMService] Calling Grok to extract ideas for article: "${title}"`);
         try {
             const response = await openai.chat.completions.create({
                 model: GROK_MODEL,
@@ -44,7 +43,7 @@ Return ONLY a JSON array of strings, e.g. ["Idea 1", "Idea 2"]. No markdown fenc
             });
 
             const rawContent = response.choices[0]?.message?.content || '[]';
-            console.log('[LLMService] Raw Grok response:', rawContent);
+
 
             // Clean LLM response to get valid JSON
             let cleanedText = rawContent.trim();
@@ -86,8 +85,6 @@ Return ONLY a JSON array of strings, e.g. ["Idea 1", "Idea 2"]. No markdown fenc
         writingStyle: string,
         userId?: string
     ): Promise<string> {
-        console.log(`[LLMService] Calling Grok to generate draft for platform: "${platform}" (User: ${userId || 'anonymous'})`);
-        
         let customHooks: string[] = [];
         let customTemplates: string[] = [];
         let bannedWords: string[] = [];

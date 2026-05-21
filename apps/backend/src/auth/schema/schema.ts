@@ -131,6 +131,16 @@ export const userRelations = relations(user, ({ many, one }) => ({
   knowledgeBase: one(knowledgeBase),
 }));
 
+// DB-backed OAuth CSRF state store (replaces in-memory Map for multi-instance safety)
+export const oauthStates = pgTable("oauth_states", {
+  state: text("state").primaryKey(),
+  userId: text("user_id").notNull(),
+  platform: text("platform").notNull(),
+  codeVerifier: text("code_verifier"),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const knowledgeBase = pgTable("knowledge_base", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
