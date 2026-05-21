@@ -226,7 +226,7 @@ router.get('/callback/:platform', async (req: any, res) => {
                 .update(channels)
                 .set({
                     accessToken: encrypt(tokens.accessToken),
-                    refreshToken: encrypt(tokens.refreshToken ?? existing[0]!.refreshToken ?? ''),
+                    refreshToken: tokens.refreshToken ? encrypt(tokens.refreshToken) : (existing[0]!.refreshToken ?? ''),
                     expiresAt: tokens.expiresAt,
                     accountName: profile.accountName,
                     avatarUrl: profile.avatarUrl,
@@ -293,7 +293,7 @@ router.post('/connect/bluesky', verifyAuth, async (req: AuthRequest, res) => {
                 .update(channels)
                 .set({
                     accessToken: encrypt(tokens.accessToken),
-                    refreshToken: encrypt(tokens.refreshToken ?? existing[0]!.refreshToken ?? ''),
+                    refreshToken: tokens.refreshToken ? encrypt(tokens.refreshToken) : (existing[0]!.refreshToken ?? ''),
                     expiresAt: tokens.expiresAt,
                     accountName: profile.accountName,
                     avatarUrl: profile.avatarUrl,

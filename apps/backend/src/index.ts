@@ -117,13 +117,13 @@ process.on('SIGTERM', async () => {
 setInterval(async () => {
   try {
     const SCHEDULER_LOCK_ID = 123456789;
-    await db.transaction(async (tx) => {
-      // Attempt advisory lock; skip if another instance holds it
+    // Collect pending post IDs inside a short-lived transaction (holds advisory lock briefly)
+    const pendingPostIds = await db.transaction(async (tx) => {
       const lockResult = await tx.execute(
         sql`SELECT pg_try_advisory_xact_lock(${SCHEDULER_LOCK_ID}) AS acquired`
       );
       const rows = lockResult.rows as Array<{ acquired: boolean }>;
-      if (!rows[0]?.acquired) return;
+      if (!rows[0]?.acquired) return [];
 
       const now = new Date();
       const pendingPosts = await tx
@@ -135,14 +135,16 @@ setInterval(async () => {
             lte(socialPosts.scheduledAt, now)
           )
         );
-
-      if (pendingPosts.length > 0) {
-        console.log(`[Scheduler] Found ${pendingPosts.length} pending scheduled posts due for publishing.`);
-        for (const post of pendingPosts) {
-          await publishPostToSocialPlatform(post.id);
-        }
-      }
+      return pendingPosts.map((p) => p.id);
     });
+
+    // Publish outside the transaction so the DB connection and lock are released
+    if (pendingPostIds.length > 0) {
+      console.log(`[Scheduler] Found ${pendingPostIds.length} pending scheduled posts due for publishing.`);
+      for (const postId of pendingPostIds) {
+        await publishPostToSocialPlatform(postId);
+      }
+    }
   } catch (err) {
     console.error("[Scheduler] Error checking/publishing scheduled posts:", err);
   }
