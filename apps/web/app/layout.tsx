@@ -6,7 +6,7 @@ import { GoogleAnalytics } from '@next/third-parties/google'
 import "./globals.css";
 import { Toaster } from "sonner";
 import { PostHogProvider } from "./components/providers/PostHogProvider";
-
+import ScreenSizeGuard  from "./components/workspace/ScreenSizeGuard";
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
@@ -34,7 +34,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  
   return (
     <html lang="en">
       <body
@@ -44,7 +43,9 @@ export default function RootLayout({
         <GoogleTagManager gtmId="GTM-5BCN3HMQ" />
         <GoogleAnalytics gaId="G-L8W7KEVHQ4" />
         <PostHogProvider>
-          {children}
+          <ScreenSizeGuard>
+            {children}
+          </ScreenSizeGuard>
           <Toaster />
         </PostHogProvider>
       </body>
