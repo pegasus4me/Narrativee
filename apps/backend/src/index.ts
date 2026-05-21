@@ -119,10 +119,11 @@ setInterval(async () => {
     const SCHEDULER_LOCK_ID = 123456789;
     await db.transaction(async (tx) => {
       // Attempt advisory lock; skip if another instance holds it
-      const [lockResult] = await tx.execute(
+      const lockResult = await tx.execute(
         sql`SELECT pg_try_advisory_xact_lock(${SCHEDULER_LOCK_ID}) AS acquired`
       );
-      if (!(lockResult as any)?.acquired) return;
+      const rows = lockResult.rows as Array<{ acquired: boolean }>;
+      if (!rows[0]?.acquired) return;
 
       const now = new Date();
       const pendingPosts = await tx

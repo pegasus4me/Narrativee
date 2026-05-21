@@ -701,12 +701,40 @@ router.put('/drafts/:draftId', verifyAuth, async (req: AuthRequest, res) => {
   }
 });
 
-// Legacy endpoint — delegates to /drafts/:draftId (articleId is unused)
-router.put('/:articleId/drafts/:draftId', verifyAuth, async (req: AuthRequest, res, next) => {
-  req.params.draftId = req.params.draftId;
-  // Forward to the canonical handler above by re-dispatching
-  req.url = `/drafts/${req.params.draftId}`;
-  router.handle(req, res, next);
+// Legacy endpoint — same logic as /drafts/:draftId (articleId is unused)
+router.put('/:articleId/drafts/:draftId', verifyAuth, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const { draftId } = req.params;
+
+    if (!isUuid(draftId)) {
+      return res.status(400).json({ error: 'Invalid draft ID' });
+    }
+
+    const [existing] = await db
+      .select()
+      .from(socialPosts)
+      .where(and(eq(socialPosts.id, draftId), eq(socialPosts.userId, userId)))
+      .limit(1);
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Draft not found' });
+    }
+
+    const { text } = req.body;
+    const sanitizedText = typeof text === 'string' ? text.replace(/\u2014/g, '-').replace(/—/g, '-') : text;
+
+    const [updated] = await db
+      .update(socialPosts)
+      .set({ content: { text: sanitizedText } })
+      .where(eq(socialPosts.id, draftId))
+      .returning();
+
+    res.json({ success: true, draft: updated });
+  } catch (error: any) {
+    console.error('[Articles] Update draft error:', error);
+    res.status(500).json({ error: 'Failed to update draft', details: error.message });
+  }
 });
 
 // GET /api/articles/drafts/queue — fetch all scheduled/published posts
