@@ -117,6 +117,21 @@ const PLATFORM_META: Record<
     color: "text-black",
     bg: "bg-zinc-950/5 border-zinc-950/10",
   },
+  /*
+    beehiiv: {
+      label: "Beehiiv",
+      icon: (
+        <img
+          src="https://sprout24.com/hub/wp-content/uploads/sites/2/2024/08/beehiiv-logo-768x724.png"
+          alt="Beehiiv"
+          className="h-5 w-5 object-contain"
+          onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>'; }}
+        />
+      ),
+      color: "text-black",
+      bg: "bg-zinc-950/5 border-zinc-950/10",
+    },
+  */
 };
 
 const AFTER_CONNECT = [
@@ -587,7 +602,7 @@ function ChannelsPageContent() {
               })}
             </div>
 
-            <div className="rounded-2xl bg-gradient-to-b from-zinc-50 to-white p-6 sm:p-8 border border-zinc-100/80 shadow-2xs">
+            <div className="rounded-2xl  p-6 sm:p-8 ">
               <div className="flex items-center gap-4 border-b border-zinc-100 pb-3 mb-5">
                 <button
                   type="button"
@@ -625,13 +640,13 @@ function ChannelsPageContent() {
                   }`}
                 >
                   <Rss className="h-3.5 w-3.5 shrink-0" />
-                  Blog (RSS)
+                  Other Newsletters & Blogs
                 </button>
               </div>
 
               {syncTab === "substack" ? (
                 <div>
-                  <p className="mb-5 text-xs leading-relaxed text-zinc-600">
+                  <p className="mb-5 text-xs text-zinc-600">
                     Enter your Substack publication URL—we normalize to the RSS feed and import issues automatically.
                   </p>
                   <form onSubmit={handleAddSubstack} className="flex flex-col gap-3 sm:flex-row">
@@ -661,7 +676,7 @@ function ChannelsPageContent() {
               ) : (
                 <div>
                   <p className="mb-5 text-xs leading-relaxed text-zinc-600">
-                    Enter your blog URL or RSS feed URL—we support WordPress, Medium, Ghost, or any custom RSS feed.
+                    Enter your blog URL or RSS feed URL—we support WordPress, Medium, Ghost, Beehiiv or any custom RSS feed.
                   </p>
                   <form onSubmit={handleAddSubstack} className="flex flex-col gap-3 sm:flex-row">
                     <input
@@ -683,7 +698,7 @@ function ChannelsPageContent() {
                       ) : (
                         <Plus className="h-4 w-4" />
                       )}
-                      Sync Blog
+                      Sync feed
                     </button>
                   </form>
                 </div>
