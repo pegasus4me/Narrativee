@@ -168,6 +168,59 @@ router.get('/', verifyAuth, async (req: AuthRequest, res) => {
   }
 });
 
+// GET /api/articles/drafts/:draftId/slides/:index.png — dynamically serve slide image as raw PNG binary
+router.get('/drafts/:draftId/slides/:index.png', async (req, res) => {
+  try {
+    const { draftId, index } = req.params;
+    const slideIdx = parseInt(index, 10);
+
+    if (!isUuid(draftId) || isNaN(slideIdx)) {
+      res.status(400).send('Invalid params');
+      return;
+    }
+
+    const [post] = await db
+      .select()
+      .from(socialPosts)
+      .where(eq(socialPosts.id, draftId))
+      .limit(1);
+
+    if (!post) {
+      res.status(404).send('Post not found');
+      return;
+    }
+
+    const content = post.content as any;
+    if (content.type !== 'carousel' || !Array.isArray(content.slides)) {
+      res.status(400).send('Not a carousel post');
+      return;
+    }
+
+    const slide = content.slides[slideIdx];
+    if (!slide || !slide.dataUri) {
+      res.status(404).send('Slide not found');
+      return;
+    }
+
+    const base64Data = slide.dataUri.split(';base64,').pop();
+    if (!base64Data) {
+      res.status(500).send('Invalid slide image data');
+      return;
+    }
+
+    const imgBuffer = Buffer.from(base64Data, 'base64');
+    res.writeHead(200, {
+      'Content-Type': 'image/png',
+      'Content-Length': imgBuffer.length,
+      'Cache-Control': 'public, max-age=86400',
+    });
+    res.end(imgBuffer);
+  } catch (error: any) {
+    console.error('[Articles] Serve slide error:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
 // GET /api/articles/drafts/latest — fetch the most recent draft generation for the user
 router.get('/drafts/latest', verifyAuth, async (req: AuthRequest, res) => {
   try {

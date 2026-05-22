@@ -94,38 +94,142 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
 
     } else if (channel.platform === "linkedin") {
       console.log(`[Publisher] Posting to LinkedIn for user ${post.userId}`);
-      const res = await fetch("https://api.linkedin.com/v2/ugcPosts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          "X-Restli-Protocol-Version": "2.0.0",
-        },
-        body: JSON.stringify({
-          author: `urn:li:person:${channel.providerAccountId}`,
-          lifecycleState: "PUBLISHED",
-          specificContent: {
-            "com.linkedin.ugc.ShareContent": {
-              shareCommentary: {
-                text: postText,
-              },
-              shareMediaCategory: "NONE",
+      const isCarousel = content.type === "carousel" && Array.isArray(content.slides) && content.slides.length > 0;
+
+      if (isCarousel) {
+        console.log(`[Publisher] LinkedIn post is a carousel with ${content.slides!.length} slides`);
+        const mediaUrns: string[] = [];
+
+        for (let i = 0; i < content.slides!.length; i++) {
+          const slide = content.slides![i];
+          const base64Data = slide.dataUri.split(';base64,').pop();
+          if (!base64Data) continue;
+          const imgBuffer = Buffer.from(base64Data, 'base64');
+
+          // 1. Register asset
+          console.log(`[Publisher] Registering LinkedIn asset for slide ${i + 1}`);
+          const regRes = await fetch("https://api.linkedin.com/v2/assets?action=registerUpload", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+              "X-Restli-Protocol-Version": "2.0.0",
             },
-          },
-          visibility: {
-            "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
-          },
-        }),
-      });
+            body: JSON.stringify({
+              registerUploadRequest: {
+                recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
+                owner: `urn:li:person:${channel.providerAccountId}`,
+                supportedUploadMechanism: ["SYNCHRONOUS_UPLOAD"],
+              },
+            }),
+          });
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`LinkedIn API returned error ${res.status}: ${errText}`);
+          if (!regRes.ok) {
+            const errText = await regRes.text();
+            throw new Error(`LinkedIn asset registration failed for slide ${i + 1}: ${errText}`);
+          }
+
+          const regData = await regRes.json() as any;
+          const uploadMechanism = regData.value.uploadMechanism;
+          const uploadUrl = uploadMechanism["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"]?.uploadUrl
+            || uploadMechanism["com.linkedin.digitalmedia.uploading.MediaUploadMechanism"]?.uploadUrl;
+          const assetUrn = regData.value.asset;
+
+          // 2. Upload binary
+          console.log(`[Publisher] Uploading binary to LinkedIn asset: ${assetUrn}`);
+          const uploadRes = await fetch(uploadUrl, {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "image/png",
+            },
+            body: imgBuffer,
+          });
+
+          if (!uploadRes.ok) {
+            const errText = await uploadRes.text();
+            throw new Error(`LinkedIn asset upload failed for slide ${i + 1}: ${errText}`);
+          }
+
+          mediaUrns.push(assetUrn);
+        }
+
+        // 3. Publish ugcPost
+        console.log(`[Publisher] Publishing LinkedIn multi-image post with ${mediaUrns.length} assets`);
+        const res = await fetch("https://api.linkedin.com/v2/ugcPosts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            "X-Restli-Protocol-Version": "2.0.0",
+          },
+          body: JSON.stringify({
+            author: `urn:li:person:${channel.providerAccountId}`,
+            lifecycleState: "PUBLISHED",
+            specificContent: {
+              "com.linkedin.ugc.ShareContent": {
+                shareCommentary: {
+                  text: postText,
+                },
+                shareMediaCategory: "IMAGE",
+                media: mediaUrns.map((urn, index) => ({
+                  status: "READY",
+                  media: urn,
+                  title: {
+                    text: `Slide ${index + 1}`,
+                  },
+                })),
+              },
+            },
+            visibility: {
+              "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
+            },
+          }),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`LinkedIn carousel publishing failed: ${errText}`);
+        }
+
+        const resData = await res.json() as any;
+        externalPostId = resData?.id;
+        console.log(`[Publisher] Successfully posted carousel to LinkedIn! Post ID: ${externalPostId}`);
+
+      } else {
+        const res = await fetch("https://api.linkedin.com/v2/ugcPosts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            "X-Restli-Protocol-Version": "2.0.0",
+          },
+          body: JSON.stringify({
+            author: `urn:li:person:${channel.providerAccountId}`,
+            lifecycleState: "PUBLISHED",
+            specificContent: {
+              "com.linkedin.ugc.ShareContent": {
+                shareCommentary: {
+                  text: postText,
+                },
+                shareMediaCategory: "NONE",
+              },
+            },
+            visibility: {
+              "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
+            },
+          }),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`LinkedIn API returned error ${res.status}: ${errText}`);
+        }
+
+        const resData = await res.json() as any;
+        externalPostId = resData?.id;
+        console.log(`[Publisher] Successfully posted to LinkedIn! Post ID: ${externalPostId}`);
       }
-
-      const resData = await res.json() as any;
-      externalPostId = resData?.id;
-      console.log(`[Publisher] Successfully posted to LinkedIn! Post ID: ${externalPostId}`);
 
     } else if (channel.platform === "threads") {
       console.log(`[Publisher] Posting to Threads for user ${post.userId}`);
@@ -178,51 +282,135 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
 
     } else if (channel.platform === "instagram") {
       console.log(`[Publisher] Posting to Instagram for user ${post.userId}`);
-      const imageUrl = content.imageUrl || content.mediaUrl || "https://img.freepik.com/free-vector/blue-purple-mosaic-background_1164-812.jpg?semt=ais_rp_progressive&w=740&q=80";
+      const isCarousel = content.type === "carousel" && Array.isArray(content.slides) && content.slides.length > 0;
 
-      // Use graph.instagram.com (Instagram API tokens from direct IG login)
-      const containerRes = await fetch(`https://graph.instagram.com/v21.0/${channel.providerAccountId}/media`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          image_url: imageUrl,
-          caption: postText,
-        }),
-      });
+      if (isCarousel) {
+        console.log(`[Publisher] Instagram post is a carousel with ${content.slides!.length} slides`);
+        const itemIds: string[] = [];
+        
+        // Define backend base URL for dynamic slide serving
+        const publicBaseUrl = process.env.NODE_ENV === 'production' 
+          ? 'https://api.narrativee.com' 
+          : 'http://localhost:3002';
 
-      if (!containerRes.ok) {
-        const errText = await containerRes.text();
-        throw new Error(`Instagram container creation failed: ${errText}`);
+        for (let i = 0; i < content.slides!.length; i++) {
+          const slidePublicUrl = `${publicBaseUrl}/api/articles/drafts/${postId}/slides/${i}.png`;
+          console.log(`[Publisher] Creating Instagram item container for slide ${i + 1}: ${slidePublicUrl}`);
+
+          const itemRes = await fetch(`https://graph.instagram.com/v21.0/${channel.providerAccountId}/media`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+              image_url: slidePublicUrl,
+              is_carousel_item: true,
+            }),
+          });
+
+          if (!itemRes.ok) {
+            const errText = await itemRes.text();
+            throw new Error(`Instagram carousel item ${i + 1} container creation failed: ${errText}`);
+          }
+
+          const itemData = await itemRes.json() as any;
+          itemIds.push(itemData.id);
+        }
+
+        // 2. Create carousel container with children
+        console.log(`[Publisher] Creating Instagram carousel container with items: ${itemIds.join(', ')}`);
+        const containerRes = await fetch(`https://graph.instagram.com/v21.0/${channel.providerAccountId}/media`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            media_type: "CAROUSEL",
+            children: itemIds,
+            caption: postText,
+          }),
+        });
+
+        if (!containerRes.ok) {
+          const errText = await containerRes.text();
+          throw new Error(`Instagram carousel container creation failed: ${errText}`);
+        }
+
+        const containerData = await containerRes.json() as any;
+        const containerId = containerData.id;
+
+        // Wait a moment for container processing
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        // 3. Publish the carousel container
+        const publishRes = await fetch(`https://graph.instagram.com/v21.0/${channel.providerAccountId}/media_publish`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            creation_id: containerId,
+          }),
+        });
+
+        if (!publishRes.ok) {
+          const errText = await publishRes.text();
+          throw new Error(`Instagram carousel publish failed: ${errText}`);
+        }
+
+        const publishData = await publishRes.json() as any;
+        externalPostId = publishData.id;
+        console.log(`[Publisher] Successfully posted carousel to Instagram! Post ID: ${externalPostId}`);
+
+      } else {
+        const imageUrl = content.imageUrl || content.mediaUrl || "https://img.freepik.com/free-vector/blue-purple-mosaic-background_1164-812.jpg?semt=ais_rp_progressive&w=740&q=80";
+
+        const containerRes = await fetch(`https://graph.instagram.com/v21.0/${channel.providerAccountId}/media`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            image_url: imageUrl,
+            caption: postText,
+          }),
+        });
+
+        if (!containerRes.ok) {
+          const errText = await containerRes.text();
+          throw new Error(`Instagram container creation failed: ${errText}`);
+        }
+
+        const containerData = await containerRes.json() as any;
+        const containerId = containerData.id;
+
+        // Wait a moment for container processing
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        const publishRes = await fetch(`https://graph.instagram.com/v21.0/${channel.providerAccountId}/media_publish`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            creation_id: containerId,
+          }),
+        });
+
+        if (!publishRes.ok) {
+          const errText = await publishRes.text();
+          throw new Error(`Instagram publish failed: ${errText}`);
+        }
+
+        const publishData = await publishRes.json() as any;
+        externalPostId = publishData.id;
+        console.log(`[Publisher] Successfully posted to Instagram! Post ID: ${externalPostId}`);
       }
-
-      const containerData = await containerRes.json() as any;
-      const containerId = containerData.id;
-
-      // Wait a moment for container processing
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      const publishRes = await fetch(`https://graph.instagram.com/v21.0/${channel.providerAccountId}/media_publish`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          creation_id: containerId,
-        }),
-      });
-
-      if (!publishRes.ok) {
-        const errText = await publishRes.text();
-        throw new Error(`Instagram publish failed: ${errText}`);
-      }
-
-      const publishData = await publishRes.json() as any;
-      externalPostId = publishData.id;
-      console.log(`[Publisher] Successfully posted to Instagram! Post ID: ${externalPostId}`);
 
     } else if (channel.platform === "bluesky") {
       console.log(`[Publisher] Posting to Bluesky for user ${post.userId}`);
