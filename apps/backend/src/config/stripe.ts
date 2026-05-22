@@ -1,4 +1,8 @@
 import Stripe from 'stripe';
+import dotenv from 'dotenv';
+import path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 

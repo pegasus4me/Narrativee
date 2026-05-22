@@ -32,11 +32,7 @@ export const MOCK_ARTICLE: ArticleListItem = {
   sourcePlatform: "substack",
 };
 
-export const MOCK_ANGLES = [
-  "Consistency beats virality: We published every Tuesday at 9 AM without fail.",
-  "The lead-magnet framework: Offering a free playbook drove 40% of our waitlist signups.",
-  "Platform-native writing: We never just shared links, we rewrote our posts as native content for LinkedIn and X.",
-];
+
 
 export const MOCK_DRAFTS: Draft[] = [
   {

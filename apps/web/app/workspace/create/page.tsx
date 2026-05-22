@@ -23,7 +23,7 @@ import { useArticles } from "@/app/hooks/api/useArticles";
 import { DraftCard } from "@/app/components/workspace/create/DraftCard";
 import { AuthModal } from "@/app/components/workspace/shared/AuthModal";
 import { ScheduleModal } from "@/app/components/workspace/shared/ScheduleModal";
-import { MOCK_ARTICLE, MOCK_ANGLES, MOCK_DRAFTS } from "@/app/components/workspace/shared/mockData";
+import { MOCK_ARTICLE, MOCK_DRAFTS } from "@/app/components/workspace/shared/mockData";
 import type { Draft } from "@/app/types/api";
 
 interface ArticleItem {
@@ -47,6 +47,18 @@ const VS_CHATGPT = [
   { icon: Zap, title: "Native platform structure preservation", body: "Adheres strictly to modern formatting constraints. Posts look perfectly spaced and styled natively for each platform." },
 ] as const;
 
+const MOCK_ATOMIC_IDEAS: AtomicIdea[] = [
+  { idea: "Building a personal brand isn't about being loud, it's about being consistent.", whyInteresting: "Challenges the misconception that virality is required.", targetAudience: "Founders" },
+  { idea: "The best newsletters are just public thinking.", whyInteresting: "Lowers the barrier to entry for new creators.", targetAudience: "Creators" },
+  { idea: "Stop trying to write for everyone. Pick one person and solve their problem.", whyInteresting: "Actionable advice for niche targeting.", targetAudience: "Marketers" }
+];
+
+export interface AtomicIdea {
+  idea: string;
+  whyInteresting: string;
+  targetAudience: string;
+}
+
 export default function CreatePage() {
   const session = authClient.useSession();
   const isGuest = !session.isPending && !session.data?.user;
@@ -58,8 +70,21 @@ export default function CreatePage() {
   const articles: ArticleItem[] = isLoggedIn ? (articlesData ?? []) : [MOCK_ARTICLE as unknown as ArticleItem];
 
   const [selected, setSelected] = useState<ArticleItem | null>(null);
-  const [ideas, setIdeas] = useState<string[]>([]);
+  const [ideas, setIdeas] = useState<AtomicIdea[]>([]);
+  const [contentGoal, setContentGoal] = useState<string>("Growing followers");
+  const [patternInsights, setPatternInsights] = useState<string | null>(null);
   const [selectedAngles, setSelectedAngles] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    fetch(`${API_URL}/articles/insights`, { credentials: 'include' })
+      .then(res => res.json())
+      .then((data: any) => {
+        if (data.insight) setPatternInsights(data.insight);
+      })
+      .catch(err => console.error('Failed to fetch insights', err));
+  }, [isLoggedIn]);
+
   const [ideasMeta, setIdeasMeta] = useState<{ cached: boolean } | null>(null);
   const [loadingIdeas, setLoadingIdeas] = useState(false);
   const [ideasError, setIdeasError] = useState("");
@@ -69,6 +94,7 @@ export default function CreatePage() {
   const [draftsError, setDraftsError] = useState("");
   const [showDraftsView, setShowDraftsView] = useState(false);
   const [attachLink, setAttachLink] = useState(true);
+  const [generateCarousels, setGenerateCarousels] = useState(false);
 
   const [viewMode, setViewMode] = useState<"grid" | "kanban">("grid");
   const [scheduledIds, setScheduledIds] = useState<Set<string>>(new Set());
@@ -118,7 +144,7 @@ export default function CreatePage() {
 
     if (isGuest) {
       await new Promise((resolve) => setTimeout(resolve, 800));
-      setIdeas(MOCK_ANGLES);
+      setIdeas(MOCK_ATOMIC_IDEAS);
       setIdeasMeta({ cached: true });
       setLoadingIdeas(false);
       return;
@@ -133,12 +159,12 @@ export default function CreatePage() {
           setDrafts(data.drafts);
           setSavedDraftIdsPersisted(new Set(data.drafts.map((d: Draft) => d.id)));
           setShowDraftsView(true);
-          setIdeas(data.article?.angles || []);
+          setIdeas((data.article?.angles as unknown as AtomicIdea[]) || []);
           setLoadingIdeas(false);
           return;
         }
         if (data.article?.angles && data.article.angles.length > 0) {
-          setIdeas(data.article.angles);
+          setIdeas(data.article.angles as unknown as AtomicIdea[]);
           setIdeasMeta({ cached: true });
           setLoadingIdeas(false);
           return;
@@ -146,12 +172,12 @@ export default function CreatePage() {
       }
       const extractRes = await fetch(`${API_URL}/articles/${article.id}/ideas`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ force }),
+        body: JSON.stringify({ force, contentGoal }),
       });
       const extractData = (await extractRes.json()) as { message?: string; error?: string; details?: string; ideas?: string[]; cached?: boolean };
       if (extractRes.status === 402) throw new Error(extractData.message || extractData.error || "Not enough credits");
       if (!extractRes.ok) throw new Error([extractData.error, extractData.message, extractData.details].filter(Boolean).join(" — ") || "Could not extract angles");
-      setIdeas(extractData.ideas || []);
+      setIdeas((extractData.ideas as unknown as AtomicIdea[]) || []);
       setIdeasMeta({ cached: !!extractData.cached });
     } catch (e: unknown) {
       setIdeasError(e instanceof Error ? e.message : "Failed to load newsletter");
@@ -183,7 +209,7 @@ export default function CreatePage() {
     try {
       const res = await fetch(`${API_URL}/articles/${selected.id}/drafts`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ selectedAngles: Array.from(selectedAngles).map((idx) => ideas[idx]), attachLink }),
+        body: JSON.stringify({ selectedAngles: Array.from(selectedAngles).map((idx) => ideas[idx]), attachLink, generateCarousels }),
       });
       const data = (await res.json()) as { message?: string; error?: string; drafts?: Draft[] };
       if (!res.ok) throw new Error(data.message || data.error || "Failed to generate drafts");
@@ -216,6 +242,61 @@ export default function CreatePage() {
       setTimeout(() => setSavedDraftIds((prev) => { const n = new Set(prev); n.delete(draftId); return n; }), 2000);
       fetchLatestDraft();
     } catch { /* ignore */ } finally { setSavingDraftId(null); }
+  };
+
+  const convertToCarousel = async (draftId: string) => {
+    if (isGuest) { setShowAuthModal(true); return; }
+    setSavingDraftId(draftId);
+    try {
+      const res = await fetch(`${API_URL}/articles/drafts/${draftId}/convert-to-carousel`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) {
+        const d = (await res.json()) as any;
+        throw new Error(d.message || d.error || "Failed to convert draft");
+      }
+      const data = (await res.json()) as any;
+      if (data.success && data.draft) {
+        setDrafts((prev) => prev.map((d) => (d.id === draftId ? data.draft : d)));
+      }
+    } catch (e: any) {
+      alert(e.message || "Failed to convert draft to carousel");
+    } finally {
+      setSavingDraftId(null);
+    }
+  };
+
+  const refreshCarouselBg = async (draftId: string) => {
+    if (isGuest) { setShowAuthModal(true); return; }
+    setSavingDraftId(draftId);
+    try {
+      const res = await fetch(`${API_URL}/articles/drafts/${draftId}/refresh-carousel-bg`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aspectRatio: "4:5" }),
+      });
+      if (!res.ok) {
+        const d = (await res.json()) as any;
+        throw new Error(d.message || d.error || "Failed to refresh background");
+      }
+      const data = (await res.json()) as any;
+      if (data.success && data.draft) {
+        // Find existing draft to keep channel details intact
+        const existingDraft = drafts.find((d) => d.id === draftId);
+        const updatedDraft = {
+          ...data.draft,
+          channel: existingDraft?.channel,
+        };
+        setDrafts((prev) => prev.map((d) => (d.id === draftId ? updatedDraft : d)));
+      }
+    } catch (e: any) {
+      alert(e.message || "Failed to refresh carousel background");
+    } finally {
+      setSavingDraftId(null);
+    }
   };
 
   const openScheduleModal = (draftId: string) => {
@@ -311,9 +392,11 @@ export default function CreatePage() {
                   isSaving={savingDraftId === draft.id}
                   isSaved={savedDraftIds.has(draft.id)}
                   onDraftChange={handleDraftChange}
-                  onCopy={() => {}}
+                  onCopy={() => { }}
                   onSave={saveDraft}
                   onSchedule={openScheduleModal}
+                  onConvertToCarousel={convertToCarousel}
+                  onRefreshCarouselBg={refreshCarouselBg}
                 />
               ))}
             </div>
@@ -326,6 +409,8 @@ export default function CreatePage() {
               onDraftChange={handleDraftChange}
               onSave={saveDraft}
               onSchedule={openScheduleModal}
+              onConvertToCarousel={convertToCarousel}
+              onRefreshCarouselBg={refreshCarouselBg}
             />
           )}
         </div>
@@ -380,6 +465,31 @@ export default function CreatePage() {
                     {ideasMeta?.cached && <span className="shrink-0 self-start rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-semibold text-emerald-800">Cached · no credit</span>}
                   </div>
 
+                  {/* Content Goal Selector */}
+                  <div className="mb-6 flex flex-col gap-2 rounded-xl bg-indigo-50/50 p-4 border border-indigo-100/50">
+                    <label className="text-xs font-semibold text-indigo-900 uppercase tracking-wider">Current Goal</label>
+                    <select
+                      value={contentGoal}
+                      onChange={(e) => setContentGoal(e.target.value)}
+                      className="w-full sm:w-64 rounded-lg border-indigo-200 bg-white px-3 py-2 text-sm text-zinc-700 outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400"
+                    >
+                      <option value="Growing followers">Grow Followers (Hook-heavy/Provocative)</option>
+                      <option value="Building authority">Build Authority (Deep insights/Nuance)</option>
+                      <option value="Driving signups">Drive Signups (CTA-driven/Valuable)</option>
+                    </select>
+                  </div>
+
+                  {/* Pattern Insights Banner */}
+                  {patternInsights && (
+                    <div className="mb-6 rounded-xl bg-amber-50 p-4 border border-amber-200">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-amber-600">✨</span>
+                        <h4 className="text-sm font-bold text-amber-900">Pattern Detected</h4>
+                      </div>
+                      <p className="text-sm text-amber-800">{patternInsights}</p>
+                    </div>
+                  )}
+
                   <ul className="grid min-w-0 gap-3 md:grid-cols-2">
                     {ideas.map((idea, i) => {
                       const on = selectedAngles.has(i);
@@ -387,7 +497,7 @@ export default function CreatePage() {
                         <li key={i} className="min-w-0">
                           <button type="button" onClick={() => toggleAngle(i)} className={`flex h-full min-h-[5.5rem] w-full flex-col rounded-2xl p-4 text-left text-sm leading-relaxed transition-colors ${on ? "bg-primary-50 text-zinc-900" : "bg-zinc-50/80 text-zinc-800 hover:bg-zinc-100/80"}`}>
                             <span className="mb-2 text-[10px] font-bold text-zinc-400">Angle {i + 1}</span>
-                            <span className="text-[15px] leading-snug">{idea}</span>
+                            <span className="text-[15px] leading-snug">{idea.idea}</span>
                           </button>
                         </li>
                       );
@@ -406,6 +516,13 @@ export default function CreatePage() {
                         <label className="flex items-center gap-2.5 cursor-pointer select-none group">
                           <input type="checkbox" checked={attachLink} onChange={(e) => setAttachLink(e.target.checked)} className="h-4.5 w-4.5 rounded-md border-zinc-300 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 transition-colors" />
                           <span className="text-xs font-medium text-zinc-600 group-hover:text-zinc-900 transition-colors">Attach original article link</span>
+                        </label>
+                        <label className="flex items-center gap-2.5 cursor-pointer select-none group">
+                          <input type="checkbox" checked={generateCarousels} onChange={(e) => setGenerateCarousels(e.target.checked)} className="h-4.5 w-4.5 rounded-md border-zinc-300 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 transition-colors" />
+                          <span className="text-xs font-medium text-zinc-600 group-hover:text-zinc-900 transition-colors inline-flex items-center gap-1">
+                            <Sparkles className="h-3.5 w-3.5 text-indigo-500 fill-indigo-100" />
+                            Generate LI/IG drafts as Carousels
+                          </span>
                         </label>
                         <button type="button" disabled={generatingDrafts} onClick={generateDrafts} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-light text-white transition-colors hover:bg-primary/80 disabled:opacity-50 shrink-0">
                           {generatingDrafts ? (<><Loader2 className="h-3.5 w-3.5 animate-spin" /> Drafting posts...</>) : "Generate Drafts"}
@@ -426,7 +543,7 @@ export default function CreatePage() {
             {latestDraft?.article && (
               <div className="rounded-2xl border border-zinc-200/60 bg-zinc-50/50 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="min-w-0">
-                  <span className="text-[10px] font-semibold text-indigo-600 uppercase tracking-wider">Resume latest workspace</span>
+                  <span className="text-[10px] font-semibold text-indigo-600">Resume latest workspace</span>
                   <p className="text-sm font-medium text-zinc-900 truncate mt-0.5">{latestDraft.article.title}</p>
                   <p className="text-[10px] text-zinc-500">{latestDraft.drafts.length} draft{latestDraft.drafts.length !== 1 ? "s" : ""} saved</p>
                 </div>
@@ -550,9 +667,11 @@ interface KanbanViewProps {
   onDraftChange: (id: string, text: string) => void;
   onSave: (id: string, text: string) => void;
   onSchedule: (id: string) => void;
+  onConvertToCarousel?: (id: string) => void;
+  onRefreshCarouselBg?: (id: string) => void;
 }
 
-function KanbanView({ drafts, scheduledIds, savingDraftId, savedDraftIds, onDraftChange, onSave, onSchedule }: KanbanViewProps) {
+function KanbanView({ drafts, scheduledIds, savingDraftId, savedDraftIds, onDraftChange, onSave, onSchedule, onConvertToCarousel, onRefreshCarouselBg }: KanbanViewProps) {
   const columns = [
     { key: "draft", label: "Draft", desc: "Newly generated or approved content" },
     { key: "scheduled", label: "Scheduled", desc: "Posts queued in the dispatch timeline" },
@@ -590,9 +709,11 @@ function KanbanView({ drafts, scheduledIds, savingDraftId, savedDraftIds, onDraf
                     isSaving={savingDraftId === draft.id}
                     isSaved={savedDraftIds.has(draft.id)}
                     onDraftChange={onDraftChange}
-                    onCopy={() => {}}
+                    onCopy={() => { }}
                     onSave={onSave}
                     onSchedule={onSchedule}
+                    onConvertToCarousel={onConvertToCarousel}
+                    onRefreshCarouselBg={onRefreshCarouselBg}
                   />
                 ))
               )}
