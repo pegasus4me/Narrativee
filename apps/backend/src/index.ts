@@ -94,8 +94,25 @@ app.use((err: Error, req: express.Request, res: express.Response, _next: express
   res.status(500).json({ error: 'Internal server error' });
 });
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
   console.log(`Express Server running on http://localhost:${PORT}`);
+
+  // Ensure oauth_states table exists in the database
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "oauth_states" (
+        "state" text PRIMARY KEY NOT NULL,
+        "user_id" text NOT NULL,
+        "platform" text NOT NULL,
+        "code_verifier" text,
+        "expires_at" timestamp NOT NULL,
+        "created_at" timestamp DEFAULT now() NOT NULL
+      );
+    `);
+    console.log('[Database] Verified/created oauth_states table successfully.');
+  } catch (err) {
+    console.error('[Database] Failed to verify/create oauth_states table:', err);
+  }
 });
 
 server.setTimeout(SERVER_TIMEOUT_MS);

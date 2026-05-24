@@ -131,13 +131,22 @@ router.get('/connect/:platform', verifyAuth, async (req: AuthRequest, res) => {
 
     // Store state in DB for multi-instance safety
     const OAUTH_STATE_TTL_MS = 10 * 60 * 1000; // 10 min
-    await db.insert(oauthStates).values({
-        state,
-        userId: req.user!.id,
-        platform,
-        codeVerifier,
-        expiresAt: new Date(Date.now() + OAUTH_STATE_TTL_MS),
-    });
+    try {
+        await db.insert(oauthStates).values({
+            state,
+            userId: req.user!.id,
+            platform,
+            codeVerifier,
+            expiresAt: new Date(Date.now() + OAUTH_STATE_TTL_MS),
+        });
+    } catch (dbErr: any) {
+        console.error(`❌ [${platform}] Failed to store OAuth state in DB:`, dbErr.message);
+        return res.status(500).json({
+            error: 'Database error',
+            message: 'Failed to initiate authentication session. Please try again later.',
+            details: dbErr.message
+        });
+    }
 
     const redirectUri = `${BASE_URL}/api/channels/callback/${platform}`;
     const authUrl = provider.getAuthorizationUrl(state, redirectUri, codeVerifier);
@@ -165,20 +174,37 @@ router.get('/callback/:platform', async (req: any, res) => {
     }
 
     // Verify CSRF state from DB
-    const [pending] = await db
-        .select()
-        .from(oauthStates)
-        .where(eq(oauthStates.state, state as string))
-        .limit(1);
+    let pending;
+    try {
+        const [retrieved] = await db
+            .select()
+            .from(oauthStates)
+            .where(eq(oauthStates.state, state as string))
+            .limit(1);
+        pending = retrieved;
+    } catch (dbErr: any) {
+        console.error(`❌ [${platform}] Database error during CSRF state verification:`, dbErr.message);
+        return res.redirect(`${FRONTEND_URL}/workspace/channels?error=database_error&detail=${encodeURIComponent(dbErr.message)}`);
+    }
 
     if (!pending || pending.platform !== platform || pending.expiresAt < new Date()) {
-        if (pending) await db.delete(oauthStates).where(eq(oauthStates.state, state as string));
+        if (pending) {
+            try {
+                await db.delete(oauthStates).where(eq(oauthStates.state, state as string));
+            } catch (delErr: any) {
+                console.error(`❌ [${platform}] Failed to delete expired CSRF state from DB:`, delErr.message);
+            }
+        }
         return res.redirect(`${FRONTEND_URL}/workspace/channels?error=invalid_state`);
     }
 
     const userId = pending.userId;
     const codeVerifier = pending.codeVerifier ?? undefined;
-    await db.delete(oauthStates).where(eq(oauthStates.state, state as string));
+    try {
+        await db.delete(oauthStates).where(eq(oauthStates.state, state as string));
+    } catch (delErr: any) {
+        console.error(`❌ [${platform}] Failed to delete verified CSRF state from DB:`, delErr.message);
+    }
 
     const provider = getProvider(platform);
     if (!provider) {
