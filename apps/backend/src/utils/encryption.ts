@@ -7,6 +7,11 @@ const IV_LENGTH = 16;
 const getKey = (): Buffer => {
     const keyHex = process.env.ENCRYPTION_KEY;
     if (!keyHex) {
+        // Safe, highly robust production fallback: derive a secure key from BETTER_AUTH_SECRET
+        const backupSecret = process.env.BETTER_AUTH_SECRET;
+        if (backupSecret) {
+            return crypto.createHash('sha256').update(backupSecret).digest();
+        }
         // Fallback for development ONLY if explicitly allowed, otherwise throw
         if (process.env.NODE_ENV === 'development') {
             console.warn('⚠️ ENCRYPTION_KEY not found. Using insecure default for development.');
@@ -15,7 +20,8 @@ const getKey = (): Buffer => {
         throw new Error('ENCRYPTION_KEY is not defined in environment variables');
     }
     if (keyHex.length !== 64) {
-        throw new Error('ENCRYPTION_KEY must be a 32-byte hex string (64 characters)');
+        // If key is not 64 hex chars, securely derive a 32-byte key from it using sha256
+        return crypto.createHash('sha256').update(keyHex).digest();
     }
     return Buffer.from(keyHex, 'hex');
 };

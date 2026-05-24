@@ -53,106 +53,118 @@ router.get('/', verifyAuth, async (req: AuthRequest, res) => {
  * Redirects the user's browser to the platform's consent screen.
  */
 router.get('/connect/:platform', verifyAuth, async (req: AuthRequest, res) => {
-    const { platform } = req.params;
-    const provider = getProvider(platform);
+    try {
+        const { platform } = req.params;
+        const provider = getProvider(platform);
 
-    if (!provider) {
-        return res.status(400).json({
-            error: `Unsupported platform: ${platform}`,
-            supported: getProviderList(),
-        });
-    }
-
-    // Intercept mock connection if credentials are not configured in environment
-    // add bluesky to this
-    const isMetaPlatform = platform === 'facebook' || platform === 'instagram' || platform === 'threads' || platform === 'bluesky';
-    const hasMetaConfig = isMetaPlatform && (
-        platform === 'threads'
-            ? (process.env.THREADS_APP_ID && process.env.THREADS_APP_SECRET)
-            : platform === 'instagram'
-                ? (process.env.INSTAGRAM_APP_ID && process.env.INSTAGRAM_APP_SECRET)
-                : (process.env.META_APP_ID && process.env.META_APP_SECRET)
-    );
-
-    if (isMetaPlatform && !hasMetaConfig) {
-        console.log(`⚠️ Meta app credentials missing for platform [${platform}]. Initiating premium sandbox mock connection.`);
-        
-        // Upsert a mock channel connection in the database
-        const mockAccountId = `mock_${platform}_${req.user!.id}`;
-        const mockAccountName = platform === 'instagram' 
-            ? '@meta_sandbox' 
-            : platform === 'threads'
-                ? '@threads_sandbox'
-                : 'Narrativee Sandbox Page';
-        const mockAvatarUrl = platform === 'instagram' 
-            ? 'https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg'
-            : platform === 'threads'
-                ? 'https://upload.wikimedia.org/wikipedia/commons/d/db/Threads_%28app%29.png'
-                : 'https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg';
-
-        const existing = await db
-            .select()
-            .from(channels)
-            .where(
-                and(
-                    eq(channels.userId, req.user!.id),
-                    eq(channels.platform, platform),
-                    eq(channels.providerAccountId, mockAccountId)
-                )
-            );
-
-        if (existing.length === 0) {
-            await db.insert(channels).values({
-                userId: req.user!.id,
-                platform,
-                providerAccountId: mockAccountId,
-                accountName: mockAccountName,
-                avatarUrl: mockAvatarUrl,
-                accessToken: encrypt('mock_token_secret'),
-                refreshToken: encrypt('mock_refresh_token'),
-                expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000), // 1 year
+        if (!provider) {
+            return res.status(400).json({
+                error: `Unsupported platform: ${platform}`,
+                supported: getProviderList(),
             });
         }
 
-        posthog.capture({
-            distinctId: req.user!.id,
-            event: 'channel_connected',
-            properties: { platform, sandbox: true, account_name: mockAccountName },
-        });
+        // Intercept mock connection if credentials are not configured in environment
+        // Bluesky has form credentials and shouldn't be intercepted as a Meta oauth provider here
+        const isMetaPlatform = platform === 'facebook' || platform === 'instagram' || platform === 'threads';
+        const hasMetaConfig = isMetaPlatform && (
+            platform === 'threads'
+                ? (process.env.THREADS_APP_ID && process.env.THREADS_APP_SECRET)
+                : platform === 'instagram'
+                    ? (process.env.INSTAGRAM_APP_ID && process.env.INSTAGRAM_APP_SECRET)
+                    : (process.env.META_APP_ID && process.env.META_APP_SECRET)
+        );
 
-        // Redirect back to frontend with success
-        return res.redirect(`${FRONTEND_URL}/workspace/channels?connected=${platform}&sandbox=true`);
+        if (isMetaPlatform && !hasMetaConfig) {
+            console.log(`⚠️ Meta app credentials missing for platform [${platform}]. Initiating premium sandbox mock connection.`);
+            
+            // Upsert a mock channel connection in the database
+            const mockAccountId = `mock_${platform}_${req.user!.id}`;
+            const mockAccountName = platform === 'instagram' 
+                ? '@meta_sandbox' 
+                : platform === 'threads'
+                    ? '@threads_sandbox'
+                    : 'Narrativee Sandbox Page';
+            const mockAvatarUrl = platform === 'instagram' 
+                ? 'https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg'
+                : platform === 'threads'
+                    ? 'https://upload.wikimedia.org/wikipedia/commons/d/db/Threads_%28app%29.png'
+                    : 'https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg';
+
+            const existing = await db
+                .select()
+                .from(channels)
+                .where(
+                    and(
+                        eq(channels.userId, req.user!.id),
+                        eq(channels.platform, platform),
+                        eq(channels.providerAccountId, mockAccountId)
+                    )
+                );
+
+            if (existing.length === 0) {
+                await db.insert(channels).values({
+                    userId: req.user!.id,
+                    platform,
+                    providerAccountId: mockAccountId,
+                    accountName: mockAccountName,
+                    avatarUrl: mockAvatarUrl,
+                    accessToken: encrypt('mock_token_secret'),
+                    refreshToken: encrypt('mock_refresh_token'),
+                    expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000), // 1 year
+                });
+            }
+
+            posthog.capture({
+                distinctId: req.user!.id,
+                event: 'channel_connected',
+                properties: { platform, sandbox: true, account_name: mockAccountName },
+            });
+
+            // Redirect back to frontend with success
+            return res.redirect(`${FRONTEND_URL}/workspace/channels?connected=${platform}&sandbox=true`);
+        }
+
+        // Generate a CSRF state token
+        const state = crypto.randomBytes(32).toString('hex');
+        // Generate a PKCE code verifier (random 43 character string)
+        const codeVerifier = crypto.randomBytes(32).toString('base64url');
+
+        // Store state in DB for multi-instance safety
+        const OAUTH_STATE_TTL_MS = 10 * 60 * 1000; // 10 min
+        try {
+            await db.insert(oauthStates).values({
+                state,
+                userId: req.user!.id,
+                platform,
+                codeVerifier,
+                expiresAt: new Date(Date.now() + OAUTH_STATE_TTL_MS),
+            });
+        } catch (dbErr: any) {
+            console.error(`❌ [${platform}] Failed to store OAuth state in DB:`, dbErr.message);
+            return res.status(500).json({
+                error: 'Database error',
+                message: 'Failed to initiate authentication session. Please try again later.',
+                details: dbErr.message
+            });
+        }
+
+        const redirectUri = `${BASE_URL}/api/channels/callback/${platform}`;
+        const authUrl = provider.getAuthorizationUrl(state, redirectUri, codeVerifier);
+
+        res.redirect(authUrl);
+    } catch (err: any) {
+        console.error(`❌ [${req.params.platform}] Failed to initiate OAuth flow:`, err);
+        try {
+            posthog.captureException(err, req.user?.id);
+        } catch (phErr) {
+            console.error('Failed to log oauth error to posthog:', phErr);
+        }
+        res.status(500).json({
+            error: 'OAuth initiation failed',
+            message: err.message || 'An unexpected error occurred.',
+        });
     }
-
-    // Generate a CSRF state token
-    const state = crypto.randomBytes(32).toString('hex');
-    // Generate a PKCE code verifier (random 43 character string)
-    const codeVerifier = crypto.randomBytes(32).toString('base64url');
-
-    // Store state in DB for multi-instance safety
-    const OAUTH_STATE_TTL_MS = 10 * 60 * 1000; // 10 min
-    try {
-        await db.insert(oauthStates).values({
-            state,
-            userId: req.user!.id,
-            platform,
-            codeVerifier,
-            expiresAt: new Date(Date.now() + OAUTH_STATE_TTL_MS),
-        });
-    } catch (dbErr: any) {
-        console.error(`❌ [${platform}] Failed to store OAuth state in DB:`, dbErr.message);
-        return res.status(500).json({
-            error: 'Database error',
-            message: 'Failed to initiate authentication session. Please try again later.',
-            details: dbErr.message
-        });
-    }
-
-    const redirectUri = `${BASE_URL}/api/channels/callback/${platform}`;
-    const authUrl = provider.getAuthorizationUrl(state, redirectUri, codeVerifier);
-
-
-    res.redirect(authUrl);
 });
 
 /**
