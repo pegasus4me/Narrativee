@@ -6,7 +6,6 @@ import { reportApi } from "../../lib/apis";
 import { User, CreditCard, Settings2, LogOut, Trash2, Globe } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { API_URL } from "@/lib/api-config";
 
 type Tab = "profile" | "billing" | "preferences";
 

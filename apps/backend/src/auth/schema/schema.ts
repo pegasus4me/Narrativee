@@ -121,6 +121,19 @@ export const socialPosts = pgTable("social_posts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const creationSessions = pgTable("creation_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  sourceId: uuid("source_id").references(() => contentSources.id, { onDelete: "set null" }),
+  articleId: uuid("article_id").references(() => articles.id, { onDelete: "set null" }),
+  selectedAngles: jsonb("selected_angles").notNull().default([]),
+  selectedChannelIds: jsonb("selected_channel_ids").notNull().default([]),
+  drafts: jsonb("drafts").notNull().default([]),
+  status: text("status").notNull().default("ready"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -128,6 +141,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   channels: many(channels),
   articles: many(articles),
   socialPosts: many(socialPosts),
+  creationSessions: many(creationSessions),
   knowledgeBase: one(knowledgeBase),
 }));
 
@@ -148,6 +162,7 @@ export const knowledgeBase = pgTable("knowledge_base", {
   customTemplates: jsonb("custom_templates").notNull().default([]), // { channel: string, template: string }[]
   bannedWords: jsonb("banned_words").notNull().default([]), // string[]
   brandVoiceTraining: text("brand_voice_training").default(""),
+  voiceMemory: jsonb("voice_memory").notNull().default({}),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -178,10 +193,17 @@ export const articlesRelations = relations(articles, ({ one, many }) => ({
   user: one(user, { fields: [articles.userId], references: [user.id] }),
   source: one(contentSources, { fields: [articles.sourceId], references: [contentSources.id] }),
   socialPosts: many(socialPosts),
+  creationSessions: many(creationSessions),
 }));
 
 export const socialPostsRelations = relations(socialPosts, ({ one }) => ({
   user: one(user, { fields: [socialPosts.userId], references: [user.id] }),
   article: one(articles, { fields: [socialPosts.articleId], references: [articles.id] }),
   channel: one(channels, { fields: [socialPosts.channelId], references: [channels.id] }),
+}));
+
+export const creationSessionsRelations = relations(creationSessions, ({ one }) => ({
+  user: one(user, { fields: [creationSessions.userId], references: [user.id] }),
+  source: one(contentSources, { fields: [creationSessions.sourceId], references: [contentSources.id] }),
+  article: one(articles, { fields: [creationSessions.articleId], references: [articles.id] }),
 }));

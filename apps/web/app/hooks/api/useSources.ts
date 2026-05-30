@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_URL } from "@/lib/api-config";
 import type { Source } from "@/app/types/api";
+import { ARTICLES_KEY } from "./useArticles";
 
 export const SOURCES_KEY = ["sources"] as const;
 
@@ -35,6 +36,7 @@ export function useAddSource() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: SOURCES_KEY });
+      queryClient.invalidateQueries({ queryKey: ARTICLES_KEY });
     },
   });
 }
@@ -50,6 +52,7 @@ export function useDeleteSource() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: SOURCES_KEY });
+      queryClient.invalidateQueries({ queryKey: ARTICLES_KEY });
     },
   });
 }

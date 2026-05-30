@@ -2,6 +2,8 @@
 
 Newsletter content repurposing platform — turn your newsletter into social media posts.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 ## Architecture
 
 Turborepo monorepo:
@@ -9,7 +11,7 @@ Turborepo monorepo:
 | App | Stack | Port |
 |-----|-------|------|
 | `apps/backend` | Express.js, Drizzle ORM, PostgreSQL | 3002 |
-| `apps/web` | Next.js 15, Tailwind CSS | 3000 |
+| `apps/web` | Next.js 16, Tailwind CSS | 3010 |
 
 ## Prerequisites
 
@@ -27,6 +29,9 @@ pnpm install
 cp apps/backend/.env.example apps/backend/.env
 # Fill in required values (DATABASE_URL, BETTER_AUTH_SECRET, etc.)
 
+# Configure frontend
+cp apps/web/.env.example apps/web/.env.local
+
 # Push DB schema
 cd apps/backend && npx drizzle-kit push && cd ../..
 
@@ -34,7 +39,7 @@ cd apps/backend && npx drizzle-kit push && cd ../..
 pnpm dev
 ```
 
-The backend runs on `http://localhost:3002` and the frontend on `http://localhost:3000`.
+The backend runs on `http://localhost:3002` and the frontend on `http://localhost:3010`.
 
 ## Environment Variables
 
@@ -55,3 +60,10 @@ Key secrets to configure:
 | `pnpm build` | Build all apps |
 | `pnpm lint` | Lint all apps |
 | `pnpm check-types` | TypeScript type checking |
+
+## Open source project docs
+
+- License: [`LICENSE`](./LICENSE)
+- Contributing guide: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+- Code of conduct: [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md)
+- Security policy: [`SECURITY.md`](./SECURITY.md)

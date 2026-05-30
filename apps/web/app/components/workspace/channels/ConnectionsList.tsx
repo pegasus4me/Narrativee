@@ -29,8 +29,8 @@ export function ConnectionsList({
 
   if (!hasConnections) {
     return (
-      <div className="rounded-2xl bg-zinc-50/80 px-8 py-14 text-center text-zinc-600">
-        <Link2 className="mx-auto mb-3 h-8 w-8 text-zinc-300" />
+      <div className="rounded-2xl bg-zinc-900/40 border border-zinc-800/80 px-8 py-14 text-center text-zinc-400">
+        <Link2 className="mx-auto mb-3 h-8 w-8 text-zinc-700" />
         <p>No connections yet. Add a destination or Substack below.</p>
       </div>
     );
@@ -38,37 +38,37 @@ export function ConnectionsList({
 
   return (
     <div>
-      <h2 className="mb-4 text-sm font-semibold text-zinc-900">Your connections</h2>
+      <h2 className="mb-4 text-sm font-semibold text-zinc-100">Your connections</h2>
       <ul className="grid min-w-0 gap-3 sm:grid-cols-2">
         {channels.map((channel) => {
           const meta = platformMeta[channel.platform];
           return (
             <li
               key={channel.id}
-              className="flex min-h-[5.5rem] flex-col justify-between rounded-2xl bg-zinc-50/50 p-4 transition-colors hover:bg-zinc-50"
+              className="flex min-h-[5.5rem] flex-col justify-between rounded-2xl bg-zinc-900/60 border border-zinc-800/80 p-4 transition-colors hover:bg-zinc-800/40 hover:border-zinc-700/60"
             >
               <div className="flex items-start gap-3">
                 <div className="relative h-11 w-11 shrink-0">
                   {channel.avatarUrl ? (
-                    <img src={channel.avatarUrl} alt={channel.accountName} className="h-11 w-11 rounded-full object-cover" />
+                    <img src={channel.avatarUrl} alt={channel.accountName} className="h-11 w-11 rounded-full object-cover border border-zinc-800" />
                   ) : (
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-zinc-200 text-sm font-semibold text-zinc-600">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-zinc-800 border border-zinc-700/60 text-sm font-semibold text-zinc-300">
                       {(channel.accountName || meta?.label || "?").charAt(0).toUpperCase()}
                     </div>
                   )}
-                  <div className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-white p-0.5 [&>img]:h-3.5 [&>img]:w-3.5 [&>svg]:h-3.5 [&>svg]:w-3.5">
+                  <div className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-950 p-0.5 border border-zinc-800 [&>img]:h-3.5 [&>img]:w-3.5 [&>svg]:h-3.5 [&>svg]:w-3.5">
                     {meta?.icon}
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-zinc-900">{channel.accountName || meta?.label}</p>
+                  <p className="truncate text-sm font-medium text-zinc-200">{channel.accountName || meta?.label}</p>
                   <p className="text-xs capitalize text-zinc-500">{channel.platform}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => onDisconnectChannel(channel.id)}
-                className="mt-3 self-end text-xs text-zinc-500 transition-colors hover:text-red-600"
+                className="mt-3 self-end text-xs text-zinc-400 transition-colors hover:text-red-500"
               >
                 Disconnect
               </button>
@@ -90,7 +90,7 @@ export function ConnectionsList({
           return (
             <li
               key={source.id}
-              className="flex min-h-[5.5rem] flex-col justify-between rounded-2xl bg-white p-4 transition-colors hover:bg-zinc-50/80"
+              className="flex min-h-[5.5rem] flex-col justify-between rounded-2xl bg-zinc-900/60 border border-zinc-800/80 p-4 transition-colors hover:bg-zinc-800/40 hover:border-zinc-700/60"
             >
               <div className="flex items-start gap-3">
                 <div className="relative h-11 w-11 shrink-0">
@@ -98,7 +98,7 @@ export function ConnectionsList({
                     <img
                       src={imgUrl}
                       alt=""
-                      className="h-11 w-11 rounded-full object-cover"
+                      className="h-11 w-11 rounded-full object-cover border border-zinc-800"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
                         const el = document.getElementById(`ch-fallback-${source.id}`);
@@ -108,11 +108,11 @@ export function ConnectionsList({
                   ) : null}
                   <div
                     id={`ch-fallback-${source.id}`}
-                    className={`flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-orange-600 ${imgUrl ? "hidden" : ""}`}
+                    className={`flex h-11 w-11 items-center justify-center rounded-full bg-zinc-950 border border-zinc-800 text-orange-500 ${imgUrl ? "hidden" : ""}`}
                   >
                     <Rss className="h-5 w-5" />
                   </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-white p-1">
+                  <div className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-950 p-1 border border-zinc-800">
                     {source.platform === "custom_rss" ? (
                       <div className="flex h-full w-full items-center justify-center rounded-full bg-orange-500 text-white p-0.5">
                         <Rss className="h-2.5 w-2.5 stroke-[2.5]" />
@@ -123,13 +123,13 @@ export function ConnectionsList({
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <a href={source.url} target="_blank" rel="noreferrer" className="text-sm font-medium text-zinc-900 hover:underline">
+                  <a href={source.url} target="_blank" rel="noreferrer" className="text-sm font-medium text-zinc-200 hover:text-white hover:underline">
                     {source.url.replace("https://", "").replace("/feed", "")}
                   </a>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
                     <span>{source.articleCount || 0} articles</span>
                     {source.lastSyncedAt && (
-                      <span className="flex items-center gap-1 text-[10px] text-zinc-400">
+                      <span className="flex items-center gap-1 text-[10px] text-zinc-500">
                         <RefreshCw className="h-3 w-3" />
                         {new Date(source.lastSyncedAt).toLocaleDateString()}
                       </span>
@@ -140,7 +140,7 @@ export function ConnectionsList({
               <button
                 type="button"
                 onClick={() => onDisconnectSource(source.id)}
-                className="mt-3 self-end text-xs text-zinc-500 transition-colors hover:text-red-600"
+                className="mt-3 self-end text-xs text-zinc-400 transition-colors hover:text-red-500"
               >
                 Disconnect
               </button>

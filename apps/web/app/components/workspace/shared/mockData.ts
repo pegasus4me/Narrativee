@@ -91,4 +91,28 @@ export const MOCK_KNOWLEDGE_BASE: KnowledgeBase = {
   customTemplates: MOCK_TEMPLATES,
   bannedWords: MOCK_BANNED_WORDS,
   brandVoiceTraining: MOCK_BRAND_VOICE,
+  voiceMemory: {
+    strictness: 68,
+    status: "ready",
+    lastLearnedAt: new Date().toISOString(),
+    lastLearnedSourceId: "mock-source-1",
+    sources: [
+      {
+        category: "newsletter",
+        label: "Weekly creator memo",
+        content: "I share tactical creator growth lessons with direct, no-fluff language and short paragraphs.",
+        url: "",
+      },
+    ],
+    profile: {
+      tone: "Direct and practical",
+      vocabulary: "Simple, clear, non-corporate",
+      sentenceLength: "Mostly short with occasional medium-length",
+      humorLevel: "Low, light dry humor",
+      opinionatedVsNeutral: "Opinionated with concrete examples",
+      ctaStyle: "One clear next step",
+      topicsToAvoid: "Vague motivation and gossip",
+      frequentPhrases: "Here’s the playbook; no fluff",
+    },
+  },
 };

@@ -300,7 +300,7 @@ export function ScheduledOverview() {
       {/* View Calendar Button */}
       <div className="mt-6 pt-4 border-t border-zinc-100">
         <Link
-          href="/workspace/post-queue"
+          href="/workspace/calendar"
           className="flex items-center justify-center w-full py-2.5 rounded-md border border-zinc-200 bg-white hover:bg-zinc-50 text-xs font-bold text-zinc-700 "
         >
           View calendar

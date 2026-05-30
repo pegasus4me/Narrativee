@@ -1,117 +1,146 @@
 "use client";
 
-interface CalendarPost {
-  id: string;
-  scheduledAt: string;
-  channel?: { platform?: string; accountName?: string };
-  content?: { text?: string };
-}
+import type { ScheduledQueuePost } from "./queue.types";
 
 interface CalendarGridProps {
   currentDate: Date;
   selectedDate: Date | null;
-  posts: CalendarPost[];
+  posts: ScheduledQueuePost[];
   onSelectDate: (date: Date) => void;
-  onSelectPost: (post: CalendarPost) => void;
+  onSelectPost: (post: ScheduledQueuePost) => void;
   formatTime: (d: string) => string;
 }
 
-function getDaysInMonth(date: Date) {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const totalDays = new Date(year, month + 1, 0).getDate();
-  const startDayOfWeek = firstDay.getDay();
+const HOURS = Array.from({ length: 24 }, (_unusedValue, index) => index);
 
-  const days: { date: Date; isCurrentMonth: boolean }[] = [];
-
-  const prevMonthTotalDays = new Date(year, month, 0).getDate();
-  for (let i = startDayOfWeek - 1; i >= 0; i--) {
-    days.push({ date: new Date(year, month - 1, prevMonthTotalDays - i), isCurrentMonth: false });
-  }
-  for (let i = 1; i <= totalDays; i++) {
-    days.push({ date: new Date(year, month, i), isCurrentMonth: true });
-  }
-  const remainingCells = 42 - days.length;
-  for (let i = 1; i <= remainingCells; i++) {
-    days.push({ date: new Date(year, month + 1, i), isCurrentMonth: false });
-  }
-  return days;
-}
-
-function getPostsForDate(posts: CalendarPost[], date: Date) {
+function getPostsForDate(posts: ScheduledQueuePost[], date: Date): ScheduledQueuePost[] {
   return posts.filter((post) => {
     const postDate = new Date(post.scheduledAt);
     return postDate.getFullYear() === date.getFullYear() && postDate.getMonth() === date.getMonth() && postDate.getDate() === date.getDate();
   });
 }
 
+function getWeekDays(date: Date): Date[] {
+  const startOfWeek = new Date(date);
+  startOfWeek.setHours(0, 0, 0, 0);
+  startOfWeek.setDate(date.getDate() - date.getDay());
+
+  return Array.from({ length: 7 }, (_unusedValue, index) => {
+    const weekDate = new Date(startOfWeek);
+    weekDate.setDate(startOfWeek.getDate() + index);
+    return weekDate;
+  });
+}
+
+function getPostsForHour(posts: ScheduledQueuePost[], date: Date, hour: number): ScheduledQueuePost[] {
+  return getPostsForDate(posts, date).filter((post) => new Date(post.scheduledAt).getHours() === hour);
+}
+
+function formatHour(hour: number): string {
+  if (hour === 0) return "12 AM";
+  if (hour === 12) return "12 PM";
+  return hour > 12 ? `${hour - 12} PM` : `${hour} AM`;
+}
+
+function getPlatformColor(platform?: string): string {
+  if (platform === "linkedin") return "border-blue-400/30 bg-blue-500/10 text-blue-100";
+  if (platform === "x") return "border-zinc-600 bg-zinc-900 text-zinc-100";
+  if (platform === "threads") return "border-zinc-500/30 bg-zinc-800/70 text-zinc-100";
+  if (platform === "instagram") return "border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-100";
+  return "border-rose-400/30 bg-rose-500/10 text-rose-100";
+}
+
 export function CalendarGrid({ currentDate, selectedDate, posts, onSelectDate, onSelectPost, formatTime }: CalendarGridProps) {
+  const weekDays = getWeekDays(currentDate);
+
   return (
-    <div className="flex flex-col animate-in fade-in duration-200">
-      <div className="grid grid-cols-7 gap-2 text-center text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2">
-        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-      </div>
+    <div className="animate-in fade-in duration-200">
+      <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950">
+        <div className="grid grid-cols-[72px_repeat(7,minmax(140px,1fr))] border-b border-zinc-800 bg-zinc-950">
+          <div className="border-r border-zinc-800 px-3 py-3 text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600">
+            GMT
+          </div>
+          {weekDays.map((date) => {
+            const isToday = date.toDateString() === new Date().toDateString();
+            const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
 
-      <div className="grid grid-cols-7 gap-2">
-        {getDaysInMonth(currentDate).map(({ date, isCurrentMonth }, idx) => {
-          const dayPosts = getPostsForDate(posts, date);
-          const isToday = date.toDateString() === new Date().toDateString();
-          const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+            return (
+              <button
+                key={date.toISOString()}
+                type="button"
+                onClick={() => onSelectDate(date)}
+                className={`border-r border-zinc-800 px-3 py-3 text-left transition-colors last:border-r-0 ${
+                  isSelected ? "bg-white/[0.08]" : "hover:bg-white/[0.04]"
+                }`}
+              >
+                <span className="block text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+                  {date.toLocaleDateString("en-US", { weekday: "short" })}
+                </span>
+                <span className={`mt-1 flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${
+                  isToday ? "bg-white text-black" : "text-zinc-100"
+                }`}>
+                  {date.getDate()}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-          return (
-            <div
-              key={idx}
-              onClick={() => onSelectDate(date)}
-              className={`min-h-[110px] rounded-2xl border p-2 flex flex-col justify-between transition-all cursor-pointer relative select-none ${
-                isSelected
-                  ? "border-indigo-600 bg-indigo-50/10 ring-1 ring-indigo-500"
-                  : isToday
-                  ? "border-zinc-950 bg-zinc-50/30"
-                  : isCurrentMonth
-                  ? "border-zinc-200 bg-white hover:border-zinc-300"
-                  : "border-zinc-100 bg-zinc-50/20 text-zinc-300 opacity-60"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                {isToday ? (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white">{date.getDate()}</span>
-                ) : (
-                  <span className={`text-[10px] font-bold ${isCurrentMonth ? "text-zinc-700" : "text-zinc-400"}`}>{date.getDate()}</span>
-                )}
-                {dayPosts.length > 0 && (
-                  <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[8px] font-bold text-zinc-500 border border-zinc-200/50">{dayPosts.length}</span>
-                )}
-              </div>
+        <div className="max-h-[760px] overflow-auto">
+          <div className="grid grid-cols-[72px_repeat(7,minmax(140px,1fr))]">
+            {HOURS.map((hour) => (
+              <div key={hour} className="contents">
+                <div className="sticky left-0 z-10 border-r border-t border-zinc-800 bg-zinc-950 px-3 py-2 text-right text-[11px] font-medium text-zinc-500">
+                  {formatHour(hour)}
+                </div>
 
-              <div className="mt-2 flex-1 flex flex-col gap-1 overflow-hidden">
-                {dayPosts.slice(0, 3).map((post) => {
-                  const platformColor =
-                    post.channel?.platform === "linkedin" ? "bg-blue-50 text-blue-750 border-blue-100"
-                    : post.channel?.platform === "x" ? "bg-zinc-900 text-zinc-100 border-zinc-800"
-                    : post.channel?.platform === "threads" ? "bg-zinc-50 text-zinc-900 border-zinc-200"
-                    : post.channel?.platform === "instagram" ? "bg-fuchsia-50 text-fuchsia-850 border-fuchsia-100"
-                    : "bg-pink-50 text-pink-750 border-pink-100";
+                {weekDays.map((date) => {
+                  const hourPosts = getPostsForHour(posts, date, hour);
+                  const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
 
                   return (
-                    <div
-                      key={post.id}
-                      onClick={(e) => { e.stopPropagation(); onSelectPost(post); }}
-                      title={`${post.channel?.platform?.toUpperCase()}: ${post.content?.text || ""}`}
-                      className={`flex items-center gap-1 rounded-lg border px-1.5 py-0.5 text-[9px] font-medium truncate cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all hover:brightness-95 ${platformColor}`}
+                    <button
+                      key={`${date.toISOString()}-${hour}`}
+                      type="button"
+                      onClick={() => onSelectDate(date)}
+                      className={`min-h-[72px] border-r border-t border-zinc-800 p-1.5 text-left transition-colors last:border-r-0 ${
+                        isSelected ? "bg-white/[0.04]" : "hover:bg-white/[0.025]"
+                      }`}
                     >
-                      <span className="shrink-0 text-[8px] font-semibold opacity-85">{formatTime(post.scheduledAt)}</span>
-                      <span className="truncate opacity-90">{post.channel?.accountName || post.channel?.platform}</span>
-                    </div>
+                      <div className="flex min-h-[58px] flex-col gap-1">
+                        {hourPosts.map((post) => (
+                          <span
+                            key={post.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onSelectPost(post);
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                onSelectPost(post);
+                              }
+                            }}
+                            title={`${post.channel?.platform?.toUpperCase()}: ${post.content?.text || ""}`}
+                            className={`block rounded-md border px-2 py-1.5 text-[11px] leading-4 transition-transform hover:scale-[1.01] ${getPlatformColor(post.channel?.platform)}`}
+                          >
+                            <span className="block font-semibold">{formatTime(post.scheduledAt)}</span>
+                            <span className="line-clamp-2 opacity-90">
+                              {post.channel?.accountName || post.channel?.platform || "Scheduled post"}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    </button>
                   );
                 })}
-                {dayPosts.length > 3 && (
-                  <div className="text-[8px] font-bold text-zinc-400 text-center mt-0.5">+ {dayPosts.length - 3} more</div>
-                )}
               </div>
-            </div>
-          );
-        })}
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

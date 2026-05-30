@@ -4,16 +4,22 @@ import { usePathname } from "next/navigation";
 import AuthGuard from "../components/commons/AuthGuard"
 import { SideBar } from "../components/commons/sideBar"
 
-export default function WorkspaceLayout({children}: {children: React.ReactNode}) {
+export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const isPublicRoute = pathname === "/workspace" || pathname === "/workspace/create" || pathname === "/workspace/channels";
+    const isPublicRoute =
+        pathname === "/workspace" ||
+        pathname === "/workspace/create" ||
+        pathname === "/workspace/create/new" ||
+        pathname === "/workspace/channels";
 
     if (isPublicRoute) {
         return (
-            <div className="flex h-screen w-full bg-zinc-50 overflow-hidden">
+            <div className="flex h-screen w-full bg-[#09090b] overflow-hidden text-zinc-100">
                 <SideBar />
-                <main className="flex-1 min-w-0 bg-white rounded-l-2xl border-l border-y border-zinc-200 my-2 mr-2 overflow-y-auto text-zinc-900 antialiased">
-                    {children}
+                <main className="flex-1 min-w-0 overflow-y-auto  antialiased">
+                    <div className="w-full">
+                        {children}
+                    </div>
                 </main>
             </div>
         );
@@ -21,10 +27,12 @@ export default function WorkspaceLayout({children}: {children: React.ReactNode})
 
     return (
         <AuthGuard>
-            <div className="flex h-screen w-full bg-zinc-50 overflow-hidden">
+            <div className="flex h-screen w-full bg-[#09090b] overflow-hidden text-zinc-100">
                 <SideBar />
-                <main className="flex-1 min-w-0 bg-white rounded-l-2xl border-l border-y border-zinc-200 my-2 mr-2 overflow-y-auto text-zinc-900 antialiased">
-                    {children}
+                <main className="flex-1 min-w-0 overflow-y-auto antialiased">
+                    <div className="w-full">
+                        {children}
+                    </div>
                 </main>
             </div>
         </AuthGuard>

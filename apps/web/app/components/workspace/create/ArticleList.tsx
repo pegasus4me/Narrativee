@@ -2,26 +2,25 @@
 
 import { Loader2, RefreshCw, ArrowRight, Rss, Sparkles, ArrowUpRight, RotateCcw, Lightbulb } from "lucide-react";
 import Link from "next/link";
-
-interface ArticleItem {
-  id: string;
-  title: string;
-  url: string;
-  publishedAt: string;
-  sourceId?: string;
-  createdAt?: string;
-  angleCount?: number;
-  draftCount?: number;
-  sourcePlatform?: string;
-}
-
+import type { ArticleListItem } from "@/app/types/api";
+import { 
+  SUBSTACK_LOGO, 
+  MEDIUM_LOGO,
+  LINKEDIN_LOGO,
+  X_LOGO,
+  INSTAGRAM_LOGO,
+  THREADS_LOGO,
+  FACEBOOK_LOGO,
+  BLUESKY_LOGO 
+} from "@/app/constants";
+import Image from "next/image";
 interface ArticleListProps {
-  articles: ArticleItem[];
+  articles: ArticleListItem[];
   loading: boolean;
   error: string;
   selectedId?: string;
   loadingIdeasForId?: string;
-  onSelect: (article: ArticleItem, force: boolean) => void;
+  onSelect: (article: ArticleListItem, force: boolean) => void;
   onRefresh: () => void;
 }
 
@@ -80,8 +79,6 @@ export function ArticleList({
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl">Pick an Issue</h2>
-          <p className="mt-1 text-sm text-zinc-500">Choose a synced newsletter to extract social media angles from.</p>
         </div>
         <button
           type="button"
@@ -104,19 +101,40 @@ export function ArticleList({
                 type="button"
                 onClick={() => onSelect(article, false)}
                 disabled={isLoading}
-                className={`flex h-full w-full flex-col rounded-xl border p-5 text-left transition-all ${
-                  isSelected
-                    ? "border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900/5"
-                    : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm"
-                } ${isLoading ? "animate-pulse" : ""}`}
+                className={`flex h-full w-full rounded-md flex-col border p-5 text-left transition-all ${isSelected
+                  ? "border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900/5"
+                  : "border-stone-900 bg-dark/10 text-white hover:border-zinc-300 hover:shadow-sm"
+                  } ${isLoading ? "animate-pulse" : ""}`}
               >
-                <div className="flex items-center gap-1.5 mb-3">
-                  <span className="rounded-md bg-orange-50 border border-orange-100 px-1.5 py-0.5 text-[9px] font-bold text-orange-600 uppercase">
-                    {article.sourcePlatform || "Newsletter"}
-                  </span>
+                <div className="flex items-center gap-1.5  mb-3">
+                  {(() => {
+                    const platform = (article.sourcePlatform || "").toLowerCase();
+                    let logoSrc = null;
+                    if (platform === "substack") logoSrc = SUBSTACK_LOGO;
+                    else if (platform === "medium") logoSrc = MEDIUM_LOGO;
+                    else if (platform === "linkedin") logoSrc = LINKEDIN_LOGO;
+                    else if (platform === "twitter" || platform === "x") logoSrc = X_LOGO;
+                    else if (platform === "instagram") logoSrc = INSTAGRAM_LOGO;
+                    else if (platform === "threads") logoSrc = THREADS_LOGO;
+                    else if (platform === "facebook") logoSrc = FACEBOOK_LOGO;
+                    else if (platform === "bluesky") logoSrc = BLUESKY_LOGO;
+
+                    if (logoSrc) {
+                      return (
+                        <span className="inline-flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-zinc-300 capitalize">
+                          <Image src={logoSrc} alt={article.sourcePlatform || "Source"} width={16} height={16} unoptimized className="h-3.5 w-3.5 object-contain rounded-full" />
+                          {article.sourcePlatform}
+                        </span>
+                      );
+                    }
+                    return (
+                      <span className="rounded-md bg-orange-950/40 border border-orange-900/50 px-1.5 py-0.5 text-[9px] font-bold text-orange-400 uppercase">
+                        {article.sourcePlatform || "Newsletter"}
+                      </span>
+                    );
+                  })()}
                   {(article.angleCount ?? 0) > 0 && (
-                    <span className="rounded-md bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 text-[9px] font-bold text-indigo-600 flex items-center gap-0.5">
-                      <Sparkles className="h-2.5 w-2.5" />
+                    <span className="px-1.5 py-0.5 text-[11px] flex items-center gap-0.5">
                       {article.angleCount} angles
                     </span>
                   )}
@@ -127,7 +145,7 @@ export function ArticleList({
                   )}
                 </div>
 
-                <h3 className="flex-1 text-sm font-semibold text-zinc-900 leading-snug line-clamp-3">
+                <h3 className="flex-1 text-sm font-semibold text-white/40 leading-snug line-clamp-3">
                   {article.title || "Untitled article"}
                 </h3>
 

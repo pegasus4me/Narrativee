@@ -2,18 +2,10 @@
 
 import { Loader2, Edit3, Calendar, X, Send, Trash2, Clock } from "lucide-react";
 import { getPlatformLogo } from "../shared/PlatformLogo";
-
-interface ModalPost {
-  id: string;
-  status: string;
-  scheduledAt: string;
-  content: { text: string };
-  channel: { platform: string; accountName?: string; avatarUrl?: string };
-  article?: { title?: string };
-}
+import type { QueuePost } from "./queue.types";
 
 interface PostDetailModalProps {
-  post: ModalPost;
+  post: QueuePost;
   isEditing: boolean;
   editText: string;
   onEditTextChange: (text: string) => void;
@@ -74,7 +66,7 @@ export function PostDetailModal({
           <div className="flex items-center gap-2 shrink-0">
             <div className="flex items-center gap-1 rounded-full bg-zinc-50 border border-zinc-100 px-2.5 py-0.5 text-[10px] font-semibold text-zinc-600">
               <Clock className="h-3 w-3 text-zinc-400" />
-              <span>{formatTime(post.scheduledAt)}</span>
+              <span>{post.scheduledAt ? formatTime(post.scheduledAt) : "Unscheduled"}</span>
             </div>
             <button type="button" onClick={onClose} className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700 transition-colors">
               <X className="h-4 w-4" />

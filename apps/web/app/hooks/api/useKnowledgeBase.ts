@@ -9,26 +9,69 @@ const EMPTY_KB: KnowledgeBase = {
   customTemplates: [],
   bannedWords: [],
   brandVoiceTraining: "",
+  voiceMemory: {
+    sources: [],
+    profile: {
+      tone: "",
+      vocabulary: "",
+      sentenceLength: "",
+      humorLevel: "",
+      opinionatedVsNeutral: "",
+      ctaStyle: "",
+      topicsToAvoid: "",
+      frequentPhrases: "",
+    },
+    strictness: 50,
+    status: "idle",
+    lastLearnedAt: null,
+    lastLearnedSourceId: null,
+  },
 };
+
+function normalizeKnowledgeBase(typed: Partial<KnowledgeBase>): KnowledgeBase {
+  const rawVoiceMemory = typed.voiceMemory ?? EMPTY_KB.voiceMemory;
+  const rawProfile = rawVoiceMemory.profile ?? EMPTY_KB.voiceMemory.profile;
+  return {
+    customHooks: typed.customHooks ?? [],
+    customTemplates: typed.customTemplates ?? [],
+    bannedWords: typed.bannedWords ?? [],
+    brandVoiceTraining: typed.brandVoiceTraining ?? "",
+    voiceMemory: {
+      sources: Array.isArray(rawVoiceMemory.sources) ? rawVoiceMemory.sources : [],
+      strictness: typeof rawVoiceMemory.strictness === "number" ? rawVoiceMemory.strictness : 50,
+      status: rawVoiceMemory.status === "learning" || rawVoiceMemory.status === "ready" || rawVoiceMemory.status === "failed"
+        ? rawVoiceMemory.status
+        : "idle",
+      lastLearnedAt: typeof rawVoiceMemory.lastLearnedAt === "string" ? rawVoiceMemory.lastLearnedAt : null,
+      lastLearnedSourceId: typeof rawVoiceMemory.lastLearnedSourceId === "string" ? rawVoiceMemory.lastLearnedSourceId : null,
+      profile: {
+        tone: rawProfile.tone ?? "",
+        vocabulary: rawProfile.vocabulary ?? "",
+        sentenceLength: rawProfile.sentenceLength ?? "",
+        humorLevel: rawProfile.humorLevel ?? "",
+        opinionatedVsNeutral: rawProfile.opinionatedVsNeutral ?? "",
+        ctaStyle: rawProfile.ctaStyle ?? "",
+        topicsToAvoid: rawProfile.topicsToAvoid ?? "",
+        frequentPhrases: rawProfile.frequentPhrases ?? "",
+      },
+    },
+  };
+}
 
 async function fetchKnowledgeBase(): Promise<KnowledgeBase> {
   const res = await fetch(`${API_URL}/knowledge-base`, { credentials: "include" });
   if (!res.ok) return EMPTY_KB;
   const data = await res.json();
   const typed = data as Partial<KnowledgeBase>;
-  return {
-    customHooks: typed.customHooks ?? [],
-    customTemplates: typed.customTemplates ?? [],
-    bannedWords: typed.bannedWords ?? [],
-    brandVoiceTraining: typed.brandVoiceTraining ?? "",
-  };
+  return normalizeKnowledgeBase(typed);
 }
 
-export function useKnowledgeBase(enabled = true) {
+export function useKnowledgeBase(enabled = true, refetchInterval?: number | false) {
   return useQuery({
     queryKey: KNOWLEDGE_BASE_KEY,
     queryFn: fetchKnowledgeBase,
     enabled,
+    refetchInterval,
   });
 }
 

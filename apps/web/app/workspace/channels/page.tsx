@@ -51,9 +51,9 @@ const PLATFORM_META: Record<string, { label: string; icon: React.ReactNode; colo
   },
   threads: {
     label: "Threads",
-    icon: <img src={THREADS_LOGO} alt="Threads" className="h-5 w-5 object-contain" />,
-    color: "text-black",
-    bg: "bg-zinc-950/5 border-zinc-950/10",
+    icon: <img src={THREADS_LOGO} alt="Threads" className="h-5 w-5 object-contain invert" />,
+    color: "text-white",
+    bg: "bg-zinc-900 border border-zinc-800",
   },
 };
 
@@ -136,20 +136,15 @@ function ChannelsPageContent() {
   };
 
   return (
-    <div className="w-full min-w-0 px-5 py-8 sm:px-8 md:px-10 lg:px-12 xl:px-14">
-      <header className="mb-10 flex flex-col gap-6 border-b border-zinc-100 pb-10 lg:flex-row lg:items-start lg:justify-between">
+    <div className="mx-auto w-[90%] space-y-6 py-8">
+      <header className="mb-10 flex flex-col gap-6 pb-10 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 max-w-3xl lg:max-w-none lg:flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl">Connect</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-100 sm:text-3xl">Connect</h1>
         </div>
-        <nav className="flex shrink-0 flex-wrap gap-1 rounded-xl bg-zinc-100/90 p-1 text-xs font-medium text-zinc-500" aria-label="Repurpose steps">
-          <span className="rounded-lg bg-white px-3 py-2 text-zinc-900">Connect</span>
-          <Link href="/workspace/create" className="rounded-lg px-3 py-2 transition-colors hover:bg-white/80 hover:text-zinc-800">Angles</Link>
-          <span className="rounded-lg px-3 py-2 opacity-50">Drafts</span>
-          <Link href="/workspace/post-queue" className="rounded-lg px-3 py-2 transition-colors hover:bg-white/80 hover:text-zinc-800">Queue</Link>
-        </nav>
+
       </header>
 
-      <div className="grid min-w-0 gap-10 xl:grid-cols-[1fr_minmax(280px,360px)] xl:gap-14 2xl:gap-16">
+      <div className="w-full min-w-0">
         <section className="min-w-0 space-y-8">
           {connected && (
             <div className="flex items-center gap-3 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -183,7 +178,7 @@ function ChannelsPageContent() {
           )}
 
           <div className="mt-10">
-            <h2 className="mb-4 text-sm font-semibold text-zinc-900">Add destinations</h2>
+            <h2 className="mb-4 text-sm font-semibold text-zinc-100">Add destinations</h2>
             <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {Object.entries(PLATFORM_META).map(([platform, meta]) => {
                 const isConnected = connectedPlatforms.has(platform);
@@ -193,16 +188,17 @@ function ChannelsPageContent() {
                     type="button"
                     onClick={() => !isConnected && handleConnect(platform)}
                     disabled={isConnected}
-                    className={`flex items-center gap-3 rounded-2xl px-4 py-4 text-left text-sm font-medium transition-colors ${
-                      isConnected ? "cursor-default bg-zinc-100 text-zinc-400" : "bg-zinc-50 text-zinc-800 hover:bg-zinc-100"
-                    }`}
+                    className={`flex items-center gap-3 rounded-2xl px-4 py-4 text-left text-sm font-medium transition-colors ${isConnected
+                      ? "cursor-default bg-zinc-900/40 text-zinc-600 border border-zinc-800/40"
+                      : "bg-zinc-900/80 text-zinc-200 border border-zinc-800 hover:bg-zinc-800/60 hover:text-white"
+                      }`}
                   >
-                    <div className={isConnected ? "text-zinc-300" : meta.color}>{meta.icon}</div>
+                    <div className={isConnected ? "text-zinc-700" : meta.color}>{meta.icon}</div>
                     <span>{meta.label}</span>
                     {isConnected ? (
                       <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-emerald-500" />
                     ) : (
-                      <Plus className="ml-auto h-4 w-4 shrink-0 text-zinc-400" />
+                      <Plus className="ml-auto h-4 w-4 shrink-0 text-zinc-500" />
                     )}
                   </button>
                 );
@@ -218,39 +214,15 @@ function ChannelsPageContent() {
           </div>
 
           {hasConnections && (
-            <div className="rounded-2xl bg-zinc-100/80 px-5 py-4">
-              <p className="text-sm text-zinc-700">
-                <strong className="font-medium text-zinc-900">Next:</strong>{" "}
-                <Link href="/workspace/create" className="font-medium text-primary-800 underline-offset-4 hover:underline">Open Create</Link>{" "}
-                to pull angles from any synced issue.
+            <div className="rounded-2xl bg-zinc-900/40 border border-zinc-800/80 px-5 py-4">
+              <p className="text-sm text-zinc-400">
+                <strong className="font-medium text-zinc-200">Next:</strong>{" "}
+                <Link href="/workspace/create/new" className="font-medium text-indigo-400 hover:text-indigo-300 underline-offset-4 hover:underline">Open Create</Link>{" "}
+                to pull angles from any synced articles.
               </p>
             </div>
           )}
         </section>
-
-        <aside className="min-w-0 xl:max-w-md xl:justify-self-end">
-          <div className="sticky top-6 rounded-2xl bg-gradient-to-b from-zinc-50 to-white p-6">
-            <div className="mb-5 flex items-center gap-2">
-              <Link2 className="h-4 w-4 text-violet-600" />
-              <h3 className="text-sm font-semibold text-zinc-900">Why this step exists</h3>
-            </div>
-            <ul className="space-y-5">
-              {AFTER_CONNECT.map(({ title, body }) => (
-                <li key={title}>
-                  <p className="text-sm font-medium text-zinc-900">{title}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-zinc-600">{body}</p>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/workspace/create"
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 py-2.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-200/70"
-            >
-              Continue to Create
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </aside>
       </div>
 
       {/* Modals */}

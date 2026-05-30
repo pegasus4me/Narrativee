@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { and, desc, eq, sql, gte } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../auth/auth';
-import { articles, user, channels, socialPosts, contentSources, knowledgeBase } from '../auth/schema/schema';
+import { articles, user, channels, socialPosts, contentSources } from '../auth/schema/schema';
 import { verifyAuth, AuthRequest } from '../middleware/auth';
 import { LLMService } from '../services/llm';
 import { publishPostToSocialPlatform } from '../services/publisher';
@@ -165,59 +165,6 @@ router.get('/', verifyAuth, async (req: AuthRequest, res) => {
   } catch (error: any) {
     console.error('[Articles] List error:', error);
     res.status(500).json({ error: 'Failed to list articles', details: error.message });
-  }
-});
-
-// GET /api/articles/drafts/:draftId/slides/:index.png — dynamically serve slide image as raw PNG binary
-router.get('/drafts/:draftId/slides/:index.png', async (req, res) => {
-  try {
-    const { draftId, index } = req.params;
-    const slideIdx = parseInt(index, 10);
-
-    if (!isUuid(draftId) || isNaN(slideIdx)) {
-      res.status(400).send('Invalid params');
-      return;
-    }
-
-    const [post] = await db
-      .select()
-      .from(socialPosts)
-      .where(eq(socialPosts.id, draftId))
-      .limit(1);
-
-    if (!post) {
-      res.status(404).send('Post not found');
-      return;
-    }
-
-    const content = post.content as any;
-    if (content.type !== 'carousel' || !Array.isArray(content.slides)) {
-      res.status(400).send('Not a carousel post');
-      return;
-    }
-
-    const slide = content.slides[slideIdx];
-    if (!slide || !slide.dataUri) {
-      res.status(404).send('Slide not found');
-      return;
-    }
-
-    const base64Data = slide.dataUri.split(';base64,').pop();
-    if (!base64Data) {
-      res.status(500).send('Invalid slide image data');
-      return;
-    }
-
-    const imgBuffer = Buffer.from(base64Data, 'base64');
-    res.writeHead(200, {
-      'Content-Type': 'image/png',
-      'Content-Length': imgBuffer.length,
-      'Cache-Control': 'public, max-age=86400',
-    });
-    res.end(imgBuffer);
-  } catch (error: any) {
-    console.error('[Articles] Serve slide error:', error);
-    res.status(500).send('Internal server error');
   }
 });
 
@@ -451,7 +398,6 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
     const userId = req.user!.id;
     const { id } = req.params;
     const force = req.body?.force === true;
-    const contentGoal = req.body?.contentGoal;
 
     if (!isUuid(id)) {
       return res.status(404).json({ error: 'Article not found' });
@@ -510,7 +456,6 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
       });
     }
 
-    // Pre-check credits before calling LLM
     const [u] = await db.select({ tokens: user.tokens }).from(user).where(eq(user.id, userId)).limit(1);
     const tokens = u?.tokens ?? 0;
     if (tokens < ANGLE_EXTRACTION_COST) {
@@ -520,20 +465,7 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
       });
     }
 
-    // Fetch user preferences for extraction
-    const [kb] = await db.select().from(knowledgeBase).where(eq(knowledgeBase.userId, userId)).limit(1);
-    const [uPrefs] = await db.select({ topics: user.contentTopics }).from(user).where(eq(user.id, userId)).limit(1);
-
-    const activeGoal = contentGoal || "Growing followers";
-    const activeTopics = (uPrefs?.topics as string[]) || undefined;
-
-    const ideas = await LLMService.extractAtomicIdeas(
-      row.title,
-      row.content,
-      activeGoal,
-      kb?.brandVoiceTraining || undefined,
-      activeTopics
-    );
+    const ideas = await LLMService.extractAtomicIdeas(row.title, row.content);
 
     if (!ideas.length) {
       return res.status(502).json({ error: 'No angles could be extracted. Try again.' });
@@ -556,19 +488,9 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
       throw updErr;
     }
 
-    // Atomic credit deduction to prevent race conditions
-    const [deducted] = await db
-      .update(user)
-      .set({ tokens: sql`${user.tokens} - ${ANGLE_EXTRACTION_COST}` })
-      .where(and(eq(user.id, userId), gte(user.tokens, ANGLE_EXTRACTION_COST)))
-      .returning({ tokens: user.tokens });
 
-    if (!deducted) {
-      return res.status(402).json({
-        error: 'Insufficient credits',
-        message: 'Credits were consumed by another request.',
-      });
-    }
+    const newTokens = tokens - ANGLE_EXTRACTION_COST;
+    await db.update(user).set({ tokens: newTokens }).where(eq(user.id, userId));
 
     posthog.capture({
       distinctId: userId,
@@ -577,7 +499,7 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
         article_id: id,
         angles_count: ideas.length,
         credits_used: ANGLE_EXTRACTION_COST,
-        credits_remaining: deducted.tokens,
+        credits_remaining: newTokens,
       },
     });
 
@@ -585,7 +507,7 @@ router.post('/:id/ideas', verifyAuth, async (req: AuthRequest, res) => {
       ideas,
       cached: false,
       anglesExtractedAt: now,
-      creditsRemaining: deducted.tokens,
+      creditsRemaining: newTokens,
     });
   } catch (error: any) {
     console.error('[Articles] Ideas extraction error:', error);
@@ -599,7 +521,7 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.id;
     const { id } = req.params;
-    const { selectedAngles, attachLink, generateCarousels } = req.body;
+    const { selectedAngles, attachLink } = req.body;
 
     if (!isUuid(id)) {
       return res.status(404).json({ error: 'Article not found' });
@@ -642,7 +564,7 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
     const [u] = await db.select({ tokens: user.tokens, writingStyle: user.writingStyle }).from(user).where(eq(user.id, userId)).limit(1);
     const tokens = u?.tokens ?? 0;
     const writingStyle = u?.writingStyle ?? 'professional, engaging';
-
+    
     const cost = selectedAngles.length * activeChannels.length;
     if (tokens < cost) {
       return res.status(402).json({
@@ -653,123 +575,34 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
 
     // 4. Generate drafts for each angle and channel
     const generatedPosts: any[] = [];
-    const { UnsplashService } = await import('../services/unsplash');
-    const { ImageRenderer } = await import('../services/imageRenderer');
-    const { LLMService } = await import('../services/llm');
-
     for (const angle of selectedAngles) {
-      const angleText = typeof angle === 'object' && angle !== null && 'idea' in angle ? (angle as any).idea : String(angle);
       for (const channel of activeChannels) {
-        let newPostData;
+        let draftText = await LLMService.generateSocialDraft(
+          channel.platform,
+          angle,
+          article.title,
+          article.content,
+          writingStyle,
+          userId
+        );
 
-        if (generateCarousels && (channel.platform === 'linkedin' || channel.platform === 'instagram')) {
-          try {
-            console.log(`[Articles] Generating carousel draft for ${channel.platform}`);
-            const slidesData = await LLMService.generateCarouselDraft(angleText, article.title, article.content);
-            const totalSlides = slidesData.length;
-            const renderedSlides = [];
-
-            for (let i = 0; i < totalSlides; i++) {
-              const slide = slidesData[i];
-              const isTitleSlide = i === 0;
-
-              const backgroundUrl = await UnsplashService.fetchImageForKeyword(slide.imageSearchQuery || 'aesthetic');
-              const dataUri = await ImageRenderer.renderCarouselSlide(
-                slide.text,
-                backgroundUrl,
-                i + 1,
-                totalSlides,
-                '4:5',
-                isTitleSlide
-              );
-
-              renderedSlides.push({
-                text: slide.text,
-                imageSearchQuery: slide.imageSearchQuery,
-                backgroundUrl,
-                dataUri
-              });
-            }
-
-            let captionText = await LLMService.generateSocialDraft(
-              channel.platform,
-              angleText,
-              article.title,
-              article.content,
-              writingStyle,
-              userId
-            );
-
-            if (attachLink && article.url) {
-              captionText += `\n\nRead the full article: ${article.url}`;
-            }
-
-            [newPostData] = await db
-              .insert(socialPosts)
-              .values({
-                userId,
-                articleId: id,
-                channelId: channel.id,
-                content: { type: 'carousel', slides: renderedSlides, text: captionText },
-                status: 'draft',
-              })
-              .returning();
-          } catch (carouselErr) {
-            console.error(`[Articles] Failed to generate carousel for ${channel.platform}, falling back to text:`, carouselErr);
-            // Fallback to text post if carousel fails
-            let draftText = await LLMService.generateSocialDraft(
-              channel.platform,
-              angleText,
-              article.title,
-              article.content,
-              writingStyle,
-              userId
-            );
-
-            if (attachLink && article.url) {
-              draftText += `\n\nRead the full article: ${article.url}`;
-            }
-
-            [newPostData] = await db
-              .insert(socialPosts)
-              .values({
-                userId,
-                articleId: id,
-                channelId: channel.id,
-                content: { text: draftText },
-                status: 'draft',
-              })
-              .returning();
-          }
-        } else {
-          // Standard text draft
-          let draftText = await LLMService.generateSocialDraft(
-            channel.platform,
-            angleText,
-            article.title,
-            article.content,
-            writingStyle,
-            userId
-          );
-
-          if (attachLink && article.url) {
-            draftText += `\n\nRead the full article: ${article.url}`;
-          }
-
-          [newPostData] = await db
-            .insert(socialPosts)
-            .values({
-              userId,
-              articleId: id,
-              channelId: channel.id,
-              content: { text: draftText },
-              status: 'draft',
-            })
-            .returning();
+        if (attachLink && article.url) {
+          draftText += `\n\nRead the full article: ${article.url}`;
         }
 
+        const [newPost] = await db
+          .insert(socialPosts)
+          .values({
+            userId,
+            articleId: id,
+            channelId: channel.id,
+            content: { text: draftText },
+            status: 'draft',
+          })
+          .returning();
+
         generatedPosts.push({
-          ...newPostData,
+          ...newPost,
           channel: {
             id: channel.id,
             platform: channel.platform,
@@ -780,19 +613,9 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
       }
     }
 
-    // 5. Atomic credit deduction to prevent race conditions
-    const [deducted] = await db
-      .update(user)
-      .set({ tokens: sql`${user.tokens} - ${cost}` })
-      .where(and(eq(user.id, userId), gte(user.tokens, cost)))
-      .returning({ tokens: user.tokens });
-
-    if (!deducted) {
-      return res.status(402).json({
-        error: 'Insufficient credits',
-        message: 'Credits were consumed by another request.',
-      });
-    }
+    // 5. Deduct credits
+    const newTokens = tokens - cost;
+    await db.update(user).set({ tokens: newTokens }).where(eq(user.id, userId));
 
     posthog.capture({
       distinctId: userId,
@@ -804,7 +627,7 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
         drafts_count: generatedPosts.length,
         platforms: activeChannels.map((c) => c.platform),
         credits_used: cost,
-        credits_remaining: deducted.tokens,
+        credits_remaining: newTokens,
         attach_link: !!attachLink,
       },
     });
@@ -812,7 +635,7 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
     res.json({
       success: true,
       drafts: generatedPosts,
-      creditsRemaining: deducted.tokens,
+      creditsRemaining: newTokens,
     });
   } catch (error: any) {
     console.error('[Articles] Drafts generation error:', error);
@@ -820,325 +643,6 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
     res.status(500).json({ error: 'Failed to generate drafts', details: error.message });
   }
 });
-
-// POST /api/articles/:id/generate-carousel — generate a carousel from an atomic idea
-router.post('/:id/generate-carousel', verifyAuth, async (req: AuthRequest, res) => {
-  try {
-    const userId = req.user!.id;
-    const { id } = req.params;
-    const { atomicIdea, channelId, aspectRatio = '4:5' } = req.body;
-
-    if (!isUuid(id)) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    if (!atomicIdea) {
-      return res.status(400).json({ error: 'atomicIdea is required' });
-    }
-
-    // 1. Fetch the article
-    const [article] = await db
-      .select({ title: articles.title, content: articles.content })
-      .from(articles)
-      .where(and(eq(articles.id, id), eq(articles.userId, userId)))
-      .limit(1);
-
-    if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    // 2. Fetch the specific channel, or first active channel
-    let channel;
-    if (channelId) {
-      [channel] = await db
-        .select()
-        .from(channels)
-        .where(and(eq(channels.id, channelId), eq(channels.userId, userId)))
-        .limit(1);
-    } else {
-      [channel] = await db
-        .select()
-        .from(channels)
-        .where(eq(channels.userId, userId))
-        .limit(1);
-    }
-
-    if (!channel) {
-      return res.status(404).json({ error: 'No connected channels found' });
-    }
-
-    // 3. Generate carousel structured text via LLM
-    const { LLMService } = await import('../services/llm');
-    const slidesData = await LLMService.generateCarouselDraft(atomicIdea, article.title, article.content);
-
-    // Fetch user style & write a companion caption!
-    const [u] = await db.select({ writingStyle: user.writingStyle }).from(user).where(eq(user.id, userId)).limit(1);
-    const writingStyle = u?.writingStyle ?? 'professional, engaging';
-
-    const caption = await LLMService.generateSocialDraft(
-      channel.platform,
-      atomicIdea,
-      article.title,
-      article.content,
-      writingStyle,
-      userId
-    );
-
-    // 4. Generate the actual images for each slide using unique backgrounds
-    const { UnsplashService } = await import('../services/unsplash');
-    const { ImageRenderer } = await import('../services/imageRenderer');
-
-    const totalSlides = slidesData.length;
-    const renderedSlides = [];
-
-    for (let i = 0; i < totalSlides; i++) {
-      const slide = slidesData[i];
-      const isTitleSlide = i === 0;
-
-      // Fetch a unique background image using the keyword for this specific slide
-      const backgroundUrl = await UnsplashService.fetchImageForKeyword(slide.imageSearchQuery || 'aesthetic');
-
-      const dataUri = await ImageRenderer.renderCarouselSlide(
-        slide.text,
-        backgroundUrl,
-        i + 1,
-        totalSlides,
-        aspectRatio,
-        isTitleSlide
-      );
-
-      renderedSlides.push({
-        text: slide.text,
-        imageSearchQuery: slide.imageSearchQuery,
-        backgroundUrl,
-        dataUri // base64 PNG
-      });
-    }
-
-    // 5. Save the generated carousel as a draft
-    const [newPost] = await db
-      .insert(socialPosts)
-      .values({
-        userId,
-        articleId: id,
-        channelId: channel.id,
-        content: { type: 'carousel', slides: renderedSlides, text: caption },
-        status: 'draft',
-      })
-      .returning();
-
-    res.json({
-      success: true,
-      drafts: [{
-        ...newPost,
-        channel: {
-          id: channel.id,
-          platform: channel.platform,
-          accountName: channel.accountName,
-          avatarUrl: channel.avatarUrl,
-        }
-      }]
-    });
-
-  } catch (error: any) {
-    console.error('[Articles] Carousel generation error:', error);
-    res.status(500).json({ error: 'Failed to generate carousel', details: error.message });
-  }
-});
-
-// POST /api/articles/drafts/:draftId/refresh-carousel-bg — refresh the background image for all slides in a carousel
-router.post('/drafts/:draftId/refresh-carousel-bg', verifyAuth, async (req: AuthRequest, res) => {
-  try {
-    const userId = req.user!.id;
-    const { draftId } = req.params;
-    const { aspectRatio = '4:5' } = req.body;
-
-    if (!isUuid(draftId)) {
-      return res.status(400).json({ error: 'Invalid draft ID' });
-    }
-
-    // 1. Fetch the existing draft
-    const [existing] = await db
-      .select()
-      .from(socialPosts)
-      .where(and(eq(socialPosts.id, draftId), eq(socialPosts.userId, userId)))
-      .limit(1);
-
-    if (!existing) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    const content = existing.content as any;
-    if (content?.type !== 'carousel' || !Array.isArray(content.slides) || content.slides.length === 0) {
-      return res.status(400).json({ error: 'Draft is not a valid carousel' });
-    }
-
-    // 2. Fetch NEW background images for each slide
-    const { UnsplashService } = await import('../services/unsplash');
-    const { ImageRenderer } = await import('../services/imageRenderer');
-
-    // 3. Re-render all slides with the new backgrounds
-    const totalSlides = content.slides.length;
-    const renderedSlides = [];
-
-    for (let i = 0; i < totalSlides; i++) {
-      const slide = content.slides[i];
-      const isTitleSlide = i === 0;
-
-      // Fetch a unique background image using the keyword for this specific slide
-      const newBackgroundUrl = await UnsplashService.fetchImageForKeyword(slide.imageSearchQuery || 'aesthetic');
-
-      const dataUri = await ImageRenderer.renderCarouselSlide(
-        slide.text,
-        newBackgroundUrl,
-        i + 1,
-        totalSlides,
-        aspectRatio,
-        isTitleSlide
-      );
-
-      renderedSlides.push({
-        ...slide,
-        backgroundUrl: newBackgroundUrl,
-        dataUri // updated base64 PNG
-      });
-    }
-
-    // 4. Save the updated draft
-    const [updatedPost] = await db
-      .update(socialPosts)
-      .set({ content: { ...content, slides: renderedSlides }, updatedAt: new Date() })
-      .where(eq(socialPosts.id, draftId))
-      .returning();
-
-    res.json({
-      success: true,
-      draft: updatedPost
-    });
-
-  } catch (error: any) {
-    console.error('[Articles] Carousel refresh error:', error);
-    res.status(500).json({ error: 'Failed to refresh carousel background', details: error.message });
-  }
-});
-
-// POST /api/articles/drafts/:draftId/convert-to-carousel — convert a text draft into a carousel
-router.post('/drafts/:draftId/convert-to-carousel', verifyAuth, async (req: AuthRequest, res) => {
-  try {
-    const userId = req.user!.id;
-    const { draftId } = req.params;
-    const { aspectRatio = '4:5' } = req.body;
-
-    if (!isUuid(draftId)) {
-      return res.status(400).json({ error: 'Invalid draft ID' });
-    }
-
-    // 1. Fetch the existing draft
-    const [existing] = await db
-      .select()
-      .from(socialPosts)
-      .where(and(eq(socialPosts.id, draftId), eq(socialPosts.userId, userId)))
-      .limit(1);
-
-    if (!existing) {
-      return res.status(404).json({ error: 'Draft not found' });
-    }
-
-    // 2. Fetch the article
-    if (!existing.articleId) {
-      return res.status(400).json({ error: 'No article associated with this draft' });
-    }
-    const [article] = await db
-      .select({ title: articles.title, content: articles.content })
-      .from(articles)
-      .where(eq(articles.id, existing.articleId))
-      .limit(1);
-
-    if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    // 3. Extract draft text
-    const content = existing.content as any;
-    const draftText = content.text || '';
-    if (!draftText.trim()) {
-      return res.status(400).json({ error: 'Draft text content is empty' });
-    }
-
-    // 4. Generate slides text and image keywords
-    const { LLMService } = await import('../services/llm');
-    const slidesData = await LLMService.generateCarouselDraft(draftText, article.title, article.content);
-
-    // 5. Render slides with background image from Unsplash
-    const { UnsplashService } = await import('../services/unsplash');
-    const { ImageRenderer } = await import('../services/imageRenderer');
-
-    const totalSlides = slidesData.length;
-    const renderedSlides = [];
-
-    for (let i = 0; i < totalSlides; i++) {
-      const slide = slidesData[i];
-      const isTitleSlide = i === 0;
-
-      const backgroundUrl = await UnsplashService.fetchImageForKeyword(slide.imageSearchQuery || 'aesthetic');
-
-      const dataUri = await ImageRenderer.renderCarouselSlide(
-        slide.text,
-        backgroundUrl,
-        i + 1,
-        totalSlides,
-        aspectRatio,
-        isTitleSlide
-      );
-
-      renderedSlides.push({
-        text: slide.text,
-        imageSearchQuery: slide.imageSearchQuery,
-        backgroundUrl,
-        dataUri // base64 PNG
-      });
-    }
-
-    // 6. Update the draft in DB
-    const [updatedPost] = await db
-      .update(socialPosts)
-      .set({
-        content: {
-          type: 'carousel',
-          slides: renderedSlides,
-          text: draftText // Keep original text as post caption!
-        },
-        updatedAt: new Date()
-      })
-      .where(eq(socialPosts.id, draftId))
-      .returning();
-
-    // 7. Get channel details
-    const [channel] = await db
-      .select()
-      .from(channels)
-      .where(eq(channels.id, existing.channelId))
-      .limit(1);
-
-    res.json({
-      success: true,
-      draft: {
-        ...updatedPost,
-        channel: channel ? {
-          id: channel.id,
-          platform: channel.platform,
-          accountName: channel.accountName,
-          avatarUrl: channel.avatarUrl,
-        } : null
-      }
-    });
-
-  } catch (error: any) {
-    console.error('[Articles] Convert to carousel error:', error);
-    res.status(500).json({ error: 'Failed to convert draft to carousel', details: error.message });
-  }
-});
-
 
 // PUT /api/articles/drafts/:draftId — update a draft's content directly (used by Post Queue)
 router.put('/drafts/:draftId', verifyAuth, async (req: AuthRequest, res) => {
@@ -1176,14 +680,15 @@ router.put('/drafts/:draftId', verifyAuth, async (req: AuthRequest, res) => {
   }
 });
 
-// Legacy endpoint — same logic as /drafts/:draftId (articleId is unused)
+// PUT /api/articles/:articleId/drafts/:draftId — update a draft's content
 router.put('/:articleId/drafts/:draftId', verifyAuth, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.id;
-    const { draftId } = req.params;
+    const { articleId, draftId } = req.params;
+    const { text } = req.body;
 
-    if (!isUuid(draftId)) {
-      return res.status(400).json({ error: 'Invalid draft ID' });
+    if (!isUuid(articleId) || !isUuid(draftId)) {
+      return res.status(404).json({ error: 'Not found' });
     }
 
     const [existing] = await db
@@ -1196,7 +701,6 @@ router.put('/:articleId/drafts/:draftId', verifyAuth, async (req: AuthRequest, r
       return res.status(404).json({ error: 'Draft not found' });
     }
 
-    const { text } = req.body;
     const sanitizedText = typeof text === 'string' ? text.replace(/\u2014/g, '-').replace(/—/g, '-') : text;
 
     const [updated] = await db

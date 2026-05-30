@@ -26,14 +26,17 @@ interface PlatformLogoProps {
   className?: string;
 }
 
-export function getPlatformLogo(platform: string): string {
-  return PLATFORM_LOGOS[platform] ?? LINKEDIN_LOGO;
+/** Returns the logo asset for a known social platform. */
+export function getPlatformLogo(platform?: string): string {
+  return platform ? PLATFORM_LOGOS[platform] ?? LINKEDIN_LOGO : LINKEDIN_LOGO;
 }
 
-export function getPlatformLabel(platform: string): string {
-  return PLATFORM_LABELS[platform] ?? platform;
+/** Returns the display label for a known social platform. */
+export function getPlatformLabel(platform?: string): string {
+  return platform ? PLATFORM_LABELS[platform] ?? platform : "Social platform";
 }
 
+/** Renders a platform logo with consistent sizing. */
 export function PlatformLogo({ platform, size = "md", className = "" }: PlatformLogoProps) {
   const sizeClasses = {
     sm: "h-3.5 w-3.5",

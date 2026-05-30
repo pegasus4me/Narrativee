@@ -2,15 +2,7 @@
 
 import { Loader2, Check, Edit3, Calendar, X, Send, Trash2, Clock } from "lucide-react";
 import { getPlatformLogo } from "../shared/PlatformLogo";
-
-interface QueuePost {
-  id: string;
-  status: string;
-  scheduledAt: string;
-  content: { text: string };
-  channel: { platform: string; accountName?: string; avatarUrl?: string };
-  article?: { title?: string };
-}
+import type { QueuePost } from "./queue.types";
 
 interface QueuePostCardProps {
   post: QueuePost;
@@ -70,7 +62,7 @@ export function QueuePostCard({
         </div>
         <div className="flex items-center gap-1.5 rounded-full bg-zinc-50 border border-zinc-100/80 px-2.5 py-1 text-[10px] font-semibold text-zinc-600">
           <Clock className="h-3 w-3 text-zinc-400" />
-          <span>{formatTime(post.scheduledAt)}</span>
+          <span>{post.scheduledAt ? formatTime(post.scheduledAt) : "Unscheduled"}</span>
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, RefreshCw, ChevronRight, ArrowLeft, Sparkles } from "lucide-react";
+import { Loader2, RefreshCw, ChevronRight, ArrowLeft, Sparkles, Plus } from "lucide-react";
 
 interface AnglePickerProps {
   article: { id: string; title: string } | null;
@@ -11,7 +11,9 @@ interface AnglePickerProps {
   selectedAngles: Set<number>;
   ideasMeta: { cached?: boolean } | null;
   isGenerating: boolean;
+  actionLabel?: string;
   onToggleAngle: (index: number) => void;
+  onAddCustomAngle: (angle: string) => void;
   onReExtract: () => void;
   onGenerate: () => void;
   onBack: () => void;
@@ -25,11 +27,25 @@ export function AnglePicker({
   selectedAngles,
   ideasMeta,
   isGenerating,
+  actionLabel = "Generate Drafts",
   onToggleAngle,
+  onAddCustomAngle,
   onReExtract,
   onGenerate,
   onBack,
 }: AnglePickerProps) {
+  const [customAngle, setCustomAngle] = useState("");
+
+  const handleAddCustomAngle = (): void => {
+    const trimmedAngle = customAngle.trim();
+    if (!trimmedAngle) {
+      return;
+    }
+
+    onAddCustomAngle(trimmedAngle);
+    setCustomAngle("");
+  };
+
   if (!article) return null;
 
   if (loading) {
@@ -67,9 +83,9 @@ export function AnglePicker({
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl">Content Angles</h2>
+            <h2 className="text-xl font-semibold tracking-tight  sm:text-2xl">Content Angles</h2>
             <p className="mt-1 text-sm text-zinc-500">
-              Extracted from: <strong className="text-zinc-800 font-semibold">{article.title || "Selected article"}</strong>
+              Extracted from: <strong className="text-white font-semibold">{article.title || "Selected article"}</strong>
             </p>
           </div>
           {ideasMeta?.cached && (
@@ -91,6 +107,34 @@ export function AnglePicker({
         </div>
       ) : (
         <>
+          <div className="rounded-xl border   p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Custom angle</p>
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+              <input
+                type="text"
+                value={customAngle}
+                onChange={(event) => setCustomAngle(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    handleAddCustomAngle();
+                  }
+                }}
+                placeholder="Add your own angle or framing..."
+                className="min-h-[44px] flex-1 rounded-xl border px-4 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900/10"
+              />
+              <button
+                type="button"
+                onClick={handleAddCustomAngle}
+                disabled={!customAngle.trim()}
+                className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-zinc-900 px-4 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
+              >
+                <Plus className="h-4 w-4" />
+                Add angle
+              </button>
+            </div>
+          </div>
+
           <ul className="space-y-3">
             {ideas.map((idea, idx) => {
               const isSelected = selectedAngles.has(idx);
@@ -99,16 +143,14 @@ export function AnglePicker({
                   <button
                     type="button"
                     onClick={() => onToggleAngle(idx)}
-                    className={`w-full rounded-xl border p-4 text-left text-sm leading-relaxed transition-all ${
-                      isSelected
-                        ? "border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900/5 text-zinc-900"
-                        : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
-                    }`}
+                    className={`w-full rounded-xl p-4 text-left text-sm leading-relaxed transition-all ${isSelected
+                      ? "bg-primary/50 text-white ring-1 ring-zinc-900/5"
+                      : " text-white "
+                      }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border shrink-0 ${
-                        isSelected ? "border-zinc-900 bg-zinc-900 text-white" : "border-zinc-300"
-                      }`}>
+                      <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border shrink-0 ${isSelected ? "border-zinc-900 bg-zinc-900 text-white" : "border-zinc-300"
+                        }`}>
                         {isSelected && (
                           <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none">
                             <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -141,7 +183,7 @@ export function AnglePicker({
               ) : (
                 <>
                   <Sparkles className="h-4 w-4" />
-                  Generate Drafts
+                  {actionLabel}
                   <ChevronRight className="h-4 w-4" />
                 </>
               )}

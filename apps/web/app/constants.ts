@@ -3,6 +3,7 @@ export const X_LOGO = "https://img.magnific.com/vecteurs-libre/nouvelle-concepti
 export const INSTAGRAM_LOGO = "https://upload.wikimedia.org/wikipedia/commons/9/95/Instagram_logo_2022.svg";
 export const THREADS_LOGO = "https://upload.wikimedia.org/wikipedia/commons/d/db/Threads_%28app%29.png";
 export const FACEBOOK_LOGO = "https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg";
-export const SUBSTACK_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Substack_logo.svg/2048px-Substack_logo.svg.png";
+export const SUBSTACK_LOGO = "https://substack.com/img/substack.png";
 export const DEFAULT_AVATAR = "https://img.freepik.com/free-vector/blue-purple-mosaic-background_1164-812.jpg?semt=ais_rp_progressive&w=740&q=80"
 export const BLUESKY_LOGO = "https://upload.wikimedia.org/wikipedia/commons/7/7a/Bluesky_Logo.svg";
+export const MEDIUM_LOGO = "https://www.svgrepo.com/show/354057/medium-icon.svg"

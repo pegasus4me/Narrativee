@@ -17,7 +17,9 @@ import { toNodeHandler } from "better-auth/node";
 import channelsRouter from './routes/channels';
 import sourcesRouter from './routes/sources';
 import articlesRouter from './routes/articles';
+import creationsRouter from './routes/creations';
 import knowledgeRouter from './routes/knowledge';
+import memoryRouter from './routes/memory';
 import { posthog } from './lib/posthog';
 import { socialPosts } from "./auth/schema/schema";
 import { and, eq, lte, sql } from "drizzle-orm";
@@ -84,7 +86,9 @@ app.use('/api/user', userRouter);
 app.use('/api/channels', channelsRouter);
 app.use('/api/sources', sourcesRouter);
 app.use('/api/articles', articlesRouter);
+app.use('/api/creations', creationsRouter);
 app.use('/api/knowledge-base', knowledgeRouter);
+app.use('/api/memory', memoryRouter);
 
 // Global error handler
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -97,7 +101,7 @@ app.use((err: Error, req: express.Request, res: express.Response, _next: express
 const server = app.listen(PORT, async () => {
   console.log(`Express Server running on http://localhost:${PORT}`);
 
-  // Ensure oauth_states table exists in the database
+  // Ensure required tables/columns exist for local development and older databases.
   try {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "oauth_states" (
@@ -110,8 +114,30 @@ const server = app.listen(PORT, async () => {
       );
     `);
     console.log('[Database] Verified/created oauth_states table successfully.');
+
+    await db.execute(sql`
+      ALTER TABLE "knowledge_base"
+      ADD COLUMN IF NOT EXISTS "voice_memory" jsonb DEFAULT '{}'::jsonb NOT NULL;
+    `);
+    console.log('[Database] Verified/created knowledge_base.voice_memory column successfully.');
+
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "creation_sessions" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "user_id" text NOT NULL,
+        "source_id" uuid,
+        "article_id" uuid,
+        "selected_angles" jsonb DEFAULT '[]'::jsonb NOT NULL,
+        "selected_channel_ids" jsonb DEFAULT '[]'::jsonb NOT NULL,
+        "drafts" jsonb DEFAULT '[]'::jsonb NOT NULL,
+        "status" text DEFAULT 'ready' NOT NULL,
+        "created_at" timestamp DEFAULT now() NOT NULL,
+        "updated_at" timestamp DEFAULT now() NOT NULL
+      );
+    `);
+    console.log('[Database] Verified/created creation_sessions table successfully.');
   } catch (err) {
-    console.error('[Database] Failed to verify/create oauth_states table:', err);
+    console.error('[Database] Failed to verify database bootstrap state:', err);
   }
 });
 
@@ -166,3 +192,4 @@ setInterval(async () => {
     console.error("[Scheduler] Error checking/publishing scheduled posts:", err);
   }
 }, SCHEDULER_INTERVAL_MS);
+// Trigger dev reload

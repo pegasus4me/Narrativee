@@ -1,301 +1,420 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { authClient } from "../../lib/auth-client";
-import { ScheduledOverview } from "../components/workspace/scheduledOverview";
+import { useMemo } from "react";
 import {
-  ChevronRight,
-  Lightbulb,
-  Link2,
   CalendarDays,
-  Check,
+  Sparkles,
+  Brain,
+  Loader2,
+  ArrowRight,
+  Layers,
+  CheckCircle2,
+  Zap,
+  ArrowUpRight,
+  Plus,
+  Link2,
+  Activity,
+  Rss,
+  RssIcon,
+  ChevronLeft,
 } from "lucide-react";
-import { useChannels } from "@/app/hooks/api/useChannels";
-import { useSources } from "@/app/hooks/api/useSources";
-import { useDraftsQueue } from "@/app/hooks/api/useDrafts";
-import { useKnowledgeBase, useSaveKnowledgeBase } from "@/app/hooks/api/useKnowledgeBase";
-import { BriefingCards } from "../components/workspace/dashboard/BriefingCards";
-import { KnowledgeBaseEditor } from "../components/workspace/knowledge-base/KnowledgeBaseEditor";
-import { GuestBanner } from "../components/workspace/shared/GuestBanner";
-import { AuthModal } from "../components/workspace/shared/AuthModal";
-import { getPlatformLogo } from "../components/workspace/shared/PlatformLogo";
+import { authClient } from "@/lib/auth-client";
 import {
-  MOCK_CHANNELS,
-  MOCK_SOURCES,
-  MOCK_KNOWLEDGE_BASE,
-} from "../components/workspace/shared/mockData";
-import type { HookItem, TemplateItem } from "@/app/types/api";
+  useChannels,
+  useCreationSessions,
+  useDraftsQueue,
+  useArticles,
+  useCredits,
+  useKnowledgeBase,
+} from "@/app/hooks/api";
+import {
+  LINKEDIN_LOGO,
+  X_LOGO,
+  THREADS_LOGO,
+  FACEBOOK_LOGO,
+  INSTAGRAM_LOGO,
+} from "@/app/constants";
 
-const cards = [
-  {
-    href: "/workspace/create",
-    eyebrow: "Step 1",
-    title: "Create",
-    description: "Pick a synced issue, extract angles, then build platform-shaped drafts.",
-    icon: Lightbulb,
-    iconClass: "from-primary-100 to-orange-50 ring-primary-200/80 text-primary-800",
-  },
-  {
-    href: "/workspace/channels",
-    eyebrow: "Pipeline",
-    title: "Connections",
-    description: "Substack feed plus LinkedIn, X, and Instagram destinations.",
-    icon: Link2,
-    iconClass: "from-violet-100 to-indigo-50 ring-violet-200/80 text-violet-800",
-  },
-  {
-    href: "/workspace/post-queue",
-    eyebrow: "Pipeline",
-    title: "Schedule",
-    description: "Spread drafts across the week. Visualize posts inside an interactive calendar grid.",
-    icon: CalendarDays,
-    iconClass: "from-emerald-100 to-teal-50 ring-emerald-200/80 text-emerald-800",
-  },
-] as const;
+const PLATFORM_LOGOS: Record<string, string> = {
+  linkedin: LINKEDIN_LOGO,
+  x: X_LOGO,
+  twitter: X_LOGO,
+  threads: THREADS_LOGO,
+  facebook: FACEBOOK_LOGO,
+  instagram: INSTAGRAM_LOGO,
+};
 
-export default function Workspace() {
+function getPlatformLogo(platform: string): string | null {
+  return PLATFORM_LOGOS[platform.toLowerCase()] ?? null;
+}
+
+function formatFriendlyTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+}
+
+export default function WorkspaceDashboard() {
   const session = authClient.useSession();
-  const isGuest = !session.isPending && !session.data?.user;
-  const isLoggedIn = !session.isPending && !!session.data?.user;
+  const user = session.data?.user;
+  const isGuest = !session.isPending && !user;
 
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [hasDismissedModal, setHasDismissedModal] = useState(false);
+  // Query database metrics using hooks
+  const { data: channels, isLoading: loadingChannels } = useChannels(!isGuest);
+  const { data: creations, isLoading: loadingCreations } = useCreationSessions(!isGuest);
+  const { data: queue, isLoading: loadingQueue } = useDraftsQueue(!isGuest);
+  const { data: articles, isLoading: loadingArticles } = useArticles(!isGuest);
+  const { data: credits, isLoading: loadingCredits } = useCredits(!isGuest);
+  const { data: kb, isLoading: loadingKB } = useKnowledgeBase(!isGuest);
 
-  // Server state via TanStack Query
-  const { data: channelsData } = useChannels(isLoggedIn);
-  const { data: sourcesData } = useSources(isLoggedIn);
-  const { data: queueData } = useDraftsQueue(isLoggedIn);
-  const { data: kbData, isLoading: kbLoading } = useKnowledgeBase(isLoggedIn);
-  const saveKb = useSaveKnowledgeBase();
+  const activeChannels = channels ?? [];
+  const savedCreations = creations ?? [];
+  const scheduledPosts = useMemo(
+    () => (queue ?? []).filter((p) => p.status === "scheduled" && p.scheduledAt),
+    [queue]
+  );
+  const recentArticles = articles ?? [];
+  const creditBalance = credits ?? 40;
+  const maxCredits = 1000; // Visual denominator for progress bar
 
-  // Use mock data for guests, real data for logged-in users
-  const channels = isLoggedIn ? (channelsData ?? []) : MOCK_CHANNELS;
-  const sources = isLoggedIn ? (sourcesData ?? []) : MOCK_SOURCES;
+  const isMainLoading =
+    session.isPending ||
+    loadingChannels ||
+    loadingCreations ||
+    loadingQueue ||
+    loadingArticles ||
+    loadingCredits ||
+    loadingKB;
 
-  const { scheduledCount, publishedCount } = useMemo(() => {
-    if (isGuest) return { scheduledCount: 3, publishedCount: 24 };
-    const queue = queueData ?? [];
-    return {
-      scheduledCount: queue.filter((p) => p.status === "scheduled" && p.scheduledAt).length,
-      publishedCount: queue.filter((p) => p.status === "published").length,
-    };
-  }, [isGuest, queueData]);
-
-  // Local knowledge base state for editing
-  const [customHooks, setCustomHooks] = useState<HookItem[]>([]);
-  const [customTemplates, setCustomTemplates] = useState<TemplateItem[]>([]);
-  const [bannedWords, setBannedWords] = useState<string[]>([]);
-  const [brandVoiceTraining, setBrandVoiceTraining] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-
-  // Sync KB data from query to local state
-  useEffect(() => {
-    if (isGuest) {
-      setCustomHooks(MOCK_KNOWLEDGE_BASE.customHooks);
-      setCustomTemplates(MOCK_KNOWLEDGE_BASE.customTemplates);
-      setBannedWords(MOCK_KNOWLEDGE_BASE.bannedWords);
-      setBrandVoiceTraining(MOCK_KNOWLEDGE_BASE.brandVoiceTraining);
-    } else if (kbData) {
-      setCustomHooks(kbData.customHooks);
-      setCustomTemplates(kbData.customTemplates);
-      setBannedWords(kbData.bannedWords);
-      setBrandVoiceTraining(kbData.brandVoiceTraining);
-    }
-  }, [isGuest, kbData]);
-
-  // Guest auth modal timer
-  useEffect(() => {
-    if (isGuest && !hasDismissedModal) {
-      const timer = setTimeout(() => setShowAuthModal(true), 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [isGuest, hasDismissedModal]);
-
-  const handleSaveSettings = async () => {
-    if (isGuest) {
-      setSaving(true);
-      setSaveSuccess(false);
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setSaving(false);
-      setSaveSuccess(true);
-      setTimeout(() => {
-        setSaveSuccess(false);
-        setShowAuthModal(true);
-      }, 1000);
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setSaveSuccess(false);
-      await saveKb.mutateAsync({ customHooks, customTemplates, bannedWords, brandVoiceTraining });
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    } catch {
-      // error handled by mutation
-    } finally {
-      setSaving(false);
-    }
-  };
+  if (isMainLoading) {
+    return (
+      <div className="flex min-h-[80vh] w-full items-center justify-center">
+        <div className="flex items-center gap-3 text-sm text-zinc-400">
+          <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+          Synchronizing mission control...
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full min-w-0 px-5 py-8 sm:px-8 md:px-10 lg:px-12 xl:px-14">
-      {/* Header */}
-      <header className="mb-10 border-b border-zinc-100 pb-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-          {channels.length > 0 && (
-            <div className="flex -space-x-2 overflow-hidden mr-1">
-              {channels.map((c, idx) => {
-                const fallbackLetter = (c.accountName || c.platform || "?").charAt(0).toUpperCase();
-                return (
-                  <div
-                    key={c.id || idx}
-                    title={`${c.platform?.toUpperCase()}: ${c.accountName || ""}`}
-                    className="relative inline-block h-12 w-12 rounded-full ring-2 ring-white bg-zinc-100 flex items-center justify-center shadow-sm shrink-0 transition-transform hover:scale-105 hover:z-10"
-                  >
-                    {c.avatarUrl ? (
-                      <img src={c.avatarUrl} alt={c.accountName} className="h-full w-full rounded-full object-cover" />
-                    ) : (
-                      <span className="text-xs font-bold text-zinc-500">{fallbackLetter}</span>
-                    )}
-                    <div className="absolute -bottom-0.5 -right-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-white p-0.5 border border-zinc-200 shadow-xs">
-                      <img src={getPlatformLogo(c.platform)} alt={c.platform} className="h-full w-full object-contain" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl">
-              Hey {session.data?.user?.name || (isGuest ? "Creator" : "there")} 👋
+    <div className="mx-auto w-[90%] space-y-8 px-6 py-10 antialiased">
+      {/* ─── Hero Welcome Banner ─── */}
+      <header className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/70 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.4)]">
+        <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-indigo-500/10 blur-[100px]" />
+        <div className="absolute -left-24 -bottom-24 h-96 w-96 rounded-full bg-violet-500/10 blur-[100px]" />
+
+        <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2.5 max-w-2xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-indigo-300">
+              <Zap className="h-3 w-3" />
+              Social Repurposing Pipeline Live
+            </span>
+            <h1 className="text-3xl font-semibold tracking-tight text-zinc-100 md:text-4xl">
+              Welcome back, <span className="bg-gradient-to-r from-indigo-300 to-violet-200 bg-clip-text text-transparent">{user?.name || "Creator"}</span>
             </h1>
+            <p className="text-sm leading-relaxed text-zinc-400">
+              Narrativee helps you translate your deep-dive newsletter issues into high-performing, native-channel social campaigns. Monitor your queues and launch packs below.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Link
+              href="/workspace/create/new"
+              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 text-xs font-semibold tracking-wide shadow-lg shadow-indigo-600/10 transition-all duration-200 active:scale-[0.98]"
+            >
+              <Plus className="h-4 w-4" />
+              Generate Social Pack
+            </Link>
+            <Link
+              href="/workspace/memory"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.03] hover:bg-white/[0.06] text-zinc-200 px-5 py-3 text-xs font-semibold tracking-wide transition-all duration-200"
+            >
+              <Brain className="h-4 w-4" />
+              Voice Memory
+            </Link>
           </div>
         </div>
       </header>
 
-      {isGuest && <GuestBanner />}
-
-      <div className="grid gap-10 xl:grid-cols-[1fr_360px] xl:gap-14 2xl:gap-16 items-start">
-        <div className="min-w-0 flex-1 space-y-12">
-          <BriefingCards
-            sources={sources}
-            channels={channels}
-            scheduledCount={scheduledCount}
-            publishedCount={publishedCount}
-          />
-
-          {/* Quick Navigation */}
-          <div className="mb-12">
-            <h2 className="mb-4 text-md text-black">Quick Navigation</h2>
-            <ul className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {cards.map(({ href, title, description, icon: Icon, iconClass }) => (
-                <li key={href} className="min-w-0">
-                  <Link
-                    href={href}
-                    className="group flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-5 hover:border-zinc-300 hover:shadow-md sm:p-6"
-                  >
-                    <div className={`mb-4 flex h-10 w-10 items-center ${iconClass}`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="mt-1 text-lg font-semibold text-zinc-900">{title}</h3>
-                    <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-600">{description}</p>
-                    <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-zinc-900 opacity-0 transition-opacity group-hover:opacity-100">
-                      Open
-                      <ChevronRight className="h-4 w-4" />
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+      {/* ─── Metrics Grid ─── */}
+      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Metric: Scheduled Queue */}
+        <div className="rounded-2xl border border-white/5 bg-zinc-950/40 p-6 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/60 flex flex-col justify-between h-36">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Active Queue</span>
+            <div className="rounded-lg bg-indigo-500/10 p-2 border border-indigo-500/20 text-indigo-400">
+              <CalendarDays className="h-4 w-4" />
+            </div>
           </div>
-
-          <KnowledgeBaseEditor
-            customHooks={customHooks}
-            customTemplates={customTemplates}
-            bannedWords={bannedWords}
-            brandVoiceTraining={brandVoiceTraining}
-            onChangeHooks={setCustomHooks}
-            onChangeTemplates={setCustomTemplates}
-            onChangeBannedWords={setBannedWords}
-            onChangeBrandVoice={setBrandVoiceTraining}
-            onSave={handleSaveSettings}
-            saving={saving}
-            saveSuccess={saveSuccess}
-            loading={kbLoading && isLoggedIn}
-          />
+          <div>
+            <span className="text-2xl font-bold text-zinc-100 block">{scheduledPosts.length} posts</span>
+            <Link href="/workspace/calendar" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors mt-1.5">
+              Open Calendar
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
         </div>
 
-        <aside className="shrink-0 sticky top-6 xl:justify-self-end w-full max-w-sm xl:max-w-none">
-          <ScheduledOverview />
-        </aside>
-      </div>
+        {/* Metric: Connected Channels */}
+        <div className="rounded-2xl border border-white/5 bg-zinc-950/40 p-6 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/60 flex flex-col justify-between h-36">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Social Channels</span>
+            <div className="rounded-lg bg-emerald-500/10 p-2 border border-emerald-500/20 text-emerald-400">
+              <Link2 className="h-4 w-4" />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-bold text-zinc-100 block">{activeChannels.length} profiles</span>
+            <Link href="/workspace/channels" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition-colors mt-1.5">
+              Manage Profiles
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        </div>
 
-      {/* Auth Modal for Guests */}
-      {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-md transition-all duration-300">
-          <div className="relative w-full max-w-[440px] bg-white rounded-3xl border border-zinc-200/80 shadow-2xl p-8 overflow-hidden font-urbanist animate-in fade-in zoom-in-95 duration-200">
-            <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-            <button
-              onClick={() => { setShowAuthModal(false); setHasDismissedModal(true); }}
-              className="absolute top-5 right-5 text-zinc-400 hover:text-zinc-600 transition-colors p-1 bg-zinc-50 hover:bg-zinc-100 rounded-full"
-              aria-label="Close modal"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="flex flex-col items-center text-center mt-3">
-              <h3 className="text-2xl font-extrabold tracking-tight text-zinc-900 leading-tight">
-                Unlock Full Capabilities
-              </h3>
-              <p className="text-sm text-zinc-500 mt-2.5 max-w-sm leading-relaxed">
-                You are playing with a live sandbox demo. Save your brand profile and connect live channels to start repurposing:
-              </p>
-              <ul className="w-full mt-6 space-y-3.5 text-left bg-zinc-50 border border-zinc-100 rounded-2xl p-4">
-                {[
-                  { title: "Connect your newsletter/ blog", desc: "Automatically fetch your newsletter feed." },
-                  { title: "Post Natively", desc: "Distribute drafts to LinkedIn, X, and Instagram." },
-                  { title: "AI Custom Brand Voice", desc: "Persist voice parameters, templates, & banned words." },
-                ].map((item) => (
-                  <li key={item.title} className="flex items-start gap-3">
-                    <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-600 shrink-0 mt-0.5">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </div>
-                    <div>
-                      <strong className="text-xs font-bold text-zinc-900 block">{item.title}</strong>
-                      <span className="text-[11px] text-zinc-500 leading-normal block">{item.desc}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <div className="w-full mt-7 flex flex-col gap-3">
-                <Link
-                  href="/auth/signup"
-                  className="flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold py-3.5 text-sm transition-all shadow-md active:scale-98"
-                >
-                  Create Free Account
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-                <Link
-                  href="/auth/signin"
-                  className="flex items-center justify-center w-full rounded-2xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 font-bold py-3 text-sm transition-all active:scale-98"
-                >
-                  Sign In
-                </Link>
-              </div>
-              <button
-                onClick={() => { setShowAuthModal(false); setHasDismissedModal(true); }}
-                className="mt-4 text-xs font-semibold text-zinc-400 hover:text-zinc-600 transition-colors"
-              >
-                Keep exploring in sandbox
-              </button>
+        {/* Metric: Brand Voice Memory */}
+        <div className="rounded-2xl border border-white/5 bg-zinc-950/40 p-6 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/60 flex flex-col justify-between h-36">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Voice Memory</span>
+            <div className="rounded-lg bg-violet-500/10 p-2 border border-violet-500/20 text-violet-400">
+              <Brain className="h-4 w-4" />
+            </div>
+          </div>
+          <div>
+            <span className="text-sm font-semibold text-zinc-100 block">
+              {kb?.brandVoiceTraining ? "Dynamic Profile Configured" : "Awaiting Training"}
+            </span>
+            <Link href="/workspace/memory" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-violet-400 hover:text-violet-300 transition-colors mt-1.5">
+              {kb?.brandVoiceTraining ? "Analyze Voice profile" : "Train Voice Profile"}
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Metric: Credit Balance */}
+        <div className="rounded-2xl border border-white/5 bg-zinc-950/40 p-6 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/60 flex flex-col justify-between h-36">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Credits Available</span>
+            <div className="rounded-lg bg-amber-500/10 p-2 border border-amber-500/20 text-amber-400">
+              <Sparkles className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-end justify-between">
+              <span className="text-xl font-bold text-zinc-100">{creditBalance}</span>
+              <span className="text-[10px] text-zinc-500">of {maxCredits}</span>
+            </div>
+            <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-white/5">
+              <div
+                className="bg-gradient-to-r from-indigo-500 to-violet-500 h-full rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.max(0, (creditBalance / maxCredits) * 100))}%` }}
+              />
             </div>
           </div>
         </div>
-      )}
+      </section>
+
+      {/* ─── Creations Horizontal Scroller ─── */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-zinc-100">Creations Library</h2>
+            <p className="text-xs text-zinc-500 mt-1">Select previously saved channel pack iterations</p>
+          </div>
+          <Link href="/workspace/create" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">
+            View All Packs
+            <ChevronLeft className="h-3 w-3 rotate-180" />
+          </Link>
+        </div>
+
+        {savedCreations.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-white/10 bg-zinc-950/20 py-12 text-center">
+            <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+              No saved packs generated yet. Import your first issue and translate it to connect to social templates!
+            </p>
+            <Link href="/workspace/create/new" className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 mt-3 font-semibold">
+              Create a Draft Pack
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {savedCreations.slice(0, 3).map((creation) => (
+              <article
+                key={creation.id}
+                className="group relative rounded-2xl border border-white/5 bg-zinc-950/40 p-5 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/60 flex flex-col justify-between min-h-[170px]"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-0.5 text-[9px] font-semibold text-indigo-300">
+                      {creation.draftCountPerChannel} drafts per channel
+                    </span>
+                    <span className="text-[10px] text-zinc-600">
+                      {new Date(creation.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-zinc-100 group-hover:text-white line-clamp-2 leading-snug">
+                    {creation.articleTitle || "Untitled creation"}
+                  </h3>
+                </div>
+
+                <div className="mt-5 border-t border-white/5 pt-4 flex items-center justify-between">
+                  <span className="text-[10px] text-zinc-500">
+                    {creation.draftCount} drafts generated
+                  </span>
+                  <Link
+                    href={`/workspace/create/${creation.id}`}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
+                  >
+                    Open Pack
+                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ─── Bottom Columns: Queue Preview & Ready newsletters ─── */}
+      <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
+        {/* Left Column: Scheduled Timeline */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-zinc-100">Weekly Queue Feed</h2>
+              <p className="text-xs text-zinc-500 mt-1">Live overview of upcoming publishing slots</p>
+            </div>
+            <Link href="/workspace/calendar" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">
+              View Calendar
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          {scheduledPosts.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/10 bg-zinc-950/20 py-16 text-center">
+              <p className="text-xs text-zinc-500 max-w-sm mx-auto leading-relaxed">
+                Your post-dispatch queue is empty. Choose a channel card variations pack and schedule your releases!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3.5">
+              {scheduledPosts.slice(0, 3).map((post) => (
+                <div
+                  key={post.id}
+                  className="rounded-2xl border border-white/5 bg-zinc-950/40 p-5 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/50 flex flex-col sm:flex-row justify-between sm:items-center gap-4"
+                >
+                  <div className="flex items-start gap-3.5 min-w-0">
+                    <div className="relative h-8 w-8 shrink-0">
+                      {post.channel?.avatarUrl ? (
+                        <img
+                          src={post.channel.avatarUrl}
+                          alt=""
+                          className="h-8 w-8 rounded-full object-cover border border-zinc-800"
+                        />
+                      ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-xs font-bold text-zinc-300 border border-zinc-800">
+                          {(post.channel?.accountName || post.channel?.platform || "?").charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      {post.channel?.platform && getPlatformLogo(post.channel.platform) ? (
+                        <div className="absolute -bottom-1 -right-1 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-zinc-950 p-0.5 border border-zinc-800">
+                          <img
+                            src={getPlatformLogo(post.channel.platform) ?? ""}
+                            alt=""
+                            className="h-full w-full object-contain"
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-zinc-200">
+                          {post.channel?.accountName || "Connected profile"}
+                        </span>
+                        <span className="text-[10px] text-zinc-500 bg-white/[0.02] px-2 py-0.5 rounded-full border border-white/5 capitalize">
+                          {post.channel?.platform}
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-300/80 truncate max-w-xl font-normal pr-4">
+                        {post.content?.text || ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0 justify-between sm:justify-start">
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold text-zinc-400 block">
+                        {new Date(post.scheduledAt!).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </span>
+                      <span className="text-[9px] text-zinc-500 block mt-0.5">
+                        {formatFriendlyTime(post.scheduledAt!)}
+                      </span>
+                    </div>
+                    <Link
+                      href="/workspace/calendar"
+                      className="rounded-lg bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                    >
+                      <ArrowUpRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Right Column: Ready Newsletter Issues */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-zinc-100 font-urbanist">Import Pipeline</h2>
+              <p className="text-xs text-zinc-500 mt-1">Ready issues for packing</p>
+            </div>
+            <Link href="/workspace/create/new" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-0.5">
+              Import
+              <Plus className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          {recentArticles.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/10 bg-zinc-950/20 p-8 text-center">
+              <RssIcon className="h-6 w-6 text-zinc-700 mx-auto mb-2" />
+              <p className="text-[11px] text-zinc-600 leading-normal max-w-[160px] mx-auto">
+                No articles imported. Feed your newsletter RSS link to fetch!
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              {recentArticles.slice(0, 4).map((art) => (
+                <div
+                  key={art.id}
+                  className="rounded-xl border border-white/5 bg-zinc-950/40 p-4 transition-all hover:border-white/10 flex flex-col justify-between gap-3"
+                >
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-semibold text-zinc-200 line-clamp-1 leading-normal">
+                      {art.title}
+                    </h4>
+                    <span className="text-[9px] text-zinc-500 block">
+                      Imported {new Date(art.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </span>
+                  </div>
+
+                  <Link
+                    href={`/workspace/create/new?articleId=${art.id}`}
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors w-fit"
+                  >
+                    Launch Pack
+                    <ArrowRight className="h-3 w-3 shrink-0" />
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
