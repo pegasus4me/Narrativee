@@ -564,7 +564,7 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
     const [u] = await db.select({ tokens: user.tokens, writingStyle: user.writingStyle }).from(user).where(eq(user.id, userId)).limit(1);
     const tokens = u?.tokens ?? 0;
     const writingStyle = u?.writingStyle ?? 'professional, engaging';
-    
+
     const cost = selectedAngles.length * activeChannels.length;
     if (tokens < cost) {
       return res.status(402).json({

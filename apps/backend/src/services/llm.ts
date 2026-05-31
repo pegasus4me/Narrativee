@@ -23,20 +23,8 @@ function truncate(value: string, maxLength: number): string {
   return `${value.slice(0, maxLength - 1).trim()}…`;
 }
 
-function splitSentences(content: string): string[] {
-  return normalizeText(content)
-    .split(/(?<=[.!?])\s+/)
-    .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence.length >= 40);
-}
-
 function uniqueValues(values: string[]): string[] {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
-}
-
-function formatIdea(sentence: string): string {
-  const cleanedSentence = sentence.replace(/["“”]/g, "").trim();
-  return truncate(cleanedSentence.replace(/[.!?]$/, ""), 150);
 }
 
 function extractJsonObject(rawContent: string): AngleExtractionResponse {
@@ -84,19 +72,15 @@ function normalizeIdeas(value: unknown): string[] {
   return uniqueValues(ideas).slice(0, MAX_ANGLE_COUNT);
 }
 
-function buildFallbackIdeas(title: string, content: string): string[] {
-  const titleIdea = title.trim() ? `The overlooked angle inside "${title.trim()}"` : "";
-  const sentenceIdeas = splitSentences(content).map(formatIdea);
-  return uniqueValues([titleIdea, ...sentenceIdeas]).slice(0, MAX_ANGLE_COUNT);
-}
-
 async function extractIdeasWithGrok(title: string, content: string): Promise<string[]> {
+  console.log("[LLMService] extractIdeasWithGrok started");
   const grok = getGrokClient();
   if (!grok) {
-    return [];
+    throw new Error("[LLMService] Grok API key is missing or invalid. Please configure GROK_API_KEY in your env.");
   }
 
   const plainContent = normalizeText(content);
+  console.log("[LLMService] Calling xAI Grok completions api with model:", GROK_MODEL);
 
   const response = await grok.chat.completions.create({
     model: GROK_MODEL,
@@ -125,6 +109,29 @@ Each angle must:
 - Avoid em dashes or complex punctuation.
 - Never refer to "the article", "the author", or "the newsletter".
 
+---
+
+### EXAMPLE INSTRUCTION & OUTPUTS:
+
+Title: Why we transitioned to a flat organizational structure
+Content: ...
+
+Expected Output JSON:
+{
+  "ideas": [
+    "Most managers promote collaborative flat structures not because they trust their team, but because they are afraid of making hard top-down decisions.",
+    "Flat organizational structures actually increase bureaucracy—when no one is officially in charge, everyone has to approve every single decision.",
+    "The absolute worst mistake you can make when going flat is assuming people will self-organize without clear boundary rules.",
+    "We used to think manager-less teams meant total freedom, until we realized absolute freedom without structure is just a recipe for paralysis.",
+    "The paradox of modern leadership: you must provide absolute clarity of direction while relinquishing all control over the execution.",
+    "The 3-Rule Autonomy Framework: define the boundaries, assign single-owner responsibilities, and require peer-reviews for major decisions.",
+    "After removing traditional managers, our decision-making cycles slowed down by 40% before we implemented automated guardrails.",
+    "If you want to decentralize control tomorrow, start by writing down the 5 decisions that absolutely require your sign-off and delegating everything else."
+  ]
+}
+
+---
+
 Return only valid JSON:
 {
   "ideas": ["angle 1", "angle 2"]
@@ -141,8 +148,11 @@ Return only valid JSON:
   });
 
   const rawContent = response.choices[0]?.message?.content ?? "{}";
+  console.log("[LLMService] Raw Grok response successfully received. Length:", rawContent.length);
   const parsed = extractJsonObject(rawContent);
-  return normalizeIdeas(parsed.ideas);
+  const normalized = normalizeIdeas(parsed.ideas);
+  console.log("[LLMService] Normalized ideas count:", normalized.length);
+  return normalized;
 }
 
 function getPlatformDraft(params: {
@@ -173,18 +183,26 @@ function getPlatformDraft(params: {
 
 /** Compatibility service for legacy article routes that need lightweight LLM-style drafting helpers. */
 export class LLMService {
-  /** Extracts atomic content ideas from an article title and body using Grok when configured. */
+  /**
+   * Extracts exactly 8 atomic content ideas/angles from an article title and body.
+   * Utilizes Grok to guarantee high-signal social content angles.
+   * Throws an error if Grok is not configured or if the LLM call fails.
+   * 
+   * @param title - The title of the article.
+   * @param content - The full body content of the article.
+   * @returns An array of exactly 8 scroll-stopping social content angles.
+   */
   static async extractAtomicIdeas(title: string, content: string): Promise<string[]> {
-    try {
-      const llmIdeas = await extractIdeasWithGrok(title, content);
-      if (llmIdeas.length > 0) {
-        return llmIdeas;
-      }
-    } catch (error) {
-      console.warn("[LLMService] Grok angle extraction failed. Falling back to deterministic extraction.", error);
+    console.log("[LLMService] extractAtomicIdeas called. Title:", title);
+    // Directly call the LLM and let any errors/missing configurations propagate.
+    // We no longer silently fall back to cheap-looking split sentences.
+    const llmIdeas = await extractIdeasWithGrok(title, content);
+    
+    if (llmIdeas.length === 0) {
+      throw new Error("[LLMService] Failed to extract content angles from the LLM. Please try again.");
     }
 
-    return buildFallbackIdeas(title, content);
+    return llmIdeas;
   }
 
   /** Generates a platform-aware fallback social draft for legacy article flows. */
