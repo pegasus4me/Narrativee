@@ -229,7 +229,6 @@ function NewCreateFlow() {
   };
 
   const handleSelectArticle = async (article: ArticleListItem, force: boolean): Promise<void> => {
-    void force;
     setSelectedArticle(article);
     setSelectedAngles(new Set<number>());
     setHasConfirmedAngles(false);
@@ -241,7 +240,7 @@ function NewCreateFlow() {
     setLoadingIdeasForArticleId(article.id);
 
     try {
-      const result = await extractAngles.mutateAsync(article.id);
+      const result = await extractAngles.mutateAsync({ articleId: article.id, force });
       setIdeas(result.ideas);
       setIdeasMeta({ cached: result.cached });
     } catch (error: unknown) {

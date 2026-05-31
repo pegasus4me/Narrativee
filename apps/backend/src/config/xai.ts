@@ -27,7 +27,7 @@ function ensureEnvLoaded(): void {
 
 function getGrokApiKey(): string {
   ensureEnvLoaded();
-  return process.env.GROK_API_KEY?.trim() ?? "";
+  return process.env.GROK_API_KEY?.trim() || process.env.XAI_API_KEY?.trim() || "";
 }
 
 /**
