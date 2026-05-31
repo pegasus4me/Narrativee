@@ -61,7 +61,7 @@ const PLATFORM_META: Record<string, { label: string; icon: React.ReactNode; colo
     bg: "bg-zinc-900 border border-zinc-800",
   },
   substack: {
-    label: "Substack",
+    label: "Substack notes",
     icon: <img src={SUBSTACK_LOGO} alt="Substack" className="h-5 w-5 object-contain" />,
     color: "text-[#FF581E]",
     bg: "bg-[#FF581E]/10 border-[#FF581E]/20",

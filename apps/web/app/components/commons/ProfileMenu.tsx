@@ -6,6 +6,15 @@ import { useRouter } from "next/navigation";
 import { reportApi } from "../../../lib/apis";
 import { Badge } from "@/components/ui/badge"
 
+import { DEFAULT_AVATAR } from "@/app/constants";
+
+const getAvatar = (url?: string | null) => {
+    if (!url || url.includes("vecteezy.com")) {
+        return DEFAULT_AVATAR;
+    }
+    return url;
+};
+
 export default function ProfileMenu() {
     const session = authClient.useSession();
     const [isOpen, setIsOpen] = useState(false);
@@ -55,7 +64,7 @@ export default function ProfileMenu() {
                     className="flex items-center gap-3 px-3 py-2 text-zinc-800 transition-colors cursor-pointer hover:bg-zinc-100 rounded-lg focus:outline-none"
                 >
                     <Image
-                        src={session?.data?.user?.image || '/default-avatar.png'}
+                        src={getAvatar(session?.data?.user?.image)}
                         alt={session?.data?.user?.name || 'User'}
                         width={32}
                         height={32}

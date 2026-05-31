@@ -13,6 +13,13 @@ interface ProfileMenuSidebarProps {
     isSidebarOpen: boolean;
 }
 
+const getAvatar = (url?: string | null) => {
+    if (!url || url.includes("vecteezy.com")) {
+        return DEFAULT_AVATAR;
+    }
+    return url;
+};
+
 export default function ProfileMenuSidebar({ isSidebarOpen }: ProfileMenuSidebarProps) {
     const session = authClient.useSession();
     const [isOpen, setIsOpen] = useState(false);
@@ -56,7 +63,7 @@ export default function ProfileMenuSidebar({ isSidebarOpen }: ProfileMenuSidebar
             >
                 <div className="flex items-center gap-3 overflow-hidden">
                     <Image
-                        src={session?.data?.user?.image || DEFAULT_AVATAR}
+                        src={getAvatar(session?.data?.user?.image)}
                         alt={session?.data?.user?.name || 'User'}
                         width={isSidebarOpen ? 44 : 44}
                         height={isSidebarOpen ? 44 : 44}

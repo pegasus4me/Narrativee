@@ -9,6 +9,15 @@ import { useRouter } from "next/navigation";
 
 type Tab = "profile" | "billing" | "preferences";
 
+import { DEFAULT_AVATAR } from "../../app/constants";
+
+const getAvatar = (url?: string | null) => {
+    if (!url || url.includes("vecteezy.com")) {
+        return DEFAULT_AVATAR;
+    }
+    return url;
+};
+
 export default function SettingsPage() {
     const { data: session } = authClient.useSession();
     const router = useRouter();
@@ -65,7 +74,7 @@ export default function SettingsPage() {
             <div className="flex flex-col md:flex-row gap-8">
                 {/* Sidebar */}
                 <aside className="w-full md:w-52 flex-shrink-0">
-                    <nav className="flex flex-col gap-1">
+                     <nav className="flex flex-col gap-1">
                         {NAV.map(({ id, label, icon: Icon }) => (
                             <button
                                 key={id}
@@ -103,7 +112,7 @@ export default function SettingsPage() {
                                 <h2 className="text-base font-semibold text-gray-100 mb-5">Profile Information</h2>
                                 <div className="flex items-center gap-4 mb-6">
                                     <Image
-                                        src={session.user.image || "/default-avatar.png"}
+                                        src={getAvatar(session.user.image)}
                                         alt="Profile"
                                         width={64}
                                         height={64}
