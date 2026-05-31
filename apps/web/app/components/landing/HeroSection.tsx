@@ -15,6 +15,8 @@ export function HeroSection() {
         Turn one newsletter into a native content machine.
       </h1>
 
+      <ProductPreview />
+
       <p className="mt-8 max-w-2xl text-pretty text-base leading-8 text-zinc-400 sm:text-lg">
         Narrativee learns your voice, extracts sharper angles, and compiles platform-native drafts for X, LinkedIn,
         Threads, Instagram, Facebook, Bluesky, and more.
@@ -45,7 +47,6 @@ export function HeroSection() {
         ))}
       </div>
 
-      <ProductPreview />
     </section>
   );
 }

@@ -43,6 +43,6 @@ jobs:
     steps:
       - name: Trigger deploy via webhook
         run: |
-          curl -s -X POST "https://api.narrativee.com/api/deploy-hook" \
-            -H "Authorization: Bearer narrativee-deploy-2026" \
-            --max-time 10 || true
+          curl --fail-with-body -sS -X POST "https://api.narrativee.com/api/deploy-hook" \
+            -H "Authorization: Bearer ${{ secrets.DEPLOY_HOOK_SECRET }}" \
+            --max-time 30
