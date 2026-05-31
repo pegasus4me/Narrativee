@@ -9,6 +9,18 @@ import { posthog } from '../lib/posthog';
 const router = Router();
 const parser = new Parser();
 
+function decodeHtmlEntities(str: string): string {
+    if (!str) return '';
+    return str
+        .replace(/&#8217;|&#39;|&rsquo;|&apos;/g, "'")
+        .replace(/&#8216;|&lsquo;/g, "'")
+        .replace(/&#8220;|&#8221;|&ldquo;|&rdquo;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"');
+}
+
 // GET /api/sources - List connected content sources
 router.get('/', verifyAuth, async (req: AuthRequest, res) => {
     try {
@@ -151,8 +163,8 @@ router.post('/', verifyAuth, async (req: AuthRequest, res) => {
             .map(item => ({
                 userId,
                 sourceId,
-                title: item.title || 'Untitled',
-                content: item['content:encoded'] || item.content || item.contentSnippet || '',
+                title: decodeHtmlEntities(item.title || 'Untitled'),
+                content: decodeHtmlEntities(item['content:encoded'] || item.content || item.contentSnippet || ''),
                 url: item.link || '',
                 publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
             }));

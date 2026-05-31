@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, RefreshCw, ChevronRight, ArrowLeft, Sparkles, Plus } from "lucide-react";
+import { decodeHtmlEntities } from "@/lib/utils";
 
 interface AnglePickerProps {
   article: { id: string; title: string } | null;
@@ -157,7 +158,7 @@ export function AnglePicker({
                           </svg>
                         )}
                       </div>
-                      <span className="flex-1">{idea}</span>
+                      <span className="flex-1">{decodeHtmlEntities(idea)}</span>
                     </div>
                   </button>
                 </li>
