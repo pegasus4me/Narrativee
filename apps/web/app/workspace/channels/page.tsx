@@ -30,6 +30,12 @@ const PLATFORM_META: Record<string, { label: string; icon: React.ReactNode; colo
     color: "text-[#0A66C2]",
     bg: "bg-[#0A66C2]/10 border-[#0A66C2]/20",
   },
+  x: {
+    label: "X (Twitter)",
+    icon: <img src={X_LOGO} alt="X" className="h-5 w-5 object-contain invert" />,
+    color: "text-white",
+    bg: "bg-zinc-900 border border-zinc-800",
+  },
   bluesky: {
     label: "Bluesky",
     icon: <img src={BLUESKY_LOGO} alt="Bluesky" className="h-5 w-5 object-contain" />,
