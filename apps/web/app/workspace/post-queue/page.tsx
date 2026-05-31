@@ -43,6 +43,7 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error";
 }
 
+/** Displays and manages the authenticated user's publishing queue. */
 export default function PostQueuePage() {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<QueuePost[]>([]);

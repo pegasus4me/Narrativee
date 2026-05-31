@@ -50,6 +50,7 @@ interface SideBarProps {
 
 
 
+/** Renders workspace navigation and authenticated connection summaries. */
 export function SideBar({ selectedTemplateId }: SideBarProps) {
   const path = usePathname()
   const router = useRouter()

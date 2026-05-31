@@ -256,6 +256,7 @@ function ChannelsPageContent() {
   );
 }
 
+/** Displays authenticated newsletter sources and social channel connections. */
 export default function ChannelsPage() {
   return (
     <Suspense fallback={

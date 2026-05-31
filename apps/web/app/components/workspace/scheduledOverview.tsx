@@ -25,6 +25,7 @@ function isScheduledQueuePost(post: ScheduledPost): post is ScheduledQueuePost {
   return post.status === "scheduled" && typeof post.scheduledAt === "string" && post.scheduledAt.length > 0;
 }
 
+/** Shows a compact month overview of scheduled posts from the authenticated queue. */
 export function ScheduledOverview() {
   const [posts, setPosts] = useState<ScheduledQueuePost[]>([]);
   const [loading, setLoading] = useState(true);

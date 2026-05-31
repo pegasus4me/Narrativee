@@ -54,6 +54,7 @@ function formatFriendlyTime(dateStr: string): string {
   return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
+/** Dashboard for authenticated workspace metrics and recent activity. */
 export default function WorkspaceDashboard() {
   const session = authClient.useSession();
   const user = session.data?.user;

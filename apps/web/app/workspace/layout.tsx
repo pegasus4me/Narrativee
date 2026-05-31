@@ -3,6 +3,7 @@
 import AuthGuard from "../components/commons/AuthGuard"
 import { SideBar } from "../components/commons/sideBar"
 
+/** Authenticated shell for every workspace route. */
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
     return (
         <AuthGuard>
