@@ -17,7 +17,7 @@ const MAX_BRAND_VOICE_LENGTH = 5000;
 const MAX_SOURCE_ITEMS = 60;
 const MAX_SOURCE_CONTENT_LENGTH = 12000;
 const MAX_FIELD_LENGTH = 400;
-const VALID_CHANNELS = ['linkedin', 'x', 'instagram', 'threads', 'facebook', 'bluesky'];
+const VALID_CHANNELS = ['linkedin', 'x', 'instagram', 'threads', 'facebook', 'bluesky', 'substack'];
 const VALID_SOURCE_CATEGORIES = ['newsletter', 'x', 'linkedin', 'website', 'best-performing'];
 const VOICE_PROFILE_KEYS = [
   'tone',

@@ -16,7 +16,6 @@ import PricingPopUp from "../workspace/pricingPopUp";
 import { useChannels } from "@/app/hooks/api/useChannels";
 import { useSources } from "@/app/hooks/api/useSources";
 import { useCredits } from "@/app/hooks/api/useCredits";
-import { MOCK_CHANNELS_SIDEBAR, MOCK_SOURCES_SIDEBAR } from "@/app/components/workspace/shared/mockData";
 
 const PLATFORM_META: Record<string, { label: string; icon: React.ReactNode }> = {
   linkedin: {
@@ -70,8 +69,8 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const { data: sourcesData } = useSources(isLoggedIn);
   const { data: creditsData } = useCredits(isLoggedIn);
 
-  const channels = isLoggedIn ? (channelsData ?? []) : MOCK_CHANNELS_SIDEBAR;
-  const sources = isLoggedIn ? (sourcesData ?? []) : MOCK_SOURCES_SIDEBAR;
+  const channels = channelsData ?? [];
+  const sources = sourcesData ?? [];
 
   useEffect(() => {
     if (creditsData !== undefined) {

@@ -6,12 +6,10 @@ import { ChevronLeft, ChevronRight, Calendar, Mail, Loader2 } from "lucide-react
 import { API_URL } from "@/lib/api-config";
 import { LINKEDIN_LOGO, X_LOGO, THREADS_LOGO, INSTAGRAM_LOGO, FACEBOOK_LOGO } from "@/app/constants";
 
-import { authClient } from "../../../lib/auth-client";
-
 interface ScheduledPost {
   id: string;
   status: string;
-  scheduledAt: string;
+  scheduledAt?: string;
   channel?: {
     platform: string;
     accountName: string;
@@ -19,80 +17,30 @@ interface ScheduledPost {
   };
 }
 
-const getMockScheduledPosts = () => {
-  const today = new Date();
-  
-  const date1 = new Date(today);
-  date1.setDate(today.getDate() + 1);
-  date1.setHours(10, 0, 0, 0);
+interface ScheduledQueuePost extends ScheduledPost {
+  scheduledAt: string;
+}
 
-  const date2 = new Date(today);
-  date2.setDate(today.getDate() + 1);
-  date2.setHours(14, 30, 0, 0);
-
-  const date3 = new Date(today);
-  date3.setDate(today.getDate() + 2);
-  date3.setHours(9, 15, 0, 0);
-
-  const date4 = new Date(today);
-  date4.setDate(today.getDate() + 2);
-  date4.setHours(16, 0, 0, 0);
-
-  return [
-    {
-      id: "mock-p1",
-      status: "scheduled",
-      scheduledAt: date1.toISOString(),
-      channel: { platform: "linkedin", accountName: "Sarah Chen" }
-    },
-    {
-      id: "mock-p2",
-      status: "scheduled",
-      scheduledAt: date2.toISOString(),
-      channel: { platform: "x", accountName: "sarah_growth" }
-    },
-    {
-      id: "mock-p3",
-      status: "scheduled",
-      scheduledAt: date3.toISOString(),
-      channel: { platform: "instagram", accountName: "sarah_insta" }
-    },
-    {
-      id: "mock-p4",
-      status: "scheduled",
-      scheduledAt: date4.toISOString(),
-      channel: { platform: "threads", accountName: "sarah_chen" }
-    }
-  ];
-};
+function isScheduledQueuePost(post: ScheduledPost): post is ScheduledQueuePost {
+  return post.status === "scheduled" && typeof post.scheduledAt === "string" && post.scheduledAt.length > 0;
+}
 
 export function ScheduledOverview() {
-  const { data: session, isPending } = authClient.useSession();
-  const isGuest = !isPending && !session?.user;
-
-  const [posts, setPosts] = useState<ScheduledPost[]>([]);
+  const [posts, setPosts] = useState<ScheduledQueuePost[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
-    if (!isPending) {
-      if (isGuest) {
-        setPosts(getMockScheduledPosts());
-        setLoading(false);
-      } else {
-        fetchQueue();
-      }
-    }
-  }, [isPending, isGuest]);
+    void fetchQueue();
+  }, []);
 
   const fetchQueue = async () => {
     try {
       setLoading(true);
       const res = await fetch(`${API_URL}/articles/drafts/queue`, { credentials: "include" });
       if (res.ok) {
-        const data = (await res.json()) as any[];
-        // Filter for scheduled posts
-        const scheduled = data.filter((p: any) => p.status === "scheduled" && p.scheduledAt);
+        const data = (await res.json()) as ScheduledPost[];
+        const scheduled = data.filter(isScheduledQueuePost);
         setPosts(scheduled);
       }
     } catch (err) {

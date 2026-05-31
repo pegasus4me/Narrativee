@@ -440,6 +440,53 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
       externalPostId = resData?.uri;
       console.log(`[Publisher] Successfully posted to Bluesky! Post URI: ${externalPostId}`);
 
+    } else if (channel.platform === "substack") {
+      console.log(`[Publisher] Posting to Substack Notes for user ${post.userId}`);
+      
+      const cookieHeader = accessToken.includes("=") 
+        ? accessToken 
+        : `substack.sid=${accessToken}`;
+
+      const res = await fetch("https://substack.com/api/v1/comment/feed", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Cookie": cookieHeader,
+          "Referer": "https://substack.com/activity",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+        },
+        body: JSON.stringify({
+          bodyJson: {
+            type: "doc",
+            attrs: {
+              schemaVersion: "v1",
+              title: null,
+            },
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: postText,
+                  },
+                ],
+              },
+            ],
+          },
+          replyMinimumRole: "everyone",
+        }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Substack API returned error ${res.status}: ${errText}`);
+      }
+
+      const resData = await res.json() as any;
+      externalPostId = resData?.id?.toString() || `substack_${Date.now()}`;
+      console.log(`[Publisher] Successfully posted to Substack Notes! Post ID: ${externalPostId}`);
+
     } else {
       // Simulated successful posting for Facebook (until fully implemented)
       console.log(`[Publisher] Platform ${channel.platform} publishing is simulated`);

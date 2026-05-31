@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { authClient } from "../../../lib/auth-client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/api-config";
@@ -14,15 +13,15 @@ import {
   Plus,
   ChevronRight,
 } from "lucide-react";
-import { useChannels, useDeleteChannel, useConnectBluesky } from "@/app/hooks/api/useChannels";
+import { useChannels, useDeleteChannel, useConnectBluesky, useConnectSubstack } from "@/app/hooks/api/useChannels";
 import { useSources, useAddSource, useDeleteSource } from "@/app/hooks/api/useSources";
-import { MOCK_CHANNELS, MOCK_SOURCES } from "@/app/components/workspace/shared/mockData";
 import { ConnectionsList } from "@/app/components/workspace/channels/ConnectionsList";
 import { AddSourceForm } from "@/app/components/workspace/channels/AddSourceForm";
 import { BlueskyModal } from "@/app/components/workspace/channels/BlueskyModal";
 import { InstagramModal } from "@/app/components/workspace/channels/InstagramModal";
+import { SubstackModal } from "@/app/components/workspace/channels/SubstackModal";
 import type { Channel, Source } from "@/app/types/api";
-import { LINKEDIN_LOGO, X_LOGO, INSTAGRAM_LOGO, FACEBOOK_LOGO, THREADS_LOGO, BLUESKY_LOGO } from "@/app/constants";
+import { LINKEDIN_LOGO, X_LOGO, INSTAGRAM_LOGO, FACEBOOK_LOGO, THREADS_LOGO, BLUESKY_LOGO, SUBSTACK_LOGO } from "@/app/constants";
 
 const PLATFORM_META: Record<string, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
   linkedin: {
@@ -55,6 +54,12 @@ const PLATFORM_META: Record<string, { label: string; icon: React.ReactNode; colo
     color: "text-white",
     bg: "bg-zinc-900 border border-zinc-800",
   },
+  substack: {
+    label: "Substack",
+    icon: <img src={SUBSTACK_LOGO} alt="Substack" className="h-5 w-5 object-contain" />,
+    color: "text-[#FF581E]",
+    bg: "bg-[#FF581E]/10 border-[#FF581E]/20",
+  },
 };
 
 const AFTER_CONNECT = [
@@ -69,25 +74,23 @@ function ChannelsPageContent() {
   const error = searchParams.get("error");
   const detail = searchParams.get("detail");
 
-  const session = authClient.useSession();
-  const isGuest = !session.isPending && !session.data?.user;
-  const isLoggedIn = !session.isPending && !!session.data?.user;
-
-  const { data: channelsData, isLoading: channelsLoading } = useChannels(isLoggedIn);
-  const { data: sourcesData, isLoading: sourcesLoading } = useSources(isLoggedIn);
+  const { data: channelsData, isLoading: channelsLoading } = useChannels(true);
+  const { data: sourcesData, isLoading: sourcesLoading } = useSources(true);
   const deleteChannel = useDeleteChannel();
   const deleteSource = useDeleteSource();
   const addSource = useAddSource();
   const connectBluesky = useConnectBluesky();
+  const connectSubstack = useConnectSubstack();
 
-  const channels: Channel[] = isLoggedIn ? (channelsData ?? []) : MOCK_CHANNELS;
-  const sources: Source[] = isLoggedIn ? (sourcesData ?? []) : MOCK_SOURCES;
-  const loading = isLoggedIn ? (channelsLoading || sourcesLoading) : false;
+  const channels: Channel[] = channelsData ?? [];
+  const sources: Source[] = sourcesData ?? [];
+  const loading = channelsLoading || sourcesLoading;
 
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showBlueskyModal, setShowBlueskyModal] = useState(false);
+  const [showSubstackModal, setShowSubstackModal] = useState(false);
   const [showInstagramModal, setShowInstagramModal] = useState(false);
   const [blueskyError, setBlueskyError] = useState("");
+  const [substackError, setSubstackError] = useState("");
   const [sourceError, setSourceError] = useState("");
   const [sourceSuccess, setSourceSuccess] = useState("");
 
@@ -95,8 +98,8 @@ function ChannelsPageContent() {
   const hasConnections = channels.length > 0 || sources.length > 0;
 
   const handleConnect = (platform: string) => {
-    if (isGuest) { setShowAuthModal(true); return; }
     if (platform === "bluesky") { setBlueskyError(""); setShowBlueskyModal(true); return; }
+    if (platform === "substack") { setSubstackError(""); setShowSubstackModal(true); return; }
     if (platform === "instagram") { setShowInstagramModal(true); return; }
     window.location.href = `${API_URL}/channels/connect/${platform}`;
   };
@@ -111,20 +114,27 @@ function ChannelsPageContent() {
     }
   };
 
+  const handleConnectSubstack = async (params: { identifier: string; sessionCookie: string }) => {
+    try {
+      setSubstackError("");
+      await connectSubstack.mutateAsync(params);
+      setShowSubstackModal(false);
+    } catch (err: unknown) {
+      setSubstackError(err instanceof Error ? err.message : "Failed to connect");
+    }
+  };
+
   const handleDisconnectChannel = async (channelId: string) => {
-    if (isGuest) { setShowAuthModal(true); return; }
     if (!confirm("Are you sure you want to disconnect this channel?")) return;
     deleteChannel.mutate(channelId);
   };
 
   const handleDisconnectSource = async (sourceId: string) => {
-    if (isGuest) { setShowAuthModal(true); return; }
     if (!confirm("Are you sure you want to disconnect this newsletter?")) return;
     deleteSource.mutate(sourceId);
   };
 
   const handleAddSource = async (url: string, platform: string) => {
-    if (isGuest) { setShowAuthModal(true); return; }
     setSourceError("");
     setSourceSuccess("");
     try {
@@ -225,40 +235,20 @@ function ChannelsPageContent() {
         </section>
       </div>
 
-      {/* Modals */}
-      {showAuthModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowAuthModal(false)} />
-          <div className="relative w-full max-w-md transform overflow-hidden rounded-3xl border border-white/20 bg-white/80 p-8 shadow-2xl backdrop-blur-xl">
-            <div className="text-center">
-              <h3 className="text-2xl font-extrabold tracking-tight text-zinc-900">Unlock Channel Connections</h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-600">
-                You&apos;re currently exploring in <strong className="text-indigo-600 font-bold">Sandbox Mode</strong>. Connect your own channels to start repurposing.
-              </p>
-            </div>
-            <ul className="mt-6 space-y-3.5 border-t border-zinc-100/50 pt-6">
-              {["Publish automatically with one-click dispatch", "Fully customizable tone of voice models", "Direct API channels: X, LinkedIn, Threads, Instagram", "Seamless custom RSS and Substack syncing"].map((feature, i) => (
-                <li key={i} className="flex items-start gap-3 text-xs text-zinc-600">
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="font-medium">{feature}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-8 flex flex-col gap-3">
-              <Link href="/auth/signup" className="flex h-12 w-full items-center justify-center rounded-2xl bg-zinc-950 font-bold text-white shadow-lg transition-all hover:bg-zinc-800 text-sm">Create Free Account</Link>
-              <Link href="/auth/signin" className="flex h-12 w-full items-center justify-center rounded-2xl border border-zinc-200 bg-white font-bold text-zinc-700 transition-all hover:bg-zinc-50 text-sm">Sign In</Link>
-              <button type="button" onClick={() => setShowAuthModal(false)} className="mt-1 text-xs text-zinc-400 font-medium hover:text-zinc-600 transition-colors">Continue Exploring</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <BlueskyModal
         isOpen={showBlueskyModal}
         onClose={() => setShowBlueskyModal(false)}
         onConnect={handleConnectBluesky}
         isConnecting={connectBluesky.isPending}
         error={blueskyError}
+      />
+
+      <SubstackModal
+        isOpen={showSubstackModal}
+        onClose={() => setShowSubstackModal(false)}
+        onConnect={handleConnectSubstack}
+        isConnecting={connectSubstack.isPending}
+        error={substackError}
       />
 
       <InstagramModal isOpen={showInstagramModal} onClose={() => setShowInstagramModal(false)} />

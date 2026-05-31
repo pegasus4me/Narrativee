@@ -57,15 +57,15 @@ function formatFriendlyTime(dateStr: string): string {
 export default function WorkspaceDashboard() {
   const session = authClient.useSession();
   const user = session.data?.user;
-  const isGuest = !session.isPending && !user;
+  const isAuthenticated = !!user;
 
   // Query database metrics using hooks
-  const { data: channels, isLoading: loadingChannels } = useChannels(!isGuest);
-  const { data: creations, isLoading: loadingCreations } = useCreationSessions(!isGuest);
-  const { data: queue, isLoading: loadingQueue } = useDraftsQueue(!isGuest);
-  const { data: articles, isLoading: loadingArticles } = useArticles(!isGuest);
-  const { data: credits, isLoading: loadingCredits } = useCredits(!isGuest);
-  const { data: kb, isLoading: loadingKB } = useKnowledgeBase(!isGuest);
+  const { data: channels, isLoading: loadingChannels } = useChannels(isAuthenticated);
+  const { data: creations, isLoading: loadingCreations } = useCreationSessions(isAuthenticated);
+  const { data: queue, isLoading: loadingQueue } = useDraftsQueue(isAuthenticated);
+  const { data: articles, isLoading: loadingArticles } = useArticles(isAuthenticated);
+  const { data: credits, isLoading: loadingCredits } = useCredits(isAuthenticated);
+  const { data: kb, isLoading: loadingKB } = useKnowledgeBase(isAuthenticated);
 
   const activeChannels = channels ?? [];
   const savedCreations = creations ?? [];
@@ -74,7 +74,7 @@ export default function WorkspaceDashboard() {
     [queue]
   );
   const recentArticles = articles ?? [];
-  const creditBalance = credits ?? 40;
+  const creditBalance = credits ?? 0;
   const maxCredits = 1000; // Visual denominator for progress bar
 
   const isMainLoading =

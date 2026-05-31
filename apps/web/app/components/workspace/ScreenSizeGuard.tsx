@@ -2,6 +2,7 @@
 
 import { useMediaQuery } from "usehooks-ts";
 import { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import Narrativeelogo from '../../../public/logo.png'
 import Image from "next/image";
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -73,7 +74,13 @@ export default function ScreenSizeGuard({
   children,
   blockedDevices = ["mobile", "tablet"],
 }: ScreenSizeGuardProps) {
+  const pathname = usePathname();
   const device = useDeviceType();
+  const shouldGuardWorkspace = pathname.startsWith("/workspace") || pathname.startsWith("/setting");
+
+  if (!shouldGuardWorkspace) {
+    return <>{children}</>;
+  }
 
   if (blockedDevices.includes(device)) {
     return <NarrativeUnavailableOverlay device={device} />;

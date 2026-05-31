@@ -53,3 +53,23 @@ export function useConnectBluesky() {
     },
   });
 }
+
+export function useConnectSubstack() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { identifier: string; sessionCookie: string }) => {
+      const res = await fetch(`${API_URL}/channels/connect/substack`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(params),
+      });
+      const data = (await res.json()) as { error?: string; details?: string };
+      if (!res.ok) throw new Error(data.error || data.details || "Failed to connect Substack");
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHANNELS_KEY });
+    },
+  });
+}

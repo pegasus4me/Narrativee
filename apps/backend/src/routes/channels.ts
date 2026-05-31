@@ -64,8 +64,6 @@ router.get('/connect/:platform', verifyAuth, async (req: AuthRequest, res) => {
             });
         }
 
-        // Intercept mock connection if credentials are not configured in environment
-        // Bluesky has form credentials and shouldn't be intercepted as a Meta oauth provider here
         const isMetaPlatform = platform === 'facebook' || platform === 'instagram' || platform === 'threads';
         const hasMetaConfig = isMetaPlatform && (
             platform === 'threads'
@@ -76,53 +74,7 @@ router.get('/connect/:platform', verifyAuth, async (req: AuthRequest, res) => {
         );
 
         if (isMetaPlatform && !hasMetaConfig) {
-            console.log(`⚠️ Meta app credentials missing for platform [${platform}]. Initiating premium sandbox mock connection.`);
-            
-            // Upsert a mock channel connection in the database
-            const mockAccountId = `mock_${platform}_${req.user!.id}`;
-            const mockAccountName = platform === 'instagram' 
-                ? '@meta_sandbox' 
-                : platform === 'threads'
-                    ? '@threads_sandbox'
-                    : 'Narrativee Sandbox Page';
-            const mockAvatarUrl = platform === 'instagram' 
-                ? 'https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg'
-                : platform === 'threads'
-                    ? 'https://upload.wikimedia.org/wikipedia/commons/d/db/Threads_%28app%29.png'
-                    : 'https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg';
-
-            const existing = await db
-                .select()
-                .from(channels)
-                .where(
-                    and(
-                        eq(channels.userId, req.user!.id),
-                        eq(channels.platform, platform),
-                        eq(channels.providerAccountId, mockAccountId)
-                    )
-                );
-
-            if (existing.length === 0) {
-                await db.insert(channels).values({
-                    userId: req.user!.id,
-                    platform,
-                    providerAccountId: mockAccountId,
-                    accountName: mockAccountName,
-                    avatarUrl: mockAvatarUrl,
-                    accessToken: encrypt('mock_token_secret'),
-                    refreshToken: encrypt('mock_refresh_token'),
-                    expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000), // 1 year
-                });
-            }
-
-            posthog.capture({
-                distinctId: req.user!.id,
-                event: 'channel_connected',
-                properties: { platform, sandbox: true, account_name: mockAccountName },
-            });
-
-            // Redirect back to frontend with success
-            return res.redirect(`${FRONTEND_URL}/workspace/channels?connected=${platform}&sandbox=true`);
+            return res.redirect(`${FRONTEND_URL}/workspace/channels?error=missing_oauth_config&detail=${encodeURIComponent(`OAuth credentials are not configured for ${platform}.`)}`);
         }
 
         // Generate a CSRF state token
@@ -361,6 +313,90 @@ router.post('/connect/bluesky', verifyAuth, async (req: AuthRequest, res) => {
         console.error('❌ [Bluesky] Connection failed:', error.message);
         posthog.captureException(error, req.user!.id);
         res.status(400).json({ error: 'Failed to connect Bluesky', details: error.message });
+    }
+});
+
+/**
+ * POST /api/channels/connect/substack
+ * Connects a Substack account using publication handle and session cookie.
+ */
+router.post('/connect/substack', verifyAuth, async (req: AuthRequest, res) => {
+    try {
+        const { identifier, sessionCookie } = req.body;
+
+        if (!identifier || !sessionCookie) {
+            return res.status(400).json({ error: 'Substack publication handle/URL and session cookie are required' });
+        }
+
+        let cleanedHandle = identifier.trim();
+        // If they pasted a full URL, let's extract the subdomain/handle
+        if (cleanedHandle.includes('substack.com')) {
+            try {
+                let urlStr = cleanedHandle;
+                if (!urlStr.startsWith('http')) {
+                    urlStr = 'https://' + urlStr;
+                }
+                const parsed = new URL(urlStr);
+                const hostParts = parsed.hostname.split('.');
+                // e.g. "myblog.substack.com" -> ["myblog", "substack", "com"]
+                if (hostParts.length >= 3 && hostParts[0] !== 'www') {
+                    cleanedHandle = hostParts[0];
+                }
+            } catch (err) {
+                // Fallback to raw string if URL parsing fails
+            }
+        }
+
+        // Clean any trailing slashes or protocols if they just typed e.g. "https://myblog"
+        cleanedHandle = cleanedHandle.replace(/https?:\/\//, '').split('/')[0];
+
+        const providerAccountId = `substack_${cleanedHandle.toLowerCase()}`;
+        const accountName = `@${cleanedHandle}`;
+        const avatarUrl = 'https://substack.com/img/substack.png';
+
+        // Upsert: if this exact Substack account is already connected, update it
+        const existing = await db
+            .select()
+            .from(channels)
+            .where(
+                and(
+                    eq(channels.userId, req.user!.id),
+                    eq(channels.platform, 'substack'),
+                    eq(channels.providerAccountId, providerAccountId)
+                )
+            );
+
+        if (existing.length > 0) {
+            await db
+                .update(channels)
+                .set({
+                    accessToken: encrypt(sessionCookie),
+                    accountName,
+                    avatarUrl,
+                })
+                .where(eq(channels.id, existing[0]!.id));
+        } else {
+            await db.insert(channels).values({
+                userId: req.user!.id,
+                platform: 'substack',
+                providerAccountId,
+                accountName,
+                avatarUrl,
+                accessToken: encrypt(sessionCookie),
+            });
+        }
+
+        posthog.capture({
+            distinctId: req.user!.id,
+            event: 'channel_connected',
+            properties: { platform: 'substack', account_name: accountName },
+        });
+
+        res.json({ success: true, platform: 'substack', accountName });
+    } catch (error: any) {
+        console.error('❌ [Substack] Connection failed:', error.message);
+        posthog.captureException(error, req.user!.id);
+        res.status(400).json({ error: 'Failed to connect Substack', details: error.message });
     }
 });
 

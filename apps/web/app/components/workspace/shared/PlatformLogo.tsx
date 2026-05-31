@@ -1,6 +1,6 @@
 "use client";
 
-import { LINKEDIN_LOGO, X_LOGO, FACEBOOK_LOGO, INSTAGRAM_LOGO, THREADS_LOGO, BLUESKY_LOGO } from "@/app/constants";
+import { LINKEDIN_LOGO, X_LOGO, FACEBOOK_LOGO, INSTAGRAM_LOGO, THREADS_LOGO, BLUESKY_LOGO, SUBSTACK_LOGO } from "@/app/constants";
 
 const PLATFORM_LOGOS: Record<string, string> = {
   linkedin: LINKEDIN_LOGO,
@@ -9,6 +9,7 @@ const PLATFORM_LOGOS: Record<string, string> = {
   instagram: INSTAGRAM_LOGO,
   threads: THREADS_LOGO,
   bluesky: BLUESKY_LOGO,
+  substack: SUBSTACK_LOGO,
 };
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -18,6 +19,7 @@ const PLATFORM_LABELS: Record<string, string> = {
   threads: "Threads",
   facebook: "Facebook",
   bluesky: "Bluesky",
+  substack: "Substack",
 };
 
 interface PlatformLogoProps {

@@ -10,6 +10,7 @@ import {
   LINKEDIN_LOGO,
   THREADS_LOGO,
   X_LOGO,
+  SUBSTACK_LOGO,
 } from "@/app/constants";
 
 interface SocialChannelSelectorProps {
@@ -32,6 +33,7 @@ const PLATFORM_LOGOS: Record<string, string> = {
   threads: THREADS_LOGO,
   facebook: FACEBOOK_LOGO,
   bluesky: BLUESKY_LOGO,
+  substack: SUBSTACK_LOGO,
 };
 
 /**

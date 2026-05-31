@@ -14,6 +14,7 @@ import {
   LINKEDIN_LOGO,
   THREADS_LOGO,
   X_LOGO,
+  SUBSTACK_LOGO,
 } from "@/app/constants";
 import type { CreationDraft } from "@/app/types/api";
 
@@ -31,6 +32,7 @@ const PLATFORM_LOGOS: Record<string, string> = {
   threads: THREADS_LOGO,
   twitter: X_LOGO,
   x: X_LOGO,
+  substack: SUBSTACK_LOGO,
 };
 
 function formatDate(value: string | null): string {

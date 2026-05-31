@@ -1,4 +1,4 @@
-export { useChannels, useDeleteChannel, useConnectBluesky, CHANNELS_KEY } from "./useChannels";
+export { useChannels, useDeleteChannel, useConnectBluesky, useConnectSubstack, CHANNELS_KEY } from "./useChannels";
 export { useSources, useAddSource, useDeleteSource, SOURCES_KEY } from "./useSources";
 export {
   useDraftsQueue,

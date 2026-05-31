@@ -22,7 +22,6 @@ import { LINKEDIN_LOGO, X_LOGO, FACEBOOK_LOGO, INSTAGRAM_LOGO, THREADS_LOGO } fr
 
 import TimeZoneComponent from "@/app/components/workspace/timezone";
 import { API_URL } from "@/lib/api-config";
-import { authClient } from "@/lib/auth-client";
 import TimezoneSelect, { getBrowserTimezone, toUTCISOString } from "@/app/components/workspace/TimezoneSelect";
 import { CalendarGrid } from "@/app/components/workspace/queue/CalendarGrid";
 import { hasScheduledAt, type QueuePost, type ScheduledQueuePost } from "@/app/components/workspace/queue/queue.types";
@@ -48,9 +47,6 @@ export default function PostQueuePage() {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<QueuePost[]>([]);
 
-  const session = authClient.useSession();
-  const isGuest = !session.isPending && !session.data?.user;
-
   // Calendar view states
   const [viewMode, setViewMode] = useState<"grid" | "timeline">("grid");
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -73,78 +69,16 @@ export default function PostQueuePage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!session.isPending) {
-      fetchQueue();
-    }
-  }, [session.isPending, isGuest]);
+    void fetchQueue();
+  }, []);
 
   const fetchQueue = async () => {
     try {
       setLoading(true);
-      if (isGuest) {
-        // Generate dynamic relative dates
-        const today = new Date();
-        
-        const dateToday = new Date(today);
-        dateToday.setHours(18, 30, 0, 0);
-
-        const dateTomorrow = new Date(today);
-        dateTomorrow.setDate(today.getDate() + 1);
-        dateTomorrow.setHours(14, 0, 0, 0);
-
-        const dateYesterday = new Date(today);
-        dateYesterday.setDate(today.getDate() - 1);
-        dateYesterday.setHours(10, 15, 0, 0);
-
-        const mockPosts = [
-          {
-            id: "mock-post-1",
-            status: "scheduled",
-            scheduledAt: dateTomorrow.toISOString(),
-            content: {
-              text: "I spent 30 hours analyzing why some newsletters go viral on LinkedIn.\n\nHere is the 3-step repurposing formula:\n\n1. Hook: Start with a contrarian result\n2. Body: Expand with 3 clear bullets\n3. Call to Action: Point to the original article"
-            },
-            channel: {
-              platform: "linkedin",
-              accountName: "Sarah Chen (Founder)",
-              avatarUrl: "https://images.squarespace-cdn.com/content/v1/687a750f2d0df239a6910948/df95c93a-1179-4c69-98f8-061719c5634b/Sarah+Chen.jpg"
-            }
-          },
-          {
-            id: "mock-post-2",
-            status: "scheduled",
-            scheduledAt: dateToday.toISOString(),
-            content: {
-              text: "90% of content repurposing is waste. 🧵\n\nMost creators copy-paste their newsletters to Twitter. It fails.\n\nHere is the system I use to translate deep essays into high-performing threads 👇"
-            },
-            channel: {
-              platform: "x",
-              accountName: "sarah_growth",
-              avatarUrl: "https://images.squarespace-cdn.com/content/v1/687a750f2d0df239a6910948/df95c93a-1179-4c69-98f8-061719c5634b/Sarah+Chen.jpg"
-            }
-          },
-          {
-            id: "mock-post-3",
-            status: "published",
-            publishedAt: dateYesterday.toISOString(),
-            content: {
-              text: "The best newsletter creators don't rewrite. They translate. 🌐\n\nHere is how we grew our Threads channel using nothing but Substack archives."
-            },
-            channel: {
-              platform: "threads",
-              accountName: "sarah_chen",
-              avatarUrl: "https://images.squarespace-cdn.com/content/v1/687a750f2d0df239a6910948/df95c93a-1179-4c69-98f8-061719c5634b/Sarah+Chen.jpg"
-            }
-          }
-        ];
-        
-        setPosts(mockPosts);
-      } else {
-        const res = await fetch(`${API_URL}/articles/drafts/queue`, { credentials: "include" });
-        if (res.ok) {
-          const data = (await res.json()) as QueuePost[];
-          setPosts(data || []);
-        }
+      const res = await fetch(`${API_URL}/articles/drafts/queue`, { credentials: "include" });
+      if (res.ok) {
+        const data = (await res.json()) as QueuePost[];
+        setPosts(data || []);
       }
     } catch (e) {
       console.error("Failed to load schedule queue:", e);
@@ -156,19 +90,6 @@ export default function PostQueuePage() {
   // 1. Edit post content
   const handleSaveEdit = async (postId: string) => {
     if (!editText.trim()) return;
-    if (isGuest) {
-      setPosts((prev) =>
-        prev.map((p) => (p.id === postId ? { ...p, content: { ...p.content, text: editText } } : p))
-      );
-      if (activeModalPost && activeModalPost.id === postId) {
-        setActiveModalPost((prev) => prev ? ({
-          ...prev,
-          content: { ...prev.content, text: editText },
-        }) : prev);
-      }
-      setEditingPostId(null);
-      return;
-    }
     setSavingEditId(postId);
     try {
       const res = await fetch(`${API_URL}/articles/drafts/${postId}`, {
@@ -199,21 +120,6 @@ export default function PostQueuePage() {
   // 2. Reschedule post
   const handleReschedule = async (postId: string) => {
     if (!newDate || !newTime) return;
-    if (isGuest) {
-      const scheduledAt = toUTCISOString(newDate, newTime, newTimezone);
-      setPosts((prev) =>
-        prev.map((p) => (p.id === postId ? { ...p, scheduledAt, status: "scheduled" } : p))
-      );
-      if (activeModalPost && activeModalPost.id === postId) {
-        setActiveModalPost((prev) => prev ? ({
-          ...prev,
-          scheduledAt,
-          status: "scheduled",
-        }) : prev);
-      }
-      setReschedulingPostId(null);
-      return;
-    }
     setSavingRescheduleId(postId);
     try {
       const scheduledAt = toUTCISOString(newDate, newTime, newTimezone);
@@ -245,13 +151,6 @@ export default function PostQueuePage() {
 
   // 3. Unschedule post
   const handleUnschedule = async (postId: string) => {
-    if (isGuest) {
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
-      if (activeModalPost && activeModalPost.id === postId) {
-        setActiveModalPost(null);
-      }
-      return;
-    }
     setUnschedulingId(postId);
     try {
       const res = await fetch(`${API_URL}/articles/drafts/${postId}/unschedule`, {
@@ -273,15 +172,6 @@ export default function PostQueuePage() {
 
   // 4. Publish post now
   const handlePublishNow = async (postId: string) => {
-    if (isGuest) {
-      setPosts((prev) =>
-        prev.map((p) => (p.id === postId ? { ...p, status: "published", publishedAt: new Date().toISOString() } : p))
-      );
-      if (activeModalPost && activeModalPost.id === postId) {
-        setActiveModalPost(null);
-      }
-      return;
-    }
     setPublishingId(postId);
     try {
       const res = await fetch(`${API_URL}/articles/drafts/${postId}/publish-now`, {
@@ -310,13 +200,6 @@ export default function PostQueuePage() {
   // 5. Delete post draft completely
   const handleDeletePost = async (postId: string) => {
     if (!confirm("Are you sure you want to permanently delete this post?")) return;
-    if (isGuest) {
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
-      if (activeModalPost && activeModalPost.id === postId) {
-        setActiveModalPost(null);
-      }
-      return;
-    }
     setDeletingId(postId);
     try {
       const res = await fetch(`${API_URL}/articles/drafts/${postId}`, {
