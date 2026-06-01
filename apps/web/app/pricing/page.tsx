@@ -116,20 +116,11 @@ export default function PricingPage() {
                 {/* Pricing Grid - Clean Side-by-Side Vertical Columns */}
                 <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
                     {PricingPlans.map((plan) => {
-                        const hasPopularTag = plan.popular === true;
                         return (
                             <div
                                 key={plan.name}
-                                className={`font-manrope bg-[#121214]/60 backdrop-blur-md rounded-2xl p-8 md:p-10 transition-all duration-300 flex flex-col justify-between border ${
-                                    hasPopularTag 
-                                        ? 'border-primary/30 hover:border-primary/50 relative overflow-hidden shadow-2xl shadow-primary/5' 
-                                        : 'border-white/[0.06] hover:border-white/[0.12] hover:bg-[#151518]/80'
-                                }`}
+                                className="font-manrope bg-[#121214]/60 backdrop-blur-md rounded-2xl p-8 md:p-10 transition-all duration-300 flex flex-col justify-between border border-white/[0.06] hover:border-white/[0.12] hover:bg-[#151518]/80"
                             >
-                                {hasPopularTag && (
-                                    <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-xl pointer-events-none" />
-                                )}
-
                                 {/* Top Section: Info, Price and Features */}
                                 <div>
                                     <div className="flex items-center justify-between gap-3 mb-2">
@@ -139,14 +130,6 @@ export default function PricingPage() {
                                         >
                                             {plan.name}
                                         </h3>
-                                        {hasPopularTag && (
-                                            <div className="flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-primary/25 shadow-sm">
-                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="mr-0.5">
-                                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                                </svg>
-                                                Popular
-                                            </div>
-                                        )}
                                     </div>
 
                                     {plan.category ? (
