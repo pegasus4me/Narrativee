@@ -26,7 +26,7 @@ export const PricingPlans: PricingPlan[] = [
         annualPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_WRITER_YEARLY || "price_1T8zxGLShg9EGCkGuFDXGFKn" : "price_1T90DvL1bbAsFy34rG5hmUjR",
         savings: 60,
         popular: true,
-        cta: "Start your 7-day free trial",
+        cta: "Start your 14-day free trial",
         color: "primary",
         features: [
             { text: "40 AI credits / month", included: true, bold: true },
@@ -48,7 +48,7 @@ export const PricingPlans: PricingPlan[] = [
         annualPriceId: isProd ? process.env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY || "price_1TZBFyLShg9EGCkGVqt5dthM" : "price_1T90DvL1bbAsFy34rG5hmUjR",
         savings: 60,
         popular: true,
-        cta: "Start your 7-day free trial",
+        cta: "Start your 14-day free trial",
         color: "primary",
         features: [
             { text: "100 AI credits / month", included: true, bold: true },

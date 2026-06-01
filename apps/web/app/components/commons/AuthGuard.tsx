@@ -9,9 +9,9 @@ const isTrialExpired = (createdAtString?: string | Date | null, plan?: string | 
     if (!createdAtString || plan !== "free") return false;
     const createdAt = new Date(createdAtString);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - createdAt.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 7;
+    const diffTime = now.getTime() - createdAt.getTime();
+    const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+    return diffTime > fourteenDaysMs;
 };
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {

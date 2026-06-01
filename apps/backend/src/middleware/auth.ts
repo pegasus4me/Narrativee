@@ -73,17 +73,17 @@ export async function verifyAuth(
     };
     req.session = session.session;
 
-    // Securely check if the 7-day free trial has expired for users on the 'free' plan
+    // Securely check if the 14-day free trial has expired for users on the 'free' plan
     if (req.user.plan === 'free') {
       const createdAt = new Date(session.user.createdAt);
       const now = new Date();
-      const diffTime = Math.abs(now.getTime() - createdAt.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const diffTime = now.getTime() - createdAt.getTime();
+      const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
       
-      if (diffDays > 7) {
+      if (diffTime > fourteenDaysMs) {
         return res.status(402).json({
           error: 'Payment Required',
-          message: 'Your 7-day free trial has expired. Please upgrade to a paid plan to continue using Narrativee.'
+          message: 'Your 14-day free trial has expired. Please upgrade to a paid plan to continue using Narrativee.'
         });
       }
     }

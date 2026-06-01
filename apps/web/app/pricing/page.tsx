@@ -94,7 +94,7 @@ function PricingPageContent() {
                             ⚠️ Trial Period Expired
                         </h3>
                         <p className="text-sm text-zinc-300">
-                            Your <strong>7-day free trial</strong> has expired. Please select and upgrade to either the <strong>Starter</strong> or <strong>Creator</strong> plan below to continue using your Narrativee workspace seamlessly!
+                            Your <strong>14-day free trial</strong> has expired. Please select and upgrade to either the <strong>Starter</strong> or <strong>Creator</strong> plan below to continue using your Narrativee workspace seamlessly!
                         </p>
                     </div>
                 )}
@@ -227,7 +227,7 @@ function PricingPageContent() {
                         />
                         <FAQItem
                             question="Do you offer a free trial?"
-                            answer="Yes! All paid plans include a 7-day free trial so you can experience the magic firsthand before committing. No hidden fees."
+                            answer="Yes! All paid plans include a 14-day free trial so you can experience the magic firsthand before committing. No hidden fees."
                         />
                     </div>
                 </div>

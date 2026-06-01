@@ -83,7 +83,7 @@ export default function WorkspaceDashboard() {
     const createdAt = new Date(user.createdAt);
     const now = new Date();
     const diffTime = now.getTime() - createdAt.getTime();
-    const trialDurationMs = 7 * 24 * 60 * 60 * 1000;
+    const trialDurationMs = 14 * 24 * 60 * 60 * 1000;
     const msLeft = trialDurationMs - diffTime;
     if (msLeft <= 0) return 0;
     return Math.ceil(msLeft / (1000 * 60 * 60 * 24));
