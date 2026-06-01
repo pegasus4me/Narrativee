@@ -26,7 +26,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
         {/* Logo */}
         <div className="flex items-center gap-2 z-10">
           <div className="w-[120px] md:w-[160px]">
-            <Image src={logo} alt="Logo" width={160} height={100} className="w-full h-auto" />
+            <Image src={logo} alt="Narrativee - Newsletter Repurposing" width={160} height={100} className="w-full h-auto" />
           </div>
         </div>
 

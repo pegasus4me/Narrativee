@@ -1,33 +1,60 @@
 import { MetadataRoute } from 'next'
+import { comparisonData } from './versus/comparisonData'
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const baseUrl = 'https://narrativee.com'
 
-    return [
+    const versusItems = Object.keys(comparisonData).map((slug) => ({
+        url: `${baseUrl}/versus/${slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+    }));
+
+    const staticItems = [
         {
             url: baseUrl,
             lastModified: new Date(),
-            changeFrequency: 'weekly',
-            priority: 1,
+            changeFrequency: 'weekly' as const,
+            priority: 1.0,
         },
         {
             url: `${baseUrl}/pricing`,
             lastModified: new Date(),
-            changeFrequency: 'monthly',
+            changeFrequency: 'monthly' as const,
             priority: 0.8,
         },
-    
+        {
+            url: `${baseUrl}/features/substack-notes-scheduler`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly' as const,
+            priority: 0.8,
+        },
+        {
+            url: `${baseUrl}/features/newsletter-to-social`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly' as const,
+            priority: 0.8,
+        },
+        {
+            url: `${baseUrl}/features/voice-memory`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly' as const,
+            priority: 0.8,
+        },
         {
             url: `${baseUrl}/privacy`,
             lastModified: new Date(),
-            changeFrequency: 'yearly',
+            changeFrequency: 'yearly' as const,
             priority: 0.5,
         },
         {
             url: `${baseUrl}/terms`,
             lastModified: new Date(),
-            changeFrequency: 'yearly',
+            changeFrequency: 'yearly' as const,
             priority: 0.5,
         },
-    ]
+    ];
+
+    return [...staticItems, ...versusItems];
 }

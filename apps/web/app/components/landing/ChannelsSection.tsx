@@ -33,7 +33,7 @@ export function ChannelsSection() {
           {channels.map((channel) => (
             <div key={channel.name} className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-black/25 p-4">
               <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white">
-                <img src={channel.logo} alt="" className="h-6 w-6 object-contain" />
+                <img src={channel.logo} alt={`${channel.name} logo`} className="h-6 w-6 object-contain" />
               </span>
               <span className="text-xs font-medium text-zinc-400">{channel.name}</span>
             </div>

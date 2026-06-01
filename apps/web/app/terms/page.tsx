@@ -1,9 +1,16 @@
-"use client";
-
+import { Metadata } from "next";
 import Header from "../components/commons/Header";
 import Image from "next/image";
 import logo from "../../public/logo.png";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "Read the Terms of Service for Narrativee. Learn about account guidelines, acceptable use, data rights, payment policies, and limitations of liability.",
+  alternates: {
+    canonical: "/terms",
+  },
+};
 
 export default function TermsOfService() {
     return (

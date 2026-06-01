@@ -1,9 +1,16 @@
-"use client";
-
+import { Metadata } from "next";
 import Header from "../components/commons/Header";
 import Image from "next/image";
 import logo from "../../public/logo.png";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "Learn how Narrativee protects and secures your account information, Chrome extension data, and analytics stats with our zero database policy.",
+  alternates: {
+    canonical: "/privacy",
+  },
+};
 
 export default function PrivacyPolicy() {
     return (

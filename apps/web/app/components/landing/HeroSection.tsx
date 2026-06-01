@@ -47,7 +47,7 @@ export function HeroSection() {
     <section className="mx-auto flex w-full max-w-7xl flex-col items-center px-6 pb-24 pt-14 text-center lg:px-8 lg:pb-32">
 
       <h1 className="max-w-5xl text-balance text-5xl font-semibold tracking-[-0.06em] text-white sm:text-7xl lg:text-[6.8rem] lg:leading-[0.92]">
-        Turn one newsletter into a native content machine.
+        Turn your <span className="border border-[#181E9A] rounded-sm pr-3 pr-3 bg-[#180E9A]">newsletter</span> into a native  <span className="inline-block border rounded-sm border-[#181E9A] pr-3 pr-3 bg-[#180E9A] rotate-[3deg]">content</span> machine
       </h1>
       <p className="mt-8 max-w-2xl text-pretty text-base leading-8 text-zinc-400 sm:text-lg">
         Narrativee learns your voice, extracts sharper angles, and compiles platform-native drafts for X, LinkedIn,
