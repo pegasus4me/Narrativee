@@ -33,6 +33,7 @@ export function LandingHeader(): ReactElement {
         <a href="#workflow" className="transition-colors hover:text-white">Workflow</a>
         <a href="#moat" className="transition-colors hover:text-white">Moat</a>
         <a href="#channels" className="transition-colors hover:text-white">Channels</a>
+        <Link href="/pricing" className="transition-colors hover:text-white">Pricing</Link>
       </nav>
 
       <div className="flex items-center gap-3">

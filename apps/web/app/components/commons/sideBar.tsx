@@ -7,7 +7,7 @@ import { authClient } from "../../../lib/auth-client";
 import { usePathname, useRouter } from "next/navigation";
 import logo from "../../../public/logo.png"
 import Image from "next/image";
-import { Home, Lightbulb, CalendarDays, Link2, Instagram, Rss, ChevronLeft, ChevronRight, Brain, Sparkles, Plus } from "lucide-react";
+import { Home, Lightbulb, CalendarDays, Link2, Instagram, Rss, ChevronLeft, ChevronRight, Brain, Sparkles, Plus, MessageCircle } from "lucide-react";
 
 import { LINKEDIN_LOGO, X_LOGO, THREADS_LOGO, FACEBOOK_LOGO } from "@/app/constants";
 import ProfileMenuSidebar from "./profileMenuSidebar";
@@ -362,6 +362,10 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                 </button>
               </div>
             )}
+            <Link href="/workspace/hooks" className={`w-full text-left text-[16px] py-1 px-4 flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+              <MessageCircle className="w-5 h-5 shrink-0 " />
+              {isSidebarOpen && <span className="text-md font-medium">Support</span>}
+            </Link>
 
             {session?.user && (
               <div className={`flex ${!isSidebarOpen ? 'justify-center' : 'px-2'}`}>
