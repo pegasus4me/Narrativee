@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactElement } from "react";
 import { authClient } from "@/lib/auth-client";
 
@@ -22,6 +23,8 @@ export function LandingHeader(): ReactElement {
   const session = authClient.useSession();
   const user = session.data?.user;
   const displayName = user ? getDisplayName(user.name, user.email) : null;
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   return (
     <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-6 lg:px-8">
@@ -30,9 +33,9 @@ export function LandingHeader(): ReactElement {
       </Link>
 
       <nav className="hidden items-center gap-7 text-sm text-zinc-400 lg:flex">
-        <a href="#workflow" className="transition-colors hover:text-white">Workflow</a>
-        <a href="#moat" className="transition-colors hover:text-white">Moat</a>
-        <a href="#channels" className="transition-colors hover:text-white">Channels</a>
+        <a href={isHome ? "#workflow" : "/#workflow"} className="transition-colors hover:text-white">Workflow</a>
+        <a href={isHome ? "#moat" : "/#moat"} className="transition-colors hover:text-white">Moat</a>
+        <a href={isHome ? "#channels" : "/#channels"} className="transition-colors hover:text-white">Channels</a>
         <Link href="/pricing" className="transition-colors hover:text-white">Pricing</Link>
       </nav>
 
