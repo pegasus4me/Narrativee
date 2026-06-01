@@ -5,6 +5,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { ProductPreview } from "./ProductPreview";
+import {
+  LINKEDIN_LOGO,
+  X_LOGO,
+  INSTAGRAM_LOGO,
+  THREADS_LOGO,
+  FACEBOOK_LOGO,
+  SUBSTACK_LOGO,
+  BLUESKY_LOGO
+} from "@/app/constants";
 
 /** Hero section introducing Narrativee's core promise. */
 export function HeroSection() {
@@ -44,6 +53,31 @@ export function HeroSection() {
         Narrativee learns your voice, extracts sharper angles, and compiles platform-native drafts for X, LinkedIn,
         Threads, Instagram, Facebook, Bluesky, and more.
       </p>
+
+      {/* Supported channel social media logos */}
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-4 animate-in fade-in duration-700 delay-200">
+        {[
+          { name: "LinkedIn", logo: LINKEDIN_LOGO },
+          { name: "X", logo: X_LOGO },
+          { name: "Instagram", logo: INSTAGRAM_LOGO },
+          { name: "Threads", logo: THREADS_LOGO },
+          { name: "Facebook", logo: FACEBOOK_LOGO },
+          { name: "Substack", logo: SUBSTACK_LOGO },
+          { name: "Bluesky", logo: BLUESKY_LOGO }
+        ].map((channel) => (
+          <div
+            key={channel.name}
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/5 bg-white/[0.01] shadow-xl backdrop-blur-md transition-all duration-300 hover:border-white/15 hover:bg-white/[0.04] hover:scale-[1.08] hover:shadow-indigo-500/5 group"
+            title={channel.name}
+          >
+            <img
+              src={channel.logo}
+              alt={channel.name}
+              className="h-5 w-5 object-contain opacity-35 grayscale transition-all duration-300 group-hover:opacity-100 group-hover:grayscale-0"
+            />
+          </div>
+        ))}
+      </div>
 
       <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
         {showDashboard ? (
