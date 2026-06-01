@@ -30,10 +30,12 @@ export const PricingPlans: PricingPlan[] = [
         color: "primary",
         features: [
             { text: "40 AI credits / month", included: true, bold: true },
-            { text: "unlimited channels", included: true },
-            { text: "Basic content generation", included: true },
-            { text: "Post scheduling", included: true },
-            { text: "Email support", included: true },
+            { text: "4 channels", included: true },
+            { text: "10 scheduled posts per channel", included: true },
+            { text: "1 user", included: true },
+            { text: "Basic Voice memory  ", included: true },
+            { text: "24/7 assistance", included: true },
+
         ]
     },
     {
@@ -51,12 +53,13 @@ export const PricingPlans: PricingPlan[] = [
         features: [
             { text: "100 AI credits / month", included: true, bold: true },
             { text: "Unlimited channels", included: true },
-            
+            { text: "30 scheduled posts per channel", included: true },
             { text: "Advanced tone-of-voice", included: true },
             { text: "Priority scheduling", included: true },
             { text: "Auto-publish to all platforms", included: true },
-            { text: "Knowledge base & templates", included: true },
-            { text: "Priority support", included: true },
+            { text: "Advanced Voice memory system", included: true },
+            { text: "24/7 priority assistance", included: true },
+            { text: "Early access to beta features ", included: true },
         ]
     }
 ];

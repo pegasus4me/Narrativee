@@ -7,13 +7,17 @@ import PrimaryButton from "../components/commons/PrimaryButton";
 import { PricingPlans } from "../../lib/pricingData";
 import Header from "../components/commons/Header";
 import { API_URL } from "@/lib/api-config";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useGTMTracking } from "../hooks/useGTMTracking";
+import { LandingHeader } from "../components/landing";
+import { Suspense } from "react";
 
-export default function PricingPage() {
+function PricingPageContent() {
     const { data: session } = authClient.useSession();
     const [isAnnual, setIsAnnual] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const isExpiredParam = searchParams.get("expired") === "true";
     const { trackItemSelection, trackPageView } = useGTMTracking();
 
     useEffect(() => {
@@ -79,17 +83,30 @@ export default function PricingPage() {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent rounded-full blur-[120px] pointer-events-none" />
 
             {/* Header */}
-            <Header />
+            <LandingHeader />
 
             <main className="max-w-7xl mx-auto py-16 px-6 relative z-10">
+                {/* Stunning trial expired warning banner */}
+                {isExpiredParam && (
+                    <div className="max-w-4xl mx-auto mb-12 p-6 rounded-2xl bg-red-950/20 border border-red-900/40 text-center animate-in fade-in slide-in-from-top-4 duration-500 shadow-2xl shadow-red-950/5 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500" />
+                        <h3 className="text-xl font-bold text-red-400 mb-2 font-urbanist flex items-center justify-center gap-2">
+                            ⚠️ Trial Period Expired
+                        </h3>
+                        <p className="text-sm text-zinc-300">
+                            Your <strong>7-day free trial</strong> has expired. Please select and upgrade to either the <strong>Starter</strong> or <strong>Creator</strong> plan below to continue using your Narrativee workspace seamlessly!
+                        </p>
+                    </div>
+                )}
+
                 {/* Hero section with glowing gradient heading */}
                 <div className="text-center mb-16">
                     <h1
-                        className="text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent mb-6 font-urbanist animate-in fade-in duration-500"
+                        className="text-5xl md:text-7xl font-bold text-white font-urbanist animate-in fade-in duration-500"
                     >
-                        The only tool you need to grow 🗻
+                        The only tool you need to grow
                     </h1>
-                    <p className="text-xl text-zinc-400 max-w-2xl mx-auto mb-10">
+                    <p className="text-xl text-white max-w-2xl mx-auto mb-10 mt-4">
                         Scale your social presence natively with zero friction. Cancel anytime.
                     </p>
 
@@ -216,6 +233,14 @@ export default function PricingPage() {
                 </div>
             </main>
         </div>
+    );
+}
+
+export default function PricingPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[#09090b] text-white flex items-center justify-center">Loading pricing...</div>}>
+            <PricingPageContent />
+        </Suspense>
     );
 }
 
