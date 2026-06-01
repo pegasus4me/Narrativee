@@ -78,6 +78,17 @@ export default function WorkspaceDashboard() {
   const creditBalance = credits ?? 0;
   const maxCredits = 1000; // Visual denominator for progress bar
 
+  const trialDaysLeft = useMemo(() => {
+    if (!user?.createdAt || (user as any).plan !== "free") return null;
+    const createdAt = new Date(user.createdAt);
+    const now = new Date();
+    const diffTime = now.getTime() - createdAt.getTime();
+    const trialDurationMs = 7 * 24 * 60 * 60 * 1000;
+    const msLeft = trialDurationMs - diffTime;
+    if (msLeft <= 0) return 0;
+    return Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+  }, [user]);
+
   const isMainLoading =
     session.isPending ||
     loadingChannels ||
@@ -106,11 +117,19 @@ export default function WorkspaceDashboard() {
         <div className="absolute -left-24 -bottom-24 h-96 w-96 rounded-full bg-violet-500/10 blur-[100px]" />
 
         <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2.5 max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-indigo-300">
-              <Zap className="h-3 w-3" />
-              Social Repurposing Pipeline Live
-            </span>
+          <div className="space-y-3.5 max-w-2xl">
+            <div className="flex flex-wrap gap-2.5">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-indigo-300">
+                <Zap className="h-3 w-3" />
+                Social Repurposing Pipeline Live
+              </span>
+              {trialDaysLeft !== null && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-400 animate-in fade-in duration-300">
+                  <Sparkles className="h-3 w-3 animate-pulse" />
+                  {trialDaysLeft} {trialDaysLeft === 1 ? "day" : "days"} left on free trial
+                </span>
+              )}
+            </div>
             <h1 className="text-3xl font-semibold tracking-tight text-zinc-100 md:text-4xl">
               Welcome back, <span className="bg-gradient-to-r from-indigo-300 to-violet-200 bg-clip-text text-transparent">{user?.name || "Creator"}</span>
             </h1>
@@ -120,6 +139,15 @@ export default function WorkspaceDashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
+            {user && (user as any).plan === "free" && (
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold px-5 py-3 text-xs tracking-wide shadow-lg shadow-amber-500/10 transition-all duration-200 active:scale-[0.98] animate-in fade-in duration-300"
+              >
+                <Zap className="h-4 w-4 fill-current" />
+                Upgrade Plan
+              </Link>
+            )}
             <Link
               href="/workspace/create/new"
               className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 text-xs font-semibold tracking-wide shadow-lg shadow-indigo-600/10 transition-all duration-200 active:scale-[0.98]"
