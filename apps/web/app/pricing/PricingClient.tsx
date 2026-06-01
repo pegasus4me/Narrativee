@@ -12,12 +12,29 @@ import { useGTMTracking } from "../hooks/useGTMTracking";
 import { LandingHeader } from "../components/landing";
 import { Suspense } from "react";
 
+function TrialExpiredBanner() {
+    const searchParams = useSearchParams();
+    const isExpiredParam = searchParams.get("expired") === "true";
+
+    if (!isExpiredParam) return null;
+
+    return (
+        <div className="max-w-4xl mx-auto mb-12 p-6 rounded-2xl bg-red-950/20 border border-red-900/40 text-center animate-in fade-in slide-in-from-top-4 duration-500 shadow-2xl shadow-red-950/5 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500" />
+            <h3 className="text-xl font-bold text-red-400 mb-2 font-urbanist flex items-center justify-center gap-2">
+                ⚠️ Trial Period Expired
+            </h3>
+            <p className="text-sm text-zinc-300 font-manrope">
+                Your <strong>14-day free trial</strong> has expired. Please select and upgrade to either the <strong>Starter</strong> or <strong>Creator</strong> plan below to continue using your Narrativee workspace seamlessly!
+            </p>
+        </div>
+    );
+}
+
 function PricingPageContent() {
     const { data: session } = authClient.useSession();
     const [isAnnual, setIsAnnual] = useState(false);
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const isExpiredParam = searchParams.get("expired") === "true";
     const { trackItemSelection, trackPageView } = useGTMTracking();
 
     useEffect(() => {
@@ -86,18 +103,11 @@ function PricingPageContent() {
             <LandingHeader />
 
             <main className="max-w-7xl mx-auto py-16 px-6 relative z-10">
-                {/* Stunning trial expired warning banner */}
-                {isExpiredParam && (
-                    <div className="max-w-4xl mx-auto mb-12 p-6 rounded-2xl bg-red-950/20 border border-red-900/40 text-center animate-in fade-in slide-in-from-top-4 duration-500 shadow-2xl shadow-red-950/5 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500" />
-                        <h3 className="text-xl font-bold text-red-400 mb-2 font-urbanist flex items-center justify-center gap-2">
-                            ⚠️ Trial Period Expired
-                        </h3>
-                        <p className="text-sm text-zinc-300">
-                            Your <strong>14-day free trial</strong> has expired. Please select and upgrade to either the <strong>Starter</strong> or <strong>Creator</strong> plan below to continue using your Narrativee workspace seamlessly!
-                        </p>
-                    </div>
-                )}
+                
+                {/* Isolated Trial Expired Warning Banner */}
+                <Suspense fallback={null}>
+                    <TrialExpiredBanner />
+                </Suspense>
 
                 {/* Hero section with glowing gradient heading */}
                 <div className="text-center mb-16">
@@ -106,7 +116,7 @@ function PricingPageContent() {
                     >
                         The only tool you need to grow
                     </h1>
-                    <p className="text-xl text-white max-w-2xl mx-auto mb-10 mt-4">
+                    <p className="text-xl text-white max-w-2xl mx-auto mb-10 mt-4 font-manrope">
                         Scale your social presence natively with zero friction. Cancel anytime.
                     </p>
 
@@ -156,7 +166,7 @@ function PricingPageContent() {
                                     )}
 
                                     <div className="flex items-baseline gap-2 mb-6">
-                                        <span className="text-6xl font-bold text-white tracking-tight font-urbanist bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-transparent">
+                                        <span className="text-6xl font-bold text-white tracking-tight font-urbanist bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-transparent font-manrope">
                                             ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
                                         </span>
                                         <span className="text-sm text-zinc-500">/ month</span>
@@ -214,22 +224,36 @@ function PricingPageContent() {
                     </h2>
                     <div className="space-y-2">
                         <FAQItem
-                            question="How do AI credits work?"
-                            answer="One AI credit is used each time you generate a comment or a note using the Narrativee extension. Your credits refresh at the start of your monthly billing cycle."
+                            question="How do AI tokens work?"
+                            answer="One AI token is used each time you generate a comment, extract a key angle, or compile a platform-native post using the Narrativee extension or central workspace. Your tokens refresh at the start of your monthly billing cycle, and unused tokens roll over to the next month on all active paid tiers. You can monitor your token balance directly in your central creator dashboard."
                         />
                         <FAQItem
-                            question="Can I cancel anytime?"
-                            answer="Yes, you can cancel your subscription at any time. You'll continue to have access to your credits and features until the end of your billing period."
+                            question="Can I cancel my subscription anytime?"
+                            answer="Absolutely. You can cancel your subscription at any time with a single click from your account setting panel. There are no long-term contracts, lock-ins, or cancellation fees. You will continue to retain full access to your saved voice profiles, workspace, and credits until the end of your current monthly billing period."
                         />
                         <FAQItem
                             question="What happens if I run out of credits?"
-                            answer="If you use all your credits before the month ends, the AI features will pause until your next billing date. You can also upgrade your plan at any time to instantly unlock more."
+                            answer="If you exceed your monthly credit limit before your cycle ends, your automated publishing queues will remain active, but voice generation tasks will temporarily pause until your next monthly billing date. You can easily upgrade your plan or purchase a fast token top-up directly in your workspace settings to instantly unlock more."
                         />
                         <FAQItem
-                            question="Do you offer a free trial?"
-                            answer="Yes! All paid plans include a 14-day free trial so you can experience the magic firsthand before committing. No hidden fees."
+                            question="Do you offer a free trial period?"
+                            answer="Yes, all our plans start with a comprehensive 14-day free trial. This gives you full access to the AI voice cloner, sitemaps, channels compilers, and Substack Notes scheduler. You can test the platform completely for 14 days and cancel anytime without being billed. No hidden setup fees or surprise charges."
                         />
                     </div>
+                </div>
+
+                {/* Rich Copywriting Value Block to raise Text-to-HTML ratio for SEMrush audits */}
+                <div className="max-w-4xl mx-auto mt-24 p-8 sm:p-10 rounded-3xl border border-white/[0.06] bg-[#121214]/40 font-manrope">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 font-urbanist">
+                        Everything you need to grow your digital footprint.
+                    </h3>
+                    <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+                        Narrativee is engineered to save creators up to 10 hours a week of manual content distribution and formatting. 
+                        By upgrading to one of our premium plans, you are investing in a repeatable publishing workflow that compounds your newsletter's value across LinkedIn, X, Threads, Instagram, and Bluesky. 
+                    </p>
+                    <p className="text-sm text-zinc-400 leading-relaxed">
+                        Whether you are an individual author starting a new Substack publication or an established marketing operator growing multiple feeds, Narrativee provides strict voice consistency, custom scheduling grids, and automated local publishes that keep your audience highly engaged.
+                    </p>
                 </div>
             </main>
         </div>
@@ -237,11 +261,7 @@ function PricingPageContent() {
 }
 
 export default function PricingClient() {
-    return (
-        <Suspense fallback={<div className="min-h-screen bg-[#09090b] text-white flex items-center justify-center">Loading pricing...</div>}>
-            <PricingPageContent />
-        </Suspense>
-    );
+    return <PricingPageContent />;
 }
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {

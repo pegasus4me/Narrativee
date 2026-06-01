@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /workspace/
+Disallow: /setting/
+Disallow: /auth/
+Disallow: /success/
+
+Sitemap: https://narrativee.com/sitemap.xml

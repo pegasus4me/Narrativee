@@ -1,0 +1,30 @@
+# Narrativee
+
+Narrativee is a premium AI-powered newsletter repurposing and social distribution platform designed for content creators, publishers, and Substack writers. It automatically learns a creator's unique voice, extracts multiple high-performing angles from a single newsletter issue, compiles platform-native posts, and schedules them.
+
+## Core Capabilities
+
+- **Voice Memory engine**: Remembers and replicates writing voices dynamically per channel (e.g., highly polished for LinkedIn, short and punchy for X, conversational for Threads/Instagram).
+- **Atomic Angle Extraction**: Turns a single newsletter issue into multiple distinct, high-performing angles (contrarian, tactical, emotional, key takeaway) instead of simple generic summaries.
+- **Channel Compilers**: Custom formatting models for Substack, Medium, LinkedIn, X, Threads, Instagram, Facebook, and Bluesky.
+- **Substack Notes Scheduler**: An advanced feature that automates publishing and scheduling of Substack Notes from a consolidated browser dashboard using a companion Chrome Extension.
+- **Feedback Loop**: Analyzes published analytics and engagement patterns to continuously improve the voice profiles and content angles over time.
+
+## Target Audience & Use Cases
+
+- **Substack Creators**: Automating social distribution, scheduling Substack Notes, and driving organic subscriptions.
+- **Newsletter Publishers**: Repurposing deep-dive newsletter issues into multi-channel marketing campaigns.
+- **Social Media Managers**: Accelerating post generation and maintaining strict brand tone guidelines without manual prompting.
+
+## Product Navigation & Links
+
+- **Homepage**: [https://narrativee.com](https://narrativee.com) - Core landing page, workflow demonstrations, and product moat details.
+- **Pricing & Plans**: [https://narrativee.com/pricing](https://narrativee.com/pricing) - Starter and Creator plans. Free 14-day trials are available for all tiers.
+- **Creator Onboarding**: [https://narrativee.com/auth/signup](https://narrativee.com/auth/signup) - Create a free account and start building a content graph.
+- **Sign In**: [https://narrativee.com/auth/signin](https://narrativee.com/auth/signin) - Access the workspace dashboard and scheduler.
+
+## Technical Details
+
+- **Deployment**: Powered by Cloudflare Workers and global CDN infrastructure.
+- **Companion Tooling**: Integrates seamlessly via the official Narrativee Chrome Extension for direct local browser automation on Substack.
+- **Privacy Standard**: Features a strict zero-database policy for scraped Substack reader metrics and raw publication content. All scraped data is processed locally.
