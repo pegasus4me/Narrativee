@@ -73,7 +73,7 @@ export function HeroSection() {
             <img
               src={channel.logo}
               alt={channel.name}
-              className="h-5 w-5 object-contain opacity-35 grayscale transition-all duration-300 group-hover:opacity-100 group-hover:grayscale-0"
+              className="h-5 w-5 object-contain opacity-90 transition-all duration-300 group-hover:opacity-100 group-hover:grayscale-0"
             />
           </div>
         ))}
