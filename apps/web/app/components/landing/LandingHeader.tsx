@@ -90,31 +90,33 @@ export function LandingHeader(): ReactElement {
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute left-1/2 z-50 mt-3 w-80 -translate-x-1/2 rounded-xl border border-zinc-800 bg-zinc-950/95 p-2 shadow-2xl backdrop-blur-md transition-all duration-200">
-              <div className="flex flex-col gap-1">
-                {FREE_TOOLS.map((tool) => {
-                  const ToolIcon = tool.icon;
-                  return (
-                    <Link
-                      key={tool.name}
-                      href={tool.href}
-                      onClick={() => setIsDropdownOpen(false)}
-                      className="group/item flex items-start gap-3.5 rounded-lg p-2.5 transition-colors hover:bg-white/5"
-                    >
-                      <div className="mt-0.5 rounded-md border border-zinc-850 bg-zinc-900/50 p-1.5 transition-colors group-hover/item:border-zinc-700 group-hover/item:bg-zinc-800">
-                        <ToolIcon size={16} className="text-zinc-400 group-hover/item:text-white" />
-                      </div>
-                      <div className="text-left">
-                        <h4 className="text-xs font-semibold text-zinc-200 transition-colors group-hover/item:text-white">
-                          {tool.name}
-                        </h4>
-                        <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500 transition-colors group-hover/item:text-zinc-400">
-                          {tool.description}
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
+            <div className="absolute left-1/2 top-full z-50 pt-2 w-80 -translate-x-1/2 transition-all duration-200">
+              <div className="rounded-xl border border-zinc-800 bg-zinc-950/95 p-2 shadow-2xl backdrop-blur-md">
+                <div className="flex flex-col gap-1">
+                  {FREE_TOOLS.map((tool) => {
+                    const ToolIcon = tool.icon;
+                    return (
+                      <Link
+                        key={tool.name}
+                        href={tool.href}
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="group/item flex items-start gap-3.5 rounded-lg p-2.5 transition-colors hover:bg-white/5"
+                      >
+                        <div className="mt-0.5 rounded-md border border-zinc-850 bg-zinc-900/50 p-1.5 transition-colors group-hover/item:border-zinc-700 group-hover/item:bg-zinc-800">
+                          <ToolIcon size={16} className="text-zinc-400 group-hover/item:text-white" />
+                        </div>
+                        <div className="text-left">
+                          <h4 className="text-xs font-semibold text-zinc-200 transition-colors group-hover/item:text-white">
+                            {tool.name}
+                          </h4>
+                          <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500 transition-colors group-hover/item:text-zinc-400">
+                            {tool.description}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
