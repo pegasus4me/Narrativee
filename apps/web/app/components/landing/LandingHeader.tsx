@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { type ReactElement, useState, useEffect, useRef } from "react";
 import { authClient } from "@/lib/auth-client";
-import { Github, Star, ChevronDown, Sparkles, BookOpen, Share2 } from "lucide-react";
+import { Github, Star, ChevronDown, Sparkles, BookOpen, Share2, LogOut } from "lucide-react";
 
 const FREE_TOOLS = [
   {
@@ -46,10 +46,22 @@ export function LandingHeader(): ReactElement {
   const user = session.data?.user;
   const displayName = user ? getDisplayName(user.name, user.email) : null;
   const pathname = usePathname();
+  const router = useRouter();
   const isHome = pathname === "/";
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleSignOut = async () => {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/");
+          router.refresh();
+        },
+      },
+    });
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -143,6 +155,12 @@ export function LandingHeader(): ReactElement {
             >
               Dashboard
             </Link>
+            <button
+              onClick={handleSignOut}
+              className="hidden text-sm font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer sm:block"
+            >
+              Sign out
+            </button>
           </>
         ) : (
           <>

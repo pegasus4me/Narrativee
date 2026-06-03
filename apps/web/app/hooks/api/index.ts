@@ -27,3 +27,4 @@ export {
 export { useKnowledgeBase, useSaveKnowledgeBase, KNOWLEDGE_BASE_KEY } from "./useKnowledgeBase";
 export { useStartMemoryLearning } from "./useMemory";
 export { useCredits, CREDITS_KEY } from "./useCredits";
+export { useCompleteOnboarding } from "./useOnboarding";

@@ -13,6 +13,7 @@ import { LINKEDIN_LOGO, X_LOGO, THREADS_LOGO, FACEBOOK_LOGO } from "@/app/consta
 import ProfileMenuSidebar from "./profileMenuSidebar";
 import PrimaryButton from "./PrimaryButton";
 import PricingPopUp from "../workspace/pricingPopUp";
+import SupportPopUp from "./SupportPopUp";
 import { useChannels } from "@/app/hooks/api/useChannels";
 import { useSources } from "@/app/hooks/api/useSources";
 import { useCredits } from "@/app/hooks/api/useCredits";
@@ -65,6 +66,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const plan = useSideBarStore((state) => state.plan);
 
   const [showPricing, setShowPricing] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
 
   const { data: channelsData } = useChannels(isLoggedIn);
   const { data: sourcesData } = useSources(isLoggedIn);
@@ -362,10 +364,14 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                 </button>
               </div>
             )}
-            <Link href="/workspace/hooks" className={`w-full text-left text-[16px] py-1 px-4 flex items-center gap-2 ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}>
+            <button
+              type="button"
+              onClick={() => setShowSupport(true)}
+              className={`w-full text-left text-[16px] py-1 px-4 flex items-center gap-2 transition-colors hover:text-white cursor-pointer ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}
+            >
               <MessageCircle className="w-5 h-5 shrink-0 " />
               {isSidebarOpen && <span className="text-md font-medium">Support</span>}
-            </Link>
+            </button>
 
             {session?.user && (
               <div className={`flex ${!isSidebarOpen ? 'justify-center' : 'px-2'}`}>
@@ -378,6 +384,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
       </aside>
 
       <PricingPopUp isOpen={showPricing} onClose={() => setShowPricing(false)} />
+      <SupportPopUp isOpen={showSupport} onClose={() => setShowSupport(false)} />
     </>
   );
 }

@@ -77,11 +77,9 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
-          const isCredentials = !user.image;
           return {
             data: {
               ...user,
-              onboarded: isCredentials ? true : user.onboarded,
               image: user.image || "https://static.vecteezy.com/system/resources/previews/059/545/358/non_2x/abstract-pixel-art-background-soft-purple-and-pale-yellow-mosaic-ideal-for-website-banners-digital-art-presentations-and-tech-designs-conveys-a-sense-of-modern-technology-and-digital-fluidity-vector.jpg"
             }
           };

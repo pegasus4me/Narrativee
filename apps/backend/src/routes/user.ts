@@ -32,6 +32,30 @@ router.get('/credits', verifyAuth, async (req: AuthRequest, res: Response) => {
     }
 });
 
+// Complete onboarding
+router.post('/onboard', verifyAuth, async (req: AuthRequest, res: Response) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        await db.update(user)
+            .set({ onboarded: true })
+            .where(eq(user.id, req.user.id));
+
+        return res.json({
+            success: true,
+            message: 'Onboarding completed successfully'
+        });
+    } catch (error: any) {
+        console.error('[User] Error completing onboarding:', error);
+        return res.status(500).json({
+            error: 'Failed to complete onboarding',
+            message: error.message
+        });
+    }
+});
+
 // NOTE: Generic /credits/deduct endpoint was removed for security.
 // Credits are now only deducted server-side as part of specific business actions
 // (e.g., angle extraction, draft generation) to prevent unauthorized manipulation.

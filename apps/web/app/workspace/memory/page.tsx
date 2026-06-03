@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Loader2, Link2, Plus, Rss, Trash2 } from "lucide-react";
+import { Check, Loader2, Link2, Plus, Rss, Trash2, Brain } from "lucide-react";
 import { useKnowledgeBase, useSaveKnowledgeBase } from "@/app/hooks/api";
 import { useAddSource, useDeleteSource, useSources } from "@/app/hooks/api/useSources";
 import { VoiceMemoryStudio } from "@/app/components/workspace/knowledge-base/VoiceMemoryStudio";
@@ -154,10 +154,32 @@ export default function MemoryPage() {
           Loading memory...
         </div>
       ) : (
-        <VoiceMemoryStudio
-          voiceMemory={draftKnowledgeBase.voiceMemory}
-          onChange={(voiceMemory) => setDraftKnowledgeBase({ ...draftKnowledgeBase, voiceMemory })}
-        />
+        <>
+          {/* Brand Voice Rules Section */}
+          <section className="rounded-2xl border border-white/10 bg-zinc-950/40 p-5 space-y-4">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-100 flex items-center gap-2">
+                <Brain className="w-4 h-4 text-indigo-400" />
+                Brand Voice Rules
+              </h2>
+              <p className="mt-1 text-xs text-gray-400">
+                Teach our AI how you write. Paste an example newsletter section or describe your voice rules (e.g. no buzzwords, use conversational punctuation).
+              </p>
+            </div>
+            <textarea
+              rows={6}
+              value={draftKnowledgeBase.brandVoiceTraining || ""}
+              onChange={(e) => setDraftKnowledgeBase({ ...draftKnowledgeBase, brandVoiceTraining: e.target.value })}
+              placeholder="Example: I write in first-person, keep sentences extremely short, and prefer to explain complex topics using counter-intuitive analogies. Never use corporate marketing speak..."
+              className="w-full px-4 py-3 text-xs rounded-xl bg-zinc-900 border border-white/10 text-zinc-100 placeholder:text-zinc-650 outline-none focus:border-white/20 transition-all resize-y font-light leading-relaxed"
+            />
+          </section>
+
+          <VoiceMemoryStudio
+            voiceMemory={draftKnowledgeBase.voiceMemory}
+            onChange={(voiceMemory) => setDraftKnowledgeBase({ ...draftKnowledgeBase, voiceMemory })}
+          />
+        </>
       )}
     </div>
   );
