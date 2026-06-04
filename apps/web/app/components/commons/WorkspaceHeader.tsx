@@ -36,14 +36,6 @@ export default function WorkspaceHeader(): React.JSX.Element {
       <div className="mx-auto w-[90%] px-6 py-4 flex items-center justify-between">
         <Breadcrumbs />
         <div className="flex items-center gap-4">
-          {user && isFreePlan && (
-            <Link
-              href="/pricing"
-              className="inline-flex items-center gap-2 rounded-full bg-white hover:bg-white/70 text-black font-light px-5 py-3 text-sm fade-in duration-300"
-            >
-              Upgrade Plan
-            </Link>
-          )}
           <ProfileMenuHeader />
         </div>
       </div>
