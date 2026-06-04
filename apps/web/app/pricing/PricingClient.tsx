@@ -2,14 +2,12 @@
 
 import { authClient } from "../../lib/auth-client";
 import { useState, useEffect } from "react";
-import { Tick2 } from "clicons-react";
-import PrimaryButton from "../components/commons/PrimaryButton";
+import { ArrowRight, Check, Zap } from "lucide-react";
 import { PricingPlans } from "../../lib/pricingData";
-import Header from "../components/commons/Header";
 import { API_URL } from "@/lib/api-config";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGTMTracking } from "../hooks/useGTMTracking";
-import { LandingHeader } from "../components/landing";
+import { Navigation } from "../components/landing/navigation";
 import { Suspense } from "react";
 
 function TrialExpiredBanner() {
@@ -95,28 +93,28 @@ function PricingPageContent() {
     };
 
     return (
-        <div className="min-h-screen bg-[#09090b] text-white relative overflow-hidden pb-24">
+        <div className="theme-landing min-h-screen bg-[#09090b] text-white relative overflow-hidden pb-24">
             {/* Elegant glowing background blur */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent rounded-full blur-[120px] pointer-events-none" />
 
             {/* Header */}
-            <LandingHeader />
+            <Navigation />
 
-            <main className="max-w-7xl mx-auto py-16 px-6 relative z-10">
-                
+            <main className="max-w-7xl mx-auto py-16 px-6 relative z-10 font-display">
+
                 {/* Isolated Trial Expired Warning Banner */}
                 <Suspense fallback={null}>
                     <TrialExpiredBanner />
                 </Suspense>
 
                 {/* Hero section with glowing gradient heading */}
-                <div className="text-center mb-16">
+                <div className="text-center mb-16 mt-20">
                     <h1
-                        className="text-5xl md:text-7xl font-bold text-white font-urbanist animate-in fade-in duration-500"
+                        className="text-5xl md:text-7xl font-display text-white animate-in fade-in duration-500"
                     >
                         The only tool you need to grow
                     </h1>
-                    <p className="text-xl text-white max-w-2xl mx-auto mb-10 mt-4 font-manrope">
+                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 mt-4 font-sans">
                         Scale your social presence natively with zero friction. Cancel anytime.
                     </p>
 
@@ -130,74 +128,77 @@ function PricingPageContent() {
                             className="relative w-14 h-7 bg-zinc-800 rounded-full border border-white/10 transition-colors focus:outline-none hover:border-white/20"
                         >
                             <div
-                                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ${isAnnual ? 'translate-x-7 bg-primary' : 'translate-x-0'
+                                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ${isAnnual ? 'translate-x-7 bg-[#eca8d6]' : 'translate-x-0'
                                     }`}
                             />
                         </button>
                         <span className={`text-sm font-semibold transition-colors ${isAnnual ? 'text-white' : 'text-zinc-500'}`}>
-                            Yearly <span className="bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 rounded-full text-xs font-bold ml-1.5">-20%</span>
+                            Yearly <span className="bg-[#eca8d6]/20 text-[#eca8d6] border border-[#eca8d6]/30 px-2 py-0.5 rounded-full text-xs font-bold ml-1.5">-20%</span>
                         </span>
                     </div>
                 </div>
 
                 {/* Pricing Grid - Clean Side-by-Side Vertical Columns */}
-                <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {PricingPlans.map((plan) => {
+                <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+                    {PricingPlans.map((plan, index) => {
+                        const isCreator = plan.name === "Creator";
                         return (
                             <div
                                 key={plan.name}
-                                className="font-manrope bg-[#121214]/60 backdrop-blur-md rounded-2xl p-8 md:p-10 transition-all duration-300 flex flex-col justify-between border border-white/[0.06] hover:border-white/[0.12] hover:bg-[#151518]/80"
+                                className={`relative bg-background border transition-all duration-700 ${isCreator
+                                    ? "border-[#eca8d6] md:-mx-2 md:z-10 md:scale-105"
+                                    : "border-foreground/10"
+                                    } flex flex-col justify-between h-full`}
                             >
-                                {/* Top Section: Info, Price and Features */}
-                                <div>
-                                    <div className="flex items-center justify-between gap-3 mb-2">
-                                        <h3
-                                            className="text-3xl font-bold text-white tracking-tight"
-                                            style={{ fontFamily: 'var(--font-petrona)' }}
-                                        >
-                                            {plan.name}
-                                        </h3>
-                                    </div>
-
-                                    {plan.category ? (
-                                        <p className="text-primary font-semibold mb-6 text-xs tracking-wider uppercase">{plan.category}</p>
-                                    ) : (
-                                        <div className="h-6 mb-6" /> // keeping cards perfectly aligned
-                                    )}
-
-                                    <div className="flex items-baseline gap-2 mb-6">
-                                        <span className="text-6xl font-bold text-white tracking-tight font-urbanist bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-transparent font-manrope">
-                                            ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                                {/* Popular badge */}
+                                {isCreator && (
+                                    <div className="absolute -top-4 left-8 right-8 flex justify-center">
+                                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#eca8d6] text-black text-xs font-mono uppercase tracking-widest font-bold">
+                                            <Zap className="w-3 h-3 fill-black" />
+                                            Most Popular
                                         </span>
-                                        <span className="text-sm text-zinc-500">/ month</span>
+                                    </div>
+                                )}
+
+                                <div className="p-8 lg:p-10 flex flex-col h-full justify-between">
+                                    <div>
+                                        {/* Plan header */}
+                                        <div className="mb-8 pb-8 border-b border-foreground/10">
+                                            <span className="font-mono text-xs text-muted-foreground">
+                                                {String(index + 1).padStart(2, "0")}
+                                            </span>
+                                            <h3 className="text-2xl lg:text-3xl font-display mt-2">{plan.name}</h3>
+                                            <p className="text-sm text-muted-foreground mt-2 min-h-[40px]">{plan.description}</p>
+                                        </div>
+
+                                        {/* Price */}
+                                        <div className="mb-8">
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-5xl lg:text-6xl font-display">
+                                                    ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                                                </span>
+                                                <span className="text-muted-foreground text-sm">/month</span>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-2 font-mono">
+                                                {isAnnual ? "billed annually" : "billed monthly"}
+                                            </p>
+                                        </div>
+
+                                        {/* Features */}
+                                        <ul className="space-y-3 mb-10">
+                                            {plan.features.map((feature) => (
+                                                <li key={feature.text} className="flex items-start gap-3">
+                                                    <Check className="w-4 h-4 text-[#eca8d6] mt-0.5 shrink-0" />
+                                                    <span className={`text-sm text-muted-foreground ${feature.bold ? "font-bold text-foreground" : ""}`}>
+                                                        {feature.text}
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
 
-                                    <p className="text-zinc-400 leading-relaxed mb-8 text-sm min-h-[48px]">
-                                        {plan.description}
-                                    </p>
-
-                                    <div className="border-t border-white/[0.06] my-6"></div>
-
-                                    {/* Features List */}
-                                    <ul className="space-y-4 mb-8">
-                                        {plan.features.map((feature, idx) => (
-                                            <li key={idx} className="flex items-start gap-3 animate-in fade-in duration-300">
-                                                <Tick2
-                                                    className="text-emerald-400 shrink-0 mt-0.5"
-                                                    size={18}
-                                                />
-                                                <span className={`text-sm leading-relaxed ${feature.included ? "text-zinc-200" : "text-zinc-600 line-through"}`}>
-                                                    {feature.text}
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                {/* Bottom Section: CTA button */}
-                                <div className="mt-auto">
-                                    <PrimaryButton
-                                        className="w-full text-base py-3.5 transition-transform hover:scale-[1.01]"
+                                    {/* CTA */}
+                                    <button
                                         onClick={() => {
                                             trackItemSelection(
                                                 plan.name,
@@ -207,11 +208,15 @@ function PricingPageContent() {
                                             );
                                             handleCheckout(plan);
                                         }}
+                                        className={`w-full py-4 flex items-center justify-center gap-2 text-sm font-medium transition-all group ${isCreator
+                                            ? "bg-[#eca8d6] text-black hover:bg-[#eca8d6]/90 font-bold"
+                                            : "border border-foreground/20 text-foreground hover:border-foreground hover:bg-foreground/5"
+                                            }`}
                                     >
                                         {session?.user ? "Upgrade Now" : plan.cta}
-                                    </PrimaryButton>
+                                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                                    </button>
                                 </div>
-
                             </div>
                         );
                     })}
@@ -248,8 +253,8 @@ function PricingPageContent() {
                         Everything you need to grow your digital footprint.
                     </h3>
                     <p className="text-sm text-zinc-400 leading-relaxed mb-4">
-                        Narrativee is engineered to save creators up to 10 hours a week of manual content distribution and formatting. 
-                        By upgrading to one of our premium plans, you are investing in a repeatable publishing workflow that compounds your newsletter's value across LinkedIn, X, Threads, Instagram, and Bluesky. 
+                        Narrativee is engineered to save creators up to 10 hours a week of manual content distribution and formatting.
+                        By upgrading to one of our premium plans, you are investing in a repeatable publishing workflow that compounds your newsletter's value across LinkedIn, X, Threads, Instagram, and Bluesky.
                     </p>
                     <p className="text-sm text-zinc-400 leading-relaxed">
                         Whether you are an individual author starting a new Substack publication or an established marketing operator growing multiple feeds, Narrativee provides strict voice consistency, custom scheduling grids, and automated local publishes that keep your audience highly engaged.

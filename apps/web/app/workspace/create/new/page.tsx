@@ -309,7 +309,7 @@ function NewCreateFlow() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6">
+    <div className="mx-auto w-full max-w-4xl space-y-6 mt-10">
       <header className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-100">New creation</h1>
         <p className="text-sm text-zinc-400">Select a newsletter source, then let Narrativee learn your voice and tone.</p>
@@ -326,7 +326,7 @@ function NewCreateFlow() {
         ) : sources.length === 0 ? (
           <div className="mt-4  p-4 text-sm text-zinc-400">
             No newsletter connected yet.{" "}
-            <Link href="/workspace/channels" className="font-medium text-indigo-400 hover:text-indigo-300">
+            <Link href="/workspace/channels" className="font-medium text-[#e99ab1] hover:text-[#e99ab1]/80">
               Connect one in Channels
             </Link>
             .
@@ -341,7 +341,7 @@ function NewCreateFlow() {
                   type="button"
                   onClick={() => setSelectedSourceId(source.id)}
                   className={`rounded-xl border p-4 text-left transition-colors ${isSelected
-                    ? "border-indigo-500 bg-indigo-500/10"
+                    ? "border-[#e99ab1] bg-[#e99ab1]/10"
                     : "border-zinc-800 bg-zinc-950 hover:border-zinc-700"
                     }`}
                 >
@@ -371,7 +371,7 @@ function NewCreateFlow() {
       {isLearning && selectedSource && (
         <section className=" p-6">
           <div className="flex items-start gap-3 text-zinc-200">
-            <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+            <Loader2 className="h-5 w-5 animate-spin text-[#e99ab1]" />
             <div>
               <p className="text-sm font-medium">{currentLearningStep}</p>
               <ul className="mt-2 space-y-1">
@@ -494,7 +494,7 @@ function NewCreateFlow() {
       {isPreparingNativeTone && (
         <section className="p-6">
           <div className="flex items-start gap-3 text-zinc-200">
-            <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+            <Loader2 className="h-5 w-5 animate-spin text-[#e99ab1]" />
             <div>
               <p className="text-sm font-medium">{currentNativeToneStep}</p>
               <ul className="mt-2 space-y-1">
@@ -564,7 +564,7 @@ export default function NewCreatePage() {
     <Suspense fallback={
       <div className="flex min-h-[50vh] w-full items-center justify-center">
         <div className="flex items-center gap-3 text-sm text-zinc-400">
-          <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-[#e99ab1]" />
           Loading creator flow...
         </div>
       </div>

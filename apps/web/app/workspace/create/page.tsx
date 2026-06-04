@@ -29,7 +29,7 @@ export default function CreateLibraryPage() {
     <div className="mx-auto w-full max-w-7xl space-y-8 px-6 py-8">
       <header className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-zinc-950/70 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl space-y-3">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">Create</p>
+          <p className="text-base font-base">Create</p>
           <h1 className="text-3xl font-semibold leading-tight tracking-tight text-zinc-100 md:text-4xl">
             Your saved draft packs
           </h1>
@@ -40,9 +40,8 @@ export default function CreateLibraryPage() {
 
         <Link
           href="/workspace/create/new"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-zinc-200"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-zinc-200"
         >
-          <Sparkles className="h-4 w-4" />
           New creation
         </Link>
       </header>
@@ -50,7 +49,7 @@ export default function CreateLibraryPage() {
       {isLoading ? (
         <div className="flex min-h-[40vh] items-center justify-center">
           <div className="flex items-center gap-3 text-sm text-zinc-400">
-            <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+            <Loader2 className="h-5 w-5 animate-spin text-[#e99ab1]" />
             Loading saved creations...
           </div>
         </div>

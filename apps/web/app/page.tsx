@@ -1,11 +1,16 @@
-import {
-  AdvantageSection,
-  ChannelsSection,
-  CtaSection,
-  HeroSection,
-  LandingHeader,
-  WorkflowMoatSection,
-} from "./components/landing";
+import { Navigation } from "./components/landing/navigation";
+import { HeroSection } from "./components/landing/hero-section";
+import { FeaturesSection } from "./components/landing/features-section";
+import { HowItWorksSection } from "./components/landing/how-it-works-section";
+import { InfrastructureSection } from "./components/landing/infrastructure-section";
+import { MetricsSection } from "./components/landing/metrics-section";
+import { IntegrationsSection } from "./components/landing/integrations-section";
+import { SecuritySection } from "./components/landing/security-section";
+import { DevelopersSection } from "./components/landing/developers-section";
+import { TestimonialsSection } from "./components/landing/testimonials-section";
+import { PricingSection } from "./components/landing/pricing-section";
+import { CtaSection } from "./components/landing/cta-section";
+import { FooterSection } from "./components/landing/footer-section";
 
 /** Public marketing landing page for Narrativee. */
 export default function Home() {
@@ -15,39 +20,45 @@ export default function Home() {
     "name": "Narrativee",
     "operatingSystem": "All",
     "applicationCategory": "BusinessApplication",
+    "applicationSubCategory": "Social Media Marketing & Newsletter Repurposing Software",
+    "screenshot": "https://narrativee.com/dashboard.png",
     "offers": {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
     },
-    "description": "Narrativee learns your writing voice and repurposes newsletters into platform-native content workflows.",
+    "description": "Narrativee learns your unique writing voice, extracts high-performing angles from newsletters, and drafts platform-native content workflows for LinkedIn, X, Threads, and Bluesky.",
     "aggregateRating": {
       "@type": "AggregateRating",
       "ratingValue": "4.9",
       "ratingCount": "120"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "Narrativee",
+      "url": "https://narrativee.com"
     }
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#050505] text-white">
+    <main className="theme-landing relative min-h-screen font-sans overflow-x-hidden">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="pointer-events-none fixed inset-0 opacity-80">
-        <div className="absolute left-1/2 top-[-20rem] h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute right-[-16rem] top-[20rem] h-[32rem] w-[32rem] rounded-full bg-indigo-500/15 blur-3xl" />
-        <div className="absolute bottom-[-18rem] left-[-12rem] h-[34rem] w-[34rem] rounded-full bg-cyan-400/10 blur-3xl" />
-      </div>
-
-      <div className="relative">
-        <LandingHeader />
-        <HeroSection />
-        <WorkflowMoatSection />
-        <AdvantageSection />
-        <ChannelsSection />
-        <CtaSection />
-      </div>
+      <Navigation />
+      <HeroSection />
+      <FeaturesSection />
+      <HowItWorksSection />
+      <InfrastructureSection />
+      {/* <MetricsSection /> */}
+      <IntegrationsSection />
+      {/* <SecuritySection /> */}
+      <DevelopersSection />
+      {/*      <TestimonialsSection /> */}
+      <PricingSection />
+      <CtaSection />
+      <FooterSection />
     </main>
   );
 }

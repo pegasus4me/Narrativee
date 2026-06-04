@@ -90,7 +90,7 @@ export function KnowledgeBaseEditor({
 
   return (
     <section className="overflow-hidden">
-      <div className="border-b border-zinc-100 bg-linear-to-b from-zinc-50/50 to-white px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="border-b border-zinc-100 bg-zinc-50/80 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div>
             <h3 className="text-base font-bold text-zinc-900">Knowledge Base</h3>

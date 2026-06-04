@@ -7,8 +7,8 @@ export default function TimeZoneComponent({ timezone }: { timezone: string }) {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">Timezone:</span>
-                    <span className="text-md text-black">{timezone}</span>
+                    <span className="text-xs text-zinc-500">Timezone:</span>
+                    <span className="text-md text-zinc-100">{timezone}</span>
                 </div>
             </DropdownMenuTrigger>
         </DropdownMenu>

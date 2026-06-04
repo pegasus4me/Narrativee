@@ -102,7 +102,7 @@ export default function WorkspaceDashboard() {
     return (
       <div className="flex min-h-[80vh] w-full items-center justify-center">
         <div className="flex items-center gap-3 text-sm text-zinc-400">
-          <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-[#e99ab1]" />
           Synchronizing mission control...
         </div>
       </div>
@@ -113,25 +113,46 @@ export default function WorkspaceDashboard() {
     <div className="mx-auto w-[90%] space-y-8 px-6 py-10 antialiased">
       {/* ─── Hero Welcome Banner ─── */}
       <header className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/70 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.4)]">
-        <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-indigo-500/10 blur-[100px]" />
-        <div className="absolute -left-24 -bottom-24 h-96 w-96 rounded-full bg-violet-500/10 blur-[100px]" />
+        <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-white/5 blur-[100px]" />
+        <div className="absolute -left-24 -bottom-24 h-96 w-96 rounded-full bg-white/5 blur-[100px]" />
+
+        {/* Subtle grid lines */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-20">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={`h-${i}`}
+              className="absolute h-px bg-white/10"
+              style={{
+                top: `${25 * (i + 1)}%`,
+                left: 0,
+                right: 0,
+              }}
+            />
+          ))}
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={`v-${i}`}
+              className="absolute w-px bg-white/10"
+              style={{
+                left: `${16.6 * (i + 1)}%`,
+                top: 0,
+                bottom: 0,
+              }}
+            />
+          ))}
+        </div>
 
         <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="space-y-3.5 max-w-2xl">
             <div className="flex flex-wrap gap-2.5">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-indigo-300">
-                <Zap className="h-3 w-3" />
-                Social Repurposing Pipeline Live
-              </span>
               {trialDaysLeft !== null && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-400 animate-in fade-in duration-300">
-                  <Sparkles className="h-3 w-3 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 font-jetbrains bg-[#e99ab1]/10 border border-[#e99ab1]/20 px-3 py-1 text-[11px] text-[#e99ab1] animate-in fade-in duration-300">
                   {trialDaysLeft} {trialDaysLeft === 1 ? "day" : "days"} left on free trial
                 </span>
               )}
             </div>
-            <h1 className="text-3xl font-semibold tracking-tight text-zinc-100 md:text-4xl">
-              Welcome back, <span className="bg-gradient-to-r from-indigo-300 to-violet-200 bg-clip-text text-transparent">{user?.name || "Creator"}</span>
+            <h1 className="text-3xl font-display tracking-tight text-zinc-100 md:text-4xl leading-tight">
+              Welcome back, <span className="text-white font-light">{user?.name || "Creator"}</span>
             </h1>
             <p className="text-sm leading-relaxed text-zinc-400">
               Narrativee helps you translate your deep-dive newsletter issues into high-performing, native-channel social campaigns. Monitor your queues and launch packs below.
@@ -142,7 +163,7 @@ export default function WorkspaceDashboard() {
             {user && (user as any).plan === "free" && (
               <Link
                 href="/pricing"
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold px-5 py-3 text-xs tracking-wide shadow-lg shadow-amber-500/10 transition-all duration-200 active:scale-[0.98] animate-in fade-in duration-300"
+                className="inline-flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold px-5 py-3 text-xs tracking-wide shadow-lg shadow-amber-500/10 transition-all duration-200 active:scale-[0.98] animate-in fade-in duration-300"
               >
                 <Zap className="h-4 w-4 fill-current" />
                 Upgrade Plan
@@ -150,16 +171,15 @@ export default function WorkspaceDashboard() {
             )}
             <Link
               href="/workspace/create/new"
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 text-xs font-semibold tracking-wide shadow-lg shadow-indigo-600/10 transition-all duration-200 active:scale-[0.98]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#e99ab1] hover:bg-[#e99ab1]/90 text-white px-5 py-3 text-xs font-semibold tracking-wide shadow-lg shadow-[#e99ab1]/10 hover:shadow-[#e99ab1]/20 transition-all duration-200 active:scale-[0.98]"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 stroke-[3]" />
               Generate Social Pack
             </Link>
             <Link
               href="/workspace/memory"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.03] hover:bg-white/[0.06] text-zinc-200 px-5 py-3 text-xs font-semibold tracking-wide transition-all duration-200"
+              className="inline-flex items-center gap-2 hover:bg-white/[0.06] text-zinc-200 px-5 py-3 text-xs font-semibold tracking-wide transition-all duration-200"
             >
-              <Brain className="h-4 w-4" />
               Voice Memory
             </Link>
           </div>
@@ -169,16 +189,16 @@ export default function WorkspaceDashboard() {
       {/* ─── Metrics Grid ─── */}
       <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {/* Metric: Scheduled Queue */}
-        <div className="rounded-2xl border border-white/5 bg-zinc-950/40 p-6 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/60 flex flex-col justify-between h-36">
+        <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-6 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-zinc-950/60 flex flex-col justify-between h-36 hover:scale-[1.02] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Active Queue</span>
-            <div className="rounded-lg bg-indigo-500/10 p-2 border border-indigo-500/20 text-indigo-400">
+            <span className="text-[11px] font-base text-white">Active Queue</span>
+            <div className="">
               <CalendarDays className="h-4 w-4" />
             </div>
           </div>
           <div>
-            <span className="text-2xl font-bold text-zinc-100 block">{scheduledPosts.length} posts</span>
-            <Link href="/workspace/calendar" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors mt-1.5">
+            <span className="text-3xl font-display text-zinc-100 block">{scheduledPosts.length} posts</span>
+            <Link href="/workspace/calendar" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors mt-1.5">
               Open Calendar
               <ArrowRight className="h-3 w-3" />
             </Link>
@@ -186,15 +206,15 @@ export default function WorkspaceDashboard() {
         </div>
 
         {/* Metric: Connected Channels */}
-        <div className="rounded-2xl border border-white/5 bg-zinc-950/40 p-6 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/60 flex flex-col justify-between h-36">
+        <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-6 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-zinc-950/60 flex flex-col justify-between h-36 hover:scale-[1.02] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Social Channels</span>
-            <div className="rounded-lg bg-emerald-500/10 p-2 border border-emerald-500/20 text-emerald-400">
+            <span className="text-[11px] font-base text-white">Social Channels</span>
+            <div className="">
               <Link2 className="h-4 w-4" />
             </div>
           </div>
           <div>
-            <span className="text-2xl font-bold text-zinc-100 block">{activeChannels.length} profiles</span>
+            <span className="text-3xl font-display text-zinc-100 block">{activeChannels.length} profiles</span>
             <Link href="/workspace/channels" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition-colors mt-1.5">
               Manage Profiles
               <ArrowRight className="h-3 w-3" />
@@ -203,18 +223,18 @@ export default function WorkspaceDashboard() {
         </div>
 
         {/* Metric: Brand Voice Memory */}
-        <div className="rounded-2xl border border-white/5 bg-zinc-950/40 p-6 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/60 flex flex-col justify-between h-36">
+        <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-6 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-zinc-950/60 flex flex-col justify-between h-36 hover:scale-[1.02] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Voice Memory</span>
-            <div className="rounded-lg bg-violet-500/10 p-2 border border-violet-500/20 text-violet-400">
+            <span className="text-[11px] font-base text-zinc-100">Voice Memory</span>
+            <div className="">
               <Brain className="h-4 w-4" />
             </div>
           </div>
           <div>
-            <span className="text-sm font-semibold text-zinc-100 block">
+            <span className="text-md font-display text-zinc-100 block">
               {kb?.brandVoiceTraining ? "Dynamic Profile Configured" : "Awaiting Training"}
             </span>
-            <Link href="/workspace/memory" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-violet-400 hover:text-violet-300 transition-colors mt-1.5">
+            <Link href="/workspace/memory" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors mt-1.5">
               {kb?.brandVoiceTraining ? "Analyze Voice profile" : "Train Voice Profile"}
               <ArrowRight className="h-3 w-3" />
             </Link>
@@ -222,21 +242,21 @@ export default function WorkspaceDashboard() {
         </div>
 
         {/* Metric: Credit Balance */}
-        <div className="rounded-2xl border border-white/5 bg-zinc-950/40 p-6 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/60 flex flex-col justify-between h-36">
+        <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-6 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-zinc-950/60 flex flex-col justify-between h-36 hover:scale-[1.02] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Credits Available</span>
-            <div className="rounded-lg bg-amber-500/10 p-2 border border-amber-500/20 text-amber-400">
+            <span className="text-[11px] font-base text-zinc-100">Credits Available</span>
+            <div className="">
               <Sparkles className="h-4 w-4" />
             </div>
           </div>
           <div className="space-y-1.5">
             <div className="flex items-end justify-between">
-              <span className="text-xl font-bold text-zinc-100">{creditBalance}</span>
+              <span className="text-2xl font-display text-zinc-100">{creditBalance}</span>
               <span className="text-[10px] text-zinc-500">of {maxCredits}</span>
             </div>
             <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-white/5">
               <div
-                className="bg-gradient-to-r from-indigo-500 to-violet-500 h-full rounded-full transition-all duration-500"
+                className="bg-[#e99ab1] h-full rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(100, Math.max(0, (creditBalance / maxCredits) * 100))}%` }}
               />
             </div>
@@ -248,10 +268,10 @@ export default function WorkspaceDashboard() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-zinc-100">Creations Library</h2>
+            <h2 className="text-xl font-display text-zinc-100">Creations Library</h2>
             <p className="text-xs text-zinc-500 mt-1">Select previously saved channel pack iterations</p>
           </div>
-          <Link href="/workspace/create" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">
+          <Link href="/workspace/create" className="text-xs font-semibold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors flex items-center gap-1">
             View All Packs
             <ChevronLeft className="h-3 w-3 rotate-180" />
           </Link>
@@ -262,7 +282,7 @@ export default function WorkspaceDashboard() {
             <p className="text-xs text-zinc-500 max-w-sm mx-auto">
               No saved packs generated yet. Import your first issue and translate it to connect to social templates!
             </p>
-            <Link href="/workspace/create/new" className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 mt-3 font-semibold">
+            <Link href="/workspace/create/new" className="inline-flex items-center gap-1.5 text-xs text-[#e99ab1] hover:text-[#e99ab1]/80 mt-3 font-semibold">
               Create a Draft Pack
               <ArrowRight className="h-3 w-3" />
             </Link>
@@ -272,11 +292,11 @@ export default function WorkspaceDashboard() {
             {savedCreations.slice(0, 3).map((creation) => (
               <article
                 key={creation.id}
-                className="group relative rounded-2xl border border-white/5 bg-zinc-950/40 p-5 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/60 flex flex-col justify-between min-h-[170px]"
+                className="group relative rounded-2xl border border-white/10 bg-zinc-950/40 p-5 backdrop-blur-md transition-all duration-300 hover:border-white/30 hover:bg-zinc-950/60 flex flex-col justify-between min-h-[170px] hover:scale-[1.02] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-0.5 text-[9px] font-semibold text-indigo-300">
+                    <span className="rounded-full border border-[#e99ab1]/20 bg-[#e99ab1]/10 px-2.5 py-0.5 text-[9px] font-semibold text-[#e99ab1]">
                       {creation.draftCountPerChannel} drafts per channel
                     </span>
                     <span className="text-[10px] text-zinc-600">
@@ -294,7 +314,7 @@ export default function WorkspaceDashboard() {
                   </span>
                   <Link
                     href={`/workspace/create/${creation.id}`}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors"
                   >
                     Open Pack
                     <ArrowUpRight className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -312,10 +332,10 @@ export default function WorkspaceDashboard() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-zinc-100">Weekly Queue Feed</h2>
+              <h2 className="text-xl font-display text-zinc-100">Weekly Queue Feed</h2>
               <p className="text-xs text-zinc-500 mt-1">Live overview of upcoming publishing slots</p>
             </div>
-            <Link href="/workspace/calendar" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">
+            <Link href="/workspace/calendar" className="text-xs font-semibold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors flex items-center gap-1">
               View Calendar
               <ArrowRight className="h-3 w-3" />
             </Link>
@@ -332,7 +352,7 @@ export default function WorkspaceDashboard() {
               {scheduledPosts.slice(0, 3).map((post) => (
                 <div
                   key={post.id}
-                  className="rounded-2xl border border-white/5 bg-zinc-950/40 p-5 backdrop-blur-md transition-all hover:border-white/10 hover:bg-zinc-950/50 flex flex-col sm:flex-row justify-between sm:items-center gap-4"
+                  className="rounded-2xl border border-white/10 bg-zinc-950/40 p-5 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-zinc-950/50 flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:scale-[1.01] hover:shadow-[0_4px_20px_rgb(0,0,0,0.08)]"
                 >
                   <div className="flex items-start gap-3.5 min-w-0">
                     <div className="relative h-8 w-8 shrink-0">
@@ -399,10 +419,10 @@ export default function WorkspaceDashboard() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-zinc-100 font-urbanist">Import Pipeline</h2>
+              <h2 className="text-xl font-display text-zinc-100">Import Pipeline</h2>
               <p className="text-xs text-zinc-500 mt-1">Ready issues for packing</p>
             </div>
-            <Link href="/workspace/create/new" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-0.5">
+            <Link href="/workspace/create/new" className="text-xs font-semibold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors flex items-center gap-0.5">
               Import
               <Plus className="h-3.5 w-3.5" />
             </Link>
@@ -420,7 +440,7 @@ export default function WorkspaceDashboard() {
               {recentArticles.slice(0, 4).map((art) => (
                 <div
                   key={art.id}
-                  className="rounded-xl border border-white/5 bg-zinc-950/40 p-4 transition-all hover:border-white/10 flex flex-col justify-between gap-3"
+                  className="rounded-xl border border-white/10 bg-zinc-950/40 p-4 transition-all duration-300 hover:border-white/20 flex flex-col justify-between gap-3 hover:scale-[1.02] hover:shadow-[0_4px_20px_rgb(0,0,0,0.08)]"
                 >
                   <div className="space-y-1">
                     <h4 className="text-xs font-semibold text-zinc-200 line-clamp-1 leading-normal">
@@ -433,7 +453,7 @@ export default function WorkspaceDashboard() {
 
                   <Link
                     href={`/workspace/create/new?articleId=${art.id}`}
-                    className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors w-fit"
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors w-fit"
                   >
                     Launch Pack
                     <ArrowRight className="h-3 w-3 shrink-0" />

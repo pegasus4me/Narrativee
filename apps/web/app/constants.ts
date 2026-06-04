@@ -6,5 +6,11 @@ export const FACEBOOK_LOGO = "https://upload.wikimedia.org/wikipedia/commons/b/b
 export const SUBSTACK_LOGO = "https://substack.com/img/substack.png";
 export const DEFAULT_AVATAR = "https://img.freepik.com/free-vector/blue-purple-mosaic-background_1164-812.jpg?semt=ais_rp_progressive&w=740&q=80"
 export const BLUESKY_LOGO = "https://upload.wikimedia.org/wikipedia/commons/7/7a/Bluesky_Logo.svg";
-export const MEDIUM_LOGO = "https://www.svgrepo.com/show/354057/medium-icon.svg"
-export const GITHUB_LOGO = "https://cdn-icons-png.flaticon.com/512/25/25231.png"
+export const MEDIUM_LOGO = "https://www.graphicdesignforum.com/uploads/default/0e58f26a6dd982e7f04d1286defd4320e6d6153b"
+export const GITHUB_LOGO = "https://img.icons8.com/ios11/200/FFFFFF/github.png"
+export const BEEHIIV_LOGO = "https://sprout24.com/hub/wp-content/uploads/sites/2/2024/08/beehiiv-logo-768x724.png"
+export const WORDPRESS_LOGO = "https://static.vecteezy.com/system/resources/thumbnails/020/975/579/small/wordpress-logo-wordpress-icon-transparent-free-png.png"
+export const GHOST_LOGO = "https://docs.ghost.org/images/74e0ffae-ghost-logo-orb.png"
+export const SQUARESPACE_LOGO = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1nBdpNVouY8tl1MlzHeWkcdCahhTf_EvDeQ&s"
+export const MAILCHIMP_LOGO = "https://imi-education.fr/wp-content/uploads/2025/02/deff.png"
+export const KIT_LOGO = "https://gdm-catalog-fmapi-prod.imgix.net/ProductLogo/ac4a1d57-167e-4f57-8843-3cb2d95ddee1.jpeg?w=128&h=128&fit=max&dpr=3&auto=format&q=50"

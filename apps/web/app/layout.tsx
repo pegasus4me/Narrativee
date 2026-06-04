@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Urbanist, Manrope } from 'next/font/google'
+import { Urbanist, Manrope, Instrument_Sans, JetBrains_Mono } from 'next/font/google'
 import { GoogleTagManager } from '@next/third-parties/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import "./globals.css";
@@ -29,6 +29,16 @@ const manrope = Manrope({
   weight: ["400", '500', '600', '700', '800'],
   subsets: ['latin']
 })
+
+const instrumentSans = Instrument_Sans({ 
+  subsets: ["latin"],
+  variable: '--font-instrument'
+});
+
+const jetbrainsMono = JetBrains_Mono({ 
+  subsets: ["latin"],
+  variable: '--font-jetbrains'
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://narrativee.com"),
@@ -92,7 +102,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${urbanist.variable} ${manrope.variable} ${geistMono.variable}`}
+        className={`${urbanist.variable} ${manrope.variable} ${geistMono.variable} ${instrumentSans.variable} ${jetbrainsMono.variable}`}
         suppressHydrationWarning
       >
         <GoogleTagManager gtmId="GTM-5BCN3HMQ" />

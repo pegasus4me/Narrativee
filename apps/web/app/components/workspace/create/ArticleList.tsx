@@ -56,17 +56,17 @@ export function ArticleList({
 
   if (articles.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl px-8 py-16 text-center bg-zinc-50/80">
-        <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100 mb-4">
-          <Rss className="h-7 w-7 text-zinc-400" />
+      <div className="flex flex-col items-center justify-center rounded-2xl px-8 py-16 text-center bg-zinc-950/40 border border-zinc-800/80">
+        <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 border border-zinc-800 mb-4">
+          <Rss className="h-7 w-7 text-white" />
         </div>
-        <h3 className="text-lg font-semibold text-zinc-900">No articles found</h3>
-        <p className="mt-2 max-w-xs text-sm text-zinc-500 leading-relaxed">
+        <h3 className="text-lg font-semibold text-zinc-200">No articles found</h3>
+        <p className="mt-2 max-w-xs text-sm text-zinc-400 leading-relaxed">
           Connect a Substack or blog to fetch your newsletter issues.
         </p>
         <Link
           href="/workspace/channels"
-          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#e99ab1] hover:bg-[#e99ab1]/90 px-5 py-2.5 text-sm font-bold text-white transition-colors"
         >
           Go to Channels
           <ArrowRight className="h-4 w-4" />
@@ -83,7 +83,7 @@ export function ArticleList({
         <button
           type="button"
           onClick={onRefresh}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-900 shrink-0"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:text-zinc-100 hover:bg-zinc-900/50 shrink-0"
         >
           <RefreshCw className="h-3 w-3" />
           Refresh
@@ -102,8 +102,8 @@ export function ArticleList({
                 onClick={() => onSelect(article, false)}
                 disabled={isLoading}
                 className={`flex h-full w-full rounded-md flex-col border p-5 text-left transition-all ${isSelected
-                  ? "border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900/5"
-                  : "border-stone-900 bg-dark/10 text-white hover:border-zinc-300 hover:shadow-sm"
+                  ? "border-[#e99ab1] bg-[#e99ab1]/5 ring-1 ring-[#e99ab1]/10"
+                  : "border-zinc-800 bg-zinc-950/40 text-white hover:border-zinc-700 hover:shadow-md"
                   } ${isLoading ? "animate-pulse" : ""}`}
               >
                 <div className="flex items-center gap-1.5  mb-3">
@@ -134,12 +134,12 @@ export function ArticleList({
                     );
                   })()}
                   {(article.angleCount ?? 0) > 0 && (
-                    <span className="px-1.5 py-0.5 text-[11px] flex items-center gap-0.5">
+                    <span className="px-1.5 py-0.5 text-[11px] flex items-center gap-0.5 text-zinc-300">
                       {article.angleCount} angles
                     </span>
                   )}
                   {(article.draftCount ?? 0) > 0 && (
-                    <span className="rounded-md bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600">
+                    <span className="rounded-md bg-emerald-950/40 border border-emerald-900/50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400">
                       {article.draftCount} drafts
                     </span>
                   )}
@@ -157,17 +157,17 @@ export function ArticleList({
                   </time>
                   <div className="flex items-center gap-1.5">
                     {(article.draftCount ?? 0) > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 bg-indigo-50 rounded-full px-2 py-0.5">
+                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#e99ab1] bg-[#e99ab1]/10 rounded-full px-2 py-0.5">
                         <ArrowUpRight className="h-2.5 w-2.5" />
                         View Drafts
                       </span>
                     ) : (article.angleCount ?? 0) > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-zinc-500 bg-zinc-100 rounded-full px-2 py-0.5">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-zinc-300 bg-zinc-800 rounded-full px-2 py-0.5">
                         <RotateCcw className="h-2.5 w-2.5" />
                         Load Angles
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-zinc-500 bg-zinc-100 rounded-full px-2 py-0.5">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-zinc-300 bg-zinc-800 rounded-full px-2 py-0.5">
                         <Lightbulb className="h-2.5 w-2.5" />
                         Extract Angles
                       </span>

@@ -103,21 +103,20 @@ interface TimezoneSelectProps {
 }
 
 export default function TimezoneSelect({ value, onChange, className = "", compact = false }: TimezoneSelectProps) {
-  const currentLabel = TIMEZONES.find((tz) => tz.value === value)?.label ?? value;
-
   return (
     <div className={`relative flex items-center gap-1.5 ${className}`}>
       <Globe className={`shrink-0 text-zinc-400 ${compact ? "w-3 h-3" : "w-3.5 h-3.5"}`} />
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`appearance-none bg-transparent text-zinc-600 focus:outline-none cursor-pointer hover:text-zinc-800 transition-colors ${
+        className={`appearance-none bg-transparent text-zinc-350 focus:outline-none cursor-pointer hover:text-zinc-100 transition-colors ${
           compact ? "text-[10px]" : "text-xs"
         }`}
+        style={{ colorScheme: 'dark' }}
         title="Select timezone"
       >
         {TIMEZONES.map((tz) => (
-          <option key={tz.value} value={tz.value}>
+          <option key={tz.value} value={tz.value} className="bg-zinc-950 text-zinc-350">
             {tz.label}
           </option>
         ))}
