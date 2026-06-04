@@ -38,7 +38,7 @@ export function ScheduleModal({
       <div className="bg-[#09090b] rounded-2xl shadow-2xl border border-zinc-850 p-6 w-full max-w-sm mx-4 animate-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between mb-5 pb-3 border-b border-zinc-800/80">
           <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-[#e99ab1]" />
+            <Calendar className="h-4 w-4 text-brand" />
             Schedule Post
           </h3>
           <button type="button" onClick={onClose} className="text-zinc-400 hover:text-zinc-200 p-1 hover:bg-zinc-900 rounded-lg transition-colors">
@@ -53,7 +53,7 @@ export function ScheduleModal({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-[#e99ab1] focus:border-[#e99ab1] transition-all"
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-all"
               style={{ colorScheme: 'dark' }}
             />
           </div>
@@ -63,7 +63,7 @@ export function ScheduleModal({
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-[#e99ab1] focus:border-[#e99ab1] transition-all"
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-all"
               style={{ colorScheme: 'dark' }}
             />
           </div>
@@ -87,7 +87,7 @@ export function ScheduleModal({
             type="button"
             onClick={handleConfirm}
             disabled={isSubmitting || !date || !time}
-            className="flex-1 rounded-xl bg-[#e99ab1] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#e99ab1]/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white hover:bg-brand/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>

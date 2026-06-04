@@ -159,7 +159,6 @@ export default function MemoryPage() {
           <section className="rounded-2xl border border-white/10 bg-zinc-950/40 p-5 space-y-4">
             <div>
               <h2 className="text-sm font-semibold text-gray-100 flex items-center gap-2">
-                <Brain className="w-4 h-4 text-indigo-400" />
                 Brand Voice Rules
               </h2>
               <p className="mt-1 text-xs text-gray-400">

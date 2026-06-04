@@ -9,6 +9,7 @@
   --font-geist-mono: var(--font-geist-mono);
   --font-instrument: var(--font-instrument);
   --font-jetbrains: var(--font-jetbrains);
+  --color-brand: #e99ab1;
 }
 
 @theme inline {

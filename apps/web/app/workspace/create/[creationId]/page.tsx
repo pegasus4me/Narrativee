@@ -173,7 +173,7 @@ export default function CreationDetailPage() {
     return (
       <div className="mx-auto flex min-h-[50vh] max-w-5xl items-center justify-center px-6">
         <div className="flex items-center gap-3 text-sm text-zinc-400">
-          <Loader2 className="h-5 w-5 animate-spin text-[#e99ab1]" />
+          <Loader2 className="h-5 w-5 animate-spin text-brand" />
           Loading your saved draft pack...
         </div>
       </div>
@@ -227,11 +227,11 @@ export default function CreationDetailPage() {
                 <CalendarDays className="h-4 w-4" />
                 {formatDate(creation.createdAt)}
               </span>
-              <span className="rounded-full border border-[#e99ab1]/20 bg-[#e99ab1]/10 px-3 py-1 text-xs text-[#e99ab1]">
+              <span className="rounded-full border border-brand/20 bg-brand/10 px-3 py-1 text-xs text-brand">
                 {creation.draftCountPerChannel} per channel
               </span>
               {creation.source?.url ? (
-                <span className="rounded-full border border-[#e99ab1]/20 bg-[#e99ab1]/10 px-3 py-1 text-xs text-[#e99ab1]">
+                <span className="rounded-full border border-brand/20 bg-brand/10 px-3 py-1 text-xs text-brand">
                   {creation.source.url.replace("https://", "").replace("/feed", "")}
                 </span>
               ) : null}
@@ -259,7 +259,7 @@ export default function CreationDetailPage() {
                   onClick={() => {
                     void handleSaveDrafts();
                   }}
-                  className="rounded-full border border-[#e99ab1]/20 bg-[#e99ab1]/10 px-3 py-1 text-xs font-semibold text-[#e99ab1] transition-all hover:bg-[#e99ab1]/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-full border border-brand/20 bg-brand/10 px-3 py-1 text-xs font-semibold text-brand transition-all hover:bg-brand/20 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {updateCreationSession.isPending ? "Saving..." : "Save changes"}
                 </button>
@@ -304,7 +304,7 @@ export default function CreationDetailPage() {
 
                     <div className="mt-4 space-y-4">
                       {draft.angle && (
-                        <p className="text-xs text-zinc-400 leading-relaxed italic px-3.5 py-2.5 border-l-2 border-[#e99ab1]/30 bg-[#e99ab1]/5 rounded-r-xl">
+                        <p className="text-xs text-zinc-400 leading-relaxed italic px-3.5 py-2.5 border-l-2 border-brand/30 bg-brand/5 rounded-r-xl">
                           Focus: {draft.angle}
                         </p>
                       )}
@@ -313,7 +313,7 @@ export default function CreationDetailPage() {
                         value={draftTexts[index] ?? draft.text}
                         onChange={(event) => handleDraftTextChange(index, event.target.value)}
                         rows={8}
-                        className="w-full resize-y rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4 text-xs leading-relaxed text-zinc-200 outline-none transition-colors placeholder:text-zinc-650 focus:border-[#e99ab1]/50 focus:ring-1 focus:ring-[#e99ab1]/30 font-sans"
+                        className="w-full resize-y rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4 text-xs leading-relaxed text-zinc-200 outline-none transition-colors placeholder:text-zinc-650 focus:border-brand/50 focus:ring-1 focus:ring-brand/30 font-sans"
                         placeholder="Compose draft post..."
                       />
                     </div>
@@ -335,10 +335,10 @@ export default function CreationDetailPage() {
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <p className="text-xs font-semibold text-zinc-400 flex items-center gap-2">
-                            <Calendar className="h-3.5 w-3.5 text-[#e99ab1]" />
+                            <Calendar className="h-3.5 w-3.5 text-brand" />
                             Schedule Release
                           </p>
-                          <span className="text-[10px] text-[#e99ab1] bg-[#e99ab1]/10 px-2 py-0.5 rounded-full border border-[#e99ab1]/20">
+                          <span className="text-[10px] text-brand bg-brand/10 px-2 py-0.5 rounded-full border border-brand/20">
                             {getBrowserTimezone().split("/")[1]?.replace("_", " ") || getBrowserTimezone()} Time
                           </span>
                         </div>
@@ -354,7 +354,7 @@ export default function CreationDetailPage() {
                                   [`${draft.channelId}-${index}`]: e.target.value,
                                 }))
                               }
-                              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none transition-all hover:border-zinc-700 focus:border-[#e99ab1]/50 focus:ring-1 focus:ring-[#e99ab1]/30"
+                              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none transition-all hover:border-zinc-700 focus:border-brand/50 focus:ring-1 focus:ring-brand/30"
                               style={{ colorScheme: 'dark' }}
                             />
                           </div>
@@ -368,7 +368,7 @@ export default function CreationDetailPage() {
                                   [`${draft.channelId}-${index}`]: e.target.value,
                                 }))
                               }
-                              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none transition-all hover:border-zinc-700 focus:border-[#e99ab1]/50 focus:ring-1 focus:ring-[#e99ab1]/30"
+                              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none transition-all hover:border-zinc-700 focus:border-brand/50 focus:ring-1 focus:ring-brand/30"
                               style={{ colorScheme: 'dark' }}
                             />
                           </div>
@@ -387,7 +387,7 @@ export default function CreationDetailPage() {
                           onClick={() => {
                             void handleSchedulePost(draft.channelId, index, draft.platform);
                           }}
-                          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#e99ab1] hover:bg-[#e99ab1]/90 text-white py-2.5 text-sm font-base transition-all duration-200 shadow-md shadow-[#e99ab1]/10 hover:shadow-[#e99ab1]/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand hover:bg-brand/90 text-white py-2.5 text-sm font-base transition-all duration-200 shadow-md shadow-brand/10 hover:shadow-brand/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {scheduleDraft.isPending && scheduleDraft.variables?.channelId === draft.channelId ? (
                             <>

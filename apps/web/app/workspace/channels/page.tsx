@@ -233,7 +233,7 @@ function ChannelsPageContent() {
             <div className="rounded-2xl bg-zinc-900/40 border border-zinc-800/80 px-5 py-4">
               <p className="text-sm text-zinc-400">
                 <strong className="font-medium text-zinc-200">Next:</strong>{" "}
-                <Link href="/workspace/create/new" className="font-medium text-[#e99ab1] hover:text-[#e99ab1]/80 underline-offset-4 hover:underline">Open Create</Link>{" "}
+                <Link href="/workspace/create/new" className="font-medium text-brand hover:text-brand/80 underline-offset-4 hover:underline">Open Create</Link>{" "}
                 to pull angles from any synced articles.
               </p>
             </div>

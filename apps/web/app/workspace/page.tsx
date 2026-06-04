@@ -102,7 +102,7 @@ export default function WorkspaceDashboard() {
     return (
       <div className="flex min-h-[80vh] w-full items-center justify-center">
         <div className="flex items-center gap-3 text-sm text-zinc-400">
-          <Loader2 className="h-5 w-5 animate-spin text-[#e99ab1]" />
+          <Loader2 className="h-5 w-5 animate-spin text-brand" />
           Synchronizing mission control...
         </div>
       </div>
@@ -146,7 +146,7 @@ export default function WorkspaceDashboard() {
           <div className="space-y-3.5 max-w-2xl">
             <div className="flex flex-wrap gap-2.5">
               {trialDaysLeft !== null && (
-                <span className="inline-flex items-center gap-1.5 font-jetbrains bg-[#e99ab1]/10 border border-[#e99ab1]/20 px-3 py-1 text-[11px] text-[#e99ab1] animate-in fade-in duration-300">
+                <span className="inline-flex items-center gap-1.5 font-jetbrains bg-brand/10 border border-brand/20 px-3 py-1 text-[11px] text-brand animate-in fade-in duration-300">
                   {trialDaysLeft} {trialDaysLeft === 1 ? "day" : "days"} left on free trial
                 </span>
               )}
@@ -160,20 +160,11 @@ export default function WorkspaceDashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
-            {user && (user as any).plan === "free" && (
-              <Link
-                href="/pricing"
-                className="inline-flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold px-5 py-3 text-xs tracking-wide shadow-lg shadow-amber-500/10 transition-all duration-200 active:scale-[0.98] animate-in fade-in duration-300"
-              >
-                <Zap className="h-4 w-4 fill-current" />
-                Upgrade Plan
-              </Link>
-            )}
+
             <Link
               href="/workspace/create/new"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e99ab1] hover:bg-[#e99ab1]/90 text-white px-5 py-3 text-xs font-semibold tracking-wide shadow-lg shadow-[#e99ab1]/10 hover:shadow-[#e99ab1]/20 transition-all duration-200 active:scale-[0.98]"
+              className="inline-flex items-center gap-2 rounded-full bg-brand hover:bg-brand/90 text-white px-5 py-3 text-sm font-light hover:shadow-brand/20 transition-all duration-200"
             >
-              <Plus className="h-4 w-4 stroke-[3]" />
               Generate Social Pack
             </Link>
             <Link
@@ -198,7 +189,7 @@ export default function WorkspaceDashboard() {
           </div>
           <div>
             <span className="text-3xl font-display text-zinc-100 block">{scheduledPosts.length} posts</span>
-            <Link href="/workspace/calendar" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors mt-1.5">
+            <Link href="/workspace/calendar" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand hover:text-brand/80 transition-colors mt-1.5">
               Open Calendar
               <ArrowRight className="h-3 w-3" />
             </Link>
@@ -256,7 +247,7 @@ export default function WorkspaceDashboard() {
             </div>
             <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-white/5">
               <div
-                className="bg-[#e99ab1] h-full rounded-full transition-all duration-500"
+                className="bg-brand h-full rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(100, Math.max(0, (creditBalance / maxCredits) * 100))}%` }}
               />
             </div>
@@ -271,7 +262,7 @@ export default function WorkspaceDashboard() {
             <h2 className="text-xl font-display text-zinc-100">Creations Library</h2>
             <p className="text-xs text-zinc-500 mt-1">Select previously saved channel pack iterations</p>
           </div>
-          <Link href="/workspace/create" className="text-xs font-semibold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors flex items-center gap-1">
+          <Link href="/workspace/create" className="text-xs font-semibold text-brand hover:text-brand/80 transition-colors flex items-center gap-1">
             View All Packs
             <ChevronLeft className="h-3 w-3 rotate-180" />
           </Link>
@@ -282,7 +273,7 @@ export default function WorkspaceDashboard() {
             <p className="text-xs text-zinc-500 max-w-sm mx-auto">
               No saved packs generated yet. Import your first issue and translate it to connect to social templates!
             </p>
-            <Link href="/workspace/create/new" className="inline-flex items-center gap-1.5 text-xs text-[#e99ab1] hover:text-[#e99ab1]/80 mt-3 font-semibold">
+            <Link href="/workspace/create/new" className="inline-flex items-center gap-1.5 text-xs text-brand hover:text-brand/80 mt-3 font-semibold">
               Create a Draft Pack
               <ArrowRight className="h-3 w-3" />
             </Link>
@@ -296,10 +287,10 @@ export default function WorkspaceDashboard() {
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="rounded-full border border-[#e99ab1]/20 bg-[#e99ab1]/10 px-2.5 py-0.5 text-[9px] font-semibold text-[#e99ab1]">
+                    <span className="rounded-full border border-brand/20 bg-brand/10 px-2.5 py-0.5 text-[9px] font-semibold text-brand">
                       {creation.draftCountPerChannel} drafts per channel
                     </span>
-                    <span className="text-[10px] text-zinc-600">
+                    <span className="text-[10px] text-zinc-650">
                       {new Date(creation.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </span>
                   </div>
@@ -309,12 +300,12 @@ export default function WorkspaceDashboard() {
                 </div>
 
                 <div className="mt-5 border-t border-white/5 pt-4 flex items-center justify-between">
-                  <span className="text-[10px] text-zinc-500">
+                  <span className="text-[10px] text-zinc-505">
                     {creation.draftCount} drafts generated
                   </span>
                   <Link
                     href={`/workspace/create/${creation.id}`}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-brand hover:text-brand/80 transition-colors"
                   >
                     Open Pack
                     <ArrowUpRight className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -335,7 +326,7 @@ export default function WorkspaceDashboard() {
               <h2 className="text-xl font-display text-zinc-100">Weekly Queue Feed</h2>
               <p className="text-xs text-zinc-500 mt-1">Live overview of upcoming publishing slots</p>
             </div>
-            <Link href="/workspace/calendar" className="text-xs font-semibold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors flex items-center gap-1">
+            <Link href="/workspace/calendar" className="text-xs font-semibold text-brand hover:text-brand/80 transition-colors flex items-center gap-1">
               View Calendar
               <ArrowRight className="h-3 w-3" />
             </Link>
@@ -422,7 +413,7 @@ export default function WorkspaceDashboard() {
               <h2 className="text-xl font-display text-zinc-100">Import Pipeline</h2>
               <p className="text-xs text-zinc-500 mt-1">Ready issues for packing</p>
             </div>
-            <Link href="/workspace/create/new" className="text-xs font-semibold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors flex items-center gap-0.5">
+            <Link href="/workspace/create/new" className="text-xs font-semibold text-brand hover:text-brand/80 transition-colors flex items-center gap-0.5">
               Import
               <Plus className="h-3.5 w-3.5" />
             </Link>
@@ -431,7 +422,7 @@ export default function WorkspaceDashboard() {
           {recentArticles.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-white/10 bg-zinc-950/20 p-8 text-center">
               <RssIcon className="h-6 w-6 text-zinc-700 mx-auto mb-2" />
-              <p className="text-[11px] text-zinc-600 leading-normal max-w-[160px] mx-auto">
+              <p className="text-[11px] text-zinc-650 leading-normal max-w-[160px] mx-auto">
                 No articles imported. Feed your newsletter RSS link to fetch!
               </p>
             </div>
@@ -443,17 +434,17 @@ export default function WorkspaceDashboard() {
                   className="rounded-xl border border-white/10 bg-zinc-950/40 p-4 transition-all duration-300 hover:border-white/20 flex flex-col justify-between gap-3 hover:scale-[1.02] hover:shadow-[0_4px_20px_rgb(0,0,0,0.08)]"
                 >
                   <div className="space-y-1">
-                    <h4 className="text-xs font-semibold text-zinc-200 line-clamp-1 leading-normal">
+                    <h4 className="text-xs font-semibold text-zinc-202 line-clamp-1 leading-normal">
                       {art.title}
                     </h4>
-                    <span className="text-[9px] text-zinc-500 block">
+                    <span className="text-[9px] text-zinc-505 block">
                       Imported {new Date(art.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </span>
                   </div>
 
                   <Link
                     href={`/workspace/create/new?articleId=${art.id}`}
-                    className="inline-flex items-center gap-1 text-[10px] font-bold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors w-fit"
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-brand hover:text-brand/80 transition-colors w-fit"
                   >
                     Launch Pack
                     <ArrowRight className="h-3 w-3 shrink-0" />

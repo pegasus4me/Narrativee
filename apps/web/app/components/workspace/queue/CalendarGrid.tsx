@@ -70,14 +70,14 @@ export function CalendarGrid({ currentDate, selectedDate, posts, onSelectDate, o
                 type="button"
                 onClick={() => onSelectDate(date)}
                 className={`border-r border-zinc-800 px-3 py-3 text-left transition-colors last:border-r-0 ${
-                  isSelected ? "bg-[#e99ab1]/10 text-white font-semibold" : "hover:bg-[#e99ab1]/5"
+                  isSelected ? "bg-brand/10 text-white font-semibold" : "hover:bg-brand/5"
                 }`}
               >
                 <span className="block text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">
                   {date.toLocaleDateString("en-US", { weekday: "short" })}
                 </span>
                 <span className={`mt-1 flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${
-                  isToday ? "bg-[#e99ab1] text-white" : "text-zinc-100"
+                  isToday ? "bg-brand text-white" : "text-zinc-100"
                 }`}>
                   {date.getDate()}
                 </span>
@@ -104,7 +104,7 @@ export function CalendarGrid({ currentDate, selectedDate, posts, onSelectDate, o
                       type="button"
                       onClick={() => onSelectDate(date)}
                       className={`min-h-[72px] border-r border-t border-zinc-800 p-1.5 text-left transition-colors last:border-r-0 ${
-                        isSelected ? "bg-[#e99ab1]/5" : "hover:bg-[#e99ab1]/2.5"
+                        isSelected ? "bg-brand/5" : "hover:bg-brand/2.5"
                       }`}
                     >
                       <div className="flex min-h-[58px] flex-col gap-1">

@@ -303,7 +303,7 @@ export default function HooksLibraryPage() {
         <div className="rounded-3xl border border-white/10 bg-zinc-950/70 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="max-w-2xl space-y-3">
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-2 w-2 rounded-full bg-[#e99ab1] animate-pulse" />
+              <span className="inline-flex h-2 w-2 rounded-full bg-brand animate-pulse" />
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white">Library Engine</p>
             </div>
             <h1 className="text-3xl font-semibold leading-tight tracking-tight text-zinc-100 md:text-4xl">
@@ -316,7 +316,7 @@ export default function HooksLibraryPage() {
 
           <button
             onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#e99ab1] px-5 py-3 text-xs font-bold text-white transition-all hover:bg-[#e99ab1]/90 shadow-md shadow-[#e99ab1]/10 cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white transition-all hover:bg-brand/90 shadow-md shadow-brand/10 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add Custom Hook
@@ -332,7 +332,7 @@ export default function HooksLibraryPage() {
             onClick={() => setSelectedPlatform("all")}
             className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all ${
               selectedPlatform === "all"
-                ? "bg-[#e99ab1] text-white border-[#e99ab1]/10"
+                ? "bg-brand text-white border-brand/10"
                 : "bg-zinc-900/60 text-zinc-400 border-white/5 hover:text-zinc-200"
             }`}
           >
@@ -379,7 +379,7 @@ export default function HooksLibraryPage() {
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`flex items-center gap-2.5 w-full text-left px-3 py-2.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap ${
                   selectedCategory === cat.id
-                    ? "bg-[#e99ab1]/10 text-[#e99ab1] border border-[#e99ab1]/20 shadow-sm"
+                    ? "bg-brand/10 text-brand border border-brand/20 shadow-sm"
                     : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.01]"
                 }`}
               >
@@ -426,7 +426,7 @@ export default function HooksLibraryPage() {
                             )}
                             {meta.label}
                           </span>
-                          <span className="rounded-full border border-[#e99ab1]/20 bg-[#e99ab1]/10 px-2.5 py-0.5 text-[9px] font-bold text-[#e99ab1] uppercase tracking-wide">
+                          <span className="rounded-full border border-brand/20 bg-brand/10 px-2.5 py-0.5 text-[9px] font-bold text-brand uppercase tracking-wide">
                             {hook.category}
                           </span>
                         </div>
@@ -497,7 +497,7 @@ export default function HooksLibraryPage() {
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#e99ab1]" />
+                  <Sparkles className="w-4 h-4 text-brand" />
                   Add New Reusable Hook
                 </h3>
                 <p className="text-xs text-zinc-400 mt-1">
@@ -593,7 +593,7 @@ export default function HooksLibraryPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-bold rounded-xl bg-[#e99ab1] hover:bg-[#e99ab1]/90 text-white transition-all cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold rounded-xl bg-brand hover:bg-brand/90 text-white transition-all cursor-pointer"
                 >
                   Save Hook
                 </button>

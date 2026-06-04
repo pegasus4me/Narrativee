@@ -56,7 +56,7 @@ export function VoiceMemoryStudio({ voiceMemory, onChange }: VoiceMemoryStudioPr
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-white/10 bg-primary/50 p-5">
+      <div className="rounded-2xl border border-white/10 bg-primary p-5">
         <div className="mb-4">
           <h3 className="text-sm font-semibold text-gray-100">Voice sources</h3>
           <p className="mt-1 text-sm text-gray-400">Choose a platform and paste a few of your own posts as training samples.</p>

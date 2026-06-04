@@ -76,10 +76,10 @@ export function PostDetailModal({
 
         {isEditing ? (
           <div className="flex flex-col gap-2.5">
-            <textarea value={editText} onChange={(e) => onEditTextChange(e.target.value)} className="w-full min-h-[220px] rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs leading-relaxed text-zinc-200 focus:outline-none focus:ring-1 focus:ring-[#e99ab1] font-normal font-sans" />
+            <textarea value={editText} onChange={(e) => onEditTextChange(e.target.value)} className="w-full min-h-[220px] rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs leading-relaxed text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand font-normal font-sans" />
             <div className="flex justify-end gap-2">
               <button type="button" onClick={onCancelEdit} className="rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 px-3 py-1.5 text-[11px] font-semibold text-zinc-400 transition-colors hover:text-zinc-200">Cancel</button>
-              <button type="button" disabled={isSavingEdit} onClick={onSaveEdit} className="inline-flex items-center justify-center gap-1 rounded-lg bg-[#e99ab1] hover:bg-[#e99ab1]/90 text-white px-3 py-1.5 text-[11px] font-bold transition-colors disabled:opacity-50">
+              <button type="button" disabled={isSavingEdit} onClick={onSaveEdit} className="inline-flex items-center justify-center gap-1 rounded-lg bg-brand hover:bg-brand/90 text-white px-3 py-1.5 text-[11px] font-bold transition-colors disabled:opacity-50">
                 {isSavingEdit ? "Saving..." : "Save Changes"}
               </button>
             </div>
@@ -91,15 +91,15 @@ export function PostDetailModal({
         )}
 
         {isRescheduling && (
-          <div className="rounded-xl border border-[#e99ab1]/20 bg-[#e99ab1]/5 p-4 grid gap-3 animate-in fade-in duration-150">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-[#e99ab1]"><Calendar className="h-3.5 w-3.5" /> Select New Publishing Date & Time</div>
+          <div className="rounded-xl border border-brand/20 bg-brand/5 p-4 grid gap-3 animate-in fade-in duration-150">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-brand"><Calendar className="h-3.5 w-3.5" /> Select New Publishing Date & Time</div>
             <div className="grid grid-cols-2 gap-2">
-              <input type="date" value={newDate} onChange={(e) => onNewDateChange(e.target.value)} className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-[#e99ab1]/50" style={{ colorScheme: 'dark' }} />
-              <input type="time" value={newTime} onChange={(e) => onNewTimeChange(e.target.value)} className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-[#e99ab1]/50" style={{ colorScheme: 'dark' }} />
+              <input type="date" value={newDate} onChange={(e) => onNewDateChange(e.target.value)} className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand/50" style={{ colorScheme: 'dark' }} />
+              <input type="time" value={newTime} onChange={(e) => onNewTimeChange(e.target.value)} className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-brand/50" style={{ colorScheme: 'dark' }} />
             </div>
             <div className="flex justify-end gap-2 mt-1">
               <button type="button" onClick={onCancelReschedule} className="rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 px-3 py-1.5 text-[11px] font-semibold text-zinc-400 transition-colors hover:text-zinc-200">Cancel</button>
-              <button type="button" disabled={isSavingReschedule} onClick={onSaveReschedule} className="inline-flex items-center justify-center gap-1 rounded-lg bg-[#e99ab1] hover:bg-[#e99ab1]/90 text-white px-3 py-1.5 text-[11px] font-bold transition-colors">
+              <button type="button" disabled={isSavingReschedule} onClick={onSaveReschedule} className="inline-flex items-center justify-center gap-1 rounded-lg bg-brand hover:bg-brand/90 text-white px-3 py-1.5 text-[11px] font-bold transition-colors">
                 {isSavingReschedule ? "Updating..." : "Reschedule"}
               </button>
             </div>
@@ -116,7 +116,7 @@ export function PostDetailModal({
               <button type="button" disabled={isUnscheduling} onClick={onUnschedule} className="inline-flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold text-zinc-450 hover:text-zinc-200 transition-colors disabled:opacity-50">
                 {isUnscheduling ? "Drafting..." : "Unschedule"}
               </button>
-              <button type="button" disabled={isPublishing} onClick={onPublishNow} className="inline-flex items-center gap-1 rounded-lg bg-[#e99ab1] hover:bg-[#e99ab1]/90 text-white px-3 py-1.5 text-[10px] font-bold transition-colors disabled:opacity-50">
+              <button type="button" disabled={isPublishing} onClick={onPublishNow} className="inline-flex items-center gap-1 rounded-lg bg-brand hover:bg-brand/90 text-white px-3 py-1.5 text-[10px] font-bold transition-colors disabled:opacity-50">
                 {isPublishing ? "Sending..." : "Publish Now"}
               </button>
               <button type="button" disabled={isDeletingPost} onClick={onDelete} className="text-zinc-400 hover:text-rose-600 transition-colors p-1 ml-1"><Trash2 className="h-4 w-4" /></button>

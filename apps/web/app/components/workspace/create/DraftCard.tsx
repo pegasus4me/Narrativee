@@ -249,7 +249,7 @@ export function DraftCard({
                       setEditingSlideIdx(idx);
                       setIsCustomizerOpen(true);
                     }}
-                    className="shrink-0 snap-center w-[160px] relative cursor-pointer group/slide rounded-lg overflow-hidden border border-zinc-200 bg-[#09090b] shadow-xs hover:border-[#e99ab1] hover:scale-[1.02] transition-all duration-200"
+                    className="shrink-0 snap-center w-[160px] relative cursor-pointer group/slide rounded-lg overflow-hidden border border-zinc-200 bg-[#09090b] shadow-xs hover:border-brand hover:scale-[1.02] transition-all duration-200"
                   >
                     <img
                       src={slide.dataUri}
@@ -326,7 +326,7 @@ export function DraftCard({
               <button
                 type="button"
                 onClick={() => onConvertToCarousel(draft.id)}
-                className="mt-1 inline-flex items-center justify-center gap-1.5 w-full rounded-xl bg-[#e99ab1] p-0.5 text-xs font-semibold text-white transition-all hover:scale-[1.01] active:scale-[0.99] shadow-md shadow-[#e99ab1]/5"
+                className="mt-1 inline-flex items-center justify-center gap-1.5 w-full rounded-xl bg-brand p-0.5 text-xs font-semibold text-white transition-all hover:scale-[1.01] active:scale-[0.99] shadow-md shadow-brand/5"
               >
                 <span className="flex w-full items-center justify-center gap-1.5 rounded-[10px] bg-[#09090b] px-3 py-2 text-zinc-150 transition-colors hover:bg-zinc-900">
                   <Sparkles className="h-4.5 w-4.5 text-white animate-pulse fill-white/20" />
@@ -411,7 +411,7 @@ export function DraftCard({
           className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
             isScheduled
               ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default"
-              : "bg-[#e99ab1] text-white hover:bg-[#e99ab1]/90 font-bold"
+              : "bg-brand text-white hover:bg-brand/90 font-bold"
           }`}
         >
           {isScheduled ? (
@@ -435,9 +435,9 @@ export function DraftCard({
           {/* Header Dashboard Bar */}
           <header className="flex h-16 w-full items-center justify-between border-b border-zinc-800 px-6 shrink-0">
             <div className="flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-[#e99ab1] animate-pulse" />
+              <Sparkles className="h-5 w-5 text-brand animate-pulse" />
               <h3 className="text-sm font-bold tracking-tight text-white">Narrativee Visual Customizer</h3>
-              <span className="rounded-full bg-[#e99ab1]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#e99ab1] border border-[#e99ab1]/20">
+              <span className="rounded-full bg-brand/10 px-2.5 py-0.5 text-[10px] font-bold text-brand border border-brand/20">
                 Satori Canvas Engine
               </span>
             </div>
@@ -447,7 +447,7 @@ export function DraftCard({
                 type="button"
                 disabled={renderingSlides}
                 onClick={() => handleReRender()}
-                className="flex items-center justify-center gap-1.5 rounded-xl bg-[#e99ab1] hover:bg-[#e99ab1]/90 disabled:bg-zinc-700 px-5 py-2.5 text-xs font-bold text-white transition-all shadow-md active:scale-98"
+                className="flex items-center justify-center gap-1.5 rounded-xl bg-brand hover:bg-brand/90 disabled:bg-zinc-700 px-5 py-2.5 text-xs font-bold text-white transition-all shadow-md active:scale-98"
               >
                 {renderingSlides ? (
                   <>
@@ -486,7 +486,7 @@ export function DraftCard({
                       onClick={() => setEditingSlideIdx(idx)}
                       className={`relative group/strip rounded-xl border p-2 cursor-pointer transition-all duration-200 ${
                         editingSlideIdx === idx 
-                          ? "border-[#e99ab1] bg-[#e99ab1]/5 shadow-md shadow-[#e99ab1]/5 scale-102" 
+                          ? "border-brand bg-brand/5 shadow-md shadow-brand/5 scale-102" 
                           : "border-zinc-800/80 bg-zinc-900/40 hover:border-zinc-700"
                       }`}
                     >
@@ -517,7 +517,7 @@ export function DraftCard({
                   <button
                     type="button"
                     onClick={handleAddSlide}
-                    className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-700 hover:border-[#e99ab1] bg-zinc-900/20 hover:bg-[#e99ab1]/5 py-6 px-3 text-center text-zinc-500 hover:text-white transition-all cursor-pointer group"
+                    className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-700 hover:border-brand bg-zinc-900/20 hover:bg-brand/5 py-6 px-3 text-center text-zinc-500 hover:text-white transition-all cursor-pointer group"
                   >
                     <Plus className="h-5 w-5 stroke-[2.5] group-hover:scale-110 transition-transform" />
                     <span className="text-[10px] font-bold">Add Slide</span>
@@ -543,7 +543,7 @@ export function DraftCard({
                   {/* Rendering overlay */}
                   {renderingSlides && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/40 backdrop-blur-xs">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#e99ab1]" />
+                      <Loader2 className="w-8 h-8 animate-spin text-brand" />
                       <span className="text-xs font-semibold text-white/80">Rendering high-fidelity preview...</span>
                     </div>
                   )}
@@ -625,7 +625,7 @@ export function DraftCard({
                       onClick={() => handleApplyPreset(preset)}
                       className={`flex flex-col gap-1 p-2 rounded-xl border text-left cursor-pointer transition-all ${
                         localTheme.themePreset === preset.id 
-                          ? "border-[#e99ab1] bg-[#e99ab1]/5 text-white" 
+                          ? "border-brand bg-brand/5 text-white" 
                           : "border-zinc-800 bg-zinc-900/30 text-zinc-400 hover:border-zinc-700"
                       }`}
                     >

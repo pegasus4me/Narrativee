@@ -130,7 +130,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
             {isSidebarOpen ? (
               <Link
                 href="/workspace/create/new"
-                className="w-full flex items-center justify-center gap-2 rounded-full hover:bg-[#e99ab1]/90 text-white py-2.5 text-sm font-base transition-all duration-200 shadow-md shadow-[#e99ab1]/10 hover:shadow-[#e99ab1]/20 bg-[#e99ab1]"
+                className="w-full flex items-center justify-center gap-2 rounded-full hover:bg-brand/90 text-white py-2.5 text-sm font-base transition-all duration-200 shadow-md shadow-brand/10 hover:shadow-brand/20 bg-brand"
               >
                 <span>Create New</span>
               </Link>
@@ -138,7 +138,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
               <Link
                 href="/workspace/create/new"
                 title="Create New"
-                className="w-8 h-8 rounded-xl bg-[#e99ab1] hover:bg-[#e99ab1]/90 text-white flex items-center justify-center transition-all duration-200 shadow-md shadow-[#e99ab1]/10 active:scale-[0.95]"
+                className="w-8 h-8 rounded-xl bg-brand hover:bg-brand/90 text-white flex items-center justify-center transition-all duration-200 shadow-md shadow-brand/10 active:scale-[0.95]"
               >
                 <Plus className="w-4 h-4 shrink-0 stroke-[3]" />
               </Link>
@@ -150,11 +150,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
             <Link
               href="/workspace"
               className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace")
-                ? "bg-[#e99ab1]/10 text-white font-semibold "
+                ? "bg-brand/10 text-white font-semibold "
                 : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                 } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
             >
-              <Home className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace") ? "text-[#e99ab1]" : "text-zinc-400 group-hover:text-white"
+              <Home className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace") ? "text-brand" : "text-zinc-400 group-hover:text-white"
                 }`} />
               {isSidebarOpen && <span className="text-sm font-medium">Home</span>}
             </Link>
@@ -162,11 +162,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
             <Link
               href="/workspace/create"
               className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace/create")
-                ? "bg-[#e99ab1]/10 text-white font-semibold "
+                ? "bg-brand/10 text-white font-semibold "
                 : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                 } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
             >
-              <Lightbulb className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/create") ? "text-[#e99ab1]" : "text-zinc-400 group-hover:text-white"
+              <Lightbulb className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/create") ? "text-brand" : "text-zinc-400 group-hover:text-white"
                 }`} />
               {isSidebarOpen && <span className="text-sm font-medium">Create</span>}
             </Link>
@@ -176,11 +176,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
             <Link
               href="/workspace/calendar"
               className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace/calendar")
-                ? "bg-[#e99ab1]/10 text-white font-semibold "
+                ? "bg-brand/10 text-white font-semibold "
                 : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                 } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
             >
-              <CalendarDays className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/calendar") ? "text-[#e99ab1]" : "text-zinc-400 group-hover:text-white"
+              <CalendarDays className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/calendar") ? "text-brand" : "text-zinc-400 group-hover:text-white"
                 }`} />
               {isSidebarOpen && <span className="text-sm font-medium">Calendar</span>}
             </Link>
@@ -188,11 +188,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
             <Link
               href="/workspace/channels"
               className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace/channels")
-                ? "bg-[#e99ab1]/10 text-white font-semibold "
+                ? "bg-brand/10 text-white font-semibold "
                 : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                 } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
             >
-              <Link2 className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/channels") ? "text-[#e99ab1]" : "text-zinc-400 group-hover:text-white"
+              <Link2 className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/channels") ? "text-brand" : "text-zinc-400 group-hover:text-white"
                 }`} />
               {isSidebarOpen && <span className="text-sm font-medium">Channels</span>}
             </Link>
@@ -200,11 +200,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
             <Link
               href="/workspace/memory"
               className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace/memory")
-                ? "bg-[#e99ab1]/10 text-white font-semibold "
+                ? "bg-brand/10 text-white font-semibold "
                 : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                 } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
             >
-              <Brain className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/memory") ? "text-[#e99ab1]" : "text-zinc-400 group-hover:text-white"
+              <Brain className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/memory") ? "text-brand" : "text-zinc-400 group-hover:text-white"
                 }`} />
               {isSidebarOpen && <span className="text-sm font-medium">Memory</span>}
             </Link>
@@ -212,11 +212,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
             <Link
               href="/workspace/hooks"
               className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace/hooks")
-                ? "bg-[#e99ab1]/10 text-white font-semibold "
+                ? "bg-brand/10 text-white font-semibold "
                 : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                 } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
             >
-              <Sparkles className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/hooks") ? "text-[#e99ab1]" : "text-white opacity-70 group-hover:opacity-100"
+              <Sparkles className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/hooks") ? "text-brand" : "text-white opacity-70 group-hover:opacity-100"
                 }`} />
               {isSidebarOpen && <span className="text-sm font-medium">Hooks Library</span>}
             </Link>
@@ -373,7 +373,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
             {session?.user && (plan === 'free' || !plan) && isSidebarOpen && (
               <div className="mx-2 p-3 space-y-2.5 font-urbanist">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-medium text-[#e99ab1] px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] font-medium text-brand px-2 py-0.5 rounded-full">
                     Free Trial
                   </span>
                   <span className="text-[11px] font-medium text-zinc-400">
@@ -382,16 +382,16 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                 </div>
                 <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
                   <div
-                    className="bg-[#e99ab1] h-1.5 rounded-full transition-all duration-500"
+                    className="bg-brand h-1.5 rounded-full transition-all duration-500"
                     style={{ width: `${Math.min(100, Math.max(0, ((credits ?? 40) / 40) * 100))}%` }}
                   />
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowPricing(true)}
-                  className="block w-full text-center text-sm font-light text-white bg-[#e99ab1] hover:bg-[#e99ab1]/90 py-2 rounded-full transition-colors shadow-xs"
+                  className="block w-full text-center text-sm font-light text-white bg-brand hover:bg-brand/90 py-2 rounded-full transition-colors shadow-xs"
                 >
-                  pricing
+                  upgrade now
                 </button>
               </div>
             )}
@@ -402,7 +402,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                   type="button"
                   onClick={() => setShowPricing(true)}
                   title={`Upgrade - ${credits ?? 0}/40 credits left`}
-                  className="w-8 h-8 rounded-full bg-[#e99ab1]/10 border border-[#e99ab1]/20 hover:bg-[#e99ab1]/20 flex items-center justify-center text-[10px] font-bold text-[#e99ab1] transition-all"
+                  className="w-8 h-8 rounded-full bg-brand/10 border border-brand/20 hover:bg-brand/20 flex items-center justify-center text-[10px] font-bold text-brand transition-all"
                 >
                   {credits !== null ? credits : "T"}
                 </button>

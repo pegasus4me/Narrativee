@@ -66,7 +66,7 @@ export function ArticleList({
         </p>
         <Link
           href="/workspace/channels"
-          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#e99ab1] hover:bg-[#e99ab1]/90 px-5 py-2.5 text-sm font-bold text-white transition-colors"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand hover:bg-brand/90 px-5 py-2.5 text-sm font-bold text-white transition-colors"
         >
           Go to Channels
           <ArrowRight className="h-4 w-4" />
@@ -102,7 +102,7 @@ export function ArticleList({
                 onClick={() => onSelect(article, false)}
                 disabled={isLoading}
                 className={`flex h-full w-full rounded-md flex-col border p-5 text-left transition-all ${isSelected
-                  ? "border-[#e99ab1] bg-[#e99ab1]/5 ring-1 ring-[#e99ab1]/10"
+                  ? "border-brand bg-brand/5 ring-1 ring-brand/10"
                   : "border-zinc-800 bg-zinc-950/40 text-white hover:border-zinc-700 hover:shadow-md"
                   } ${isLoading ? "animate-pulse" : ""}`}
               >
@@ -157,7 +157,7 @@ export function ArticleList({
                   </time>
                   <div className="flex items-center gap-1.5">
                     {(article.draftCount ?? 0) > 0 ? (
-                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#e99ab1] bg-[#e99ab1]/10 rounded-full px-2 py-0.5">
+                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-brand bg-brand/10 rounded-full px-2 py-0.5">
                         <ArrowUpRight className="h-2.5 w-2.5" />
                         View Drafts
                       </span>
