@@ -61,19 +61,19 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen w-full flex font-sans antialiased">
+    <div className="min-h-screen w-full flex font-sans antialiased bg-[#09090b] text-zinc-100 theme-landing">
       {/* Left Side: Form */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 bg-white relative">
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 bg-[#09090b] relative">
         <div className="w-full max-w-[440px]">
           {/* Header Section */}
           <div className="flex flex-col items-center mb-8">
             <div className="mb-4">
               <Image src={Logo} alt='narrative' width={100} />
             </div>
-            <h1 className="text-3xl font-medium tracking-tight text-gray-900" style={{ fontFamily: 'var(--font-petrona)' }}>
+            <h1 className="text-3xl font-medium tracking-tight text-white" style={{ fontFamily: 'var(--font-petrona)' }}>
               Sign up
             </h1>
-            <h3 className='text-gray-500 text-sm mt-2'>Get started for free. No credit card required.</h3>
+            <h3 className='text-zinc-400 text-sm mt-2'>Get started for free. No credit card required.</h3>
           </div>
 
           {/* Card Content - Removed Border/Padding to match signin */}
@@ -82,10 +82,10 @@ export default function SignUp() {
             <button
               onClick={handleGoogleSignUp}
               disabled={isLoading}
-              className="w-full h-12 border text-black border-gray-200 font-medium rounded-xl flex items-center justify-center gap-3 transition-all duration-200 hover:bg-gray-50 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed group"
+              className="w-full h-12 border border-zinc-800 bg-zinc-900 text-zinc-100 font-medium rounded-xl flex items-center justify-center gap-3 transition-all duration-200 hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed group"
             >
               {isLoading ? (
-                <Loader className="w-5 h-5 animate-spin text-gray-400" />
+                <Loader className="w-5 h-5 animate-spin text-zinc-500" />
               ) : (
                 <>
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -106,7 +106,7 @@ export default function SignUp() {
                       fill="#EA4335"
                     />
                   </svg>
-                  <span className="text-gray-600 font-medium">Continue with Google</span>
+                  <span className="text-zinc-200 font-medium">Continue with Google</span>
                 </>
               )}
             </button>
@@ -114,47 +114,47 @@ export default function SignUp() {
             {/* Divider */}
             <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100"></div>
+                <div className="w-full border-t border-zinc-800"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-gray-400 tracking-widest font-medium" style={{ fontFamily: 'var(--font-petrona)' }}>Or</span>
+                <span className="bg-[#09090b] px-3 text-zinc-500 tracking-widest font-medium" style={{ fontFamily: 'var(--font-petrona)' }}>Or</span>
               </div>
             </div>
 
             {/* Email Form */}
             <form onSubmit={handleEmailSignUp} className="space-y-5">
               {error && (
-                <div className="p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm text-center">
+                <div className="p-3 rounded-lg bg-red-955/30 border border-red-900/50 text-red-400 text-sm text-center">
                   {error}
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <label className="text-[13px] font-medium text-gray-700 ml-1">Name</label>
+                <label className="text-[13px] font-medium text-zinc-300 ml-1">Name</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="John Doe"
-                  className="w-full h-11 border border-gray-200 rounded-xl px-4 text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all bg-gray-50/50 focus:bg-white"
+                  className="w-full h-11 border border-zinc-800 rounded-xl px-4 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all bg-zinc-900/50 focus:bg-zinc-900"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[13px] font-medium text-gray-700 ml-1">Email</label>
+                <label className="text-[13px] font-medium text-zinc-300 ml-1">Email</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full h-11 border border-gray-200 rounded-xl px-4 text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all bg-gray-50/50 focus:bg-white"
+                  className="w-full h-11 border border-zinc-800 rounded-xl px-4 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all bg-zinc-900/50 focus:bg-zinc-900"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[13px] font-medium text-gray-700 ml-1">Password</label>
+                <label className="text-[13px] font-medium text-zinc-300 ml-1">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -162,36 +162,36 @@ export default function SignUp() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a strong password"
-                    className="w-full h-11 border border-gray-200 rounded-xl px-4 text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all pr-10 bg-gray-50/50 focus:bg-white"
+                    className="w-full h-11 border border-zinc-800 rounded-xl px-4 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all pr-10 bg-zinc-900/50 focus:bg-zinc-900"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
                   >
                     {showPassword ? <ViewOff size={18} /> : <View size={18} />}
                   </button>
                 </div>
               </div>
 
-              <PrimaryButton
+              <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 flex items-center justify-center"
+                className="w-full h-12 bg-white hover:bg-white/90 text-black font-medium rounded-xl flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
-                  <Loader className="w-5 h-5 animate-spin" />
+                  <Loader className="w-5 h-5 animate-spin text-zinc-950" />
                 ) : (
                   "Create Account"
                 )}
-              </PrimaryButton>
+              </button>
             </form>
 
             {/* Footer */}
             <div className="text-center mt-8">
-              <p className="text-gray-500 text-sm">
+              <p className="text-zinc-400 text-sm">
                 Already have an account?{" "}
-                <a href="/auth/signin" className="text-primary-500 font-medium hover:underline transition-colors">
+                <a href="/auth/signin" className="text-brand font-medium hover:underline transition-colors">
                   Sign in
                 </a>
               </p>
@@ -199,31 +199,24 @@ export default function SignUp() {
           </div>
 
           {/* Footer Branding */}
-          <div className="absolute bottom-6 left-0 right-0 text-center text-gray-400 text-xs" style={{ fontFamily: 'var(--font-petrona)' }}>
-            &copy; 2025 Narrativee.
+          <div className="absolute bottom-6 left-0 right-0 text-center text-zinc-650 text-xs" style={{ fontFamily: 'var(--font-petrona)' }}>
+            &copy; 2026 Narrativee.
           </div>
         </div>
       </div>
 
-      {/* Right Side: Gradient - Matching SignIn Page */}
-      <div className="hidden lg:flex w-1/2 rounded-l-md relative items-center justify-center overflow-hidden bg-primary">
-        {/* Background Texture/Mask */}
-        <div
-          className="absolute inset-0 z-0 opacity-80 mix-blend-overlay"
-          style={{
-            backgroundImage: 'url(/bg.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
+      {/* Right Side: Image */}
+      <div className="hidden lg:flex w-1/2 rounded-l-md relative items-center justify-center overflow-hidden bg-zinc-950">
+        <Image
+          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Upscaled%20Image%20%2813%29-OQ2DiR3ElVsUg8kTvTL1kC5A3Q6maM.png"
+          alt="Narrativee Creator Space"
+          fill
+          priority
+          sizes="50vw"
+          className="object-cover"
         />
-        {/* Abstract Shapes */}
-        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-primary to-primary rounded-full blur-[100px] opacity-40 animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-gradient-to-tr from-primary to-primary/50 rounded-full blur-[120px] opacity-40" />
-
-        {/* Content in the gradient side - optional, maybe a quote or feature highlight */}
-        <div className="relative z-10 max-w-md text-center p-8">
-
-        </div>
+        {/* Subtle overlay gradient to make it look premium */}
+        <div className="absolute inset-0 bg-[#09090b]/15 mix-blend-multiply" />
       </div>
     </div>
   );
