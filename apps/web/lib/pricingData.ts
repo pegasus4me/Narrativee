@@ -36,6 +36,7 @@ export const PricingPlans: PricingPlan[] = [
             { text: "Basic Voice memory  ", included: true },
             { text: "24/7 assistance", included: true },
 
+
         ]
     },
     {
