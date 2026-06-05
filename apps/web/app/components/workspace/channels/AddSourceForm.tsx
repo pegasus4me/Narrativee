@@ -27,9 +27,8 @@ export function AddSourceForm({ onSubmit, isSubmitting, error, success }: AddSou
         <button
           type="button"
           onClick={() => { setSyncTab("substack"); setUrlInput(""); }}
-          className={`pb-1.5 text-sm font-bold border-b-2 transition-all flex items-center gap-1.5 ${
-            syncTab === "substack" ? "border-orange-500 text-orange-600" : "border-transparent text-zinc-400 hover:text-zinc-600"
-          }`}
+          className={`pb-1.5 text-sm font-bold border-b-2 transition-all flex items-center gap-1.5 ${syncTab === "substack" ? "border-orange-500 text-orange-600" : "border-transparent text-zinc-400 hover:text-zinc-600"
+            }`}
         >
           <img src="https://cdn.worldvectorlogo.com/logos/substack-1.svg" alt="" className="h-3.5 w-3.5 object-contain" />
           Substack
@@ -37,9 +36,8 @@ export function AddSourceForm({ onSubmit, isSubmitting, error, success }: AddSou
         <button
           type="button"
           onClick={() => { setSyncTab("custom_rss"); setUrlInput(""); }}
-          className={`pb-1.5 text-sm font-bold border-b-2 transition-all flex items-center gap-1.5 ${
-            syncTab === "custom_rss" ? "border-indigo-600 text-indigo-600" : "border-transparent text-zinc-400 hover:text-zinc-600"
-          }`}
+          className={`pb-1.5 text-sm font-bold border-b-2 transition-all flex items-center gap-1.5 ${syncTab === "custom_rss" ? "border-indigo-600 text-indigo-600" : "border-transparent text-zinc-400 hover:text-zinc-600"
+            }`}
         >
           <Rss className="h-3.5 w-3.5 shrink-0" />
           Other Newsletters & Blogs
@@ -47,7 +45,7 @@ export function AddSourceForm({ onSubmit, isSubmitting, error, success }: AddSou
       </div>
 
       <div>
-        <p className="mb-5 text-xs text-zinc-600">
+        <p className="mb-5 text-xs text-white">
           {syncTab === "substack"
             ? "Enter your Substack publication URL\u2014we normalize to the RSS feed and import issues automatically."
             : "Enter your blog URL or RSS feed URL\u2014we support WordPress, Medium, Ghost, Beehiiv or any custom RSS feed."}
@@ -58,7 +56,7 @@ export function AddSourceForm({ onSubmit, isSubmitting, error, success }: AddSou
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder={syncTab === "substack" ? "https://yourname.substack.com" : "https://myblog.com or https://medium.com/feed/@username"}
-            className="min-h-[44px] flex-1 rounded-xl bg-white px-4 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500/25 border border-zinc-200"
+            className="min-h-[44px] flex-1  rounded-xl  px-4 text-sm text-white outline-none placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-50/25 border border-zinc-50"
             disabled={isSubmitting}
             required
           />

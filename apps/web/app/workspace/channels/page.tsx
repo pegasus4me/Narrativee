@@ -152,7 +152,7 @@ function ChannelsPageContent() {
   };
 
   return (
-    <div className="mx-auto w-[90%] space-y-6 py-8">
+    <div className="mx-auto w-[80%] space-y-6 py-8">
       <header className="mb-10 flex flex-col gap-6 pb-10 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 max-w-3xl lg:max-w-none lg:flex-1">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-100 sm:text-3xl">Connect</h1>
