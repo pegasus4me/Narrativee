@@ -2,6 +2,11 @@ import dotenv from 'dotenv';
 import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
+import { EventEmitter } from 'node:events';
+// Increase default max listeners to prevent MaxListenersExceededWarning
+// caused by multiple hot-reloads or database connection listeners.
+EventEmitter.defaultMaxListeners = 30;
+
 import { webcrypto } from 'node:crypto';
 if (!global.crypto) {
   global.crypto = webcrypto as any;
