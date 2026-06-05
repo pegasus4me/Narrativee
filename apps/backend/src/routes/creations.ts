@@ -18,6 +18,7 @@ interface CreateCreationBody {
   selectedAngles?: unknown;
   selectedChannelIds?: unknown;
   draftCount?: unknown;
+  userGoals?: string;
 }
 
 interface UpdateCreationBody {
@@ -46,6 +47,7 @@ interface CreationSessionPayload {
   }>;
   draftCountPerChannel: number;
   drafts: CreationDraft[];
+  metadata: unknown;
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -60,6 +62,48 @@ interface CreationSessionSummaryPayload {
   draftCountPerChannel: number;
   createdAt: string;
   updatedAt: string;
+}
+
+function normalizeVoiceMemory(rawVoiceMemory: unknown): {
+  sources: Array<{ category: string; label?: string; content: string; url?: string | null }>;
+  profile: Record<string, string>;
+  strictness: number;
+  status: string;
+  lastLearnedAt: string | null;
+  lastLearnedSourceId: string | null;
+} {
+  if (typeof rawVoiceMemory !== "object" || rawVoiceMemory === null) {
+    return {
+      sources: [],
+      profile: {},
+      strictness: 50,
+      status: "idle",
+      lastLearnedAt: null,
+      lastLearnedSourceId: null,
+    };
+  }
+
+  const voiceMemory = rawVoiceMemory as Record<string, unknown>;
+  return {
+    sources: Array.isArray(voiceMemory.sources)
+      ? voiceMemory.sources
+          .filter((item) => typeof item === "object" && item !== null)
+          .map((item) => {
+            const source = item as Record<string, unknown>;
+            return {
+              category: typeof source.category === "string" ? source.category : "newsletter",
+              label: typeof source.label === "string" ? source.label : undefined,
+              content: typeof source.content === "string" ? source.content : "",
+              url: typeof source.url === "string" ? source.url : null,
+            };
+          })
+      : [],
+    profile: typeof voiceMemory.profile === "object" && voiceMemory.profile !== null ? voiceMemory.profile as Record<string, string> : {},
+    strictness: typeof voiceMemory.strictness === "number" ? voiceMemory.strictness : 50,
+    status: typeof voiceMemory.status === "string" ? voiceMemory.status : "idle",
+    lastLearnedAt: typeof voiceMemory.lastLearnedAt === "string" ? voiceMemory.lastLearnedAt : null,
+    lastLearnedSourceId: typeof voiceMemory.lastLearnedSourceId === "string" ? voiceMemory.lastLearnedSourceId : null,
+  };
 }
 
 function extractStringArray(value: unknown): string[] {
@@ -121,6 +165,7 @@ function buildCreationSessionPayload(params: {
     })),
     draftCountPerChannel,
     drafts: normalizedDrafts,
+    metadata: session.metadata ?? null,
     status: session.status,
     createdAt: session.createdAt instanceof Date ? session.createdAt.toISOString() : new Date(session.createdAt || Date.now()).toISOString(),
     updatedAt: session.updatedAt instanceof Date ? session.updatedAt.toISOString() : new Date(session.updatedAt || Date.now()).toISOString(),
@@ -189,7 +234,7 @@ router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const { sourceId, articleId, selectedAngles, selectedChannelIds, draftCount } = req.body as CreateCreationBody;
+    const { sourceId, articleId, selectedAngles, selectedChannelIds, draftCount, userGoals } = req.body as CreateCreationBody;
     const normalizedAngles = extractStringArray(selectedAngles);
     const normalizedChannelIds = extractStringArray(selectedChannelIds);
     const normalizedDraftCount = extractDraftCount(draftCount);
@@ -247,11 +292,25 @@ router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
       .where(eq(knowledgeBase.userId, req.user.id))
       .limit(1);
 
+    const sourceLookupId = source?.id ?? article.sourceId ?? null;
+    const sourceArticleRows = sourceLookupId
+      ? await db
+          .select({
+            title: articles.title,
+            content: articles.content,
+            url: articles.url,
+          })
+          .from(articles)
+          .where(and(eq(articles.userId, req.user.id), eq(articles.sourceId, sourceLookupId)))
+          .orderBy(desc(articles.publishedAt))
+          .limit(6)
+      : [];
+
     const brandVoiceTraining =
       currentKnowledgeBase?.brandVoiceTraining?.trim() ||
       "Write with a clear creator voice that stays native to the selected platform.";
 
-    const drafts = await generateCreationDrafts({
+    const generationResult = await generateCreationDrafts({
       articleTitle: article.title,
       articleContent: article.content,
       brandVoiceTraining,
@@ -262,6 +321,21 @@ router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
         accountName: channel.accountName ?? null,
       })),
       draftCount: normalizedDraftCount,
+      sourceArticleSamples: sourceArticleRows.map((row) => ({
+        title: row.title,
+        content: row.content,
+        url: row.url ?? null,
+      })),
+      knowledge: {
+        brandVoiceTraining,
+        voiceMemory: normalizeVoiceMemory(currentKnowledgeBase?.voiceMemory ?? null),
+        customHooks: Array.isArray(currentKnowledgeBase?.customHooks) ? currentKnowledgeBase.customHooks as Array<{ channel: string; hook: string }> : [],
+        customTemplates: Array.isArray(currentKnowledgeBase?.customTemplates) ? currentKnowledgeBase.customTemplates as Array<{ channel: string; template: string }> : [],
+        bannedWords: Array.isArray(currentKnowledgeBase?.bannedWords) ? currentKnowledgeBase.bannedWords as string[] : [],
+      },
+      userId: req.user.id,
+      creatorId: req.user.id,
+      userGoals: typeof userGoals === "string" ? userGoals : undefined,
     });
 
     const [createdSession] = await db
@@ -272,7 +346,8 @@ router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
         articleId: article.id,
         selectedAngles: normalizedAngles,
         selectedChannelIds: normalizedChannelIds,
-        drafts,
+        drafts: generationResult.drafts,
+        metadata: generationResult.metadata,
         status: "ready",
       })
       .returning({ id: creationSessions.id });

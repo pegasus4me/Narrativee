@@ -1,6 +1,7 @@
 import type { InferSelectModel } from "drizzle-orm";
 import { articles, contentSources, knowledgeBase } from "../auth/schema/schema";
 import { getGrokClient } from "../config/xai";
+import { PineconeMemoryStore } from "creator-agent-orchestrator";
 
 type KnowledgeBaseRecord = InferSelectModel<typeof knowledgeBase>;
 type ArticleRecord = InferSelectModel<typeof articles>;
@@ -179,6 +180,153 @@ Rules:
           : fallback.profile.frequentPhrases,
     },
   };
+}
+
+export async function syncKnowledgeToPinecone(
+  userId: string,
+  knowledge: {
+    brandVoiceTraining?: string;
+    voiceMemory?: {
+      profile?: any;
+      sources?: any[];
+    };
+    customHooks?: any[];
+    customTemplates?: any[];
+    bannedWords?: any[];
+  },
+): Promise<void> {
+  const creatorId = userId;
+
+  const apiKey = process.env.PINECONE_MEMORY_API_KEY;
+  const indexName = process.env.PINECONE_MEMORY_INDEX_NAME;
+  if (!apiKey || !indexName) {
+    console.warn("[MemorySync] Pinecone credentials not configured. Skipping sync.");
+    return;
+  }
+
+  const memoryStore = new PineconeMemoryStore({
+    apiKey,
+    indexName,
+    host: process.env.PINECONE_MEMORY_HOST,
+    namespace: process.env.PINECONE_MEMORY_NAMESPACE,
+    textField: process.env.PINECONE_MEMORY_TEXT_FIELD || "chunk_text",
+    createIndexIfMissing: false,
+  });
+
+  const memoryUpserts: any[] = [];
+
+  // 1. Sync brand voice training text
+  if (knowledge.brandVoiceTraining) {
+    memoryUpserts.push({
+      id: `memory_voice_${creatorId}`,
+      creatorId,
+      userId,
+      type: "creator_voice" as const,
+      value: knowledge.brandVoiceTraining,
+      tags: ["voice", "rules"],
+      metadata: { source: "brand_voice_training" },
+    });
+  }
+
+  // 2. Sync voice profile choices
+  const profile = knowledge.voiceMemory?.profile || {};
+  const mapping: Record<string, { type: "tone" | "creator_voice" | "preferred_cta_style"; tag: string }> = {
+    tone: { type: "tone", tag: "tone" },
+    vocabulary: { type: "creator_voice", tag: "vocabulary" },
+    sentenceLength: { type: "creator_voice", tag: "sentence_style" },
+    humorLevel: { type: "creator_voice", tag: "humor" },
+    opinionatedVsNeutral: { type: "creator_voice", tag: "stance" },
+    ctaStyle: { type: "preferred_cta_style", tag: "cta" },
+    topicsToAvoid: { type: "creator_voice", tag: "topics_to_avoid" },
+    frequentPhrases: { type: "creator_voice", tag: "frequent_phrases" },
+  };
+
+  for (const [key, val] of Object.entries(profile)) {
+    if (val && typeof val === "string") {
+      const config = mapping[key];
+      if (config) {
+        memoryUpserts.push({
+          id: `memory_profile_${key}_${creatorId}`,
+          creatorId,
+          userId,
+          type: config.type,
+          value: val,
+          tags: ["profile", config.tag],
+          metadata: { source: "voice_profile" },
+        });
+      }
+    }
+  }
+
+  // 3. Sync manually pasted source articles / content chunks
+  const sources = knowledge.voiceMemory?.sources || [];
+  sources.forEach((source, idx) => {
+    if (source.content) {
+      memoryUpserts.push({
+        id: `memory_source_${idx}_${creatorId}`,
+        creatorId,
+        userId,
+        type: "creator_voice" as const,
+        value: source.content,
+        tags: ["source", source.category || "general"],
+        metadata: {
+          source: "voice_source",
+          label: source.label || "",
+          url: source.url || "",
+        },
+      });
+    }
+  });
+
+  // 4. Sync custom hooks
+  if (Array.isArray(knowledge.customHooks) && knowledge.customHooks.length > 0) {
+    memoryUpserts.push({
+      id: `memory_hooks_${creatorId}`,
+      creatorId,
+      userId,
+      type: "hook_style" as const,
+      value: JSON.stringify(knowledge.customHooks),
+      tags: ["hooks"],
+      metadata: { source: "custom_hooks" },
+    });
+  }
+
+  // 5. Sync custom templates
+  if (Array.isArray(knowledge.customTemplates) && knowledge.customTemplates.length > 0) {
+    memoryUpserts.push({
+      id: `memory_templates_${creatorId}`,
+      creatorId,
+      userId,
+      type: "creator_voice" as const,
+      value: JSON.stringify(knowledge.customTemplates),
+      tags: ["templates"],
+      metadata: { source: "custom_templates" },
+    });
+  }
+
+  // 6. Sync banned words
+  if (Array.isArray(knowledge.bannedWords) && knowledge.bannedWords.length > 0) {
+    memoryUpserts.push({
+      id: `memory_banned_words_${creatorId}`,
+      creatorId,
+      userId,
+      type: "creator_voice" as const,
+      value: JSON.stringify(knowledge.bannedWords),
+      tags: ["banned_words"],
+      metadata: { source: "banned_words" },
+    });
+  }
+
+  if (memoryUpserts.length > 0) {
+    try {
+      await Promise.all(
+        memoryUpserts.map((m) => memoryStore.store(m))
+      );
+      console.log(`[MemorySync] Successfully synced ${memoryUpserts.length} memory records to Pinecone.`);
+    } catch (err: any) {
+      console.error(`[MemorySync] Failed to sync memory records to Pinecone: ${err.message}`);
+    }
+  }
 }
 
 export type { KnowledgeBaseRecord, ContentSourceRecord, ArticleRecord, ExtractedVoiceMemory };

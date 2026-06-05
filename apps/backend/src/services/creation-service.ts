@@ -1,4 +1,6 @@
 import { getGrokClient } from "../config/xai";
+import { runCreationWorkflow } from "../agentic/orchestrator";
+import type { KnowledgeContext, OrchestrationMetadata } from "../agentic/types";
 
 interface ChannelDraftInput {
   id: string;
@@ -146,128 +148,71 @@ const PLATFORM_PROMPTS: Record<string, string> = {
 `,
 };
 
+/** Result of the creation draft generation, including orchestration provenance. */
+interface GenerationResult {
+  drafts: CreationDraft[];
+  metadata: OrchestrationMetadata | null;
+}
+
 /**
  * Generates one draft per selected channel from the chosen angles.
+ * Returns both the drafts and the orchestration metadata for UI display.
  */
 export async function generateCreationDrafts(params: {
   articleTitle: string;
   articleContent: string;
+  sourceArticleSamples?: Array<{ title: string; content: string; url: string | null }>;
   brandVoiceTraining: string;
   selectedAngles: string[];
   channels: ChannelDraftInput[];
   draftCount: number;
-}): Promise<CreationDraft[]> {
-  const { articleTitle, articleContent, brandVoiceTraining, selectedAngles, channels, draftCount } = params;
-  const grok = getGrokClient();
+  knowledge?: KnowledgeContext;
+  userId?: string;
+  creatorId?: string;
+  userGoals?: string;
+}): Promise<GenerationResult> {
+  const { articleTitle, articleContent, sourceArticleSamples, brandVoiceTraining, selectedAngles, channels, draftCount, knowledge, userId, creatorId, userGoals } = params;
 
-  if (!grok) {
-    console.warn("[Create] GROK_API_KEY is unavailable. Falling back to deterministic draft generation.");
-    return buildFallbackDrafts({
-      articleTitle,
+  const workflow = await runCreationWorkflow({
+    articleTitle,
+    articleContent,
+    sourceArticleSamples: sourceArticleSamples ?? [],
+    selectedAngles,
+    channels,
+    draftCount,
+    knowledge: knowledge ?? {
       brandVoiceTraining,
-      channels,
-      draftCount,
-      selectedAngles,
-    });
+      voiceMemory: {
+        sources: [],
+        profile: {},
+        strictness: 50,
+        status: "idle",
+        lastLearnedAt: null,
+        lastLearnedSourceId: null,
+      },
+      customHooks: [],
+      customTemplates: [],
+      bannedWords: [],
+    },
+    userId,
+    creatorId,
+    userGoals,
+  });
+
+  if (workflow.drafts.length > 0) {
+    return { drafts: workflow.drafts, metadata: workflow.metadata };
   }
 
-  const platformInstructions = channels.map((channel, idx) => {
-    const platformKey = channel.platform.toLowerCase();
-    const specificRules = PLATFORM_PROMPTS[platformKey] || PLATFORM_PROMPTS["linkedin"];
-    return `[Target Channel ${idx + 1}]
-- Channel ID: "${channel.id}"
-- Platform: "${channel.platform}"
-- Account Name: "${channel.accountName ?? 'Creator'}"
-- Draft Variants Required: ${draftCount}
-- Preferred Angles To Rotate Through: ${selectedAngles.map((angle, angleIndex) => `${angleIndex + 1}. ${angle}`).join(" | ")}
-- Native Platform Formatting & Hook Rules:
-${specificRules}`;
-  }).join("\n\n");
+  console.warn("[Create] Agentic workflow returned no drafts. Falling back to deterministic generation.");
+  const fallbackDrafts = buildFallbackDrafts({
+    articleTitle,
+    brandVoiceTraining,
+    channels,
+    draftCount,
+    selectedAngles,
+  });
 
-  const prompt = `You are a world-class social media copywriter. Your task is to transform a newsletter article into platform-native, high-converting social media drafts tailored for each requested channel.
-
-Return valid JSON with the following schema:
-{
-  "drafts": [
-    {
-      "channelId": "string",
-      "platform": "string",
-      "accountName": "string|null",
-      "variantNumber": "number",
-      "angle": "string",
-      "text": "string"
-    }
-  ]
-}
-
-### Master Writing Rules:
-1. Generate exactly ${draftCount} drafts per channel.
-2. Adapt completely to the specific platform prompt provided for each channel. Do not reuse the exact same text across different platforms.
-3. Adhere strictly to the user's brand voice training instructions provided below.
-4. Keep the output high-impact, polished, and ready to publish. No generic placeholder text, and do not use markdown fences (e.g. \`\`\`json) in your JSON output.`;
-
-  try {
-    const response = await grok.chat.completions.create({
-      model: "grok-4.3",
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: prompt },
-        {
-          role: "user",
-          content: JSON.stringify({
-            articleTitle,
-            articleContent: articleContent.slice(0, 7000),
-            brandVoiceTraining,
-            platformInstructions,
-            draftCount,
-          }),
-        },
-      ],
-    });
-
-    const rawContent = response.choices[0]?.message?.content;
-    if (!rawContent) {
-      console.warn("[Create] Grok returned an empty response. Falling back to deterministic draft generation.");
-      return buildFallbackDrafts({
-        articleTitle,
-        brandVoiceTraining,
-        channels,
-        draftCount,
-        selectedAngles,
-      });
-    }
-
-    const parsed = JSON.parse(rawContent) as { drafts?: CreationDraft[] };
-    if (!Array.isArray(parsed.drafts) || parsed.drafts.length === 0) {
-      console.warn("[Create] Grok returned no usable drafts. Falling back to deterministic draft generation.");
-      return buildFallbackDrafts({
-        articleTitle,
-        brandVoiceTraining,
-        channels,
-        draftCount,
-        selectedAngles,
-      });
-    }
-
-    return buildExpectedDrafts({
-      articleTitle,
-      brandVoiceTraining,
-      channels,
-      draftCount,
-      selectedAngles,
-      drafts: parsed.drafts,
-    });
-  } catch (apiError: unknown) {
-    console.error("[Create] GROK API call failed or JSON parsing error:", apiError);
-    console.warn("[Create] Triggering fallback to deterministic generation due to exception.");
-    return buildFallbackDrafts({
-      articleTitle,
-      brandVoiceTraining,
-      channels,
-      draftCount,
-      selectedAngles,
-    });
-  }
+  return { drafts: fallbackDrafts, metadata: workflow.metadata };
 }
 
 export type { CreationDraft };

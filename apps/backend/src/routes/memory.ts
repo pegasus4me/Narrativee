@@ -3,7 +3,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "../auth/auth";
 import { articles, contentSources, knowledgeBase } from "../auth/schema/schema";
 import { verifyAuth, AuthRequest } from "../middleware/auth";
-import { extractVoiceMemoryProfile } from "../services/memory-service";
+import { extractVoiceMemoryProfile, syncKnowledgeToPinecone } from "../services/memory-service";
 
 const router = Router();
 
@@ -76,21 +76,33 @@ async function runMemoryLearningJob(userId: string, sourceId: string): Promise<v
 
   const normalizedVoiceMemory = normalizeVoiceMemory(currentKnowledgeBase.voiceMemory);
   const learnedAt = new Date().toISOString();
+  const finalVoiceMemory = {
+    ...normalizedVoiceMemory,
+    profile: extracted.profile,
+    status: "ready",
+    lastLearnedAt: learnedAt,
+    lastLearnedSourceId: sourceId,
+  };
 
   await db
     .update(knowledgeBase)
     .set({
       brandVoiceTraining: extracted.brandVoiceTraining,
-      voiceMemory: {
-        ...normalizedVoiceMemory,
-        profile: extracted.profile,
-        status: "ready",
-        lastLearnedAt: learnedAt,
-        lastLearnedSourceId: sourceId,
-      },
+      voiceMemory: finalVoiceMemory,
       updatedAt: new Date(),
     })
     .where(eq(knowledgeBase.userId, userId));
+
+  // Sync to Pinecone in the background (fire-and-forget)
+  void syncKnowledgeToPinecone(userId, {
+    brandVoiceTraining: extracted.brandVoiceTraining,
+    voiceMemory: finalVoiceMemory,
+    customHooks: currentKnowledgeBase.customHooks as any,
+    customTemplates: currentKnowledgeBase.customTemplates as any,
+    bannedWords: currentKnowledgeBase.bannedWords as any,
+  }).catch((err) => {
+    console.error('[MemorySync] runMemoryLearningJob failed to sync to Pinecone:', err);
+  });
 }
 
 /**

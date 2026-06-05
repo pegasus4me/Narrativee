@@ -32,7 +32,7 @@ export default function WorkspaceHeader(): React.JSX.Element {
   const isFreePlan = isFreePlanUser(user);
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-white/5 bg-[#09090b]/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 w-full border-b border-white/20 bg-[#09090b]/80 backdrop-blur-md">
       <div className="mx-auto w-[90%] px-6 py-4 flex items-center justify-between">
         <Breadcrumbs />
         <div className="flex items-center gap-4">

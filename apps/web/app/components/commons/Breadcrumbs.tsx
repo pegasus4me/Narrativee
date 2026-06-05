@@ -36,7 +36,7 @@ export default function Breadcrumbs(): React.JSX.Element | null {
       label = "create";
       currentPath = "/workspace/create";
     } else if (segment === "new") {
-      label = "new pack";
+      label = "New creation";
       currentPath = "/workspace/create/new";
     } else if (segment === "calendar") {
       label = "calendar";
@@ -70,9 +70,9 @@ export default function Breadcrumbs(): React.JSX.Element | null {
         const isLast = idx === breadcrumbItems.length - 1;
         return (
           <div key={item.href} className="flex items-center gap-2">
-            {idx > 0 && <span className="text-zinc-800 text-xs">/</span>}
+            {idx > 0 && <span className="text-zinc-800 text-lg">/</span>}
             {isLast ? (
-              <span className="text-white font-base">{item.label}</span>
+              <span className="text-white font-base ">{item.label}</span>
             ) : (
               <Link
                 href={item.href}

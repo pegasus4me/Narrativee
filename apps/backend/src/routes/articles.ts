@@ -6,6 +6,7 @@ import { verifyAuth, AuthRequest } from '../middleware/auth';
 import { LLMService } from '../services/llm';
 import { publishPostToSocialPlatform } from '../services/publisher';
 import { posthog } from '../lib/posthog';
+import { getGrokClient } from '../config/xai';
 
 const router = Router();
 
@@ -932,6 +933,76 @@ router.delete('/drafts/:draftId', verifyAuth, async (req: AuthRequest, res) => {
     console.error('[Articles] Delete post error:', error);
     posthog.captureException(error, req.user!.id);
     res.status(500).json({ error: 'Failed to delete post', details: error.message });
+  }
+});
+
+// POST /api/articles/:id/chat — converse with the Content Strategy Agent
+router.post('/:id/chat', verifyAuth, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+    const { messages } = req.body;
+
+    if (!isUuid(id)) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    if (!Array.isArray(messages)) {
+      return res.status(400).json({ error: 'messages array is required' });
+    }
+
+    const [row] = await db
+      .select({
+        title: articles.title,
+        content: articles.content,
+      })
+      .from(articles)
+      .where(and(eq(articles.id, id), eq(articles.userId, userId)))
+      .limit(1);
+
+    if (!row) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    const grok = getGrokClient();
+    if (!grok) {
+      console.warn('[Articles] Grok API key is missing. Using fallback response.');
+      return res.json({
+        reply: `I see you are interested in creating posts about "${row.title}". Since my conversational AI engine is currently in preview/offline mode, let's focus on the key themes of your article. What specific target audience are you writing for today?`,
+        isFallback: true
+      });
+    }
+
+    const systemMessage = {
+      role: 'system',
+      content: `You are Narrativee's Content Strategy Agent. Your goal is to help the user design a high-converting social media content campaign based on their article/newsletter.
+
+Here is the article the user is repurposing:
+Title: ${row.title}
+Content:
+${row.content.slice(0, 8000)}
+
+Your job in this conversation:
+1. Act as a strategic partner: ask clarifying questions about the user's target audience, specific campaign goals (e.g. lead gen, brand awareness, newsletter signups), and tone/angles.
+2. Pitch creative and customized content angles directly derived from the article.
+3. Keep your messages conversational, encouraging, and relatively brief (2-4 paragraphs maximum). Avoid long-winded essays.
+4. Do not output JSON. Respond with plain conversational text.
+5. Ask one or two focused questions to guide the conversation.
+6. Once the user's goals are clear or they seem satisfied with the direction, explicitly invite them to click the "Continue to channels" button at the bottom of the screen to choose platforms and generate the drafts.`
+    };
+
+    const response = await grok.chat.completions.create({
+      model: 'grok-4.3',
+      response_format: { type: 'text' },
+      temperature: 0.7,
+      messages: [systemMessage, ...messages],
+    });
+
+    const reply = response.choices[0]?.message?.content ?? '';
+    return res.json({ reply });
+  } catch (error: any) {
+    console.error('[Articles] Chat error:', error);
+    res.status(500).json({ error: 'Failed to chat with agent', details: error.message });
   }
 });
 

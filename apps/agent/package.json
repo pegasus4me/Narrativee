@@ -1,0 +1,33 @@
+{
+  "name": "creator-agent-orchestrator",
+  "version": "0.1.0",
+  "description": "Reusable TypeScript agent orchestration package for creator content strategy, repurposing, publishing, and scheduling workflows.",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev:example": "tsx src/examples/main.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@pinecone-database/pinecone": "^7.2.0"
+  }
+}

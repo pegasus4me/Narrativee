@@ -102,6 +102,28 @@ export interface CreationDraft {
   text: string;
 }
 
+/** Validation result for a specific platform from the publishing agent. */
+export interface PlatformValidation {
+  platform: string;
+  isValid: boolean;
+  warnings: string[];
+}
+
+/** Orchestration provenance metadata returned by the multi-agent pipeline. */
+export interface OrchestrationMetadata {
+  agentsUsed: string[];
+  workflowSteps: Array<{ id: string; taskType: string; description: string }>;
+  ragContextUsed: Array<{ content: string; source: string; score: number }>;
+  memoriesUsed: Array<{ content: string; type: string }>;
+  validationResults: PlatformValidation[];
+  strategy: {
+    summary: string;
+    selectedAngles: string[];
+    platformDirection: Record<string, string>;
+  };
+  warnings: string[];
+}
+
 /** Saved creation workflow result that can be reopened later. */
 export interface CreationSession {
   id: string;
@@ -125,6 +147,7 @@ export interface CreationSession {
   }>;
   draftCountPerChannel: number;
   drafts: CreationDraft[];
+  metadata: OrchestrationMetadata | null;
   status: string;
   createdAt: string;
   updatedAt: string;

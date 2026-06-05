@@ -18,6 +18,22 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
+  apps/agent:
+    dependencies:
+      '@pinecone-database/pinecone':
+        specifier: ^7.2.0
+        version: 7.2.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.29
+        version: 22.19.1
+      tsx:
+        specifier: ^4.19.4
+        version: 4.20.6
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   apps/backend:
     dependencies:
       '@openrouter/sdk':
@@ -38,6 +54,9 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      creator-agent-orchestrator:
+        specifier: workspace:*
+        version: link:../agent
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
@@ -2510,6 +2529,10 @@ packages:
   '@opentelemetry/semantic-conventions@1.41.1':
     resolution: {integrity: sha512-/UhIkaZgPutTFmQ7RnIJGgDXZmtEJ7Dvi86xNTFWcnRxVRNk/aotsqDJYeEvDP+FSMB2SdW+pQzNMcWP0rwuNA==}
     engines: {node: '>=14'}
+
+  '@pinecone-database/pinecone@7.2.0':
+    resolution: {integrity: sha512-urGsnNDWSSqSaWdyEF2P6V5bTNtRA6yMQTheFYAKKwk7mkloRBBETtT2ADF5Y8gJTr88pW5D8NTcCCLe+f0e2Q==}
+    engines: {node: '>=20.0.0'}
 
   '@poppinss/colors@4.1.5':
     resolution: {integrity: sha512-FvdDqtcRCtz6hThExcFOgW0cWX+xwSMWcRuQe5ZEb2m7cVQOAVZOIMt+/v9RxGiD9/OY16qJBXK4CVKWAPalBw==}
@@ -10699,6 +10722,8 @@ snapshots:
 
   '@opentelemetry/semantic-conventions@1.41.1': {}
 
+  '@pinecone-database/pinecone@7.2.0': {}
+
   '@poppinss/colors@4.1.5':
     dependencies:
       kleur: 4.1.5
@@ -13194,7 +13219,7 @@ snapshots:
 
   '@types/cors@2.8.19':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 22.19.1
 
   '@types/d3-array@3.2.2': {}
 
@@ -13291,11 +13316,11 @@ snapshots:
 
   '@types/papaparse@5.5.0':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 22.19.1
 
   '@types/pg@8.15.6':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 22.19.1
       pg-protocol: 1.10.3
       pg-types: 2.2.0
 
