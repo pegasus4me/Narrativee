@@ -363,6 +363,75 @@ export function DraftPreviewModal({
           </div>
         );
 
+      case "threads":
+        return (
+          <div className="w-full rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 font-sans shadow-xl">
+            <div className="flex items-start gap-3">
+              {/* Avatar Column */}
+              <div className="relative shrink-0">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={accountName}
+                    className="h-10 w-10 rounded-full object-cover border border-zinc-200"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 text-sm font-semibold uppercase text-zinc-650">
+                    {accountName.charAt(0)}
+                  </div>
+                )}
+                {/* The Threads "+" badge on the avatar */}
+                <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-black border border-white text-white text-[10px] font-bold">
+                  +
+                </div>
+              </div>
+
+              {/* Content Column */}
+              <div className="flex-1 min-w-0">
+                {/* User Info & Actions Row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-[14.5px] text-black hover:underline cursor-pointer">
+                      {accountName.toLowerCase().replace(/\s+/g, "_")}
+                    </span>
+                    <span className="text-[14px] text-zinc-400">5h</span>
+                  </div>
+                  <button className="text-zinc-400 hover:text-zinc-650 transition-colors">
+                    <MoreHorizontal className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Text Content */}
+                <div className="mt-1 text-[14.5px] leading-normal text-zinc-900 whitespace-pre-wrap break-words pr-2">
+                  {localText || "Write a thread..."}
+                  <span className="text-zinc-400 font-medium ml-2 cursor-pointer hover:underline text-[13px]">Translate</span>
+                </div>
+
+                {/* Action Icons */}
+                <div className="mt-4 flex items-center gap-5 text-zinc-500">
+                  <button className="flex items-center gap-1.5 hover:text-black transition-colors group">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 group-hover:scale-105 transition-transform"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    <span className="text-[13px] font-medium text-zinc-700">19</span>
+                  </button>
+                  <button className="flex items-center gap-1.5 hover:text-black transition-colors group">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 group-hover:scale-105 transition-transform"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    <span className="text-[13px] font-medium text-zinc-700">42</span>
+                  </button>
+                  <button className="hover:text-black transition-colors group">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 group-hover:scale-105 transition-transform">
+                      <path d="m16 3 4 4-4 4M20 7H9a4 4 0 0 0-4 4v3" />
+                      <path d="m8 21-4-4 4-4M4 17h11a4 4 0 0 0 4-4v-3" />
+                    </svg>
+                  </button>
+                  <button className="hover:text-black transition-colors group">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2 group-hover:scale-105 transition-transform"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         // Substack / Newsletter / generic platform preview
         return (
