@@ -552,6 +552,39 @@ router.post("/:creationId/drafts/:channelId/schedule", verifyAuth, async (req: A
       return res.status(404).json({ error: "Draft not found for this channel" });
     }
 
+    // Resolve active channel ID in case the channel was disconnected/reconnected (meaning the ID in the drafts JSONB is stale)
+    let targetChannelId = channelId;
+    const [existingChannel] = await db
+      .select()
+      .from(channels)
+      .where(and(
+        eq(channels.id, channelId),
+        eq(channels.userId, req.user.id),
+        eq(channels.isConnected, true)
+      ))
+      .limit(1);
+
+    if (!existingChannel) {
+      // Find any connected channel for this platform/user
+      const userActiveChannels = await db
+        .select()
+        .from(channels)
+        .where(and(
+          eq(channels.userId, req.user.id),
+          eq(channels.platform, draft.platform),
+          eq(channels.isConnected, true)
+        ));
+
+      if (userActiveChannels.length > 0) {
+        targetChannelId = userActiveChannels[0].id;
+      } else {
+        return res.status(400).json({
+          error: "Channel disconnected",
+          message: `Please connect your ${draft.platform} account before scheduling.`
+        });
+      }
+    }
+
     const draftText = typeof text === "string" ? text : draft.text;
 
     const [newPost] = await db
@@ -559,7 +592,7 @@ router.post("/:creationId/drafts/:channelId/schedule", verifyAuth, async (req: A
       .values({
         userId: req.user.id,
         articleId: session.articleId,
-        channelId: channelId,
+        channelId: targetChannelId,
         content: { text: draftText },
         status: "scheduled",
         scheduledAt: new Date(scheduledAt),
