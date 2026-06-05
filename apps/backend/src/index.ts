@@ -147,6 +147,12 @@ const server = app.listen(PORT, async () => {
       );
     `);
     console.log('[Database] Verified/created creation_sessions table successfully.');
+
+    await db.execute(sql`
+      ALTER TABLE "creation_sessions"
+      ADD COLUMN IF NOT EXISTS "metadata" jsonb;
+    `);
+    console.log('[Database] Verified/created creation_sessions.metadata column successfully.');
   } catch (err) {
     console.error('[Database] Failed to verify database bootstrap state:', err);
   }
