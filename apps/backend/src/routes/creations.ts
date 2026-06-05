@@ -276,7 +276,11 @@ router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
     const selectedChannels = await db
       .select()
       .from(channels)
-      .where(and(eq(channels.userId, req.user.id), inArray(channels.id, normalizedChannelIds)));
+      .where(and(
+        eq(channels.userId, req.user.id),
+        inArray(channels.id, normalizedChannelIds),
+        eq(channels.isConnected, true)
+      ));
 
     if (selectedChannels.length !== normalizedChannelIds.length) {
       return res.status(400).json({ error: "One or more selected channels could not be found" });
@@ -451,7 +455,11 @@ router.get("/:creationId", verifyAuth, async (req: AuthRequest, res: Response) =
       ? await db
           .select()
           .from(channels)
-          .where(and(eq(channels.userId, req.user.id), inArray(channels.id, selectedChannelIds)))
+          .where(and(
+            eq(channels.userId, req.user.id),
+            inArray(channels.id, selectedChannelIds),
+            eq(channels.isConnected, true)
+          ))
       : [];
 
     const orderedChannels = selectedChannelIds

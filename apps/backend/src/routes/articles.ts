@@ -212,6 +212,7 @@ router.get('/drafts/latest', verifyAuth, async (req: AuthRequest, res) => {
           platform: channels.platform,
           accountName: channels.accountName,
           avatarUrl: channels.avatarUrl,
+          isConnected: channels.isConnected,
         }
       })
       .from(socialPosts)
@@ -248,6 +249,7 @@ router.get('/drafts/active', verifyAuth, async (req: AuthRequest, res) => {
           platform: channels.platform,
           accountName: channels.accountName,
           avatarUrl: channels.avatarUrl,
+          isConnected: channels.isConnected,
         },
         article: {
           id: articles.id,
@@ -365,6 +367,7 @@ router.get('/:id', verifyAuth, async (req: AuthRequest, res) => {
           platform: channels.platform,
           accountName: channels.accountName,
           avatarUrl: channels.avatarUrl,
+          isConnected: channels.isConnected,
         }
       })
       .from(socialPosts)
@@ -552,7 +555,7 @@ router.post('/:id/drafts', verifyAuth, async (req: AuthRequest, res) => {
     const activeChannels = await db
       .select()
       .from(channels)
-      .where(eq(channels.userId, userId));
+      .where(and(eq(channels.userId, userId), eq(channels.isConnected, true)));
 
     if (activeChannels.length === 0) {
       return res.status(400).json({
@@ -737,6 +740,7 @@ router.get('/drafts/queue', verifyAuth, async (req: AuthRequest, res) => {
           platform: channels.platform,
           accountName: channels.accountName,
           avatarUrl: channels.avatarUrl,
+          isConnected: channels.isConnected,
         },
         article: {
           id: articles.id,

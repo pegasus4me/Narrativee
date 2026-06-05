@@ -39,7 +39,12 @@ router.get('/', verifyAuth, async (req: AuthRequest, res) => {
                 createdAt: channels.createdAt,
             })
             .from(channels)
-            .where(eq(channels.userId, req.user!.id));
+            .where(
+                and(
+                    eq(channels.userId, req.user!.id),
+                    eq(channels.isConnected, true)
+                )
+            );
 
         res.json({ channels: userChannels });
     } catch (error: any) {
@@ -220,6 +225,7 @@ router.get('/callback/:platform', async (req: any, res) => {
                     expiresAt: tokens.expiresAt,
                     accountName: profile.accountName,
                     avatarUrl: profile.avatarUrl,
+                    isConnected: true,
                 })
                 .where(eq(channels.id, existing[0]!.id));
         } else {
@@ -232,6 +238,7 @@ router.get('/callback/:platform', async (req: any, res) => {
                 accessToken: encrypt(tokens.accessToken),
                 refreshToken: tokens.refreshToken ? encrypt(tokens.refreshToken) : undefined,
                 expiresAt: tokens.expiresAt,
+                isConnected: true,
             });
         }
 
@@ -287,6 +294,7 @@ router.post('/connect/bluesky', verifyAuth, async (req: AuthRequest, res) => {
                     expiresAt: tokens.expiresAt,
                     accountName: profile.accountName,
                     avatarUrl: profile.avatarUrl,
+                    isConnected: true,
                 })
                 .where(eq(channels.id, existing[0]!.id));
         } else {
@@ -299,6 +307,7 @@ router.post('/connect/bluesky', verifyAuth, async (req: AuthRequest, res) => {
                 accessToken: encrypt(tokens.accessToken),
                 refreshToken: tokens.refreshToken ? encrypt(tokens.refreshToken) : undefined,
                 expiresAt: tokens.expiresAt,
+                isConnected: true,
             });
         }
 
@@ -373,6 +382,7 @@ router.post('/connect/substack', verifyAuth, async (req: AuthRequest, res) => {
                     accessToken: encrypt(sessionCookie),
                     accountName,
                     avatarUrl,
+                    isConnected: true,
                 })
                 .where(eq(channels.id, existing[0]!.id));
         } else {
@@ -383,6 +393,7 @@ router.post('/connect/substack', verifyAuth, async (req: AuthRequest, res) => {
                 accountName,
                 avatarUrl,
                 accessToken: encrypt(sessionCookie),
+                isConnected: true,
             });
         }
 
@@ -402,14 +413,19 @@ router.post('/connect/substack', verifyAuth, async (req: AuthRequest, res) => {
 
 /**
  * DELETE /api/channels/:channelId
- * Disconnect a specific channel.
+ * Disconnect a specific channel (soft-disconnect).
  */
 router.delete('/:channelId', verifyAuth, async (req: AuthRequest, res) => {
     try {
         const { channelId } = req.params;
 
         const result = await db
-            .delete(channels)
+            .update(channels)
+            .set({
+                isConnected: false,
+                accessToken: "",
+                refreshToken: null,
+            })
             .where(and(eq(channels.id, channelId), eq(channels.userId, req.user!.id)))
             .returning();
 

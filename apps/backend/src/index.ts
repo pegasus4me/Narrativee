@@ -127,6 +127,12 @@ const server = app.listen(PORT, async () => {
     console.log('[Database] Verified/created knowledge_base.voice_memory column successfully.');
 
     await db.execute(sql`
+      ALTER TABLE "channels"
+      ADD COLUMN IF NOT EXISTS "is_connected" boolean DEFAULT true NOT NULL;
+    `);
+    console.log('[Database] Verified/created channels.is_connected column successfully.');
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "creation_sessions" (
         "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
         "user_id" text NOT NULL,

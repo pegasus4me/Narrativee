@@ -90,6 +90,7 @@ export const channels = pgTable("channels", {
   accessToken: text("access_token").notNull(),
   refreshToken: text("refresh_token"),
   expiresAt: timestamp("expires_at"),
+  isConnected: boolean("is_connected").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

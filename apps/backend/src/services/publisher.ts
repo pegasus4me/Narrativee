@@ -24,8 +24,8 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
 
   // 2. Fetch the channel
   const [channel] = await db.select().from(channels).where(eq(channels.id, post.channelId)).limit(1);
-  if (!channel) {
-    console.error(`[Publisher] Channel not found for post ${postId}: ${post.channelId}`);
+  if (!channel || !channel.isConnected) {
+    console.error(`[Publisher] Channel not found or is disconnected for post ${postId}: ${post.channelId}`);
     await db.update(socialPosts).set({ status: "failed", updatedAt: new Date() }).where(eq(socialPosts.id, postId));
     return false;
   }

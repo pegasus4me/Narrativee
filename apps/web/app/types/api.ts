@@ -3,6 +3,7 @@ export interface Channel {
   platform: string;
   accountName: string;
   avatarUrl?: string;
+  isConnected?: boolean;
   createdAt: string;
 }
 
@@ -37,6 +38,7 @@ export interface Draft {
     platform: string;
     accountName: string;
     avatarUrl?: string;
+    isConnected?: boolean;
   };
   content: {
     text?: string;
