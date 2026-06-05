@@ -451,27 +451,62 @@ router.get("/:creationId", verifyAuth, async (req: AuthRequest, res: Response) =
       : [];
 
     const selectedChannelIds = extractStringArray(session.selectedChannelIds);
-    const selectedChannels = selectedChannelIds.length > 0
-      ? await db
-          .select()
-          .from(channels)
-          .where(and(
-            eq(channels.userId, req.user.id),
-            inArray(channels.id, selectedChannelIds),
-            eq(channels.isConnected, true)
-          ))
-      : [];
+    const activeChannels = await db
+      .select()
+      .from(channels)
+      .where(and(eq(channels.userId, req.user.id), eq(channels.isConnected, true)));
 
-    const orderedChannels = selectedChannelIds
-      .map((channelId) => selectedChannels.find((channel) => channel.id === channelId))
-      .filter((channel): channel is ChannelRecord => Boolean(channel));
+    const resolvedChannels: ChannelRecord[] = [];
+    const draftsList = normalizeCreationDrafts(session.drafts);
+
+    if (draftsList.length > 0) {
+      for (const draft of draftsList) {
+        let activeChan = activeChannels.find((c) => c.id === draft.channelId);
+        if (!activeChan) {
+          activeChan = activeChannels.find((c) => c.platform === draft.platform);
+        }
+        if (activeChan) {
+          if (!resolvedChannels.some((c) => c.id === draft.channelId)) {
+            resolvedChannels.push({
+              ...activeChan,
+              id: draft.channelId, // Keep expected ID for frontend join
+            });
+          }
+        }
+      }
+    } else {
+      const referencedChannels = selectedChannelIds.length > 0
+        ? await db
+            .select()
+            .from(channels)
+            .where(and(eq(channels.userId, req.user.id), inArray(channels.id, selectedChannelIds)))
+        : [];
+
+      for (const channelId of selectedChannelIds) {
+        let activeChan = activeChannels.find((c) => c.id === channelId);
+        if (!activeChan) {
+          const refChan = referencedChannels.find((c) => c.id === channelId);
+          if (refChan) {
+            activeChan = activeChannels.find((c) => c.platform === refChan.platform);
+          }
+        }
+        if (activeChan) {
+          if (!resolvedChannels.some((c) => c.id === channelId)) {
+            resolvedChannels.push({
+              ...activeChan,
+              id: channelId,
+            });
+          }
+        }
+      }
+    }
 
     return res.json({
       creation: buildCreationSessionPayload({
         session,
         source,
         article,
-        selectedChannels: orderedChannels,
+        selectedChannels: resolvedChannels,
       }),
     });
   } catch (error: unknown) {
