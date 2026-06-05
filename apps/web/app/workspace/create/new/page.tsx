@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { ArrowRight, Loader2, Sparkles, RefreshCw, ArrowLeft } from "lucide-react";
 import { useSources } from "@/app/hooks/api/useSources";
 import { useCreateCreationSession, useKnowledgeBase, useStartMemoryLearning } from "@/app/hooks/api";
 import { useArticles, useExtractAngles } from "@/app/hooks/api/useArticles";
 import { useChannels } from "@/app/hooks/api/useChannels";
 import { ArticleList } from "@/app/components/workspace/create/ArticleList";
-import { AnglePicker } from "@/app/components/workspace/create/AnglePicker";
+import { StrategyAgentChat } from "@/app/components/workspace/create/StrategyAgentChat";
 import { SocialChannelSelector } from "@/app/components/workspace/create/SocialChannelSelector";
 import { useCreateFlowStore } from "@/app/state/CreateFlow.store";
 import type { ArticleListItem, Source } from "@/app/types/api";
@@ -80,6 +80,8 @@ function NewCreateFlow() {
   const { data: channelsData, isLoading: areChannelsLoading } = useChannels(isReadyVisible && selectedAngles.size > 0);
   const extractAngles = useExtractAngles();
   const [nativeToneStepIndex, setNativeToneStepIndex] = useState(0);
+  const [activeAgentIndex, setActiveAgentIndex] = useState(0);
+  const [userGoals, setUserGoals] = useState("");
 
   const sources = useMemo<Source[]>(() => sourcesData ?? [], [sourcesData]);
   const channels = useMemo(() => channelsData ?? [], [channelsData]);
@@ -191,6 +193,26 @@ function NewCreateFlow() {
   }, [isPreparingNativeTone, setIsNativeToneReady, setIsPreparingNativeTone]);
 
   useEffect(() => {
+    if (!isGeneratingCreation) {
+      setActiveAgentIndex(0);
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActiveAgentIndex((currentIdx) => {
+        if (currentIdx < 2) {
+          return currentIdx + 1;
+        }
+        return currentIdx;
+      });
+    }, 3000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isGeneratingCreation]);
+
+  useEffect(() => {
     const isReady =
       knowledgeBase?.voiceMemory.status === "ready" &&
       knowledgeBase.voiceMemory.lastLearnedSourceId === selectedSourceId;
@@ -243,6 +265,7 @@ function NewCreateFlow() {
       const result = await extractAngles.mutateAsync({ articleId: article.id, force });
       setIdeas(result.ideas);
       setIdeasMeta({ cached: result.cached });
+      setSelectedAngles(new Set<number>(result.ideas.map((_, index) => index)));
     } catch (error: unknown) {
       setIdeas([]);
       setIdeasMeta(null);
@@ -266,11 +289,8 @@ function NewCreateFlow() {
     resetArticleStep();
   };
 
-  const handleProceedToChannels = (): void => {
-    if (selectedAngles.size === 0) {
-      return;
-    }
-
+  const handleProceedToChannels = (goals: string): void => {
+    setUserGoals(goals);
     setCreationError("");
     setHasConfirmedAngles(true);
   };
@@ -299,6 +319,7 @@ function NewCreateFlow() {
         selectedAngles: selectedAngleIdeas,
         selectedChannelIds: Array.from(selectedChannelIds),
         draftCount: requestedDraftCount,
+        userGoals: userGoals || undefined,
       });
       router.push(`/workspace/create/${result.creationId}`);
     } catch (error: unknown) {
@@ -315,108 +336,110 @@ function NewCreateFlow() {
         <p className="text-sm text-zinc-400">Select a newsletter source, then let Narrativee learn your voice and tone.</p>
       </header>
 
-      <section className="border-l border-white/10 p-5">
-        <h2 className="text-sm font-semibold text-zinc-100">1. Select newsletter source</h2>
-
-        {isLoading ? (
-          <div className="mt-4 flex items-center gap-2 text-sm text-zinc-400">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading connected newsletters...
+      {/* Step 1: Select newsletter source */}
+      {(!isReadyVisible || isLearning) && (
+        <section className="border-l border-white/10 p-5 space-y-4 animate-in fade-in duration-300">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">Step 1</p>
+            <h2 className="mt-1 text-xl font-semibold text-zinc-100">Select newsletter source</h2>
           </div>
-        ) : sources.length === 0 ? (
-          <div className="mt-4  p-4 text-sm text-zinc-400">
-            No newsletter connected yet.{" "}
-            <Link href="/workspace/channels" className="font-medium text-brand hover:text-brand/80">
-              Connect one in Channels
-            </Link>
-            .
-          </div>
-        ) : (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {sources.map((source) => {
-              const isSelected = source.id === selectedSourceId;
-              return (
-                <button
-                  key={source.id}
-                  type="button"
-                  onClick={() => setSelectedSourceId(source.id)}
-                  className={`rounded-xl border p-4 text-left transition-colors ${isSelected
-                    ? "border-brand bg-brand/10"
-                    : "border-zinc-800 bg-zinc-950 hover:border-zinc-700"
-                    }`}
-                >
-                  <p className="truncate text-sm font-medium text-zinc-100">
-                    {source.url.replace("https://", "").replace("/feed", "")}
-                  </p>
-                  <p className="mt-1 text-xs text-zinc-500">{source.articleCount ?? 0} synced articles</p>
-                </button>
-              );
-            })}
-          </div>
-        )}
 
-        <div className="mt-4">
-          <button
-            type="button"
-            disabled={!selectedSourceId || isLearning || startMemoryLearning.isPending}
-            onClick={handleStartLearning}
-            className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-zinc-200 disabled:opacity-50"
-          >
-            {startMemoryLearning.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-            {isReadyVisible ? "Re-learn voice" : "Start learning"}
-          </button>
-        </div>
-      </section>
-
-      {isLearning && selectedSource && (
-        <section className=" p-6">
-          <div className="flex items-start gap-3 text-zinc-200">
-            <Loader2 className="h-5 w-5 animate-spin text-brand" />
-            <div>
-              <p className="text-sm font-medium">{currentLearningStep}</p>
-              <ul className="mt-2 space-y-1">
-                {LEARNING_STEPS.map((step) => (
-                  <li
-                    key={step}
-                    className={`text-xs ${step === currentLearningStep ? "text-zinc-200" : "text-zinc-400"}`}
+          {isLoading ? (
+            <div className="mt-4 flex items-center gap-2 text-sm text-zinc-400">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading connected newsletters...
+            </div>
+          ) : sources.length === 0 ? (
+            <div className="mt-4 p-4 text-sm text-zinc-400">
+              No newsletter connected yet.{" "}
+              <Link href="/workspace/channels" className="font-medium text-brand hover:text-brand/80">
+                Connect one in Channels
+              </Link>
+              .
+            </div>
+          ) : (
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {sources.map((source) => {
+                const isSelected = source.id === selectedSourceId;
+                return (
+                  <button
+                    key={source.id}
+                    type="button"
+                    onClick={() => setSelectedSourceId(source.id)}
+                    className={`rounded-xl border p-4 text-left transition-colors ${isSelected
+                      ? "border-brand bg-brand/10"
+                      : "border-zinc-800 bg-zinc-950 hover:border-zinc-700"
+                      }`}
                   >
-                    {step}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-1 text-xs text-zinc-500">
-                Source: {selectedSource.url.replace("https://", "").replace("/feed", "")}
+                    <p className="truncate text-sm font-medium text-zinc-100">
+                      {source.url.replace("https://", "").replace("/feed", "")}
+                    </p>
+                    <p className="mt-1 text-xs text-zinc-500">{source.articleCount ?? 0} synced articles</p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-4">
+            <button
+              type="button"
+              disabled={!selectedSourceId || isLearning || startMemoryLearning.isPending}
+              onClick={handleStartLearning}
+              className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-zinc-200 disabled:opacity-50"
+            >
+              {startMemoryLearning.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+              {isReadyVisible ? "Re-learn voice" : "Start learning"}
+            </button>
+          </div>
+
+          {isLearning && selectedSource && (
+            <div className="p-6 bg-zinc-900/40 rounded-xl border border-white/5 mt-4">
+              <div className="flex items-start gap-3 text-zinc-200">
+                <Loader2 className="h-5 w-5 animate-spin text-brand" />
+                <div>
+                  <p className="text-sm font-medium">{currentLearningStep}</p>
+                  <ul className="mt-2 space-y-1">
+                    {LEARNING_STEPS.map((step) => (
+                      <li
+                        key={step}
+                        className={`text-xs ${step === currentLearningStep ? "text-zinc-200" : "text-zinc-400"}`}
+                      >
+                        {step}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    Source: {selectedSource.url.replace("https://", "").replace("/feed", "")}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {knowledgeBase?.voiceMemory.status === "failed" && selectedSource && !isLearning && (
+            <div className="p-6 bg-red-500/10 rounded-xl border border-red-500/20 mt-4">
+              <p className="text-sm font-medium text-red-200">Memory learning failed</p>
+              <p className="mt-1 text-xs text-red-300/80">
+                Narrativee could not finish learning from {selectedSource.url.replace("https://", "").replace("/feed", "")}.
+                Try again once your source content is synced.
               </p>
             </div>
-          </div>
+          )}
         </section>
       )}
 
-      {isReadyVisible && selectedSource && !isLearning && (
-        <section className="p-6">
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-4">
-            <p className="text-sm font-medium text-emerald-200">Ready</p>
-            <p className="mt-1 text-xs text-emerald-300/80">
-              Narrativee finished learning from {selectedSource.url.replace("https://", "").replace("/feed", "")}.
-            </p>
-          </div>
-        </section>
-      )}
-
-      {knowledgeBase?.voiceMemory.status === "failed" && selectedSource && !isLearning && (
-        <section className="p-6">
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-4">
-            <p className="text-sm font-medium text-red-200">Memory learning failed</p>
-            <p className="mt-1 text-xs text-red-300/80">
-              Narrativee could not finish learning from {selectedSource.url.replace("https://", "").replace("/feed", "")}.
-              Try again once your source content is synced.
-            </p>
-          </div>
-        </section>
-      )}
-
-      {isReadyVisible && !selectedArticle && (
-        <section className="space-y-3 p-6">
+      {/* Step 2: Choose issue */}
+      {isReadyVisible && !isLearning && !selectedArticle && (
+        <section className="space-y-3 p-6 animate-in fade-in duration-300">
+          <button
+            type="button"
+            onClick={() => setIsReadyVisible(false)}
+            className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors mb-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Change newsletter source
+          </button>
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">Step 2</p>
             <h2 className="mt-1 text-xl font-semibold text-zinc-100">Choose the newsletter issue to repurpose</h2>
@@ -437,34 +460,30 @@ function NewCreateFlow() {
         </section>
       )}
 
-      {isReadyVisible && selectedArticle && (
-        <section className="space-y-3 p-6">
+      {/* Step 3: Conversational Strategy */}
+      {isReadyVisible && !isLearning && selectedArticle && !hasConfirmedAngles && (
+        <section className="space-y-3 p-6 animate-in fade-in duration-300">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">Step 3</p>
-            <h2 className="mt-1 text-xl font-semibold text-zinc-100">Atomic extraction of potential angles</h2>
           </div>
-          <AnglePicker
+          <StrategyAgentChat
             article={{ id: selectedArticle.id, title: selectedArticle.title }}
-            ideas={ideas}
-            loading={extractAngles.isPending}
-            error={ideasError}
-            selectedAngles={selectedAngles}
-            ideasMeta={ideasMeta}
-            isGenerating={false}
-            onToggleAngle={handleToggleAngle}
-            onAddCustomAngle={handleAddCustomAngle}
-            onReExtract={() => {
-              void handleSelectArticle(selectedArticle, true);
-            }}
-            onGenerate={handleProceedToChannels}
             onBack={handleBackToArticles}
-            actionLabel="Continue to channels"
+            onContinue={handleProceedToChannels}
           />
         </section>
       )}
 
-      {isReadyVisible && selectedArticle && hasConfirmedAngles && selectedAngles.size > 0 && (
-        <section className="space-y-3 p-6">
+      {/* Step 4: Choose socials */}
+      {isReadyVisible && !isLearning && selectedArticle && hasConfirmedAngles && !isNativeToneReady && !isPreparingNativeTone && (
+        <section className="space-y-3 p-6 animate-in fade-in duration-300">
+          <button
+            type="button"
+            onClick={() => setHasConfirmedAngles(false)}
+            className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors mb-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to strategy chat
+          </button>
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">Step 4</p>
             <h2 className="mt-1 text-xl font-semibold text-zinc-100">Choose the socials for draft generation</h2>
@@ -491,8 +510,9 @@ function NewCreateFlow() {
         </section>
       )}
 
+      {/* Loading active agent stepper */}
       {isPreparingNativeTone && (
-        <section className="p-6">
+        <section className="p-6 animate-in fade-in duration-300">
           <div className="flex items-start gap-3 text-zinc-200">
             <Loader2 className="h-5 w-5 animate-spin text-brand" />
             <div>
@@ -517,42 +537,125 @@ function NewCreateFlow() {
         </section>
       )}
 
+      {/* Step 5: Generate drafts */}
       {isNativeToneReady && !isPreparingNativeTone && selectedChannelLabels.length > 0 && (
-        <section className="space-y-3 p-6">
+        <section className="space-y-3 p-6 animate-in fade-in duration-300">
+          <button
+            type="button"
+            onClick={() => {
+              setIsNativeToneReady(false);
+              setIsPreparingNativeTone(false);
+            }}
+            className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors mb-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to channel selection
+          </button>
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">Step 5</p>
             <h2 className="mt-1 text-xl font-semibold text-zinc-100">Generate saved draft pack</h2>
           </div>
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-4">
-            <p className="text-sm font-medium text-emerald-200">Native tone ready</p>
-            <p className="mt-1 text-xs text-emerald-300/80">
-              Narrativee prepared channel-native tone guidance for {selectedChannelLabels.join(", ")} and will generate{" "}
-              {requestedDraftCount} draft {requestedDraftCount === 1 ? "variant" : "variants"} per selected social.
-            </p>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                disabled={isGeneratingCreation}
-                onClick={() => {
-                  void handleGenerateDrafts();
-                }}
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 disabled:opacity-50"
-              >
-                {isGeneratingCreation ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating drafts...
-                  </>
-                ) : (
-                  <>
-                    Generate drafts
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-              {creationError ? <p className="text-xs text-red-300">{creationError}</p> : null}
+
+          {isGeneratingCreation ? (
+            <div className="rounded-2xl border border-white/10 bg-zinc-950/60 p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#eca8d6] animate-pulse" />
+                  <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+                    Orchestrator Active
+                  </span>
+                </div>
+                <span className="text-xs text-zinc-400 font-mono flex items-center gap-2">
+                  <Loader2 className="h-3 w-3 animate-spin text-[#eca8d6]" />
+                  Running multi-agent pipeline...
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-zinc-200">
+                  {activeAgentIndex === 0 && "🧠 Content Strategy Agent is planning positioning..."}
+                  {activeAgentIndex === 1 && "✍️ Content Repurposing Agent is drafting native posts..."}
+                  {activeAgentIndex === 2 && "📤 Publishing Agent is validating platform constraints..."}
+                </h3>
+                <p className="text-xs text-zinc-400 leading-relaxed font-light">
+                  {activeAgentIndex === 0 && "Analyzing your Substack article, checking voice memory rules, and establishing brand-aligned angles."}
+                  {activeAgentIndex === 1 && "Ingesting the source text and selected angles to write platform-native variants for each channel."}
+                  {activeAgentIndex === 2 && "Verifying draft lengths, hashtags, and formatting restrictions for the target socials."}
+                </p>
+
+                {/* Stepper */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                  {[
+                    { label: "Strategy", icon: "🧠", index: 0 },
+                    { label: "Repurposing", icon: "✍️", index: 1 },
+                    { label: "Publishing", icon: "📤", index: 2 },
+                  ].map((step, index) => {
+                    const isActive = activeAgentIndex === step.index;
+                    const isCompleted = activeAgentIndex > step.index;
+
+                    return (
+                      <div key={step.index} className="flex items-center flex-1 w-full min-w-0">
+                        <div
+                          className={`relative flex items-center gap-3 rounded-xl border px-4 py-3 w-full transition-all duration-500 ${isActive
+                              ? "border-[#eca8d6]/30 bg-[#eca8d6]/[0.06]"
+                              : isCompleted
+                                ? "border-emerald-500/30 bg-emerald-500/[0.06]"
+                                : "border-white/10 bg-white/[0.02]"
+                            }`}
+                        >
+                          <div
+                            className={`w-2 h-2 rounded-full shrink-0 transition-colors duration-500 ${isCompleted
+                                ? "bg-emerald-400"
+                                : isActive
+                                  ? "bg-[#eca8d6] animate-pulse"
+                                  : "bg-zinc-600"
+                              }`}
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-zinc-100 truncate">
+                              {step.icon} {step.label}
+                            </p>
+                            <p className="text-[10px] text-zinc-500 font-mono truncate">
+                              {isCompleted ? "Complete" : isActive ? "Working..." : "Pending"}
+                            </p>
+                          </div>
+                        </div>
+                        {index < 2 && (
+                          <div className="hidden sm:flex w-6 shrink-0 items-center justify-center">
+                            <div
+                              className={`h-px w-full transition-colors duration-500 ${isCompleted ? "bg-emerald-500/40" : isActive ? "bg-[#eca8d6]/30" : "bg-white/10"
+                                }`}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-4">
+              <p className="text-sm font-medium text-emerald-200">Native tone ready</p>
+              <p className="mt-1 text-xs text-emerald-300/80">
+                Narrativee prepared channel-native tone guidance for {selectedChannelLabels.join(", ")} and will generate{" "}
+                {requestedDraftCount} draft {requestedDraftCount === 1 ? "variant" : "variants"} per selected social.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    void handleGenerateDrafts();
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-zinc-200 active:scale-[0.98] transition-all"
+                >
+                  Generate drafts
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                {creationError ? <p className="text-xs text-red-300">{creationError}</p> : null}
+              </div>
+            </div>
+          )}
         </section>
       )}
     </div>

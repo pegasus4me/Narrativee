@@ -3,6 +3,7 @@ import { verifyAuth, AuthRequest } from '../middleware/auth';
 import { db } from '../auth/auth';
 import { knowledgeBase } from '../auth/schema/schema';
 import { eq } from 'drizzle-orm';
+import { syncKnowledgeToPinecone } from '../services/memory-service';
 
 const router = Router();
 
@@ -182,6 +183,11 @@ router.post('/', verifyAuth, async (req: AuthRequest, res: Response) => {
         .insert(knowledgeBase)
         .values({ userId: req.user.id, ...data });
     }
+
+    // Sync knowledge base settings to Pinecone asynchronously
+    void syncKnowledgeToPinecone(req.user.id, data).catch((err) => {
+      console.error('[MemorySync] POST knowledge base failed to sync to Pinecone:', err);
+    });
 
     return res.json({ success: true });
   } catch (error: any) {

@@ -129,6 +129,8 @@ export const creationSessions = pgTable("creation_sessions", {
   selectedAngles: jsonb("selected_angles").notNull().default([]),
   selectedChannelIds: jsonb("selected_channel_ids").notNull().default([]),
   drafts: jsonb("drafts").notNull().default([]),
+  /** Orchestration provenance — agents used, strategy, RAG context, validation results. */
+  metadata: jsonb("metadata"),
   status: text("status").notNull().default("ready"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

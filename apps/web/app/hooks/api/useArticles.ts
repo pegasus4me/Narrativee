@@ -68,3 +68,30 @@ export function useArticleDetail() {
     },
   });
 }
+
+interface StrategyChatParams {
+  articleId: string;
+  messages: Array<{ role: "user" | "assistant" | "system"; content: string }>;
+}
+
+/** Converses with the Content Strategy Agent for a specific article. */
+export function useArticleStrategyChat() {
+  return useMutation({
+    mutationFn: async (params: StrategyChatParams) => {
+      const res = await fetch(`${API_URL}/articles/${params.articleId}/chat`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: params.messages }),
+      });
+      const data = await readJsonResponse<{ reply?: string; isFallback?: boolean; error?: string; details?: string }>(
+        res,
+        "The strategy chat endpoint is unavailable. Restart or redeploy the backend API.",
+      );
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to communicate with Content Strategy Agent");
+      }
+      return { reply: data.reply ?? "", isFallback: data.isFallback === true };
+    },
+  });
+}

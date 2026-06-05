@@ -11,6 +11,7 @@ interface CreateCreationParams {
   selectedAngles: string[];
   selectedChannelIds: string[];
   draftCount: number;
+  userGoals?: string;
 }
 
 async function readJsonResponse<TResponse>(response: Response, fallbackMessage: string): Promise<TResponse> {

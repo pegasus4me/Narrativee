@@ -7,6 +7,11 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, CalendarDays, Loader2, Calendar, Clock, Check, AlertCircle } from "lucide-react";
 import { useCreationSession, useUpdateCreationSession, useScheduleCreationDraft } from "@/app/hooks/api";
 import { toUTCISOString, getBrowserTimezone } from "@/app/components/workspace/TimezoneSelect";
+import { OrchestrationPipeline } from "@/app/components/workspace/create/OrchestrationPipeline";
+import { StrategyInsightCard } from "@/app/components/workspace/create/StrategyInsightCard";
+import { ValidationBadge } from "@/app/components/workspace/create/ValidationBadge";
+import { OrchestrationDetailPanel } from "@/app/components/workspace/create/OrchestrationDetailPanel";
+import { DraftPreviewModal } from "@/app/components/workspace/create/DraftPreviewModal";
 import {
   BLUESKY_LOGO,
   FACEBOOK_LOGO,
@@ -64,6 +69,10 @@ export default function CreationDetailPage() {
 
   const [draftTexts, setDraftTexts] = useState<string[]>([]);
   const [saveMessage, setSaveMessage] = useState("");
+  const [previewDraftIdx, setPreviewDraftIdx] = useState<number | null>(null);
+
+  // Loaded Creation Session ID (to avoid overwriting unsaved draft edits on background refetch)
+  const [loadedCreationId, setLoadedCreationId] = useState<string | null>(null);
 
   // Scheduling states
   const [scheduleDates, setScheduleDates] = useState<Record<string, string>>({});
@@ -72,9 +81,10 @@ export default function CreationDetailPage() {
   const [scheduleError, setScheduleError] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    setDraftTexts(creation?.drafts.map((draft) => draft.text) ?? []);
+    if (creation && creation.id !== loadedCreationId) {
+      setDraftTexts(creation.drafts.map((draft) => draft.text));
+      setLoadedCreationId(creation.id);
 
-    if (creation?.drafts) {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const yyyy = tomorrow.getFullYear();
@@ -94,7 +104,7 @@ export default function CreationDetailPage() {
       setScheduleDates((prev) => ({ ...dates, ...prev }));
       setScheduleTimes((prev) => ({ ...times, ...prev }));
     }
-  }, [creation]);
+  }, [creation, loadedCreationId]);
 
   const handleSchedulePost = async (
     channelId: string,
@@ -163,6 +173,7 @@ export default function CreationDetailPage() {
         creationId: creation.id,
         drafts: nextDrafts,
       });
+      setDraftTexts(nextDrafts.map((d) => d.text));
       setSaveMessage("Saved");
     } catch (saveError: unknown) {
       setSaveMessage(saveError instanceof Error ? saveError.message : "Failed to save");
@@ -243,6 +254,13 @@ export default function CreationDetailPage() {
         </div>
       </div>
 
+      {creation.metadata && (
+        <div className="space-y-6">
+          <OrchestrationPipeline metadata={creation.metadata} />
+          <StrategyInsightCard metadata={creation.metadata} />
+        </div>
+      )}
+
       <section className="flex flex-row">
         <div className="min-w-0 flex-1 space-y-4">
           <div className="rounded-2xl border border-white/10 bg-zinc-950/60 p-5">
@@ -269,146 +287,129 @@ export default function CreationDetailPage() {
               <p className="mt-3 text-xs text-zinc-500">{saveMessage}</p>
             ) : null}
 
-            <div className="mt-5 grid gap-4 xl:grid-cols-2">
-              {creation.drafts.map((draft, index) => (
-                <article
-                  key={`${draft.channelId}-${draft.angle}-${index}`}
-                  className="rounded-3xl border border-zinc-800/80 bg-zinc-950/30 p-6 backdrop-blur-md transition-all duration-300 hover:border-zinc-750 hover:bg-zinc-950/50 flex flex-col justify-between shadow-lg"
-                >
-                  <div>
-                    <div className="flex flex-col gap-4 border-b border-white/5 pb-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className={`mt-5 grid gap-4 ${creation.drafts.length === 1 ? "grid-cols-1" : "xl:grid-cols-2"}`}>
+              {creation.drafts.map((draft, index) => {
+                const channel = creation.selectedChannels.find((c) => c.id === draft.channelId) || null;
+                const avatarUrl = channel?.avatarUrl || getPlatformLogo(draft.platform) || undefined;
+
+                return (
+                  <article
+                    key={`${draft.channelId}-${draft.angle}-${index}`}
+                    onClick={() => setPreviewDraftIdx(index)}
+                    className="rounded-3xl border border-zinc-800/80 bg-zinc-950/30 p-6 backdrop-blur-md transition-all duration-300 hover:border-brand/40 hover:bg-zinc-950/50 flex flex-col justify-between shadow-lg cursor-pointer group"
+                  >
+                    <div className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-3">
-                        {getPlatformLogo(draft.platform) ? (
-                          <Image
-                            src={getPlatformLogo(draft.platform) ?? ""}
-                            alt={draft.platform}
-                            width={22}
-                            height={22}
-                            unoptimized
-                            className="h-5.5 w-5.5 rounded-full object-contain"
-                          />
-                        ) : (
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-800 text-[10px] font-semibold uppercase text-zinc-300">
-                            {draft.platform.slice(0, 1)}
-                          </div>
-                        )}
+                        <div className="relative shrink-0 flex items-center justify-center">
+                          {avatarUrl ? (
+                            <img
+                              src={avatarUrl}
+                              alt={channel?.accountName || draft.platform}
+                              className="h-8 w-8 rounded-full object-cover border border-zinc-800"
+                            />
+                          ) : (
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 border border-zinc-700/60 text-xs font-semibold uppercase text-zinc-300 font-sans">
+                              {(channel?.accountName || draft.platform).charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          {getPlatformLogo(draft.platform) && (
+                            <div className="absolute -bottom-1 -right-1 w-4.5 h-4.5 bg-zinc-950 rounded-full flex items-center justify-center shadow-md p-0.5 border border-zinc-800">
+                              <img
+                                src={getPlatformLogo(draft.platform)!}
+                                alt={draft.platform}
+                                className="w-3 h-3 object-contain"
+                              />
+                            </div>
+                          )}
+                        </div>
                         <div>
                           <p className="text-sm font-medium capitalize text-zinc-100">{draft.platform}</p>
                           <p className="text-xs text-zinc-500">{draft.accountName ?? "Connected account"}</p>
                         </div>
                       </div>
-                      <span className="w-fit  px-3 py-1 text-xs font-semibold text-white">
-                        Variation {draft.variantNumber}
-                      </span>
+
+                      <div className="flex items-center gap-2">
+                        <span className="w-fit px-3 py-1 text-xs font-semibold text-zinc-400">
+                          Variation {draft.variantNumber}
+                        </span>
+                        {creation.metadata?.validationResults && (
+                          <ValidationBadge
+                            platform={draft.platform}
+                            validationResults={creation.metadata.validationResults}
+                          />
+                        )}
+                      </div>
                     </div>
 
-                    <div className="mt-4 space-y-4">
+                    <div className="mt-4 flex flex-col gap-2">
+                      <p className="text-xs text-zinc-450 line-clamp-2 leading-relaxed bg-white/[0.01] border border-white/5 rounded-xl p-3">
+                        {draftTexts[index] ?? draft.text}
+                      </p>
+
                       {draft.angle && (
-                        <p className="text-xs text-zinc-400 leading-relaxed italic px-3.5 py-2.5 border-l-2 border-brand/30 bg-brand/5 rounded-r-xl">
+                        <p className="text-[10px] text-brand bg-brand/5 border border-brand/10 w-fit px-2 py-0.5 rounded-full italic font-sans">
                           Focus: {draft.angle}
                         </p>
                       )}
-
-                      <textarea
-                        value={draftTexts[index] ?? draft.text}
-                        onChange={(event) => handleDraftTextChange(index, event.target.value)}
-                        rows={8}
-                        className="w-full resize-y rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4 text-xs leading-relaxed text-zinc-200 outline-none transition-colors placeholder:text-zinc-650 focus:border-brand/50 focus:ring-1 focus:ring-brand/30 font-sans"
-                        placeholder="Compose draft post..."
-                      />
                     </div>
-                  </div>
-
-                  {/* Calendar Scheduling section */}
-                  <div className="mt-6 border-t border-white/5 pt-5">
-                    {scheduledStatus[`${draft.channelId}-${index}`] ? (
-                      <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
-                        <Check className="h-5 w-5 text-emerald-400 shrink-0" />
-                        <div>
-                          <p className="text-xs font-semibold text-emerald-200">Scheduled successfully!</p>
-                          <p className="text-[11px] text-emerald-300/80 mt-0.5">
-                            Post is scheduled for {scheduleDates[`${draft.channelId}-${index}`]} at {scheduleTimes[`${draft.channelId}-${index}`]}.
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-semibold text-zinc-400 flex items-center gap-2">
-                            <Calendar className="h-3.5 w-3.5 text-brand" />
-                            Schedule Release
-                          </p>
-                          <span className="text-[10px] text-brand bg-brand/10 px-2 py-0.5 rounded-full border border-brand/20">
-                            {getBrowserTimezone().split("/")[1]?.replace("_", " ") || getBrowserTimezone()} Time
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="relative">
-                            <input
-                              type="date"
-                              value={scheduleDates[`${draft.channelId}-${index}`] ?? ""}
-                              onChange={(e) =>
-                                setScheduleDates((prev) => ({
-                                  ...prev,
-                                  [`${draft.channelId}-${index}`]: e.target.value,
-                                }))
-                              }
-                              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none transition-all hover:border-zinc-700 focus:border-brand/50 focus:ring-1 focus:ring-brand/30"
-                              style={{ colorScheme: 'dark' }}
-                            />
-                          </div>
-                          <div className="relative">
-                            <input
-                              type="time"
-                              value={scheduleTimes[`${draft.channelId}-${index}`] ?? ""}
-                              onChange={(e) =>
-                                setScheduleTimes((prev) => ({
-                                  ...prev,
-                                  [`${draft.channelId}-${index}`]: e.target.value,
-                                }))
-                              }
-                              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none transition-all hover:border-zinc-700 focus:border-brand/50 focus:ring-1 focus:ring-brand/30"
-                              style={{ colorScheme: 'dark' }}
-                            />
-                          </div>
-                        </div>
-
-                        {scheduleError[`${draft.channelId}-${index}`] && (
-                          <div className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
-                            <AlertCircle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
-                            <p className="text-[11px] text-red-200">{scheduleError[`${draft.channelId}-${index}`]}</p>
-                          </div>
-                        )}
-
-                        <button
-                          type="button"
-                          disabled={scheduleDraft.isPending && scheduleDraft.variables?.channelId === draft.channelId}
-                          onClick={() => {
-                            void handleSchedulePost(draft.channelId, index, draft.platform);
-                          }}
-                          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand hover:bg-brand/90 text-white py-2.5 text-sm font-base transition-all duration-200 shadow-md shadow-brand/10 hover:shadow-brand/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {scheduleDraft.isPending && scheduleDraft.variables?.channelId === draft.channelId ? (
-                            <>
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              Scheduling...
-                            </>
-                          ) : (
-                            <>
-                              Schedule {draft.platform} Post
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           </div>
         </div>
       </section>
+
+      {creation.metadata && (
+        <OrchestrationDetailPanel metadata={creation.metadata} />
+      )}
+
+      {/* Live Preview Modal */}
+      {(() => {
+        if (previewDraftIdx === null) return null;
+        const activeDraft = creation.drafts[previewDraftIdx];
+        if (!activeDraft) return null;
+        const activeChannel = creation.selectedChannels.find((ch) => ch.id === activeDraft.channelId) || null;
+        const draftText = draftTexts[previewDraftIdx] ?? activeDraft.text;
+
+        const scheduleKey = `${activeDraft.channelId}-${previewDraftIdx}`;
+        const selectedDate = scheduleDates[scheduleKey] ?? "";
+        const selectedTime = scheduleTimes[scheduleKey] ?? "";
+        const scheduled = scheduledStatus[scheduleKey] ?? false;
+        const errorMsg = scheduleError[scheduleKey] ?? "";
+
+        const handleDateChange = (date: string) => {
+          setScheduleDates((prev) => ({ ...prev, [scheduleKey]: date }));
+        };
+        const handleTimeChange = (time: string) => {
+          setScheduleTimes((prev) => ({ ...prev, [scheduleKey]: time }));
+        };
+        const handleSchedule = async () => {
+          await handleSchedulePost(activeDraft.channelId, previewDraftIdx, activeDraft.platform);
+        };
+
+        return (
+          <DraftPreviewModal
+            isOpen={true}
+            onClose={() => setPreviewDraftIdx(null)}
+            draft={activeDraft}
+            channel={activeChannel}
+            text={draftText}
+            onTextChange={(newText) => handleDraftTextChange(previewDraftIdx, newText)}
+            onSave={handleSaveDrafts}
+            isSaving={updateCreationSession.isPending}
+            validationResults={creation.metadata?.validationResults}
+            selectedDate={selectedDate}
+            onDateChange={handleDateChange}
+            selectedTime={selectedTime}
+            onTimeChange={handleTimeChange}
+            onSchedule={handleSchedule}
+            isScheduling={scheduleDraft.isPending && scheduleDraft.variables?.channelId === activeDraft.channelId}
+            scheduled={scheduled}
+            scheduleErrorMsg={errorMsg}
+          />
+        );
+      })()}
     </div>
   );
 }
