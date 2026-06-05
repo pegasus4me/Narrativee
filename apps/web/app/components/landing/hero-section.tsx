@@ -210,7 +210,7 @@ export function HeroSection() {
             className={`mt-6 text-center text-lg lg:text-xl text-white leading-relaxed max-w-2xl transition-all duration-1000 delay-100 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
               }`}
           >
-            Narrativee learns your voice, extracts sharper angles, and compiles platform-native drafts for X, LinkedIn, Threads, Instagram, Facebook, Bluesky, and more.
+            Narrativee is the ultimate AI content repurposing tool that learns your voice, extracts sharper angles, and automates repurposing content for social media across LinkedIn, X, Threads, and Bluesky.
           </p>
 
           {/* CTA Buttons */}

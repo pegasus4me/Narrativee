@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "semrush": {
+      "url": "https://mcp.semrush.com/v1/mcp",
+      "type": "http",
+      "headers": {
+        "Authorization": "Apikey e7c900cef3a64f81cc445cdd9cd4d488"
+      }
+    }
+  }
+}

@@ -43,17 +43,18 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://narrativee.com"),
   title: {
-    default: "Narrativee | Turn Newsletters into Native Social Content",
+    default: "Narrativee | AI Content Repurposing Tool for Social Media",
     template: "%s | Narrativee",
   },
-  description: "Narrativee learns your unique writing voice, extracts high-performing angles from your newsletters, and compiles platform-native content workflows for LinkedIn, X, Threads, and more.",
+  description: "Narrativee is the premium AI content repurposing tool for newsletter creators. Automatically repurpose Substack, beehiiv, and custom RSS newsletters into native social posts for LinkedIn, X (Twitter), and Threads.",
   keywords: [
+    "content repurposing tool",
+    "repurposing content for social media",
     "newsletter repurposing",
     "substack growth",
     "social media distribution",
     "ai voice cloner",
-    "newsletter promotion",
-    "content repurposing tool"
+    "newsletter promotion"
   ],
   alternates: {
     canonical: "/",
@@ -63,21 +64,21 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://narrativee.com",
     siteName: "Narrativee",
-    title: "Narrativee | Turn Newsletters into Native Social Content",
-    description: "Repurpose your newsletter automatically into channel-native posts that match your voice and drive growth.",
+    title: "Narrativee | AI Content Repurposing Tool for Social Media",
+    description: "Narrativee is the premium AI content repurposing tool for newsletter creators. Automatically repurpose Substack, beehiiv, and custom RSS newsletters into native social posts for LinkedIn, X (Twitter), and Threads.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Narrativee Platform - Newsletter Repurposing System",
+        alt: "Narrativee Platform - AI Content Repurposing System",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Narrativee | Turn Newsletters into Native Social Content",
-    description: "Repurpose your newsletter automatically into channel-native posts that match your voice and drive growth.",
+    title: "Narrativee | AI Content Repurposing Tool for Social Media",
+    description: "Narrativee is the premium AI content repurposing tool for newsletter creators. Automatically repurpose Substack, beehiiv, and custom RSS newsletters into native social posts for LinkedIn, X (Twitter), and Threads.",
     images: ["/og-image.png"],
     creator: "@narrativee",
   },
