@@ -106,7 +106,7 @@ export function StrategyAgentChat({ article, onBack, onContinue }: StrategyAgent
               <img src="/content_strategist.png" alt="Content Strategist" className="h-full w-full object-cover" />
             </div>
             <div>
-              <p className="text-sm font-medium text-zinc-200">Narrativee Strategy Agent</p>
+              <p className="text-sm font-medium text-zinc-200">@Josh-Content Strategy Agent</p>
               <p className="text-[12px] text-[#eca8d6] font-light">Active Session</p>
             </div>
           </div>
