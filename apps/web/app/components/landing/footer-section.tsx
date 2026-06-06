@@ -3,27 +3,32 @@
 import { ArrowUpRight } from "lucide-react";
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import logo from "@/public/logo.png"
 import { GITHUB_LOGO, LINKEDIN_LOGO, X_LOGO } from "@/app/constants";
 const footerLinks = {
   Product: [
     { name: "Features", href: "#features" },
     { name: "How it works", href: "#how-it-works" },
-    { name: "Pricing", href: "#pricing" },
+    { name: "Pricing", href: "/pricing" },
     { name: "Integrations", href: "#integrations" },
   ],
   Resources: [
     { name: "Creator Tools", href: "#creator-workspace" },
     { name: "Voice Memory Engine", href: "#voice-engine" },
-    { name: "Pricing Plans", href: "#pricing" },
+    { name: "Pricing Plans", href: "/pricing" },
     { name: "Help Center", href: "#" },
+  ],
+  Comparisons: [
+    { name: "vs ChatGPT", href: "/versus/narrativee-vs-chatgpt" },
+    { name: "vs Typefully", href: "/versus/narrativee-vs-typefully" },
+    { name: "vs Buffer", href: "/versus/narrativee-vs-buffer" },
+    { name: "vs Repurpose.io", href: "/versus/narrativee-vs-repurpose-io" },
   ],
   Company: [
     { name: "Contact", href: "#" },
-  ],
-  Legal: [
-    { name: "Privacy", href: "#" },
-    { name: "Terms", href: "#" },
+    { name: "Privacy", href: "/privacy" },
+    { name: "Terms", href: "/terms" },
     { name: "Security", href: "#security" },
   ],
 };
@@ -143,12 +148,12 @@ export function FooterSection() {
                 <ul className="space-y-4">
                   {links.map((link) => (
                     <li key={link.name}>
-                      <a
+                      <Link
                         href={link.href}
                         className="text-sm text-white/40 hover:text-white transition-colors inline-flex items-center gap-2"
                       >
                         {link.name}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
