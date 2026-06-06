@@ -54,6 +54,7 @@ export const auth = betterAuth({
       enabled: true,
     },
   },
+
   account: {
     accountLinking: {
       enabled: true,
@@ -75,6 +76,7 @@ export const auth = betterAuth({
   },
   databaseHooks: {
     user: {
+
       create: {
         before: async (user) => {
           return {
@@ -118,6 +120,7 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
+
       plan: {
         type: "string",
         defaultValue: "free"
@@ -137,6 +140,18 @@ export const auth = betterAuth({
       onboarded: {
         type: "boolean",
         defaultValue: false
+      },
+      utmSource: {
+        type: "string",
+        required: false
+      },
+      utmMedium: {
+        type: "string",
+        required: false
+      },
+      utmCampaign: {
+        type: "string",
+        required: false
       }
     }
   }

@@ -19,6 +19,15 @@ function PostHogPageview() {
       }
       ph.capture("$pageview", { $current_url: url });
     }
+
+    if (searchParams && typeof window !== "undefined" && window.sessionStorage) {
+      const source = searchParams.get("utm_source");
+      const medium = searchParams.get("utm_medium");
+      const campaign = searchParams.get("utm_campaign");
+      if (source) window.sessionStorage.setItem("utm_source", source);
+      if (medium) window.sessionStorage.setItem("utm_medium", medium);
+      if (campaign) window.sessionStorage.setItem("utm_campaign", campaign);
+    }
   }, [pathname, searchParams, ph]);
 
   return null;

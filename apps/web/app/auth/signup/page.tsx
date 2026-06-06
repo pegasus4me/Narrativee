@@ -39,11 +39,26 @@ export default function SignUp() {
     setIsLoading(true);
     setError(null);
 
+    // Retrieve UTM parameters for database attribution
+    let utmSource: string | undefined = undefined;
+    let utmMedium: string | undefined = undefined;
+    let utmCampaign: string | undefined = undefined;
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      utmSource = params.get("utm_source") || window.sessionStorage.getItem("utm_source") || undefined;
+      utmMedium = params.get("utm_medium") || window.sessionStorage.getItem("utm_medium") || undefined;
+      utmCampaign = params.get("utm_campaign") || window.sessionStorage.getItem("utm_campaign") || undefined;
+    }
+
     try {
       await authClient.signUp.email({
         email,
         password,
         name,
+        utmSource,
+        utmMedium,
+        utmCampaign,
       }, {
         onSuccess: () => {
           trackSignUp('email');

@@ -21,6 +21,10 @@ export const user = pgTable("user", {
   language: text("language"),
   writingStyle: text("writingStyle"),
   contentTopics: jsonb("contentTopics"), // Array of strings
+  // UTM Attribution parameters
+  utmSource: text("utmSource"),
+  utmMedium: text("utmMedium"),
+  utmCampaign: text("utmCampaign"),
   // Legacy fields (kept to avoid data loss warning during push)
   orgName: text("orgName"),
   orgUrl: text("orgUrl"),
