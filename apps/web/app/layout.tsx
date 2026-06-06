@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     description: "Narrativee is the premium AI content repurposing tool for newsletter creators. Automatically repurpose Substack, beehiiv, and custom RSS newsletters into native social posts for LinkedIn, X (Twitter), and Threads.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image-v2.png",
         width: 1200,
         height: 630,
         alt: "Narrativee Platform - AI Content Repurposing System",
@@ -79,7 +79,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Narrativee | AI Content Repurposing Tool for Social Media",
     description: "Narrativee is the premium AI content repurposing tool for newsletter creators. Automatically repurpose Substack, beehiiv, and custom RSS newsletters into native social posts for LinkedIn, X (Twitter), and Threads.",
-    images: ["/og-image.png"],
+    images: ["/og-image-v2.png"],
     creator: "@narrativee",
   },
   robots: {
