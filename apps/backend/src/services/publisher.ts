@@ -60,7 +60,13 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
   }
 
   // 4. Extract post text
-  const content = post.content as { text?: string; imageUrl?: string; mediaUrl?: string; type?: string; slides?: any[] };
+  const content = post.content as {
+    text?: string;
+    imageUrl?: string;
+    mediaUrl?: string;
+    type?: string;
+    slides?: Array<{ dataUri?: string; imageUrl?: string }>;
+  };
   const postText = content.text || "";
   if (!postText) {
     console.error(`[Publisher] No text content found for post ${postId}`);
@@ -102,9 +108,7 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
 
         for (let i = 0; i < content.slides!.length; i++) {
           const slide = content.slides![i];
-          const base64Data = slide.dataUri.split(';base64,').pop();
-          if (!base64Data) continue;
-          const imgBuffer = Buffer.from(base64Data, 'base64');
+          const imgBuffer = await resolveCarouselSlideBuffer(slide);
 
           // 1. Register asset
           console.log(`[Publisher] Registering LinkedIn asset for slide ${i + 1}`);
@@ -287,14 +291,9 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
       if (isCarousel) {
         console.log(`[Publisher] Instagram post is a carousel with ${content.slides!.length} slides`);
         const itemIds: string[] = [];
-        
-        // Define backend base URL for dynamic slide serving
-        const publicBaseUrl = process.env.NODE_ENV === 'production' 
-          ? 'https://api.narrativee.com' 
-          : 'http://localhost:3002';
 
         for (let i = 0; i < content.slides!.length; i++) {
-          const slidePublicUrl = `${publicBaseUrl}/api/articles/drafts/${postId}/slides/${i}.png`;
+          const slidePublicUrl = content.slides![i]?.imageUrl ?? `${getPublicBackendUrl()}/api/articles/drafts/${postId}/slides/${i}.png`;
           console.log(`[Publisher] Creating Instagram item container for slide ${i + 1}: ${slidePublicUrl}`);
 
           const itemRes = await fetch(`https://graph.instagram.com/v21.0/${channel.providerAccountId}/media`, {
@@ -516,3 +515,29 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
     throw err;
   }
 }
+
+const resolveCarouselSlideBuffer = async (slide: { dataUri?: string; imageUrl?: string }): Promise<Buffer> => {
+  if (typeof slide.dataUri === "string") {
+    const base64Data = slide.dataUri.split(";base64,").pop();
+    if (base64Data) {
+      return Buffer.from(base64Data, "base64");
+    }
+  }
+
+  if (typeof slide.imageUrl === "string" && slide.imageUrl.length > 0) {
+    const response = await fetch(slide.imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to download carousel slide: ${response.status} ${await response.text()}`);
+    }
+
+    const bytes = await response.arrayBuffer();
+    return Buffer.from(bytes);
+  }
+
+  throw new Error("Carousel slide is missing both dataUri and imageUrl.");
+};
+
+const getPublicBackendUrl = (): string =>
+  process.env.NODE_ENV === "production"
+    ? "https://api.narrativee.com"
+    : "http://localhost:3002";

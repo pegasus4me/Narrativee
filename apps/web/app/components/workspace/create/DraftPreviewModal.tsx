@@ -5,7 +5,7 @@ import Image from "next/image";
 import {
   X, Heart, MessageCircle, Repeat2, Bookmark, Share, Globe,
   ThumbsUp, MessageSquare, Share2, MoreHorizontal, Check, Loader2,
-  Calendar, AlertCircle
+  Calendar, AlertCircle, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { ValidationBadge } from "./ValidationBadge";
 import {
@@ -17,26 +17,21 @@ import {
   X_LOGO,
   SUBSTACK_LOGO,
 } from "@/app/constants";
+import type { CarouselSpec, CreationDraft } from "@/app/types/api";
 
 interface DraftPreviewModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
-  readonly draft: {
-    readonly channelId: string;
-    readonly platform: string;
-    readonly variantNumber: number;
-    readonly text: string;
-    readonly angle?: string;
-  };
+  readonly draft: CreationDraft;
   readonly channel: {
     readonly platform: string;
     readonly accountName: string;
     readonly avatarUrl: string | null;
   } | null;
-  readonly text: string;
-  readonly onTextChange: (newText: string) => void;
+  readonly onDraftChange: (nextDraft: CreationDraft) => void;
   readonly onSave: () => Promise<void>;
   readonly isSaving: boolean;
+  readonly hasUnsavedChanges: boolean;
   readonly validationResults?: Array<{
     readonly platform: string;
     readonly isValid: boolean;
@@ -50,6 +45,9 @@ interface DraftPreviewModalProps {
   readonly isScheduling: boolean;
   readonly scheduled: boolean;
   readonly scheduleErrorMsg?: string;
+  readonly onRenderCarousel?: () => Promise<void>;
+  readonly isRenderingCarousel?: boolean;
+  readonly carouselRenderErrorMessage?: string;
 }
 
 const PLATFORM_LOGOS: Record<string, string> = {
@@ -77,10 +75,10 @@ export function DraftPreviewModal({
   onClose,
   draft,
   channel,
-  text,
-  onTextChange,
+  onDraftChange,
   onSave,
   isSaving,
+  hasUnsavedChanges,
   validationResults,
   selectedDate,
   onDateChange,
@@ -90,20 +88,39 @@ export function DraftPreviewModal({
   isScheduling,
   scheduled,
   scheduleErrorMsg,
+  onRenderCarousel,
+  isRenderingCarousel = false,
+  carouselRenderErrorMessage,
 }: DraftPreviewModalProps) {
-  const [localText, setLocalText] = useState(text);
+  const [localText, setLocalText] = useState(draft.text);
+  const [localCarouselSpec, setLocalCarouselSpec] = useState<CarouselSpec | null>(draft.carousel?.spec ?? null);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [activeSlideIdx, setActiveSlideIdx] = useState(0);
 
   useEffect(() => {
-    setLocalText(text);
-  }, [text]);
+    setLocalText(draft.text);
+    setLocalCarouselSpec(draft.carousel?.spec ?? null);
+    setActiveSlideIdx(0);
+  }, [draft]);
 
   if (!isOpen) return null;
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const nextVal = e.target.value;
     setLocalText(nextVal);
-    onTextChange(nextVal);
+    onDraftChange({
+      ...draft,
+      text: nextVal,
+      carousel: draft.carousel
+        ? {
+            ...draft.carousel,
+            spec: {
+              ...draft.carousel.spec,
+              baseCaption: nextVal,
+            },
+          }
+        : draft.carousel,
+    });
   };
 
   const handleSave = async () => {
@@ -122,6 +139,60 @@ export function DraftPreviewModal({
   const platformLower = draft.platform.toLowerCase();
   const accountName = channel?.accountName ?? "Connected Channel";
   const avatarUrl = channel?.avatarUrl || getPlatformLogo(draft.platform) || "";
+  const renderedCarouselSlides = draft.carousel?.render?.slides ?? [];
+  const firstRenderedCarouselSlide = renderedCarouselSlides[0];
+
+  const updateCarouselSpec = (nextSpec: CarouselSpec): void => {
+    setLocalCarouselSpec(nextSpec);
+    if (!draft.carousel) {
+      return;
+    }
+
+    onDraftChange({
+      ...draft,
+      text: nextSpec.baseCaption,
+      carousel: {
+        ...draft.carousel,
+        spec: nextSpec,
+      },
+    });
+    setLocalText(nextSpec.baseCaption);
+  };
+
+  const handleCarouselTitleChange = (value: string): void => {
+    if (!localCarouselSpec) {
+      return;
+    }
+
+    updateCarouselSpec({
+      ...localCarouselSpec,
+      title: value,
+    });
+  };
+
+  const handleCarouselSlideChange = (
+    slideIndex: number,
+    field: "headline" | "body" | "visualBrief",
+    value: string,
+  ): void => {
+    if (!localCarouselSpec) {
+      return;
+    }
+
+    const nextSlides = localCarouselSpec.slides.map((slide) => (
+      slide.index === slideIndex
+        ? {
+            ...slide,
+            [field]: value,
+          }
+        : slide
+    ));
+
+    updateCarouselSpec({
+      ...localCarouselSpec,
+      slides: nextSlides,
+    });
+  };
 
   // Render social mock feed
   const renderSocialPreview = () => {
@@ -255,6 +326,40 @@ export function DraftPreviewModal({
               {localText || "Write LinkedIn post..."}
             </div>
 
+            {renderedCarouselSlides.length > 0 ? (
+              <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black/20 relative group">
+                <img
+                  src={renderedCarouselSlides[activeSlideIdx]?.imageUrl}
+                  alt={`LinkedIn carousel preview slide ${activeSlideIdx + 1}`}
+                  className="h-auto w-full object-cover"
+                />
+                
+                {renderedCarouselSlides.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setActiveSlideIdx((prev) => (prev > 0 ? prev - 1 : renderedCarouselSlides.length - 1))}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors opacity-0 group-hover:opacity-100 z-10"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveSlideIdx((prev) => (prev < renderedCarouselSlides.length - 1 ? prev + 1 : 0))}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors opacity-0 group-hover:opacity-100 z-10"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </>
+                )}
+
+                <div className="flex items-center justify-between border-t border-white/10 px-3 py-2 text-[10px] text-zinc-400">
+                  <span>Carousel preview</span>
+                  <span>Slide {activeSlideIdx + 1} of {renderedCarouselSlides.length}</span>
+                </div>
+              </div>
+            ) : null}
+
             {/* Likes count */}
             <div className="mt-4 flex items-center justify-between border-b border-zinc-800 pb-2.5 text-[11px] text-zinc-500">
               <div className="flex items-center gap-1">
@@ -328,15 +433,50 @@ export function DraftPreviewModal({
             </div>
 
             {/* Media Area */}
-            <div className="w-full aspect-square bg-gradient-to-br from-purple-900/40 via-indigo-900/30 to-zinc-950 flex flex-col items-center justify-center border-b border-zinc-855 relative p-8">
-              <div className="absolute inset-0 bg-radial-gradient from-[#eca8d6]/10 to-transparent pointer-events-none" />
-              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 max-w-[85%] text-center backdrop-blur-md shadow-2xl">
-                <p className="text-xs font-mono uppercase tracking-widest text-[#eca8d6] mb-2">Narrativee Visuals</p>
-                <h4 className="text-sm font-semibold text-white line-clamp-3 leading-snug">
-                  {draft.angle || "Your Actionable Campaign Insights"}
-                </h4>
-                <p className="mt-3 text-[10px] text-zinc-500 font-mono">Swipe for blueprints</p>
-              </div>
+            <div className="w-full aspect-square bg-gradient-to-br from-purple-900/40 via-indigo-900/30 to-zinc-950 flex flex-col items-center justify-center border-b border-zinc-855 relative p-8 group">
+              {renderedCarouselSlides.length > 0 ? (
+                <>
+                  <img
+                    src={renderedCarouselSlides[activeSlideIdx]?.imageUrl}
+                    alt={`Instagram carousel preview slide ${activeSlideIdx + 1}`}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  
+                  {renderedCarouselSlides.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setActiveSlideIdx((prev) => (prev > 0 ? prev - 1 : renderedCarouselSlides.length - 1))}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-all opacity-0 group-hover:opacity-100 z-10"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveSlideIdx((prev) => (prev < renderedCarouselSlides.length - 1 ? prev + 1 : 0))}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-all opacity-0 group-hover:opacity-100 z-10"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                    </>
+                  )}
+
+                  <div className="absolute right-4 top-4 rounded-full bg-black/60 px-2 py-1 text-[10px] font-medium text-white z-10">
+                    {activeSlideIdx + 1} / {renderedCarouselSlides.length}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="absolute inset-0 bg-radial-gradient from-[#eca8d6]/10 to-transparent pointer-events-none" />
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 max-w-[85%] text-center backdrop-blur-md shadow-2xl">
+                    <p className="text-xs font-mono uppercase tracking-widest text-[#eca8d6] mb-2">Narrativee Visuals</p>
+                    <h4 className="text-sm font-semibold text-white line-clamp-3 leading-snug">
+                      {draft.angle || "Your Actionable Campaign Insights"}
+                    </h4>
+                    <p className="mt-3 text-[10px] text-zinc-500 font-mono">Swipe for blueprints</p>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Actions */}
@@ -545,6 +685,107 @@ export function DraftPreviewModal({
                   placeholder="Compose draft post..."
                 />
 
+                {localCarouselSpec ? (
+                  <div className="space-y-4 rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <label className="text-sm font-base text-white">Carousel editor</label>
+                        <p className="text-xs text-zinc-400">
+                          Refine slide copy here, then render polished visuals through Placid.
+                        </p>
+                      </div>
+                      {onRenderCarousel ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void onRenderCarousel();
+                          }}
+                          disabled={isRenderingCarousel}
+                          className="inline-flex items-center gap-2 rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-200 transition-colors hover:bg-violet-500/20 disabled:opacity-50"
+                        >
+                          {isRenderingCarousel ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              Rendering…
+                            </>
+                          ) : (
+                            <>Render visuals</>
+                          )}
+                        </button>
+                      ) : null}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+                        Carousel title
+                      </label>
+                      <input
+                        value={localCarouselSpec.title}
+                        onChange={(event) => handleCarouselTitleChange(event.target.value)}
+                        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-zinc-200 outline-none transition-all focus:border-brand/50 focus:ring-1 focus:ring-brand/30"
+                      />
+                    </div>
+
+                    {carouselRenderErrorMessage ? (
+                      <div className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+                        <AlertCircle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-red-200">{carouselRenderErrorMessage}</p>
+                      </div>
+                    ) : null}
+
+                    {renderedCarouselSlides.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        {renderedCarouselSlides.map((slide, index) => (
+                          <img
+                            key={`${slide.imageUrl}-${index}`}
+                            src={slide.imageUrl}
+                            alt={`Rendered carousel slide ${index + 1}`}
+                            className="rounded-xl border border-white/10 object-cover shadow-sm"
+                          />
+                        ))}
+                      </div>
+                    ) : null}
+
+                    <div className="space-y-3">
+                      {localCarouselSpec.slides.map((slide) => (
+                        <div
+                          key={`${slide.index}-${slide.role}`}
+                          className="space-y-3 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 p-4"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
+                              Slide {slide.index} · {slide.role}
+                            </span>
+                          </div>
+
+                          <input
+                            value={slide.headline}
+                            onChange={(event) => handleCarouselSlideChange(slide.index, "headline", event.target.value)}
+                            className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-zinc-200 outline-none transition-all focus:border-brand/50 focus:ring-1 focus:ring-brand/30"
+                            placeholder="Slide headline"
+                          />
+
+                          <textarea
+                            value={slide.body}
+                            onChange={(event) => handleCarouselSlideChange(slide.index, "body", event.target.value)}
+                            rows={3}
+                            className="w-full resize-none rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-200 outline-none transition-all focus:border-brand/50 focus:ring-1 focus:ring-brand/30"
+                            placeholder="Slide body"
+                          />
+
+                          <textarea
+                            value={slide.visualBrief}
+                            onChange={(event) => handleCarouselSlideChange(slide.index, "visualBrief", event.target.value)}
+                            rows={2}
+                            className="w-full resize-none rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-xs text-zinc-300 outline-none transition-all focus:border-brand/50 focus:ring-1 focus:ring-brand/30"
+                            placeholder="Visual brief"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 {/* Calendar Scheduling section */}
                 <div className="border-t border-white/5 pt-5">
                   {scheduled ? (
@@ -627,7 +868,7 @@ export function DraftPreviewModal({
                 </button>
                 <button
                   type="button"
-                  disabled={isSaving || draft.text === localText}
+                  disabled={isSaving || !hasUnsavedChanges}
                   onClick={handleSave}
                   className="inline-flex items-center gap-2 rounded-xl bg-brand hover:bg-brand/90 px-6 py-2.5 text-xs font-semibold text-white shadow-md transition-all active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
                 >

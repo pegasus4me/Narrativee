@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, CalendarDays, Loader2, Calendar, Clock, Check, AlertCircle } from "lucide-react";
-import { useCreationSession, useUpdateCreationSession, useScheduleCreationDraft } from "@/app/hooks/api";
+import { useCreationSession, useUpdateCreationSession, useScheduleCreationDraft, useRenderCreationCarousel } from "@/app/hooks/api";
 import { toUTCISOString, getBrowserTimezone } from "@/app/components/workspace/TimezoneSelect";
 import { OrchestrationPipeline } from "@/app/components/workspace/create/OrchestrationPipeline";
 import { StrategyInsightCard } from "@/app/components/workspace/create/StrategyInsightCard";
@@ -66,8 +66,9 @@ export default function CreationDetailPage() {
   const { data: creation, isLoading, error } = useCreationSession(creationId, creationId.length > 0);
   const updateCreationSession = useUpdateCreationSession();
   const scheduleDraft = useScheduleCreationDraft();
+  const renderCreationCarousel = useRenderCreationCarousel();
 
-  const [draftTexts, setDraftTexts] = useState<string[]>([]);
+  const [editableDrafts, setEditableDrafts] = useState<CreationDraft[]>([]);
   const [saveMessage, setSaveMessage] = useState("");
   const [previewDraftIdx, setPreviewDraftIdx] = useState<number | null>(null);
 
@@ -82,7 +83,7 @@ export default function CreationDetailPage() {
 
   useEffect(() => {
     if (creation && creation.id !== loadedCreationId) {
-      setDraftTexts(creation.drafts.map((draft) => draft.text));
+      setEditableDrafts(creation.drafts);
       setLoadedCreationId(creation.id);
 
       const tomorrow = new Date();
@@ -107,14 +108,13 @@ export default function CreationDetailPage() {
   }, [creation, loadedCreationId]);
 
   const handleSchedulePost = async (
-    channelId: string,
+    draft: CreationDraft,
     idx: number,
-    platform: string
   ): Promise<void> => {
-    const key = `${channelId}-${idx}`;
+    const key = `${draft.channelId}-${idx}`;
     const selectedDate = scheduleDates[key];
     const selectedTime = scheduleTimes[key];
-    const draftText = draftTexts[idx] ?? "";
+    const draftText = editableDrafts[idx]?.text ?? draft.text;
 
     if (!selectedDate || !selectedTime) {
       setScheduleError((prev) => ({
@@ -131,7 +131,8 @@ export default function CreationDetailPage() {
 
       await scheduleDraft.mutateAsync({
         creationId,
-        channelId,
+        channelId: draft.channelId,
+        variantNumber: draft.variantNumber,
         scheduledAt: scheduledAtUTC,
         text: draftText,
       });
@@ -144,16 +145,16 @@ export default function CreationDetailPage() {
   };
 
   const hasUnsavedChanges = useMemo(
-    () => creation?.drafts.some((draft, index) => draft.text !== (draftTexts[index] ?? "")) ?? false,
-    [creation, draftTexts],
+    () => creation ? JSON.stringify(creation.drafts) !== JSON.stringify(editableDrafts) : false,
+    [creation, editableDrafts],
   );
 
-  const handleDraftTextChange = (index: number, nextText: string): void => {
+  const handleDraftChange = (index: number, nextDraft: CreationDraft): void => {
     setSaveMessage("");
-    setDraftTexts((currentDraftTexts) => {
-      const nextDraftTexts = [...currentDraftTexts];
-      nextDraftTexts[index] = nextText;
-      return nextDraftTexts;
+    setEditableDrafts((currentDrafts) => {
+      const nextDrafts = [...currentDrafts];
+      nextDrafts[index] = nextDraft;
+      return nextDrafts;
     });
   };
 
@@ -162,22 +163,31 @@ export default function CreationDetailPage() {
       return;
     }
 
-    const nextDrafts: CreationDraft[] = creation.drafts.map((draft, index) => ({
-      ...draft,
-      text: draftTexts[index] ?? draft.text,
-    }));
-
     try {
       setSaveMessage("");
       await updateCreationSession.mutateAsync({
         creationId: creation.id,
-        drafts: nextDrafts,
+        drafts: editableDrafts,
       });
-      setDraftTexts(nextDrafts.map((d) => d.text));
       setSaveMessage("Saved");
     } catch (saveError: unknown) {
       setSaveMessage(saveError instanceof Error ? saveError.message : "Failed to save");
     }
+  };
+
+  const handleRenderCarousel = async (index: number): Promise<void> => {
+    const draft = editableDrafts[index];
+    if (!draft?.carousel) {
+      return;
+    }
+
+    const result = await renderCreationCarousel.mutateAsync({
+      creationId,
+      channelId: draft.channelId,
+      draft,
+    });
+
+    handleDraftChange(index, result.draft);
   };
 
   if (isLoading) {
@@ -270,7 +280,7 @@ export default function CreationDetailPage() {
                 <h2 className="mt-1 text-xl font-light text-zinc-100">Channel-native outputs</h2>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-zinc-500">{creation.drafts.length} drafts saved</span>
+                <span className="text-xs text-zinc-500">{editableDrafts.length} drafts saved</span>
                 <button
                   type="button"
                   disabled={!hasUnsavedChanges || updateCreationSession.isPending}
@@ -287,8 +297,8 @@ export default function CreationDetailPage() {
               <p className="mt-3 text-xs text-zinc-500">{saveMessage}</p>
             ) : null}
 
-            <div className={`mt-5 grid gap-4 ${creation.drafts.length === 1 ? "grid-cols-1" : "xl:grid-cols-2"}`}>
-              {creation.drafts.map((draft, index) => {
+            <div className={`mt-5 grid gap-4 ${editableDrafts.length === 1 ? "grid-cols-1" : "xl:grid-cols-2"}`}>
+              {editableDrafts.map((draft, index) => {
                 const channel = creation.selectedChannels.find((c) => c.id === draft.channelId) || null;
                 const avatarUrl = channel?.avatarUrl || getPlatformLogo(draft.platform) || undefined;
 
@@ -343,7 +353,7 @@ export default function CreationDetailPage() {
 
                     <div className="mt-4 flex flex-col gap-2">
                       <p className="text-xs text-zinc-450 line-clamp-2 leading-relaxed bg-white/[0.01] border border-white/5 rounded-xl p-3">
-                        {draftTexts[index] ?? draft.text}
+                        {draft.text}
                       </p>
 
                       {draft.angle && (
@@ -351,6 +361,11 @@ export default function CreationDetailPage() {
                           Focus: {draft.angle}
                         </p>
                       )}
+                      {draft.carousel ? (
+                        <p className="text-[10px] text-violet-300 bg-violet-500/10 border border-violet-400/20 w-fit px-2 py-0.5 rounded-full font-sans">
+                          Carousel · {draft.carousel.renderStatus === "rendered" ? "visuals ready" : draft.carousel.renderStatus}
+                        </p>
+                      ) : null}
                     </div>
                   </article>
                 );
@@ -367,16 +382,18 @@ export default function CreationDetailPage() {
       {/* Live Preview Modal */}
       {(() => {
         if (previewDraftIdx === null) return null;
-        const activeDraft = creation.drafts[previewDraftIdx];
+        const activeDraft = editableDrafts[previewDraftIdx];
         if (!activeDraft) return null;
         const activeChannel = creation.selectedChannels.find((ch) => ch.id === activeDraft.channelId) || null;
-        const draftText = draftTexts[previewDraftIdx] ?? activeDraft.text;
 
         const scheduleKey = `${activeDraft.channelId}-${previewDraftIdx}`;
         const selectedDate = scheduleDates[scheduleKey] ?? "";
         const selectedTime = scheduleTimes[scheduleKey] ?? "";
         const scheduled = scheduledStatus[scheduleKey] ?? false;
         const errorMsg = scheduleError[scheduleKey] ?? "";
+        const hasActiveDraftUnsavedChanges = creation.drafts.some((draft, index) => (
+          index === previewDraftIdx && JSON.stringify(draft) !== JSON.stringify(activeDraft)
+        ));
 
         const handleDateChange = (date: string) => {
           setScheduleDates((prev) => ({ ...prev, [scheduleKey]: date }));
@@ -385,7 +402,7 @@ export default function CreationDetailPage() {
           setScheduleTimes((prev) => ({ ...prev, [scheduleKey]: time }));
         };
         const handleSchedule = async () => {
-          await handleSchedulePost(activeDraft.channelId, previewDraftIdx, activeDraft.platform);
+          await handleSchedulePost(activeDraft, previewDraftIdx);
         };
 
         return (
@@ -394,10 +411,10 @@ export default function CreationDetailPage() {
             onClose={() => setPreviewDraftIdx(null)}
             draft={activeDraft}
             channel={activeChannel}
-            text={draftText}
-            onTextChange={(newText) => handleDraftTextChange(previewDraftIdx, newText)}
+            onDraftChange={(nextDraft) => handleDraftChange(previewDraftIdx, nextDraft)}
             onSave={handleSaveDrafts}
             isSaving={updateCreationSession.isPending}
+            hasUnsavedChanges={hasActiveDraftUnsavedChanges}
             validationResults={creation.metadata?.validationResults}
             selectedDate={selectedDate}
             onDateChange={handleDateChange}
@@ -407,6 +424,19 @@ export default function CreationDetailPage() {
             isScheduling={scheduleDraft.isPending && scheduleDraft.variables?.channelId === activeDraft.channelId}
             scheduled={scheduled}
             scheduleErrorMsg={errorMsg}
+            onRenderCarousel={activeDraft.carousel ? () => handleRenderCarousel(previewDraftIdx) : undefined}
+            isRenderingCarousel={
+              renderCreationCarousel.isPending &&
+              renderCreationCarousel.variables?.channelId === activeDraft.channelId &&
+              renderCreationCarousel.variables?.draft.variantNumber === activeDraft.variantNumber
+            }
+            carouselRenderErrorMessage={
+              renderCreationCarousel.isError &&
+              renderCreationCarousel.variables?.channelId === activeDraft.channelId &&
+              renderCreationCarousel.variables?.draft.variantNumber === activeDraft.variantNumber
+                ? renderCreationCarousel.error?.message
+                : undefined
+            }
           />
         );
       })()}

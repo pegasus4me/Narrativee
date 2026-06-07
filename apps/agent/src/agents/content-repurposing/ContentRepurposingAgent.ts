@@ -1,7 +1,31 @@
-import type { ContentAssetKind, GeneratedContentAsset, JsonValue, PlatformName } from "../../common/types.js";
+import type {
+  CarouselSlideRole,
+  CarouselSpec,
+  CarouselTargetPlatform,
+  ContentAssetKind,
+  GeneratedContentAsset,
+  JsonObject,
+  JsonValue,
+  PlatformName
+} from "../../common/types.js";
 import { BaseAgent } from "../base/BaseAgent.js";
 import type { AgentRequest, AgentResponse, AgentTaskType } from "../base/types.js";
 import type { ContentRepurposingOutput } from "./types.js";
+
+type MockCarouselSlide = {
+  readonly index?: number;
+  readonly role?: string;
+  readonly headline?: string;
+  readonly body?: string;
+  readonly visualBrief?: string;
+};
+
+type MockCarousel = {
+  readonly title?: string;
+  readonly baseCaption?: string;
+  readonly slideCount?: number;
+  readonly slides?: readonly MockCarouselSlide[];
+};
 
 type MockRepurposingOutput = {
   readonly summary?: string;
@@ -10,6 +34,7 @@ type MockRepurposingOutput = {
   readonly assets?: readonly {
     readonly platform: string;
     readonly body: string;
+    readonly carousel?: MockCarousel;
   }[];
 };
 
@@ -44,13 +69,33 @@ Return structured output with this shape:
   "hooks": ["string"],
   "ctas": ["string"],
   "assets": [
-    { "platform": "string", "body": "string" }
+    {
+      "platform": "string",
+      "body": "string",
+      "carousel": {
+        "title": "string",
+        "baseCaption": "string",
+        "slideCount": 5,
+        "slides": [
+          {
+            "index": 1,
+            "role": "hook | insight | proof | cta",
+            "headline": "string",
+            "body": "string",
+            "visualBrief": "string"
+          }
+        ]
+      }
+    }
   ]
-}`,
+}
+
+Only include the "carousel" object for requested Instagram or LinkedIn carousel outputs. Keep carousel slides concise, skimmable, and visually specific.`,
       userPrompt: request.prompt,
       outputHint: "content_repurposing",
       context: {
         sourceContent: request.sourceContent ?? "",
+        requestedOutputs: request.requestedOutputs ?? {},
         ragDocumentIds: ragContext.map((result) => result.document.id),
         memoryIds: memories.map((result) => result.memory.id)
       }
@@ -84,6 +129,7 @@ const createAssets = (
 ): readonly GeneratedContentAsset[] => {
   const platforms = request.preferredPlatforms?.length ? request.preferredPlatforms : inferPlatforms(request.prompt);
   const requestedCounts = extractCounts(request.prompt);
+  const requestedCarouselPlatforms = extractCarouselPlatforms(request.requestedOutputs);
   const sourceSummary = summarizeSource(request.sourceContent ?? request.prompt);
 
   return platforms.flatMap((platform) => {
@@ -93,11 +139,16 @@ const createAssets = (
     ) || [];
 
     return Array.from({ length: count }, (_, index) => {
-      const kind = kindForPlatform(platform);
+      const shouldGenerateCarousel = isCarouselPlatform(platform) && requestedCarouselPlatforms.includes(platform);
+      const kind = shouldGenerateCarousel ? "carousel_outline" : kindForPlatform(platform);
       const hook = hooks[index % Math.max(hooks.length, 1)] ?? "One source can become a week of useful content.";
-      
+
       const llmBody = platformMockAssets[index]?.body;
       const body = llmBody || buildBody(platform, hook, sourceSummary, index);
+      const carousel =
+        shouldGenerateCarousel
+          ? normalizeCarouselSpec(platformMockAssets[index]?.carousel, platform, hook, sourceSummary, body)
+          : undefined;
 
       return {
         id: `${platform}_${index + 1}`,
@@ -108,11 +159,37 @@ const createAssets = (
         sourceAgent: "content_repurposing_agent",
         metadata: {
           source: "repurposed",
-          sequence: index + 1
+          sequence: index + 1,
+          ...(carousel ? ({ carousel } satisfies JsonObject) : {})
         }
       };
     });
   });
+};
+
+const extractCarouselPlatforms = (requestedOutputs?: JsonObject): readonly CarouselTargetPlatform[] => {
+  if (!requestedOutputs) {
+    return [];
+  }
+
+  const explicitPlatforms = requestedOutputs["carouselPlatforms"];
+  if (Array.isArray(explicitPlatforms)) {
+    return explicitPlatforms.filter(isCarouselTargetPlatform);
+  }
+
+  const legacyInstagram = requestedOutputs["instagramCarousel"];
+  const legacyLinkedIn = requestedOutputs["linkedinCarousel"];
+  const platforms: CarouselTargetPlatform[] = [];
+
+  if (legacyInstagram === true) {
+    platforms.push("instagram");
+  }
+
+  if (legacyLinkedIn === true) {
+    platforms.push("linkedin");
+  }
+
+  return platforms;
 };
 
 const inferPlatforms = (prompt: string): readonly PlatformName[] => {
@@ -157,6 +234,133 @@ const kindForPlatform = (platform: PlatformName): ContentAssetKind => {
 };
 
 const summarizeSource = (source: string): string => source.replace(/\s+/gu, " ").slice(0, 180);
+
+const isCarouselTargetPlatform = (value: JsonValue): value is CarouselTargetPlatform =>
+  value === "instagram" || value === "linkedin";
+
+const isCarouselPlatform = (platform: PlatformName): platform is CarouselTargetPlatform =>
+  platform === "instagram" || platform === "linkedin";
+
+const normalizeCarouselSpec = (
+  candidate: MockCarousel | undefined,
+  platform: CarouselTargetPlatform,
+  hook: string,
+  sourceSummary: string,
+  fallbackCaption: string
+): CarouselSpec => {
+  const fallback = buildFallbackCarouselSpec(platform, hook, sourceSummary, fallbackCaption);
+  const candidateSlides = candidate?.slides;
+
+  if (!candidateSlides?.length) {
+    return fallback;
+  }
+
+  const slides = candidateSlides
+    .map((slide, index) => normalizeCarouselSlide(slide, index, fallback))
+    .filter((slide): slide is CarouselSpec["slides"][number] => slide !== null);
+
+  if (slides.length === 0) {
+    return fallback;
+  }
+
+  return {
+    title: candidate?.title?.trim() || fallback.title,
+    baseCaption: candidate?.baseCaption?.trim() || fallback.baseCaption,
+    slideCount: slides.length,
+    targetPlatforms: [platform],
+    slides
+  };
+};
+
+const normalizeCarouselSlide = (
+  candidate: MockCarouselSlide,
+  index: number,
+  fallback: CarouselSpec
+): CarouselSpec["slides"][number] | null => {
+  const fallbackSlide = fallback.slides[index];
+
+  if (!fallbackSlide) {
+    return null;
+  }
+
+  const role = normalizeSlideRole(candidate.role) ?? fallbackSlide.role;
+
+  return {
+    index: typeof candidate.index === "number" && candidate.index > 0 ? candidate.index : fallbackSlide.index,
+    role,
+    headline: candidate.headline?.trim() || fallbackSlide.headline,
+    body: candidate.body?.trim() || fallbackSlide.body,
+    visualBrief: candidate.visualBrief?.trim() || fallbackSlide.visualBrief
+  };
+};
+
+const normalizeSlideRole = (value: string | undefined): CarouselSlideRole | undefined => {
+  switch (value) {
+    case "hook":
+    case "insight":
+    case "proof":
+    case "cta":
+      return value;
+    default:
+      return undefined;
+  }
+};
+
+const buildFallbackCarouselSpec = (
+  platform: CarouselTargetPlatform,
+  hook: string,
+  sourceSummary: string,
+  fallbackCaption: string
+): CarouselSpec => {
+  const slides = [
+    {
+      index: 1,
+      role: "hook" as const,
+      headline: hook,
+      body: "The old workflow breaks because every channel starts from scratch.",
+      visualBrief: "Bold cover slide with oversized title and a minimal eyebrow."
+    },
+    {
+      index: 2,
+      role: "insight" as const,
+      headline: "Start with one source",
+      body: "Use the article or transcript as the single source of truth for every downstream asset.",
+      visualBrief: "Clean editorial layout with one icon or document metaphor."
+    },
+    {
+      index: 3,
+      role: "insight" as const,
+      headline: "Pull out the strongest idea",
+      body: "Choose the insight that changes how the reader sees the problem, not the most obvious summary.",
+      visualBrief: "Two-column contrast slide with one emphasized sentence."
+    },
+    {
+      index: 4,
+      role: "proof" as const,
+      headline: "What this looks like",
+      body: `Example source note: ${sourceSummary}`,
+      visualBrief: "Quote or proof card with a highlighted excerpt and subtle supporting decoration."
+    },
+    {
+      index: 5,
+      role: "cta" as const,
+      headline: platform === "linkedin" ? "What would you build first?" : "Save this workflow",
+      body:
+        platform === "linkedin"
+          ? "Comment if you want this turned into a reusable creator system."
+          : "Save this and come back before your next batch recording session.",
+      visualBrief: "CTA slide with strong contrast, simple footer, and clear end-of-carousel cue."
+    }
+  ];
+
+  return {
+    title: hook,
+    baseCaption: fallbackCaption,
+    slideCount: slides.length,
+    targetPlatforms: [platform],
+    slides
+  };
+};
 
 const buildBody = (platform: PlatformName, hook: string, sourceSummary: string, index: number): string => {
   if (platform === "linkedin") {

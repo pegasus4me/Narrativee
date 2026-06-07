@@ -1,5 +1,6 @@
 import type { CreationWorkflowInput, CreationWorkflowResult, CreationDraft, StrategyPlan, OrchestrationMetadata } from "./types";
 import {
+  type CarouselTargetPlatform,
   CreatorWorkflowOrchestrator,
   SimpleTaskClassifier,
   SimpleWorkflowPlanner,
@@ -17,6 +18,7 @@ import {
   NewsletterAdapter,
   type PlatformName
 } from "creator-agent-orchestrator";
+import { buildDraftCarouselFromAsset } from "./creation-drafts";
 import { GrokLLMProvider } from "./providers/GrokLLMProvider";
 
 /**
@@ -79,10 +81,16 @@ export async function runCreationWorkflow(input: CreationWorkflowInput): Promise
   for (const platform of preferredPlatforms) {
     requestedOutputs[`${platform}Posts`] = input.draftCount;
   }
+  if (input.carouselPlatforms?.length) {
+    requestedOutputs.carouselPlatforms = input.carouselPlatforms;
+  }
 
   let prompt = `Turn this article "${input.articleTitle}" into ${input.draftCount} posts for each of the selected channels. Preferred angles: ${input.selectedAngles.join(", ")}.`;
   if (input.userGoals) {
     prompt += ` User strategy/goals: ${input.userGoals}`;
+  }
+  if (input.carouselPlatforms?.length) {
+    prompt += ` Also generate structured carousel specs for ${formatCarouselPlatforms(input.carouselPlatforms)}.`;
   }
 
   const response = await orchestrator.handle({
@@ -146,6 +154,7 @@ export async function runCreationWorkflow(input: CreationWorkflowInput): Promise
       variantNumber,
       angle: asset.title || input.articleTitle,
       text,
+      carousel: buildDraftCarouselFromAsset(asset),
     });
   }
 
@@ -182,3 +191,6 @@ export async function runCreationWorkflow(input: CreationWorkflowInput): Promise
     warnings: [...response.warnings],
   };
 }
+
+const formatCarouselPlatforms = (platforms: readonly CarouselTargetPlatform[]): string =>
+  platforms.map((platform) => platform.charAt(0).toUpperCase() + platform.slice(1)).join(" and ");

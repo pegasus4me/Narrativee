@@ -1,6 +1,7 @@
 import { getGrokClient } from "../config/xai";
 import { runCreationWorkflow } from "../agentic/orchestrator";
-import type { KnowledgeContext, OrchestrationMetadata } from "../agentic/types";
+import type { CreationDraft, KnowledgeContext, OrchestrationMetadata } from "../agentic/types";
+import type { CarouselTargetPlatform } from "creator-agent-orchestrator";
 
 interface ChannelDraftInput {
   id: string;
@@ -9,15 +10,6 @@ interface ChannelDraftInput {
 }
 
 /** Draft payload persisted for each generated channel output. */
-interface CreationDraft {
-  channelId: string;
-  platform: string;
-  accountName: string | null;
-  variantNumber: number;
-  angle: string;
-  text: string;
-}
-
 function buildFallbackDraft(
   angle: string,
   channel: ChannelDraftInput,
@@ -166,12 +158,13 @@ export async function generateCreationDrafts(params: {
   selectedAngles: string[];
   channels: ChannelDraftInput[];
   draftCount: number;
+  carouselPlatforms?: CarouselTargetPlatform[];
   knowledge?: KnowledgeContext;
   userId?: string;
   creatorId?: string;
   userGoals?: string;
 }): Promise<GenerationResult> {
-  const { articleTitle, articleContent, sourceArticleSamples, brandVoiceTraining, selectedAngles, channels, draftCount, knowledge, userId, creatorId, userGoals } = params;
+  const { articleTitle, articleContent, sourceArticleSamples, brandVoiceTraining, selectedAngles, channels, draftCount, carouselPlatforms, knowledge, userId, creatorId, userGoals } = params;
 
   const workflow = await runCreationWorkflow({
     articleTitle,
@@ -180,6 +173,7 @@ export async function generateCreationDrafts(params: {
     selectedAngles,
     channels,
     draftCount,
+    carouselPlatforms,
     knowledge: knowledge ?? {
       brandVoiceTraining,
       voiceMemory: {

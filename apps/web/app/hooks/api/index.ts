@@ -21,6 +21,7 @@ export {
   useCreationSession,
   useUpdateCreationSession,
   useScheduleCreationDraft,
+  useRenderCreationCarousel,
   CREATIONS_KEY,
   CREATION_SESSION_KEY,
 } from "./useCreations";

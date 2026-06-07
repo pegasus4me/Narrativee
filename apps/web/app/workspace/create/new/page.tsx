@@ -12,7 +12,7 @@ import { ArticleList } from "@/app/components/workspace/create/ArticleList";
 import { StrategyAgentChat } from "@/app/components/workspace/create/StrategyAgentChat";
 import { SocialChannelSelector } from "@/app/components/workspace/create/SocialChannelSelector";
 import { useCreateFlowStore } from "@/app/state/CreateFlow.store";
-import type { ArticleListItem, Source } from "@/app/types/api";
+import type { ArticleListItem, CarouselTargetPlatform, Source } from "@/app/types/api";
 
 const LEARNING_STEPS = [
   "Retrieving memory...",
@@ -82,6 +82,7 @@ function NewCreateFlow() {
   const [nativeToneStepIndex, setNativeToneStepIndex] = useState(0);
   const [activeAgentIndex, setActiveAgentIndex] = useState(0);
   const [userGoals, setUserGoals] = useState("");
+  const [selectedCarouselPlatforms, setSelectedCarouselPlatforms] = useState<Set<CarouselTargetPlatform>>(new Set());
 
   const sources = useMemo<Source[]>(() => sourcesData ?? [], [sourcesData]);
   const channels = useMemo(() => channelsData ?? [], [channelsData]);
@@ -112,6 +113,14 @@ function NewCreateFlow() {
     () => ideas.filter((_idea, index) => selectedAngles.has(index)),
     [ideas, selectedAngles],
   );
+  const selectedCarouselEligiblePlatforms = useMemo<CarouselTargetPlatform[]>(() => {
+    const platforms = channels
+      .filter((channel) => selectedChannelIds.has(channel.id))
+      .map((channel) => channel.platform.toLowerCase())
+      .filter((platform): platform is CarouselTargetPlatform => platform === "instagram" || platform === "linkedin");
+
+    return [...new Set(platforms)];
+  }, [channels, selectedChannelIds]);
   const shouldExpectArticles = (selectedSource?.articleCount ?? 0) > 0;
 
   useEffect(() => {
@@ -142,6 +151,20 @@ function NewCreateFlow() {
     setCreationError("");
     setIsGeneratingCreation(false);
   }, [selectedArticleId, selectedChannelIds, selectedAngles, setCreationError, setIsGeneratingCreation]);
+
+  useEffect(() => {
+    setSelectedCarouselPlatforms((currentPlatforms) => {
+      const nextPlatforms = [...currentPlatforms].filter((platform) => selectedCarouselEligiblePlatforms.includes(platform));
+      const hasChanged =
+        nextPlatforms.length !== currentPlatforms.size ||
+        nextPlatforms.some((platform) => !currentPlatforms.has(platform));
+      if (!hasChanged) {
+        return currentPlatforms;
+      }
+
+      return new Set(nextPlatforms);
+    });
+  }, [selectedCarouselEligiblePlatforms]);
 
   useEffect(() => {
     if (!isLearning) {
@@ -318,6 +341,7 @@ function NewCreateFlow() {
         articleId: selectedArticle.id,
         selectedAngles: selectedAngleIdeas,
         selectedChannelIds: Array.from(selectedChannelIds),
+        carouselPlatforms: Array.from(selectedCarouselPlatforms),
         draftCount: requestedDraftCount,
         userGoals: userGoals || undefined,
       });
@@ -327,6 +351,19 @@ function NewCreateFlow() {
     } finally {
       setIsGeneratingCreation(false);
     }
+  };
+
+  const toggleCarouselPlatform = (platform: CarouselTargetPlatform): void => {
+    setSelectedCarouselPlatforms((currentPlatforms) => {
+      const nextPlatforms = new Set(currentPlatforms);
+      if (nextPlatforms.has(platform)) {
+        nextPlatforms.delete(platform);
+      } else {
+        nextPlatforms.add(platform);
+      }
+
+      return nextPlatforms;
+    });
   };
 
   return (
@@ -497,15 +534,46 @@ function NewCreateFlow() {
               Loading connected social channels...
             </div>
           ) : (
-            <SocialChannelSelector
-              channels={channels}
-              selectedChannelIds={selectedChannelIds}
-              requestedDraftCount={requestedDraftCount}
-              isPreparingNativeTone={isPreparingNativeTone}
-              onToggleChannel={toggleChannel}
-              onDraftCountChange={setRequestedDraftCount}
-              onContinue={handleContinueToNativeTone}
-            />
+            <div className="space-y-4">
+              <SocialChannelSelector
+                channels={channels}
+                selectedChannelIds={selectedChannelIds}
+                requestedDraftCount={requestedDraftCount}
+                isPreparingNativeTone={isPreparingNativeTone}
+                onToggleChannel={toggleChannel}
+                onDraftCountChange={setRequestedDraftCount}
+                onContinue={handleContinueToNativeTone}
+              />
+              {selectedCarouselEligiblePlatforms.length > 0 ? (
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-zinc-100">Optional carousel generation</p>
+                    <p className="text-xs leading-6 text-zinc-400">
+                      Add a structured carousel to selected visual platforms. You can edit the slides and render polished visuals later.
+                    </p>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {selectedCarouselEligiblePlatforms.map((platform) => {
+                      const isSelected = selectedCarouselPlatforms.has(platform);
+                      return (
+                        <button
+                          key={platform}
+                          type="button"
+                          onClick={() => toggleCarouselPlatform(platform)}
+                          className={`rounded-full border px-4 py-2 text-xs font-medium capitalize transition-colors ${
+                            isSelected
+                              ? "border-brand bg-brand/10 text-brand"
+                              : "border-zinc-700 bg-zinc-950 text-zinc-300 hover:border-zinc-500"
+                          }`}
+                        >
+                          {isSelected ? `Carousel enabled · ${platform}` : `Enable carousel · ${platform}`}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+            </div>
           )}
         </section>
       )}

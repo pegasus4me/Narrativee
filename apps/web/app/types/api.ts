@@ -94,6 +94,56 @@ export interface VoiceProfile {
   frequentPhrases: string;
 }
 
+/** Platform-scoped carousel generation targets supported by the creation flow. */
+export type CarouselTargetPlatform = "instagram" | "linkedin";
+
+/** Narrative role for an individual carousel slide. */
+export type CarouselSlideRole = "hook" | "insight" | "proof" | "cta";
+
+/** Editable slide content generated for a carousel draft. */
+export interface CarouselSlideSpec {
+  index: number;
+  role: CarouselSlideRole;
+  headline: string;
+  body: string;
+  visualBrief: string;
+}
+
+/** Shared content spec for a generated carousel draft. */
+export interface CarouselSpec {
+  title: string;
+  baseCaption: string;
+  slideCount: number;
+  targetPlatforms: CarouselTargetPlatform[];
+  slides: CarouselSlideSpec[];
+}
+
+/** Rendered image asset returned by the carousel design provider. */
+export interface CarouselRenderSlide {
+  imageUrl: string;
+  role: CarouselSlideRole;
+  providerAssetId: string | null;
+  templateId: string | null;
+}
+
+/** Render state of the optional carousel visuals attached to a draft. */
+export type CarouselRenderStatus = "not_requested" | "rendered" | "failed";
+
+/** Render result stored after carousel visuals are generated. */
+export interface CarouselRenderResult {
+  provider: "placid";
+  renderedAt: string;
+  slides: CarouselRenderSlide[];
+}
+
+/** Optional carousel payload persisted on a saved creation draft. */
+export interface CreationDraftCarousel {
+  spec: CarouselSpec;
+  renderStatus: CarouselRenderStatus;
+  render: CarouselRenderResult | null;
+  errorMessage: string | null;
+}
+
 /** Persisted draft generated for a specific social channel. */
 export interface CreationDraft {
   channelId: string;
@@ -102,6 +152,7 @@ export interface CreationDraft {
   variantNumber: number;
   angle: string;
   text: string;
+  carousel?: CreationDraftCarousel | null;
 }
 
 /** Validation result for a specific platform from the publishing agent. */

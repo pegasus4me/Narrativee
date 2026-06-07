@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_URL } from "@/lib/api-config";
-import type { CreationDraft, CreationSession, CreationSessionSummary } from "@/app/types/api";
+import type {
+  CarouselTargetPlatform,
+  CreationDraft,
+  CreationSession,
+  CreationSessionSummary,
+} from "@/app/types/api";
 
 export const CREATIONS_KEY = ["creations"] as const;
 export const CREATION_SESSION_KEY = (creationId: string) => ["creation-session", creationId] as const;
@@ -10,6 +15,7 @@ interface CreateCreationParams {
   articleId: string;
   selectedAngles: string[];
   selectedChannelIds: string[];
+  carouselPlatforms?: CarouselTargetPlatform[];
   draftCount: number;
   userGoals?: string;
 }
@@ -140,6 +146,7 @@ export function useUpdateCreationSession() {
 interface ScheduleCreationDraftParams {
   creationId: string;
   channelId: string;
+  variantNumber: number;
   scheduledAt: string;
   text?: string;
 }
@@ -159,6 +166,7 @@ export function useScheduleCreationDraft() {
         body: JSON.stringify({
           scheduledAt: params.scheduledAt,
           text: params.text,
+          variantNumber: params.variantNumber,
         }),
       });
 
@@ -179,3 +187,42 @@ export function useScheduleCreationDraft() {
   });
 }
 
+interface RenderCreationCarouselParams {
+  creationId: string;
+  channelId: string;
+  draft: CreationDraft;
+}
+
+/**
+ * Renders or re-renders carousel visuals for a saved creation draft.
+ */
+export function useRenderCreationCarousel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: RenderCreationCarouselParams): Promise<{ draft: CreationDraft }> => {
+      const response = await fetch(`${API_URL}/creations/${params.creationId}/drafts/${params.channelId}/carousel/render`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          variantNumber: params.draft.variantNumber,
+          draft: params.draft,
+        }),
+      });
+
+      const data = await readJsonResponse<{ draft?: CreationDraft; error?: string }>(
+        response,
+        "The carousel renderer is unavailable. Restart the backend and try again.",
+      );
+      if (!response.ok || !data.draft) {
+        throw new Error(data.error ?? "Failed to render carousel");
+      }
+
+      return { draft: data.draft };
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: CREATION_SESSION_KEY(variables.creationId) });
+    },
+  });
+}

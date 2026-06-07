@@ -3,7 +3,10 @@ import { and, desc, eq, inArray, type InferSelectModel } from "drizzle-orm";
 import { db } from "../auth/auth";
 import { articles, channels, contentSources, creationSessions, knowledgeBase, socialPosts } from "../auth/schema/schema";
 import { verifyAuth, AuthRequest } from "../middleware/auth";
-import { generateCreationDrafts, type CreationDraft } from "../services/creation-service";
+import { buildScheduledDraftContent, extractCarouselPlatforms, findCreationDraftIndex, normalizeCreationDrafts } from "../agentic/creation-drafts";
+import { type CreationDraft } from "../agentic/types";
+import { markCarouselRenderFailure, renderCreationDraftCarousel, createCarouselRenderProvider } from "../carousels/render-carousel";
+import { generateCreationDrafts } from "../services/creation-service";
 
 const router = Router();
 
@@ -17,12 +20,24 @@ interface CreateCreationBody {
   articleId?: string;
   selectedAngles?: unknown;
   selectedChannelIds?: unknown;
+  carouselPlatforms?: unknown;
   draftCount?: unknown;
   userGoals?: string;
 }
 
 interface UpdateCreationBody {
   drafts?: unknown;
+}
+
+interface RenderCarouselBody {
+  draft?: unknown;
+  variantNumber?: unknown;
+}
+
+interface ScheduleDraftBody {
+  scheduledAt?: unknown;
+  text?: unknown;
+  variantNumber?: unknown;
 }
 
 interface CreationSessionPayload {
@@ -196,33 +211,12 @@ function buildCreationSessionSummaryPayload(params: {
   };
 }
 
-function isCreationDraft(value: unknown): value is CreationDraft {
-  if (typeof value !== "object" || value === null) {
-    return false;
+function extractVariantNumber(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 1;
   }
 
-  const draft = value as Record<string, unknown>;
-  return (
-    typeof draft.channelId === "string" &&
-    typeof draft.platform === "string" &&
-    (typeof draft.accountName === "string" || draft.accountName === null) &&
-    (typeof draft.variantNumber === "number" || typeof draft.variantNumber === "undefined") &&
-    typeof draft.angle === "string" &&
-    typeof draft.text === "string"
-  );
-}
-
-function normalizeCreationDrafts(value: unknown): CreationDraft[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value
-    .filter(isCreationDraft)
-    .map((draft, index) => ({
-      ...draft,
-      variantNumber: typeof draft.variantNumber === "number" ? draft.variantNumber : 1,
-    }));
+  return Math.max(1, Math.floor(value));
 }
 
 /**
@@ -234,7 +228,7 @@ router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const { sourceId, articleId, selectedAngles, selectedChannelIds, draftCount, userGoals } = req.body as CreateCreationBody;
+    const { sourceId, articleId, selectedAngles, selectedChannelIds, carouselPlatforms, draftCount, userGoals } = req.body as CreateCreationBody;
     const normalizedAngles = extractStringArray(selectedAngles);
     const normalizedChannelIds = extractStringArray(selectedChannelIds);
     const normalizedDraftCount = extractDraftCount(draftCount);
@@ -289,6 +283,8 @@ router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
     const orderedChannels = normalizedChannelIds
       .map((channelId) => selectedChannels.find((channel) => channel.id === channelId))
       .filter((channel): channel is ChannelRecord => Boolean(channel));
+    const normalizedCarouselPlatforms = extractCarouselPlatforms(carouselPlatforms)
+      .filter((platform) => orderedChannels.some((channel) => channel.platform === platform));
 
     const [currentKnowledgeBase] = await db
       .select()
@@ -324,6 +320,7 @@ router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
         platform: channel.platform,
         accountName: channel.accountName ?? null,
       })),
+      carouselPlatforms: normalizedCarouselPlatforms,
       draftCount: normalizedDraftCount,
       sourceArticleSamples: sourceArticleRows.map((row) => ({
         title: row.title,
@@ -566,7 +563,8 @@ router.post("/:creationId/drafts/:channelId/schedule", verifyAuth, async (req: A
     }
 
     const { creationId, channelId } = req.params;
-    const { scheduledAt, text } = req.body;
+    const { scheduledAt, text, variantNumber } = req.body as ScheduleDraftBody;
+    const normalizedVariantNumber = extractVariantNumber(variantNumber);
 
     if (!scheduledAt) {
       return res.status(400).json({ error: "scheduledAt is required" });
@@ -582,7 +580,9 @@ router.post("/:creationId/drafts/:channelId/schedule", verifyAuth, async (req: A
       return res.status(404).json({ error: "Creation session not found" });
     }
 
-    const draft = normalizeCreationDrafts(session.drafts).find((creationDraft) => creationDraft.channelId === channelId);
+    const drafts = normalizeCreationDrafts(session.drafts);
+    const draftIndex = findCreationDraftIndex(drafts, channelId, normalizedVariantNumber);
+    const draft = drafts[draftIndex];
     if (!draft) {
       return res.status(404).json({ error: "Draft not found for this channel" });
     }
@@ -621,6 +621,7 @@ router.post("/:creationId/drafts/:channelId/schedule", verifyAuth, async (req: A
     }
 
     const draftText = typeof text === "string" ? text : draft.text;
+    const content = buildScheduledDraftContent(draft, draftText);
 
     const [newPost] = await db
       .insert(socialPosts)
@@ -628,7 +629,7 @@ router.post("/:creationId/drafts/:channelId/schedule", verifyAuth, async (req: A
         userId: req.user.id,
         articleId: session.articleId,
         channelId: targetChannelId,
-        content: { text: draftText },
+        content,
         status: "scheduled",
         scheduledAt: new Date(scheduledAt),
       })
@@ -637,6 +638,86 @@ router.post("/:creationId/drafts/:channelId/schedule", verifyAuth, async (req: A
     return res.status(200).json({ success: true, post: newPost });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to schedule draft";
+    return res.status(500).json({ error: message });
+  }
+});
+
+/**
+ * Renders or re-renders carousel visuals for a saved creation draft.
+ */
+router.post("/:creationId/drafts/:channelId/carousel/render", verifyAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { creationId, channelId } = req.params;
+    const { draft: inputDraft, variantNumber } = req.body as RenderCarouselBody;
+    const normalizedVariantNumber = extractVariantNumber(
+      typeof inputDraft === "object" && inputDraft !== null
+        ? (inputDraft as { variantNumber?: unknown }).variantNumber
+        : variantNumber,
+    );
+
+    const [session] = await db
+      .select()
+      .from(creationSessions)
+      .where(and(eq(creationSessions.userId, req.user.id), eq(creationSessions.id, creationId)))
+      .limit(1);
+
+    if (!session) {
+      return res.status(404).json({ error: "Creation session not found" });
+    }
+
+    const drafts = normalizeCreationDrafts(session.drafts);
+    const draftIndex = findCreationDraftIndex(drafts, channelId, normalizedVariantNumber);
+    if (draftIndex < 0) {
+      return res.status(404).json({ error: "Draft not found for this channel and variation" });
+    }
+
+    const candidateDraft = inputDraft;
+    const nextDraft = normalizeCreationDrafts([candidateDraft])[0] ?? drafts[draftIndex];
+    if (!nextDraft.carousel) {
+      return res.status(400).json({ error: "This draft does not include a carousel spec." });
+    }
+
+    if (nextDraft.channelId !== channelId) {
+      return res.status(400).json({ error: "Draft channel does not match the requested route." });
+    }
+
+    const renderer = createCarouselRenderProvider();
+
+    let renderedDraft = nextDraft;
+    try {
+      renderedDraft = await renderCreationDraftCarousel(nextDraft, renderer);
+    } catch (renderError: unknown) {
+      const message = renderError instanceof Error ? renderError.message : "Failed to render carousel visuals";
+      renderedDraft = markCarouselRenderFailure(nextDraft, message);
+      drafts[draftIndex] = renderedDraft;
+
+      await db
+        .update(creationSessions)
+        .set({
+          drafts,
+          updatedAt: new Date(),
+        })
+        .where(eq(creationSessions.id, session.id));
+
+      return res.status(500).json({ error: message, draft: renderedDraft });
+    }
+
+    drafts[draftIndex] = renderedDraft;
+    await db
+      .update(creationSessions)
+      .set({
+        drafts,
+        updatedAt: new Date(),
+      })
+      .where(eq(creationSessions.id, session.id));
+
+    return res.json({ success: true, draft: renderedDraft });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to render carousel";
     return res.status(500).json({ error: message });
   }
 });

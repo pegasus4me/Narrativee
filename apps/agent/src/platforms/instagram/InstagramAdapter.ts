@@ -30,13 +30,14 @@ export class InstagramAdapter implements SocialPlatformAdapter {
 
   async formatContent(input: PlatformContentInput): Promise<PlatformFormattingResult> {
     const formattedText = compactLines([input.asset.body, "Save this before your next recording."]);
+    const format = input.asset.kind === "carousel_outline" ? "carousel" : "reel_or_post";
     return createFormattingResult(
       this.platform,
       input.asset.id,
       formattedText,
       ["#CreatorWorkflow", "#RepurposeContent", "#BuildInPublic"],
       "Save this before your next recording.",
-      { format: input.asset.kind === "carousel_outline" ? "carousel" : "reel_or_post" }
+      { format }
     );
   }
 

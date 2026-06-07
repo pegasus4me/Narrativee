@@ -1,3 +1,35 @@
+import type {
+  CarouselSlideRole,
+  CarouselSpec,
+  CarouselTargetPlatform,
+} from "creator-agent-orchestrator";
+
+/** Rendered slide artifact returned by the visual rendering provider. */
+export interface CarouselRenderSlide {
+  imageUrl: string;
+  role: CarouselSlideRole;
+  providerAssetId: string | null;
+  templateId: string | null;
+}
+
+/** Render metadata for a successfully rendered carousel. */
+export interface CarouselRenderResult {
+  provider: "placid";
+  renderedAt: string;
+  slides: CarouselRenderSlide[];
+}
+
+/** Lifecycle state for the optional carousel visuals attached to a draft. */
+export type CarouselRenderStatus = "not_requested" | "rendered" | "failed";
+
+/** Optional carousel payload nested on a saved creation draft. */
+export interface CreationDraftCarousel {
+  spec: CarouselSpec;
+  renderStatus: CarouselRenderStatus;
+  render: CarouselRenderResult | null;
+  errorMessage: string | null;
+}
+
 export interface CreationDraft {
   channelId: string;
   platform: string;
@@ -5,6 +37,7 @@ export interface CreationDraft {
   variantNumber: number;
   angle: string;
   text: string;
+  carousel?: CreationDraftCarousel | null;
 }
 
 export interface ChannelInput {
@@ -37,6 +70,7 @@ export interface CreationWorkflowInput {
   selectedAngles: string[];
   channels: ChannelInput[];
   draftCount: number;
+  carouselPlatforms?: CarouselTargetPlatform[];
   knowledge: KnowledgeContext;
   userId?: string;
   creatorId?: string;

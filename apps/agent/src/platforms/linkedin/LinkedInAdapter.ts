@@ -34,13 +34,14 @@ export class LinkedInAdapter implements SocialPlatformAdapter {
       input.asset.body,
       "What would you turn this into first?"
     ]);
+    const format = input.asset.kind === "carousel_outline" ? "carousel" : "professional_post";
     return createFormattingResult(
       this.platform,
       input.asset.id,
       formattedText,
       ["#CreatorEconomy", "#AIWorkflow"],
       "What would you turn this into first?",
-      { format: "professional_post" }
+      { format }
     );
   }
 
