@@ -11,6 +11,7 @@ export const user = pgTable("user", {
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   plan: text("plan").notNull().default("free"),
   tokens: integer("tokens").default(40),
+  carouselTokens: integer("carouselTokens").default(6),
   stripeCustomerId: text("stripeCustomerId"),
   stripeSubscriptionId: text("stripeSubscriptionId"),
   subscriptionStatus: text("subscriptionStatus"),

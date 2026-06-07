@@ -223,6 +223,7 @@ export function useRenderCreationCarousel() {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: CREATION_SESSION_KEY(variables.creationId) });
+      queryClient.invalidateQueries({ queryKey: ["credits"] });
     },
   });
 }

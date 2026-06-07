@@ -129,6 +129,10 @@ export const auth = betterAuth({
         type: "number",
         defaultValue: 40
       },
+      carouselTokens: {
+        type: "number",
+        defaultValue: 6
+      },
       subscriptionStatus: {
         type: "string",
         required: false

@@ -18,6 +18,7 @@ import {
   SUBSTACK_LOGO,
 } from "@/app/constants";
 import type { CarouselSpec, CreationDraft } from "@/app/types/api";
+import { useCredits } from "@/app/hooks/api";
 
 interface DraftPreviewModalProps {
   readonly isOpen: boolean;
@@ -96,6 +97,9 @@ export function DraftPreviewModal({
   const [localCarouselSpec, setLocalCarouselSpec] = useState<CarouselSpec | null>(draft.carousel?.spec ?? null);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [activeSlideIdx, setActiveSlideIdx] = useState(0);
+
+  const { data: creditsData } = useCredits(isOpen);
+  const carouselCredits = creditsData?.carouselCredits;
 
   useEffect(() => {
     setLocalText(draft.text);
@@ -700,7 +704,7 @@ export function DraftPreviewModal({
                           onClick={() => {
                             void onRenderCarousel();
                           }}
-                          disabled={isRenderingCarousel}
+                          disabled={isRenderingCarousel || carouselCredits === 0}
                           className="inline-flex items-center gap-2 rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-200 transition-colors hover:bg-violet-500/20 disabled:opacity-50"
                         >
                           {isRenderingCarousel ? (
@@ -709,7 +713,10 @@ export function DraftPreviewModal({
                               Rendering…
                             </>
                           ) : (
-                            <>Render visuals</>
+                            <>
+                              Render visuals
+                              {carouselCredits !== undefined ? ` (${carouselCredits} credits left)` : ""}
+                            </>
                           )}
                         </button>
                       ) : null}

@@ -41,8 +41,9 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                     // Determine plan based on price ID or metadata
                     // For simplicity, assuming metadata or checking line items
                     // Ideally, pass plan name in metadata during checkout creation
-                    const plan = session.metadata?.plan || 'paid';
-
+                    const plan = session.metadata?.plan || 'free';
+                    const carouselTokens = plan === 'creator' ? 150 : (plan === 'starter' || plan === 'basic' ? 50 : 6);
+                    const tokens = plan === 'creator' ? 100 : 40;
 
                     await db.update(user)
                         .set({
@@ -50,8 +51,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                             stripeSubscriptionId: subscriptionId,
                             subscriptionStatus: 'active',
                             plan: plan,
-                            // All paid users get exactly 100 credits per the single plan approach
-                            tokens: 100,
+                            tokens: tokens,
+                            carouselTokens: carouselTokens,
                         })
                         .where(eq(user.id, userId));
 
@@ -82,12 +83,14 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                 const foundUser = users[0];
 
                 if (foundUser) {
-                    // Reset tokens on renewal
-                    const newTokens = 100; // Paid plan always resets to 100
+                    const plan = foundUser.plan || 'free';
+                    const newTokens = plan === 'creator' ? 100 : 40;
+                    const newCarouselTokens = plan === 'creator' ? 150 : (plan === 'starter' || plan === 'basic' ? 50 : 6);
 
                     await db.update(user)
                         .set({
                             tokens: newTokens,
+                            carouselTokens: newCarouselTokens,
                             currentPeriodEnd: new Date(invoice.lines.data[0].period.end * 1000),
                             subscriptionStatus: 'active'
                         })
@@ -102,8 +105,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                             tokens_reset_to: newTokens,
                         },
                     });
-
-
                 }
                 break;
             }
@@ -118,7 +119,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
                     .set({
                         plan: 'free',
                         subscriptionStatus: 'canceled',
-                        tokens: 40 // Reset to free trial limits
+                        tokens: 40, // Reset to free trial limits
+                        carouselTokens: 6 // Reset to free trial limits
                     })
                     .where(eq(user.stripeSubscriptionId, subscriptionId));
 

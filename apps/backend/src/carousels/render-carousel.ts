@@ -36,7 +36,10 @@ export async function renderCreationDraftCarousel(
     carousel: {
       ...draft.carousel,
       renderStatus: "rendered",
-      render,
+      render: {
+        ...render,
+        slides: [...render.slides],
+      },
       errorMessage: null,
     },
   };

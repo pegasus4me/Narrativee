@@ -3,11 +3,17 @@ import { API_URL } from "@/lib/api-config";
 
 export const CREDITS_KEY = ["credits"] as const;
 
-async function fetchCredits(): Promise<number> {
+export interface UserCredits {
+  success: boolean;
+  credits: number;
+  carouselCredits: number;
+  plan: string;
+}
+
+async function fetchCredits(): Promise<UserCredits> {
   const res = await fetch(`${API_URL}/user/credits`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to fetch credits");
-  const data = (await res.json()) as { credits: number };
-  return data.credits;
+  return (await res.json()) as UserCredits;
 }
 
 export function useCredits(enabled = true) {
@@ -17,3 +23,4 @@ export function useCredits(enabled = true) {
     enabled,
   });
 }
+

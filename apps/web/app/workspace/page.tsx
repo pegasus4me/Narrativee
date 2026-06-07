@@ -65,7 +65,7 @@ export default function WorkspaceDashboard() {
   const { data: creations, isLoading: loadingCreations } = useCreationSessions(isAuthenticated);
   const { data: queue, isLoading: loadingQueue } = useDraftsQueue(isAuthenticated);
   const { data: articles, isLoading: loadingArticles } = useArticles(isAuthenticated);
-  const { data: credits, isLoading: loadingCredits } = useCredits(isAuthenticated);
+  const { data: creditsData, isLoading: loadingCredits } = useCredits(isAuthenticated);
   const { data: kb, isLoading: loadingKB } = useKnowledgeBase(isAuthenticated);
 
   const activeChannels = channels ?? [];
@@ -75,7 +75,7 @@ export default function WorkspaceDashboard() {
     [queue]
   );
   const recentArticles = articles ?? [];
-  const creditBalance = credits ?? 0;
+  const creditBalance = creditsData?.credits ?? 0;
   const maxCredits = 1000; // Visual denominator for progress bar
 
   const trialDaysLeft = useMemo(() => {

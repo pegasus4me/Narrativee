@@ -13,14 +13,16 @@ router.get('/credits', verifyAuth, async (req: AuthRequest, res: Response) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const userData = await db.select({ tokens: user.tokens, plan: user.plan }).from(user).where(eq(user.id, req.user.id)).limit(1);
+        const userData = await db.select({ tokens: user.tokens, carouselTokens: user.carouselTokens, plan: user.plan }).from(user).where(eq(user.id, req.user.id)).limit(1);
 
         const credits = userData.length > 0 ? (userData[0].tokens ?? 0) : 0;
+        const carouselCredits = userData.length > 0 ? (userData[0].carouselTokens ?? 0) : 0;
         const plan = (userData.length > 0 && userData[0].plan) ? userData[0].plan : 'free';
 
         return res.json({
             success: true,
             credits,
+            carouselCredits,
             plan
         });
     } catch (error: any) {

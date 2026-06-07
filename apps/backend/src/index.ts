@@ -133,6 +133,12 @@ const server = app.listen(PORT, async () => {
     console.log('[Database] Verified/created channels.is_connected column successfully.');
 
     await db.execute(sql`
+      ALTER TABLE "user"
+      ADD COLUMN IF NOT EXISTS "carouselTokens" integer DEFAULT 6;
+    `);
+    console.log('[Database] Verified/created user.carouselTokens column successfully.');
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "creation_sessions" (
         "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
         "user_id" text NOT NULL,

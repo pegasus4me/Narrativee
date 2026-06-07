@@ -1,7 +1,7 @@
 import { Router, Response } from "express";
-import { and, desc, eq, inArray, type InferSelectModel } from "drizzle-orm";
+import { and, desc, eq, inArray, sql, type InferSelectModel } from "drizzle-orm";
 import { db } from "../auth/auth";
-import { articles, channels, contentSources, creationSessions, knowledgeBase, socialPosts } from "../auth/schema/schema";
+import { articles, channels, contentSources, creationSessions, knowledgeBase, socialPosts, user } from "../auth/schema/schema";
 import { verifyAuth, AuthRequest } from "../middleware/auth";
 import { buildScheduledDraftContent, extractCarouselPlatforms, findCreationDraftIndex, normalizeCreationDrafts } from "../agentic/creation-drafts";
 import { type CreationDraft } from "../agentic/types";
@@ -566,8 +566,8 @@ router.post("/:creationId/drafts/:channelId/schedule", verifyAuth, async (req: A
     const { scheduledAt, text, variantNumber } = req.body as ScheduleDraftBody;
     const normalizedVariantNumber = extractVariantNumber(variantNumber);
 
-    if (!scheduledAt) {
-      return res.status(400).json({ error: "scheduledAt is required" });
+    if (typeof scheduledAt !== "string" || !scheduledAt) {
+      return res.status(400).json({ error: "scheduledAt is required and must be a string" });
     }
 
     const [session] = await db
@@ -685,6 +685,23 @@ router.post("/:creationId/drafts/:channelId/carousel/render", verifyAuth, async 
       return res.status(400).json({ error: "Draft channel does not match the requested route." });
     }
 
+    const [currentUser] = await db
+      .select({ carouselTokens: user.carouselTokens })
+      .from(user)
+      .where(eq(user.id, req.user.id))
+      .limit(1);
+
+    if (!currentUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (typeof currentUser.carouselTokens === "number" && currentUser.carouselTokens <= 0) {
+      return res.status(403).json({
+        error: "Insufficient carousel credits",
+        message: "You have used all your monthly carousel render credits. Please upgrade your plan or wait for renewal."
+      });
+    }
+
     const renderer = createCarouselRenderProvider();
 
     let renderedDraft = nextDraft;
@@ -714,6 +731,14 @@ router.post("/:creationId/drafts/:channelId/carousel/render", verifyAuth, async 
         updatedAt: new Date(),
       })
       .where(eq(creationSessions.id, session.id));
+
+    // Success: Decrement 1 carousel token
+    await db
+      .update(user)
+      .set({
+        carouselTokens: sql`${user.carouselTokens} - 1`,
+      })
+      .where(eq(user.id, req.user.id));
 
     return res.json({ success: true, draft: renderedDraft });
   } catch (error: unknown) {

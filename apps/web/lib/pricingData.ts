@@ -30,13 +30,12 @@ export const PricingPlans: PricingPlan[] = [
         color: "primary",
         features: [
             { text: "40 AI credits / month", included: true, bold: true },
+            { text: "50 Carousel credits / month", included: true, bold: true },
             { text: "4 channels", included: true },
             { text: "10 scheduled posts per channel", included: true },
             { text: "1 user", included: true },
             { text: "Basic Voice memory  ", included: true },
             { text: "24/7 assistance", included: true },
-
-
         ]
     },
     {
@@ -53,6 +52,7 @@ export const PricingPlans: PricingPlan[] = [
         color: "primary",
         features: [
             { text: "100 AI credits / month", included: true, bold: true },
+            { text: "150 Carousel credits / month", included: true, bold: true },
             { text: "Unlimited channels", included: true },
             { text: "30 scheduled posts per channel", included: true },
             { text: "Advanced tone-of-voice", included: true },

@@ -68,7 +68,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const { data: sourcesData } = useSources(isLoggedIn);
   const { data: creditsData } = useCredits(isLoggedIn);
 
-  const credits = creditsData ?? null;
+  const credits = creditsData?.credits ?? null;
 
   const channels = channelsData ?? [];
   const sources = sourcesData ?? [];
