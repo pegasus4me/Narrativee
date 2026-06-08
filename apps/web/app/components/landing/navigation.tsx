@@ -187,9 +187,11 @@ export function Navigation() {
               <div className="h-8 w-24 animate-pulse rounded-full bg-white/10" />
             ) : displayName ? (
               <>
-                <span className={`hidden max-w-36 truncate text-sm font-medium transition-colors md:block ${isScrolled ? "text-foreground/70" : "text-white/70"}`}>
-                  {displayName}
-                </span>
+                {!isScrolled && (
+                  <span className="hidden max-w-36 truncate text-sm font-medium transition-colors md:block text-white/70">
+                    {displayName}
+                  </span>
+                )}
                 <Link href="/workspace">
                   <Button
                     size="sm"

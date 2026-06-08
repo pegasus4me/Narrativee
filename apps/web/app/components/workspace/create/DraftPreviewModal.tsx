@@ -117,12 +117,12 @@ export function DraftPreviewModal({
       text: nextVal,
       carousel: draft.carousel
         ? {
-            ...draft.carousel,
-            spec: {
-              ...draft.carousel.spec,
-              baseCaption: nextVal,
-            },
-          }
+          ...draft.carousel,
+          spec: {
+            ...draft.carousel.spec,
+            baseCaption: nextVal,
+          },
+        }
         : draft.carousel,
     });
   };
@@ -186,9 +186,9 @@ export function DraftPreviewModal({
     const nextSlides = localCarouselSpec.slides.map((slide) => (
       slide.index === slideIndex
         ? {
-            ...slide,
-            [field]: value,
-          }
+          ...slide,
+          [field]: value,
+        }
         : slide
     ));
 
@@ -290,7 +290,7 @@ export function DraftPreviewModal({
                 <div className="relative shrink-0 flex items-center justify-center">
                   {avatarUrl ? (
                     <img
-                      src={avatarUrl}
+                      src="https://media.licdn.com/dms/image/v2/D4E03AQEHPLsrDKr3Pg/profile-displayphoto-crop_800_800/B4EZqbe3RNGUAM-/0/1763545151621?e=1781740800&v=beta&t=aiaZI38Qmiv3hK3QnuYlsCElx_X2vlWDhm9LL2KkWVs"
                       alt={accountName}
                       className="h-12 w-12 rounded-full object-cover border border-zinc-800"
                     />
@@ -337,7 +337,7 @@ export function DraftPreviewModal({
                   alt={`LinkedIn carousel preview slide ${activeSlideIdx + 1}`}
                   className="h-auto w-full object-cover"
                 />
-                
+
                 {renderedCarouselSlides.length > 1 && (
                   <>
                     <button
@@ -445,7 +445,7 @@ export function DraftPreviewModal({
                     alt={`Instagram carousel preview slide ${activeSlideIdx + 1}`}
                     className="absolute inset-0 h-full w-full object-cover"
                   />
-                  
+
                   {renderedCarouselSlides.length > 1 && (
                     <>
                       <button
