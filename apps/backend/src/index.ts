@@ -134,9 +134,12 @@ const server = app.listen(PORT, async () => {
 
     await db.execute(sql`
       ALTER TABLE "user"
-      ADD COLUMN IF NOT EXISTS "carouselTokens" integer DEFAULT 6;
+      ADD COLUMN IF NOT EXISTS "carouselTokens" integer DEFAULT 6,
+      ADD COLUMN IF NOT EXISTS "utmSource" text,
+      ADD COLUMN IF NOT EXISTS "utmMedium" text,
+      ADD COLUMN IF NOT EXISTS "utmCampaign" text;
     `);
-    console.log('[Database] Verified/created user.carouselTokens column successfully.');
+    console.log('[Database] Verified/created user.carouselTokens and UTM columns successfully.');
 
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "creation_sessions" (
