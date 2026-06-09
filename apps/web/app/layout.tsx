@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     default: "Narrativee | AI Content Repurposing Tool for Social Media",
     template: "%s | Narrativee",
   },
-  description: "Narrativee is the premium AI content repurposing tool for newsletter creators. Automatically repurpose Substack, beehiiv, and custom RSS newsletters into native social posts for LinkedIn, X (Twitter), and Threads.",
+  description: "Narrativee is the premium AI content repurposing tool. Automatically repurpose Substack, beehiiv, and RSS newsletters into posts for LinkedIn, X, and Threads.",
   keywords: [
     "content repurposing tool",
     "repurposing content for social media",
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     url: "https://narrativee.com",
     siteName: "Narrativee",
     title: "Narrativee | AI Content Repurposing Tool for Social Media",
-    description: "Narrativee is the premium AI content repurposing tool for newsletter creators. Automatically repurpose Substack, beehiiv, and custom RSS newsletters into native social posts for LinkedIn, X (Twitter), and Threads.",
+    description: "Narrativee is the premium AI content repurposing tool. Automatically repurpose Substack, beehiiv, and RSS newsletters into posts for LinkedIn, X, and Threads.",
     images: [
       {
         url: "/og-image-v2.png",
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Narrativee | AI Content Repurposing Tool for Social Media",
-    description: "Narrativee is the premium AI content repurposing tool for newsletter creators. Automatically repurpose Substack, beehiiv, and custom RSS newsletters into native social posts for LinkedIn, X (Twitter), and Threads.",
+    description: "Narrativee is the premium AI content repurposing tool. Automatically repurpose Substack, beehiiv, and RSS newsletters into posts for LinkedIn, X, and Threads.",
     images: ["/og-image-v2.png"],
     creator: "@narrativee",
   },

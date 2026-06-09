@@ -3,7 +3,7 @@ import PricingClient from "./PricingClient";
 
 export const metadata: Metadata = {
   title: "Pricing Plans for Content Creators",
-  description: "Repurpose your newsletter automatically into channel-native posts that match your voice and drive growth. Start with our 14-day free trial on the Starter or Creator plan. Cancel anytime.",
+  description: "Repurpose your newsletter into channel-native posts matching your voice. Start your 14-day free trial on our Starter or Creator plans. Cancel anytime.",
   alternates: {
     canonical: "/pricing",
   },
