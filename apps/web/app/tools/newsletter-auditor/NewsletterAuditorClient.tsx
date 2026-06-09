@@ -60,25 +60,35 @@ export default function NewsletterAuditorClient() {
     ];
 
     startTransition(async () => {
-      const result = await auditNewsletter({
+      // Run the network audit and a 3.6-second delay in parallel
+      const auditPromise = auditNewsletter({
         url: urlInput,
         subscriberCount: Number(subscriberCount),
         niche,
         openRate: openRate ? Number(openRate) / 100 : undefined,
       });
 
-      timers.forEach(clearTimeout);
+      const delayPromise = new Promise((resolve) => setTimeout(resolve, 3600));
 
-      if (result.success) {
-        setAuditResult(result);
+      try {
+        const [result] = await Promise.all([auditPromise, delayPromise]);
+
+        if (result.success) {
+          setAuditResult(result);
+          setCrawlStep(0);
+        } else if (result.isBlocked) {
+          setAuditResult(null);
+          setCrawlStep(0);
+          setShowBlockedModal(true);
+        } else {
+          alert(result.error || "An error occurred while scanning.");
+          setCrawlStep(0);
+        }
+      } catch (err) {
+        alert("An unexpected error occurred during the audit.");
         setCrawlStep(0);
-      } else if (result.isBlocked) {
-        setAuditResult(null);
-        setCrawlStep(0);
-        setShowBlockedModal(true);
-      } else {
-        alert(result.error || "An error occurred while scanning.");
-        setCrawlStep(0);
+      } finally {
+        timers.forEach(clearTimeout);
       }
     });
   };
