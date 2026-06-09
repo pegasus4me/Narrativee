@@ -1,6 +1,5 @@
 "use server";
 
-import * as cheerio from "cheerio";
 import { type NicheKey, NICHE_BENCHMARKS } from "../tools/newsletter-auditor/lib/niche-benchmarks";
 import { calculateMonetization, type MonetizationProjection } from "../tools/newsletter-auditor/lib/monetization-engine";
 
@@ -101,21 +100,120 @@ function detectFrequency(text: string): string {
   return "Unknown";
 }
 
-/** Checks for archive / past-issue links */
-function detectArchiveLinks($: cheerio.CheerioAPI): boolean {
-  const archiveIndicators = [
-    'a[href*="archive"]',
-    'a[href*="past-issues"]',
-    'a[href*="previous"]',
-    'a:contains("past issues")',
-    'a:contains("archive")',
-    'a:contains("previous edition")',
-    'a:contains("read past")',
-    '[class*="archive" i]',
+/** Checks for archive / past-issue links using regex */
+function detectArchiveLinks(html: string): boolean {
+  const regex = /<a[^>]+href\s*=\s*["']([^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  let match;
+  const indicators = ["archive", "past-issues", "previous", "past issues", "read past"];
+  while ((match = regex.exec(html)) !== null) {
+    const href = (match[1] || "").toLowerCase();
+    const text = (match[2] || "").replace(/<[^>]*>/g, "").toLowerCase();
+    if (indicators.some((ind) => href.includes(ind) || text.includes(ind))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function extractTitle(html: string): string {
+  const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  return match ? (match[1] || "").trim() : "";
+}
+
+function extractMeta(html: string, keyName: string, keyValue: string): string {
+  const regexes = [
+    new RegExp(`<meta[^>]+${keyName}\\s*=\\s*["']${keyValue}["'][^>]+content\\s*=\\s*["']([^"']*)["']`, "i"),
+    new RegExp(`<meta[^>]+content\\s*=\\s*["']([^"']*)["'][^>]+${keyName}\\s*=\\s*["']${keyValue}["']`, "i")
   ];
-  return archiveIndicators.some((selector) => {
-    try { return $(selector).length > 0; } catch { return false; }
-  });
+  for (const regex of regexes) {
+    const match = html.match(regex);
+    if (match) return (match[1] || "").trim();
+  }
+  return "";
+}
+
+function extractHeadings(html: string, tag: "h1" | "h2"): string[] {
+  const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\/${tag}>`, "gi");
+  const headings: string[] = [];
+  let match;
+  while ((match = regex.exec(html)) !== null) {
+    const text = (match[1] || "").replace(/<[^>]*>/g, "").trim();
+    if (text) headings.push(text);
+  }
+  return headings;
+}
+
+function analyzeInputs(html: string): { hasEmailInput: boolean; totalInputs: number } {
+  const regex = /<input([^>]*)\/?>/gi;
+  let totalInputs = 0;
+  let hasEmailInput = false;
+
+  let match;
+  while ((match = regex.exec(html)) !== null) {
+    const attrs = match[1] || "";
+    const isHidden = /type\s*=\s*["']hidden["']/i.test(attrs);
+    const isSubmit = /type\s*=\s*["']submit["']/i.test(attrs);
+    if (!isHidden && !isSubmit) {
+      totalInputs++;
+    }
+    const isEmailType = /type\s*=\s*["']email["']/i.test(attrs);
+    const hasEmailNameOrPlaceholder = /name\s*=\s*["'][^"']*email[^"']*["']/i.test(attrs) || /placeholder\s*=\s*["'][^"']*email[^"']*["']/i.test(attrs);
+    if (isEmailType || hasEmailNameOrPlaceholder) {
+      hasEmailInput = true;
+    }
+  }
+  return { hasEmailInput, totalInputs };
+}
+
+function extractButtonText(html: string): string {
+  const btnRegex = /<button[^>]*>([\s\S]*?)<\/button>/gi;
+  let htmlMatch = btnRegex.exec(html);
+  if (htmlMatch) {
+    return (htmlMatch[1] || "").replace(/<[^>]*>/g, "").trim();
+  }
+
+  const inputRegex = /<input[^>]+type\s*=\s*["']submit["'][^>]*>/gi;
+  let inputMatch;
+  while ((inputMatch = inputRegex.exec(html)) !== null) {
+    const valueMatch = inputMatch[0].match(/value\s*=\s*["']([^"']*)["']/i);
+    if (valueMatch) return (valueMatch[1] || "").trim();
+  }
+
+  return "";
+}
+
+function extractBodyText(html: string): string {
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (!bodyMatch) return "";
+  let text = (bodyMatch[1] || "")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  text = text
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+  return text;
+}
+
+function detectTestimonials(html: string): boolean {
+  const hasQuotes = /<blockquote[^>]*>/i.test(html);
+  const hasTestimonialClass = /class\s*=\s*["'][^"']*(testimonial|review|quote)[^"']*["']/i.test(html);
+  return hasQuotes || hasTestimonialClass;
+}
+
+function getElementCounts(html: string): { linkCount: number; imageCount: number } {
+  const linkMatches = html.match(/<a[^>]*>/gi);
+  const imgMatches = html.match(/<img[^>]*>/gi);
+  return {
+    linkCount: linkMatches ? linkMatches.length : 0,
+    imageCount: imgMatches ? imgMatches.length : 0,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -552,51 +650,36 @@ export async function auditNewsletter(input: AuditInput): Promise<AuditResult> {
     }
 
     const html = await response.text();
-    const $ = cheerio.load(html);
 
     // --- Extract crawl data ---
-    const titleText = $("title").first().text().trim();
+    const titleText = extractTitle(html);
     const titleLength = titleText.length;
 
-    const metaDesc = $('meta[name="description"]').first().attr("content");
-    const ogDesc = $('meta[property="og:description"]').first().attr("content");
+    const metaDesc = extractMeta(html, "name", "description");
+    const ogDesc = extractMeta(html, "property", "og:description");
     const descText = (metaDesc || ogDesc || "").trim();
 
-    const ogImageUrl = $('meta[property="og:image"]').first().attr("content") || "";
+    const ogImageUrl = extractMeta(html, "property", "og:image");
     const ogImageExists = ogImageUrl.length > 0;
 
-    const h1Elements = $("h1");
-    const h1Count = h1Elements.length;
-    const h1Text = h1Count > 0 ? $(h1Elements[0]).text().trim() : "";
+    const h1Texts = extractHeadings(html, "h1");
+    const h1Count = h1Texts.length;
+    const h1Text = h1Texts[0] || "";
 
-    const h2Elements = $("h2");
-    const h2Texts: string[] = [];
-    h2Elements.each((_, el) => {
-      const text = $(el).text().trim();
-      if (text) h2Texts.push(text);
-    });
+    const h2Texts = extractHeadings(html, "h2");
 
-    const emailInputs = $('input[type="email"], input[placeholder*="email" i], input[name*="email" i]');
-    const hasEmailInput = emailInputs.length > 0;
-    const totalInputs = $("form").find("input:not([type='hidden']):not([type='submit'])").length;
+    const { hasEmailInput, totalInputs } = analyzeInputs(html);
 
-    let buttonText = "";
-    const submitBtn = $('button[type="submit"], input[type="submit"], form button, .button, [class*="button" i], [class*="cta" i]');
-    if (submitBtn.length > 0) {
-      buttonText = $(submitBtn[0]).text().trim() || $(submitBtn[0]).attr("value")?.trim() || "";
-    }
+    const buttonText = extractButtonText(html);
 
-    const bodyText = $("body").text();
+    const bodyText = extractBodyText(html);
     const socialProofKeywords = scanSocialProof(bodyText);
-    const hasQuotes = $("blockquote").length > 0;
-    const hasTestimonialClass = $('[class*="testimonial" i], [class*="review" i], [class*="quote" i]').length > 0;
-    const hasTestimonials = hasQuotes || hasTestimonialClass;
+    const hasTestimonials = detectTestimonials(html);
     const hasSocialProof = socialProofKeywords.length >= 3 || hasTestimonials;
 
-    const hasArchiveLink = detectArchiveLinks($);
+    const hasArchiveLink = detectArchiveLinks(html);
     const estimatedFrequency = detectFrequency(bodyText);
-    const linkCount = $("a").length;
-    const imageCount = $("img").length;
+    const { linkCount, imageCount } = getElementCounts(html);
 
     const crawledData: CrawledData = {
       titleText,
