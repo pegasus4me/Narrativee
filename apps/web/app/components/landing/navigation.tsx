@@ -33,6 +33,11 @@ const freeTools = [
     description: "Audit the reading level and clarity of your text",
     href: "/tools/readability-analyzer",
   },
+  {
+    name: "Newsletter Auditor",
+    description: "Audit your growth and monetization potential",
+    href: "/tools/newsletter-auditor",
+  },
 ];
 
 function getDisplayName(name?: string | null, email?: string | null): string {
