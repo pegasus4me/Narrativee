@@ -249,15 +249,20 @@ export default function NewsletterAuditorClient() {
             )}
 
             {/* ── Brand CTA Banner ─────────────────────────────────── */}
-            <div className="rounded-2xl border border-[#483BFF]/20 bg-gradient-to-r from-[#121026] via-[#15123a] to-[#0d0a1f] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 print:hidden relative overflow-hidden group hover:border-[#483BFF]/40 transition-all duration-500">
+            <div
+              className="rounded-2xl border border-[#483BFF]/20 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 print:hidden relative overflow-hidden group hover:border-[#483BFF]/40 transition-all duration-500 bg-cover bg-center"
+              style={{
+                backgroundImage: 'linear-gradient(to right, rgba(10, 8, 26, 0.94), rgba(15, 12, 36, 0.82)), url("/images/bridge.png")'
+              }}
+            >
               {/* Highlight background glow */}
-              <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#483BFF]/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#483BFF]/15 transition-all duration-500" />
-              
+              <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full blur-3xl pointer-events-none group-hover:bg-[#483BFF]/15 transition-all duration-500" />
+
               <div className="relative z-10 flex-1 space-y-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-[#36A5FF]/20 bg-[#36A5FF]/5 px-2.5 py-0.5 text-[9px] text-[#36A5FF] font-semibold uppercase tracking-wider">
                   Acquisition Accelerator
                 </span>
-                <h3 className="text-lg md:text-xl font-extrabold font-display text-white leading-tight">
+                <h3 className="text-lg md:text-xl font-light font-display text-white">
                   Turn Your Newsletter Into A Multi-Channel Traffic Engine
                 </h3>
                 <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed">
