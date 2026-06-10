@@ -250,9 +250,9 @@ export default function NewsletterAuditorClient() {
 
             {/* ── Brand CTA Banner ─────────────────────────────────── */}
             <div
-              className="rounded-2xl border border-[#483BFF]/20 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 print:hidden relative overflow-hidden group hover:border-[#483BFF]/40 transition-all duration-500 bg-cover bg-center"
+              className="rounded-2xl border border-white/5 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 print:hidden relative overflow-hidden group hover:border-[#483BFF]/40 transition-all duration-500 bg-cover bg-center"
               style={{
-                backgroundImage: 'linear-gradient(to right, rgba(10, 8, 26, 0.94), rgba(15, 12, 36, 0.82)), url("/images/bridge.png")'
+                backgroundImage: 'linear-gradient(to right, rgba(4, 2, 20, 0.94), rgba(9, 5, 34, 0.19)), url("/images/bridge.png")'
               }}
             >
               {/* Highlight background glow */}
@@ -262,11 +262,11 @@ export default function NewsletterAuditorClient() {
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-[#36A5FF]/20 bg-[#36A5FF]/5 px-2.5 py-0.5 text-[9px] text-[#36A5FF] font-semibold uppercase tracking-wider">
                   Acquisition Accelerator
                 </span>
-                <h3 className="text-lg md:text-xl font-light font-display text-white">
+                <h3 className="text-lg md:text-2xl font-light font-display text-white">
                   Turn Your Newsletter Into A Multi-Channel Traffic Engine
                 </h3>
-                <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed">
-                  Most newsletter growth stalls because creators rely solely on word-of-mouth. Narrativee automatically repurposes your newsletter issues into native, high-converting posts and carousels for LinkedIn, X (Twitter), and Threads to drive new signups on autopilot.
+                <p className="text-sm text-zinc-400 max-w-2xl leading-relaxed">
+                  Writing a great newsletter is only half the battle. If you aren't actively promoting it, it won't grow. Use Narrativee to automatically transform your newsletter drafts into high-performing carousels and posts for LinkedIn, X (Twitter), and Threads to drive consistent signups on autopilot.
                 </p>
               </div>
 
@@ -275,7 +275,7 @@ export default function NewsletterAuditorClient() {
                   href={user ? "/workspace" : "/auth/signup"}
                   className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-xs font-bold text-black hover:bg-zinc-100 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-xl"
                 >
-                  <span>{user ? "Go to Dashboard" : "Start Repurposing Free"}</span>
+                  <span>{user ? "Go to Dashboard" : "Start automate your content distribution for free"}</span>
                   <span className="text-lg">→</span>
                 </a>
               </div>
