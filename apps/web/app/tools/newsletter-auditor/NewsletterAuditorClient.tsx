@@ -265,8 +265,8 @@ export default function NewsletterAuditorClient() {
                 <h3 className="text-lg md:text-2xl font-light font-display text-white">
                   Turn Your Newsletter Into A Multi-Channel Traffic Engine
                 </h3>
-                <p className="text-sm text-zinc-400 max-w-2xl leading-relaxed">
-                  Writing a great newsletter is only half the battle. If you aren't actively promoting it, it won't grow. Use Narrativee to automatically transform your newsletter drafts into high-performing carousels and posts for LinkedIn, X (Twitter), and Threads to drive consistent signups on autopilot.
+                <p className="text-sm text-white max-w-2xl leading-relaxed">
+                  Writing a great newsletter is only half the battle. If you aren't actively promoting it, it won't grow. Use Narrativee to automatically transform your newsletter articles into high-performing carousels and posts, and auto-publish them directly to your socials to drive consistent signups on autopilot.
                 </p>
               </div>
 
