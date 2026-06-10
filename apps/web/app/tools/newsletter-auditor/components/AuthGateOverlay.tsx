@@ -22,7 +22,7 @@ export default function AuthGateOverlay({ title, description, onRequestAuth, chi
     <div className="relative rounded-xl border border-white/5 bg-zinc-950/30 overflow-hidden min-h-[200px]">
       {/* Blur overlay */}
       <div className="absolute inset-0 bg-[#050505]/85 backdrop-blur-sm flex flex-col items-center justify-center text-center z-10 px-6">
-        <div className="w-10 h-10 rounded-full bg-[#483BFF]/10 border border-[#483BFF]/20 flex items-center justify-center text-[#36A5FF] mb-3">
+        <div className="w-10 h-10  flex items-center justify-center text-white mb-3">
           <Lock size={16} />
         </div>
 
@@ -31,7 +31,7 @@ export default function AuthGateOverlay({ title, description, onRequestAuth, chi
 
         <button
           onClick={onRequestAuth}
-          className="mt-4 px-5 py-2 bg-gradient-to-r from-[#483BFF] to-[#36A5FF] rounded-lg text-[11px] font-semibold text-white hover:opacity-90 transition-all cursor-pointer flex items-center gap-1.5"
+          className="mt-4 px-5 py-2 bg-brand rounded-lg text-[11px] font-light text-black hover:opacity-90 transition-all cursor-pointer flex items-center gap-1.5"
         >
           <Sparkles size={11} />
           <span>Unlock Full Report</span>

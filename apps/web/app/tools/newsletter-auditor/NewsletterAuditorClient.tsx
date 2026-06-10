@@ -304,7 +304,7 @@ export default function NewsletterAuditorClient() {
             <div className="flex justify-center print:hidden pt-2 pb-4">
               <button
                 onClick={handleDownload}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#483BFF] to-[#36A5FF] px-8 py-4 font-bold text-sm text-white hover:opacity-95 hover:shadow-lg hover:shadow-[#483BFF]/10 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand px-8 py-4 font-base text-sm text-white hover:opacity-95 hover:shadow-lg hover:shadow-[#483BFF]/10 transition-all cursor-pointer"
               >
                 {!user ? <Lock size={15} /> : <Download size={15} />}
                 <span>Download Full Audit Report</span>
@@ -318,7 +318,7 @@ export default function NewsletterAuditorClient() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm print:hidden animate-in fade-in duration-200">
             <div className="relative max-w-sm w-full rounded-2xl border border-white/5 bg-zinc-950 p-6 md:p-8 text-center shadow-2xl animate-in zoom-in-95 duration-200">
 
-              <div className="mx-auto w-12 h-12 rounded-full bg-[#483BFF]/10 border border-[#483BFF]/20 flex items-center justify-center text-[#36A5FF] mb-4">
+              <div className="mx-auto w-12 h-12 flex items-center justify-center text-white mb-4">
                 <Lock size={20} />
               </div>
 
@@ -332,7 +332,7 @@ export default function NewsletterAuditorClient() {
               <div className="mt-6 flex flex-col gap-3">
                 <a
                   href="/auth/signup?redirect=/tools/newsletter-auditor"
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#483BFF] to-[#36A5FF] text-xs font-bold text-white hover:opacity-90 transition-all block text-center"
+                  className="w-full py-3 rounded-xl bg-brand text-xs font-base text-white hover:opacity-90 transition-all block text-center"
                 >
                   Create Free Account
                 </a>
