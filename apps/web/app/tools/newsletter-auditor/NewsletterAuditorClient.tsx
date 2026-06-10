@@ -248,6 +248,34 @@ export default function NewsletterAuditorClient() {
               </AuthGateOverlay>
             )}
 
+            {/* ── Brand CTA Banner ─────────────────────────────────── */}
+            <div className="rounded-2xl border border-[#483BFF]/20 bg-gradient-to-r from-[#121026] via-[#15123a] to-[#0d0a1f] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 print:hidden relative overflow-hidden group hover:border-[#483BFF]/40 transition-all duration-500">
+              {/* Highlight background glow */}
+              <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#483BFF]/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#483BFF]/15 transition-all duration-500" />
+              
+              <div className="relative z-10 flex-1 space-y-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#36A5FF]/20 bg-[#36A5FF]/5 px-2.5 py-0.5 text-[9px] text-[#36A5FF] font-semibold uppercase tracking-wider">
+                  Acquisition Accelerator
+                </span>
+                <h3 className="text-lg md:text-xl font-extrabold font-display text-white leading-tight">
+                  Turn Your Newsletter Into A Multi-Channel Traffic Engine
+                </h3>
+                <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed">
+                  Most newsletter growth stalls because creators rely solely on word-of-mouth. Narrativee automatically repurposes your newsletter issues into native, high-converting posts and carousels for LinkedIn, X (Twitter), and Threads to drive new signups on autopilot.
+                </p>
+              </div>
+
+              <div className="relative z-10 shrink-0">
+                <a
+                  href={user ? "/workspace" : "/auth/signup"}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-xs font-bold text-black hover:bg-zinc-100 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-xl"
+                >
+                  <span>{user ? "Go to Dashboard" : "Start Repurposing Free"}</span>
+                  <span className="text-lg">→</span>
+                </a>
+              </div>
+            </div>
+
             {/* ── Growth Recommendations ───────────────────────────── */}
             <GrowthRecommendations
               recommendations={auditResult.recommendations}

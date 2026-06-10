@@ -22,7 +22,7 @@ const CRAWL_STEPS = [
  */
 export default function CrawlAnimation({ step }: CrawlAnimationProps) {
   return (
-    <div className="max-w-md mx-auto rounded-2xl border border-white/5 bg-zinc-900/20 p-8 text-center backdrop-blur-md flex flex-col items-center justify-center min-h-[320px] mb-12 print:hidden">
+    <div className="max-w-md mx-auto rounded-2xl border border-white/5 mt-30 bg-zinc-900/20 p-8 text-center backdrop-blur-md flex flex-col items-center justify-center min-h-[320px] mb-12 print:hidden">
       <div className="w-14 h-14 rounded-full bg-[#483BFF]/10 border border-[#483BFF]/20 flex items-center justify-center mb-6">
         <RefreshCw size={24} className="text-[#36A5FF] animate-spin" />
       </div>
@@ -43,24 +43,22 @@ export default function CrawlAnimation({ step }: CrawlAnimationProps) {
           return (
             <div key={label} className="flex items-center gap-2.5 text-xs">
               <span
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 transition-all duration-300 ${
-                  isCompleted
+                className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 transition-all duration-300 ${isCompleted
                     ? "bg-emerald-500/20 text-emerald-400"
                     : isActive
                       ? "bg-[#483BFF]/20 text-[#36A5FF] animate-pulse"
                       : "bg-zinc-800/50 text-zinc-600"
-                }`}
+                  }`}
               >
                 {isCompleted ? "✓" : stepNum}
               </span>
               <span
-                className={`transition-colors duration-300 ${
-                  isCompleted
+                className={`transition-colors duration-300 ${isCompleted
                     ? "text-emerald-400 font-semibold"
                     : isActive
                       ? "text-zinc-200 font-medium"
                       : "text-zinc-600"
-                }`}
+                  }`}
               >
                 {label}
               </span>
