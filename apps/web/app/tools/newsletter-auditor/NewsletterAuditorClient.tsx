@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth-client";
 import { auditNewsletter, type AuditResult } from "../../actions/audit";
 import { type NicheKey } from "./lib/niche-benchmarks";
 import { Lock, Download, RefreshCw, AlertOctagon } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 
 // Components
 import AuditInputForm from "./components/AuditInputForm";
@@ -40,6 +41,7 @@ export default function NewsletterAuditorClient() {
   const [showAuthGate, setShowAuthGate] = useState(false);
   const session = authClient.useSession();
   const user = session.data?.user;
+  const posthog = usePostHog();
 
   // ── Handlers ──────────────────────────────────────────────────────────
 
@@ -105,6 +107,15 @@ export default function NewsletterAuditorClient() {
     } else {
       window.print();
     }
+  };
+
+  const handleCtaClick = () => {
+    posthog?.capture("newsletter_auditor_cta_clicked", {
+      isLoggedIn: !!user,
+      url: auditResult?.url,
+      niche: auditResult?.input?.niche,
+      subscriberCount: auditResult?.input?.subscriberCount,
+    });
   };
 
   // ── Render states ─────────────────────────────────────────────────────
@@ -273,6 +284,7 @@ export default function NewsletterAuditorClient() {
               <div className="relative z-10 shrink-0">
                 <a
                   href={user ? "/workspace" : "/auth/signup"}
+                  onClick={handleCtaClick}
                   className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-xs font-bold text-black hover:bg-zinc-100 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-xl"
                 >
                   <span>{user ? "Go to Dashboard" : "Start automate your content distribution for free"}</span>
