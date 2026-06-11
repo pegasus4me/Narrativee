@@ -81,6 +81,7 @@ export default function OnboardingPage(): React.ReactNode {
   const [voiceRules, setVoiceRules] = useState<string>("");
   const [sourceSuccess, setSourceSuccess] = useState<string>("");
   const [sourceError, setSourceError] = useState<string>("");
+  const [isSandboxing, setIsSandboxing] = useState<boolean>(false);
 
   // API hooks
   const { data: channels = [], isLoading: channelsLoading } = useChannels(!!session?.user);
@@ -187,6 +188,29 @@ export default function OnboardingPage(): React.ReactNode {
     }
   };
 
+  const handleEnterSandbox = async () => {
+    if (isSandboxing) return;
+    setIsSandboxing(true);
+
+    try {
+      const res = await fetch(`${API_URL}/user/onboard-demo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include"
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to seed demo sandbox");
+      }
+
+      // Force a clean dashboard reload
+      window.location.href = "/workspace";
+    } catch (err) {
+      console.error("Failed to seed sandbox:", err);
+      setIsSandboxing(false);
+    }
+  };
+
   const connectedPlatforms = new Set(channels.map((c) => c.platform));
 
   if (sessionPending || !session?.user) {
@@ -207,27 +231,55 @@ export default function OnboardingPage(): React.ReactNode {
 
       {/* Modal Overlay */}
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-        <div className="relative w-full max-w-xl rounded-3xl border border-white/10 bg-zinc-950 p-10 shadow-[0_20px_80px_rgba(0,0,0,0.5)] flex flex-col gap-6 z-10 animate-in zoom-in-95 duration-150 text-zinc-200">
+        <div className="relative w-full max-w-xl rounded-3xl p-10 shadow-[0_20px_80px_rgba(0,0,0,0.5)] flex flex-col gap-6 z-10 animate-in zoom-in-95 duration-150 text-zinc-200">
 
           {/* Welcome Header */}
           <div className="space-y-1.5 animate-in fade-in duration-300">
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">
-              Welcome, {session?.user?.name || "there"}! ✨
+            <h1 className="text-3xl font-base font-base text-white">
+              Welcome, {session?.user?.name || "there"}!
             </h1>
             <p className="text-sm text-zinc-400 leading-relaxed">
-              Let's customize your workspace and connect your content pipeline.
+              Let's customize your workspace and connect your content pipeline. <span className="text-amber-400 font-medium font-urbanist">Completing this step earns you 10 stars.</span>
             </p>
+          </div>
+
+          {/* Quick Demo Sandbox Option */}
+          <div className="p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-3 text-zinc-300 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="space-y-0.5 text-left">
+              <p className="text-sm font-base text-white flex items-center gap-1">
+                Want to test the app instantly?
+              </p>
+              <p className="text-[11px] text-zinc-400 font-light leading-relaxed">
+                Skip setup and enter a fully seeded sandbox with demo posts and mock channels.
+              </p>
+            </div>
+            <button
+              onClick={handleEnterSandbox}
+              disabled={isSandboxing}
+              className="px-4 py-2.5 rounded-xl bg-brand hover:bg-brand/70 text-white text-xs font-base font-urbanist transition-all shrink-0 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+            >
+              {isSandboxing ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Seeding Sandbox...
+                </>
+              ) : (
+                "Try Instant Demo"
+              )}
+            </button>
           </div>
 
           {/* Header & Step Tracker */}
           <div className="space-y-4 pt-4 border-t border-white/5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Step {step} of 3</span>
+              <span className="text-[10px] font-base text-white font-base tracking-widest flex items-center gap-1.5">
+                Step {step} of 3 <span className="text-zinc-600">•</span> <span className="text-amber-400 font-medium font-urbanist">🎁 +10 Stars Reward</span>
+              </span>
               <div className="flex gap-1.5">
                 {[1, 2, 3].map((s) => (
                   <div
                     key={s}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${s === step ? "w-6 bg-indigo-500" : "w-1.5 bg-white/10"
+                    className={`h-1.5 rounded-full transition-all duration-300 ${s === step ? "w-6 bg-brand/70" : "w-1.5 bg-white/10"
                       }`}
                   />
                 ))}
@@ -239,8 +291,8 @@ export default function OnboardingPage(): React.ReactNode {
           {step === 1 && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold tracking-tight text-zinc-100 flex items-center gap-2">
-                  <Link2 className="w-6 h-6 text-indigo-400" />
+                <h2 className="text-2xl font-base font-base text-zinc-100 flex items-center gap-2">
+                  <Link2 className="w-6 h-6 text-white" />
                   Connect Social Channels
                 </h2>
                 <p className="text-xs leading-relaxed text-zinc-400">
@@ -287,7 +339,7 @@ export default function OnboardingPage(): React.ReactNode {
                 </span>
                 <button
                   onClick={() => handleStepChange(2)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 text-xs font-semibold tracking-wide transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand hover:bg-brand/70 text-white px-5 py-2.5 text-xs font-semibold tracking-wide transition-all cursor-pointer"
                 >
                   Next: Sync Newsletter
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -300,7 +352,7 @@ export default function OnboardingPage(): React.ReactNode {
           {step === 2 && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold tracking-tight text-zinc-100 flex items-center gap-2">
+                <h2 className="text-2xl font-base font-base text-zinc-100 flex items-center gap-2">
                   <Rss className="w-6 h-6 text-indigo-400" />
                   Connect Newsletter Source
                 </h2>
@@ -322,7 +374,7 @@ export default function OnboardingPage(): React.ReactNode {
                   <button
                     type="submit"
                     disabled={addSource.isPending}
-                    className="px-4 py-2.5 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
+                    className="px-4 py-2.5 text-xs font-semibold rounded-xl bg-brand hover:bg-brand/70 text-white disabled:opacity-50 transition-all flex items-center gap-1 cursor-pointer"
                   >
                     {addSource.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
                     Sync
@@ -344,7 +396,7 @@ export default function OnboardingPage(): React.ReactNode {
 
               {sources.length > 0 && (
                 <div className="space-y-2.5">
-                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Synced publications</p>
+                  <p className="text-[10px] font-base text-zinc-500 font-base tracking-wider">Synced publications</p>
                   <div className="space-y-1.5 max-h-[120px] overflow-y-auto pr-1">
                     {sources.map((source) => (
                       <div key={source.id} className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-white/[0.01]">
@@ -359,13 +411,13 @@ export default function OnboardingPage(): React.ReactNode {
               <div className="flex justify-between pt-4 border-t border-white/5">
                 <button
                   onClick={() => handleStepChange(1)}
-                  className="px-4 py-2.5 text-xs font-bold rounded-xl border border-white/5 bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-all cursor-pointer"
+                  className="px-4 py-2.5 text-xs font-base rounded-xl border border-white/5 bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-all cursor-pointer"
                 >
                   Back
                 </button>
                 <button
                   onClick={() => handleStepChange(3)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 text-xs font-semibold tracking-wide transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand hover:bg-brand/70 text-white px-5 py-2.5 text-xs font-semibold tracking-wide transition-all cursor-pointer"
                 >
                   Next: Brand Voice Rules
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -378,8 +430,8 @@ export default function OnboardingPage(): React.ReactNode {
           {step === 3 && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold tracking-tight text-zinc-100 flex items-center gap-2">
-                  <Brain className="w-6 h-6 text-indigo-400" />
+                <h2 className="text-2xl font-base font-base text-zinc-100 flex items-center gap-2">
+                  <Brain className="w-6 h-6 text-white" />
                   Define Brand Voice Rules
                 </h2>
                 <p className="text-xs leading-relaxed text-zinc-400">
@@ -400,14 +452,14 @@ export default function OnboardingPage(): React.ReactNode {
               <div className="flex justify-between pt-4 border-t border-white/5">
                 <button
                   onClick={() => handleStepChange(2)}
-                  className="px-4 py-2.5 text-xs font-bold rounded-xl border border-white/5 bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-all cursor-pointer"
+                  className="px-4 py-2.5 text-xs font-base rounded-xl border border-white/5 bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-all cursor-pointer"
                 >
                   Back
                 </button>
                 <button
                   onClick={handleFinishOnboarding}
                   disabled={saveKb.isPending || completeOnboarding.isPending}
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 text-xs font-semibold tracking-wide transition-all disabled:opacity-50 cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand hover:bg-brand/70 text-white px-6 py-2.5 text-xs font-semibold tracking-wide transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {saveKb.isPending || completeOnboarding.isPending ? (
                     <>
@@ -417,7 +469,6 @@ export default function OnboardingPage(): React.ReactNode {
                   ) : (
                     <>
                       Finish Onboarding
-                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                     </>
                   )}
                 </button>
