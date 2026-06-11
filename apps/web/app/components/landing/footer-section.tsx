@@ -34,9 +34,8 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { name: "X", href: "#", icon: <img src={X_LOGO} alt="X" className="h-6 w-6" /> },
-  { name: "GitHub", href: "#", icon: <img src={GITHUB_LOGO} alt="GitHub" className="h-6 w-6" /> },
-  { name: "LinkedIn", href: "#", icon: <img src={LINKEDIN_LOGO} alt="LinkedIn" className="h-6 w-6" /> },
+  { name: "GitHub", href: "https://github.com/pegasus4me/Narrativee", icon: <img src={GITHUB_LOGO} alt="GitHub" className="h-6 w-6" /> },
+  { name: "LinkedIn", href: "https://www.linkedin.com/company/narrativee", icon: <img src={LINKEDIN_LOGO} alt="LinkedIn" className="h-6 w-6" /> },
 ];
 
 function AnimatedWaveCanvas() {
