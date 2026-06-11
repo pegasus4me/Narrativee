@@ -64,9 +64,8 @@ function welcomeEmailHtml({ name, promoCode }: { name: string; promoCode: string
 
           <!-- Header -->
           <tr>
-            <td style="background:#0f0f0f;padding:40px 40px 32px;text-align:center;">
+            <td style="background:#0f0f0f;padding:40px 40px;text-align:center;">
               <img src="https://narrativee.com/logo.png" alt="Narrativee" style="height:32px;display:block;margin:0 auto;" />
-              <p style="margin:12px 0 0;color:#9ca3af;font-size:14px;">Turn your newsletter into a multi-channel traffic engine</p>
             </td>
           </tr>
 
