@@ -23,7 +23,7 @@ export function AddSourceForm({ onSubmit, isSubmitting, error, success }: AddSou
 
   return (
     <div className="rounded-2xl p-6 sm:p-8">
-      <div className="flex items-center gap-4 border-b border-zinc-100 pb-3 mb-5">
+      <div className="flex items-center gap-4  pb-3 mb-5">
         <button
           type="button"
           onClick={() => { setSyncTab("substack"); setUrlInput(""); }}
@@ -56,7 +56,7 @@ export function AddSourceForm({ onSubmit, isSubmitting, error, success }: AddSou
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder={syncTab === "substack" ? "https://yourname.substack.com" : "https://myblog.com or https://medium.com/feed/@username"}
-            className="min-h-[44px] flex-1  rounded-xl  px-4 text-sm text-white outline-none placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-50/25 border border-zinc-50"
+            className="min-h-[44px] flex-1  rounded-xl  px-4 text-sm text-white outline-none placeholder:text-zinc-400 focus:outline-none"
             disabled={isSubmitting}
             required
           />

@@ -93,7 +93,7 @@ export function StrategyAgentChat({ article, onBack, onContinue }: StrategyAgent
       <div className="rounded-xl border border-white/10 bg-zinc-900/40 p-4 text-sm text-zinc-300 flex items-start gap-3">
         <Sparkles className="h-5 w-5 text-[#eca8d6] shrink-0 mt-0.5" />
         <div>
-          <span className="font-semibold text-white">How this works:</span> Chat with the Strategy Agent to define your goals (e.g. increase views/subs, target founders) and angles. Once you have a strategy you like, click <strong className="text-white">"Continue to channels"</strong> at the bottom of the page to generate your platform-native drafts.
+          <span className="font-semibold text-white">How this works:</span> Chat with Josh to customize your goals, or <strong className="text-white">skip this chat</strong> by clicking <strong className="text-[#eca8d6]">"Continue to channels"</strong> below to instantly select your socials and write drafts.
         </div>
       </div>
 

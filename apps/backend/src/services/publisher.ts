@@ -78,7 +78,10 @@ export async function publishPostToSocialPlatform(postId: string): Promise<boole
   try {
     let externalPostId: string | undefined;
 
-    if (channel.platform === "x") {
+    if (accessToken === "demo" || channel.providerAccountId.startsWith("demo_")) {
+      console.log(`[Publisher] Simulated successful posting for demo channel: ${channel.platform}`);
+      externalPostId = `simulated_${channel.platform}_${Date.now()}`;
+    } else if (channel.platform === "x") {
       console.log(`[Publisher] Posting to X (Twitter) for user ${post.userId}`);
       const res = await fetch("https://api.twitter.com/2/tweets", {
         method: "POST",

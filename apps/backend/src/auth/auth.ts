@@ -127,7 +127,7 @@ export const auth = betterAuth({
       },
       tokens: {
         type: "number",
-        defaultValue: 40
+        defaultValue: 30
       },
       carouselTokens: {
         type: "number",

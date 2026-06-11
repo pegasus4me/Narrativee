@@ -8,11 +8,6 @@ import { Toaster } from "sonner";
 import { PostHogProvider } from "./components/providers/PostHogProvider";
 import { QueryProvider } from "./components/providers/QueryProvider";
 import ScreenSizeGuard  from "./components/workspace/ScreenSizeGuard";
-import { setupMockFetch } from "@/lib/mock-fetch";
-
-if (typeof window !== "undefined") {
-  setupMockFetch();
-}
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",

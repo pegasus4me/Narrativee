@@ -208,7 +208,7 @@ function NewCreateFlow() {
     const timeoutId = window.setTimeout(() => {
       setIsPreparingNativeTone(false);
       setIsNativeToneReady(true);
-    }, 7000);
+    }, 1000);
 
     return () => {
       window.clearTimeout(timeoutId);
@@ -228,7 +228,7 @@ function NewCreateFlow() {
         }
         return currentIdx;
       });
-    }, 3000);
+    }, 1000);
 
     return () => {
       window.clearInterval(intervalId);

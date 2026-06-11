@@ -91,6 +91,78 @@ export function setupMockFetch() {
         ]
       });
     }
+    // 4.5 Drafts & Queue Endpoints
+    if (url.includes("/api/articles/drafts/queue")) {
+      return makeResponse([
+        {
+          id: "mock-draft-id-1",
+          status: "scheduled",
+          scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          channel: {
+            platform: "x",
+            accountName: "@demo_repurposer",
+            avatarUrl: "https://img.freepik.com/free-psd/3d-illustration-person-with-punk-haircut_23-2149436180.jpg",
+            isConnected: true
+          },
+          content: {
+            text: "Uncomfortable Truth: 90% of content creators sound like generic ChatGPT templates.\n\nThey copy, paste, and sound like robots.\n\nIf you want to win, you need platform-native formatting and raw personality."
+          },
+          articleId: "mock-article-1",
+          articleTitle: "How to scale content without losing your authentic voice"
+        }
+      ]);
+    }
+
+    if (url.includes("/api/articles/drafts/latest")) {
+      return makeResponse({
+        article: {
+          id: "mock-article-1",
+          title: "How to scale content without losing your authentic voice",
+          createdAt: new Date().toISOString()
+        },
+        drafts: [
+          {
+            id: "mock-draft-id-1",
+            status: "draft",
+            channel: {
+              platform: "x",
+              accountName: "@demo_repurposer",
+              avatarUrl: "https://img.freepik.com/free-psd/3d-illustration-person-with-punk-haircut_23-2149436180.jpg",
+              isConnected: true
+            },
+            content: {
+              text: "Uncomfortable Truth: 90% of content creators sound like generic ChatGPT templates.\n\nThey copy, paste, and sound like robots.\n\nIf you want to win, you need platform-native formatting and raw personality."
+            },
+            articleId: "mock-article-1",
+            articleTitle: "How to scale content without losing your authentic voice"
+          }
+        ]
+      });
+    }
+
+    if (url.includes("/api/articles/drafts/active")) {
+      return makeResponse([
+        {
+          id: "mock-draft-id-1",
+          status: "draft",
+          channel: {
+            platform: "x",
+            accountName: "@demo_repurposer",
+            avatarUrl: "https://img.freepik.com/free-psd/3d-illustration-person-with-punk-haircut_23-2149436180.jpg",
+            isConnected: true
+          },
+          content: {
+            text: "Uncomfortable Truth: 90% of content creators sound like generic ChatGPT templates.\n\nThey copy, paste, and sound like robots.\n\nIf you want to win, you need platform-native formatting and raw personality."
+          },
+          articleId: "mock-article-1",
+          articleTitle: "How to scale content without losing your authentic voice"
+        }
+      ]);
+    }
+
+    if (url.includes("/api/articles/drafts")) {
+      return makeResponse({ success: true });
+    }
 
     // 5. Articles Detail
     if (url.match(/\/api\/articles\/[a-zA-Z0-9-]{10,}/) && !url.includes("/ideas")) {
