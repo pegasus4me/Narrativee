@@ -56,32 +56,32 @@ function welcomeEmailHtml({ name, promoCode }: { name: string; promoCode: string
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome to Narrativee</title>
 </head>
-<body style="margin:0;padding:0;background:#0f0f0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f0f0f;padding:48px 16px;">
+<body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:48px 16px;">
     <tr>
       <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1b1d;border-radius:16px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;max-width:560px;width:100%;">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;border:1px solid #e5e7eb;overflow:hidden;max-width:560px;width:100%;">
 
           <!-- Header -->
           <tr>
-            <td style="background:linear-gradient(135deg,#1a1b1d 0%,#1e1a2e 100%);padding:40px 40px 32px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);">
-              <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">✦ Narrativee</div>
-              <p style="margin:8px 0 0;color:#9ca3af;font-size:14px;">Turn your newsletter into a multi-channel traffic engine</p>
+            <td style="background:#f9fafb;padding:40px 40px 32px;text-align:center;border-bottom:1px solid #e5e7eb;">
+              <div style="font-size:28px;font-weight:700;color:#111827;letter-spacing:-0.5px;">✦ Narrativee</div>
+              <p style="margin:8px 0 0;color:#4b5563;font-size:14px;">Turn your newsletter into a multi-channel traffic engine</p>
             </td>
           </tr>
 
           <!-- Body -->
           <tr>
             <td style="padding:40px;">
-              <h1 style="margin:0 0 16px;font-size:24px;font-weight:600;color:#ffffff;">Hey ${firstName} 👋</h1>
-              <p style="margin:0 0 24px;font-size:15px;color:#9ca3af;line-height:1.6;">
+              <h1 style="margin:0 0 16px;font-size:24px;font-weight:600;color:#111827;">Hey ${firstName} 👋</h1>
+              <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6;">
                 Welcome to Narrativee. You're now set up to grow your newsletter on autopilot. 
                 Use Narrativee to automatically transform your newsletter articles into high-performing social posts and carousels, and publish them directly to your socials to drive consistent new signups.
               </p>
 
               <!-- Getting Started Steps -->
-              <h3 style="margin:24px 0 12px;font-size:16px;font-weight:600;color:#ffffff;">Here is how to get started:</h3>
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;color:#9ca3af;font-size:14px;line-height:1.6;">
+              <h3 style="margin:24px 0 12px;font-size:16px;font-weight:600;color:#111827;">Here is how to get started:</h3>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;color:#374151;font-size:14px;line-height:1.6;">
                 <tr>
                   <td style="padding:8px 0;vertical-align:top;width:24px;color:#e99ab1;font-weight:bold;">1.</td>
                   <td style="padding:8px 0;"><strong>Connect your newsletter:</strong> Import your Substack, beehiiv, RSS, or custom newsletter feed.</td>
@@ -97,12 +97,12 @@ function welcomeEmailHtml({ name, promoCode }: { name: string; promoCode: string
               </table>
 
               <!-- Promo code block -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#1e1a2e,#1a1b1d);border:1px solid rgba(233,154,177,0.3);border-radius:12px;margin-bottom:32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border:1px solid rgba(233,154,177,0.5);border-radius:12px;margin-bottom:32px;">
                 <tr>
                   <td style="padding:24px;text-align:center;">
                     <p style="margin:0 0 8px;font-size:12px;color:#e99ab1;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Your welcome gift</p>
-                    <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:4px;font-family:monospace;">${promoCode}</div>
-                    <p style="margin:12px 0 0;font-size:13px;color:#6b7280;">Use this code at checkout for 50% off on your subscriptions for the first 3 months</p>
+                    <div style="font-size:28px;font-weight:700;color:#111827;letter-spacing:4px;font-family:monospace;">${promoCode}</div>
+                    <p style="margin:12px 0 0;font-size:13px;color:#4b5563;">Use this code at checkout for 50% off on your subscriptions for the first 3 months</p>
                   </td>
                 </tr>
               </table>
@@ -126,8 +126,8 @@ function welcomeEmailHtml({ name, promoCode }: { name: string; promoCode: string
 
           <!-- Footer -->
           <tr>
-            <td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
-              <p style="margin:0;font-size:12px;color:#4b5563;">© 2026 Narrativee · <a href="https://narrativee.com" style="color:#6b7280;text-decoration:none;">narrativee.com</a></p>
+            <td style="padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#6b7280;">© 2026 Narrativee · <a href="https://narrativee.com" style="color:#6b7280;text-decoration:none;">narrativee.com</a></p>
             </td>
           </tr>
 
