@@ -41,10 +41,10 @@ export default function WorkspaceHeader(): React.JSX.Element {
         <Breadcrumbs />
         <div className="flex items-center gap-4">
           {user && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.05)] text-amber-300 font-urbanist text-xs select-none">
-              <Sparkles className="w-3.5 h-3.5 fill-amber-400 text-amber-400 animate-pulse" />
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand/10 border border-brand/20 shadow-[0_0_15px_rgba(233,154,177,0.05)] text-brand font-urbanist text-xs select-none">
+              <Sparkles className="w-3.5 h-3.5 fill-brand text-brand animate-pulse" />
               <span className="font-semibold text-white">{credits}</span>
-              <span className="text-amber-400/85">Stars</span>
+              <span className="text-brand/85">Credits</span>
             </div>
           )}
           <ProfileMenuHeader />

@@ -239,7 +239,7 @@ export default function OnboardingPage(): React.ReactNode {
               Welcome, {session?.user?.name || "there"}!
             </h1>
             <p className="text-sm text-zinc-400 leading-relaxed">
-              Let's customize your workspace and connect your content pipeline. <span className="text-amber-400 font-medium font-urbanist">Completing this step earns you 10 stars.</span>
+              Let's customize your workspace and connect your content pipeline. <span className="text-brand font-medium font-urbanist">Completing this step earns you 10 credits.</span>
             </p>
           </div>
 
@@ -273,7 +273,7 @@ export default function OnboardingPage(): React.ReactNode {
           <div className="space-y-4 pt-4 border-t border-white/5">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-base text-white font-base tracking-widest flex items-center gap-1.5">
-                Step {step} of 3 <span className="text-zinc-600">•</span> <span className="text-amber-400 font-medium font-urbanist">🎁 +10 Stars Reward</span>
+                Step {step} of 3 <span className="text-zinc-600">•</span> <span className="text-brand font-medium font-urbanist">🎁 +10 Credits Reward</span>
               </span>
               <div className="flex gap-1.5">
                 {[1, 2, 3].map((s) => (

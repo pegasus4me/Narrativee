@@ -141,7 +141,7 @@ export default function CreationDetailPage() {
       setScheduledStatus((prev) => ({ ...prev, [key]: true }));
 
       if (result && (result as any).firstScheduledPostRewarded) {
-        toast.success("🎉 Milestone Complete! You scheduled your first post and earned +10 Stars!", {
+        toast.success("🎉 Milestone Complete! You scheduled your first post and earned +10 Credits!", {
           duration: 6000,
         });
       } else {

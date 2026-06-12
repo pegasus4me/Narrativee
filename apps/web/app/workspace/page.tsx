@@ -143,7 +143,7 @@ export default function WorkspaceDashboard() {
                 </div>
               </div>
               <div className="flex justify-between items-end">
-                <span className="text-[10px] text-zinc-500">Reward: +30 signup +10 setup stars</span>
+                <span className="text-[10px] text-zinc-500">Reward: +30 signup +10 setup credits</span>
                 <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-semibold font-mono">Claimed</span>
               </div>
             </div>
@@ -211,11 +211,11 @@ export default function WorkspaceDashboard() {
                 )}
               </div>
               <div className="flex justify-between items-end">
-                <span className="text-[10px] text-zinc-500">Reward: +10 publishing stars</span>
+                <span className="text-[10px] text-zinc-500">Reward: +10 publishing credits</span>
                 {isStep3Complete ? (
                   <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-semibold font-mono">Claimed</span>
                 ) : (
-                  <span className="text-[10px] text-zinc-400 font-semibold font-mono">🎁 +10 Stars</span>
+                  <span className="text-[10px] text-zinc-400 font-semibold font-mono">🎁 +10 Credits</span>
                 )}
               </div>
             </div>
