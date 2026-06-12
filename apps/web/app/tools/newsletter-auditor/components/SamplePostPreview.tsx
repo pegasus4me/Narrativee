@@ -29,10 +29,25 @@ const NICHE_HOOKS: Record<string, string[]> = {
     "I've been researching this for months. The results are surprising:",
     "Most health content gets this backwards:",
   ],
-  creator: [
+  creator_economy: [
     "The creator economy is changing. Here's what it means for you:",
     "I grew my newsletter to {n} subscribers. Here's the exact framework:",
     "Most creators focus on the wrong metric:",
+  ],
+  ai_ml: [
+    "AI is changing everything — here's what most people miss:",
+    "I've been following AI trends closely. Here's the signal vs. the noise:",
+    "Most AI content gets this completely wrong:",
+  ],
+  crypto: [
+    "The crypto insight most people overlook:",
+    "I've been tracking this on-chain for months:",
+    "Most crypto newsletters focus on price. Here's what actually matters:",
+  ],
+  lifestyle: [
+    "The lifestyle habit that changed everything for me:",
+    "I've been experimenting with this for 6 months. Here's what I found:",
+    "Most productivity advice misses the point entirely:",
   ],
   business: [
     "The business insight most founders miss:",
