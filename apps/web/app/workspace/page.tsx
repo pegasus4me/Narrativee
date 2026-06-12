@@ -78,16 +78,6 @@ export default function WorkspaceDashboard() {
   const creditBalance = creditsData?.credits ?? 0;
   const maxCredits = 1000; // Visual denominator for progress bar
 
-  const trialDaysLeft = useMemo(() => {
-    if (!user?.createdAt || (user as any).plan !== "free") return null;
-    const createdAt = new Date(user.createdAt);
-    const now = new Date();
-    const diffTime = now.getTime() - createdAt.getTime();
-    const trialDurationMs = 14 * 24 * 60 * 60 * 1000;
-    const msLeft = trialDurationMs - diffTime;
-    if (msLeft <= 0) return 0;
-    return Math.ceil(msLeft / (1000 * 60 * 60 * 24));
-  }, [user]);
 
   const isMainLoading =
     session.isPending ||
@@ -111,68 +101,6 @@ export default function WorkspaceDashboard() {
 
   return (
     <div className="mx-auto w-[90%] space-y-8 px-6 py-10 antialiased">
-      {/* ─── Hero Welcome Banner ─── */}
-      <header className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/70 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.4)]">
-        <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-white/5 blur-[100px]" />
-        <div className="absolute -left-24 -bottom-24 h-96 w-96 rounded-full bg-white/5 blur-[100px]" />
-
-        {/* Subtle grid lines */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-20">
-          {[...Array(4)].map((_, i) => (
-            <div
-              key={`h-${i}`}
-              className="absolute h-px bg-white/10"
-              style={{
-                top: `${25 * (i + 1)}%`,
-                left: 0,
-                right: 0,
-              }}
-            />
-          ))}
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={`v-${i}`}
-              className="absolute w-px bg-white/10"
-              style={{
-                left: `${16.6 * (i + 1)}%`,
-                top: 0,
-                bottom: 0,
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-3.5 max-w-2xl">
-            <div className="flex flex-wrap gap-2.5">
-              {trialDaysLeft !== null && (
-                <span className="inline-flex items-center gap-1.5 font-jetbrains bg-brand/10 border border-brand/20 px-3 py-1 text-[11px] text-brand animate-in fade-in duration-300">
-                  {trialDaysLeft} {trialDaysLeft === 1 ? "day" : "days"} left on free trial
-                </span>
-              )}
-            </div>
-            <h1 className="text-3xl font-display tracking-tight text-zinc-100 md:text-4xl leading-tight">
-              Welcome back, <span className="text-white font-light">{user?.name || "Creator"}</span>
-            </h1>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
-
-            <Link
-              href="/workspace/create/new"
-              className="inline-flex items-center gap-2 rounded-full bg-brand hover:bg-brand/90 text-white px-5 py-3 text-sm font-light hover:shadow-brand/20 transition-all duration-200"
-            >
-              Generate Social Pack
-            </Link>
-            <Link
-              href="/workspace/memory"
-              className="inline-flex items-center gap-2 hover:bg-white/[0.06] text-zinc-200 px-5 py-3 text-xs font-semibold tracking-wide transition-all duration-200"
-            >
-              Voice Memory
-            </Link>
-          </div>
-        </div>
-      </header>
 
       {/* ─── Metrics Grid ─── */}
       <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

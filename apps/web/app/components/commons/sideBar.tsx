@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useSideBarStore } from "../../state/SideBar.store";
 import { authClient } from "../../../lib/auth-client";
@@ -69,6 +69,18 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
   const { data: creditsData } = useCredits(isLoggedIn);
 
   const credits = creditsData?.credits ?? null;
+
+  const user = session?.user;
+  const trialDaysLeft = useMemo(() => {
+    if (!user?.createdAt || (user as any).plan !== "free") return null;
+    const createdAt = new Date(user.createdAt);
+    const now = new Date();
+    const diffTime = now.getTime() - createdAt.getTime();
+    const trialDurationMs = 14 * 24 * 60 * 60 * 1000;
+    const msLeft = trialDurationMs - diffTime;
+    if (msLeft <= 0) return 0;
+    return Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+  }, [user]);
 
   const channels = channelsData ?? [];
   const sources = sourcesData ?? [];
@@ -386,6 +398,11 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                     style={{ width: `${Math.min(100, Math.max(0, ((credits ?? 40) / 40) * 100))}%` }}
                   />
                 </div>
+                {trialDaysLeft !== null && (
+                  <div className="text-[10px] text-zinc-400 text-center font-mono font-medium">
+                    {trialDaysLeft} {trialDaysLeft === 1 ? "day" : "days"} remaining
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => setShowPricing(true)}
@@ -401,7 +418,7 @@ export function SideBar({ selectedTemplateId }: SideBarProps) {
                 <button
                   type="button"
                   onClick={() => setShowPricing(true)}
-                  title={`Upgrade - ${credits ?? 0}/40 credits left`}
+                  title={`Upgrade - ${credits ?? 0}/40 credits left${trialDaysLeft !== null ? ` (${trialDaysLeft} days left)` : ""}`}
                   className="w-8 h-8 rounded-full bg-brand/10 border border-brand/20 hover:bg-brand/20 flex items-center justify-center text-[10px] font-bold text-brand transition-all"
                 >
                   {credits !== null ? credits : "T"}
