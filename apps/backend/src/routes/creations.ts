@@ -623,6 +623,15 @@ router.post("/:creationId/drafts/:channelId/schedule", verifyAuth, async (req: A
     const draftText = typeof text === "string" ? text : draft.text;
     const content = buildScheduledDraftContent(draft, draftText);
 
+    // Check if this is the user's first scheduled post
+    const existingPosts = await db
+      .select({ id: socialPosts.id })
+      .from(socialPosts)
+      .where(eq(socialPosts.userId, req.user.id))
+      .limit(1);
+
+    const isFirstSchedule = existingPosts.length === 0;
+
     const [newPost] = await db
       .insert(socialPosts)
       .values({
@@ -635,7 +644,24 @@ router.post("/:creationId/drafts/:channelId/schedule", verifyAuth, async (req: A
       })
       .returning();
 
-    return res.status(200).json({ success: true, post: newPost });
+    let firstScheduledPostRewarded = false;
+    if (isFirstSchedule) {
+      const [currentUser] = await db
+        .select({ tokens: user.tokens })
+        .from(user)
+        .where(eq(user.id, req.user.id))
+        .limit(1);
+
+      if (currentUser) {
+        await db
+          .update(user)
+          .set({ tokens: (currentUser.tokens ?? 0) + 10 })
+          .where(eq(user.id, req.user.id));
+        firstScheduledPostRewarded = true;
+      }
+    }
+
+    return res.status(200).json({ success: true, post: newPost, firstScheduledPostRewarded });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to schedule draft";
     return res.status(500).json({ error: message });

@@ -28,6 +28,7 @@ import {
   useCredits,
   useKnowledgeBase,
 } from "@/app/hooks/api";
+import { useSources } from "@/app/hooks/api/useSources";
 import {
   LINKEDIN_LOGO,
   X_LOGO,
@@ -67,6 +68,7 @@ export default function WorkspaceDashboard() {
   const { data: articles, isLoading: loadingArticles } = useArticles(isAuthenticated);
   const { data: creditsData, isLoading: loadingCredits } = useCredits(isAuthenticated);
   const { data: kb, isLoading: loadingKB } = useKnowledgeBase(isAuthenticated);
+  const { data: sourcesData, isLoading: loadingSources } = useSources(isAuthenticated);
 
   const activeChannels = channels ?? [];
   const savedCreations = creations ?? [];
@@ -78,6 +80,11 @@ export default function WorkspaceDashboard() {
   const creditBalance = creditsData?.credits ?? 0;
   const maxCredits = 1000; // Visual denominator for progress bar
 
+  const sources = sourcesData ?? [];
+  const isStep2Complete = sources.length > 0;
+  const isStep3Complete = (queue ?? []).length > 0;
+  const completedMilestonesCount = 1 + (isStep2Complete ? 1 : 0) + (isStep3Complete ? 1 : 0);
+  const showRoadmap = !isStep3Complete;
 
   const isMainLoading =
     session.isPending ||
@@ -86,7 +93,8 @@ export default function WorkspaceDashboard() {
     loadingQueue ||
     loadingArticles ||
     loadingCredits ||
-    loadingKB;
+    loadingKB ||
+    loadingSources;
 
   if (isMainLoading) {
     return (
@@ -101,6 +109,119 @@ export default function WorkspaceDashboard() {
 
   return (
     <div className="mx-auto w-[90%] space-y-8 px-6 py-10 antialiased">
+      {/* ─── Creator Launch Roadmap Checklist ─── */}
+      {showRoadmap && (
+        <section className="rounded-3xl border border-brand/20 bg-brand/[0.02] p-6 backdrop-blur-md shadow-[0_8px_32px_rgba(139,92,246,0.05)] space-y-4 relative overflow-hidden animate-in slide-in-from-top-4 duration-300">
+
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-zinc-100 flex items-center gap-2">
+                  Creator Launch Roadmap
+                </h2>
+              </div>
+              <p className="text-xs text-zinc-400 mt-1 max-w-xl">
+                Complete these three quick milestones to unlock your credit boosts and get fully set up for publishing!
+              </p>
+            </div>
+            <div className="flex items-center gap-2 bg-brand/10 border border-brand/20 px-3.5 py-1.5 rounded-full text-xs font-semibold text-brand w-fit font-mono">
+              Progress: {completedMilestonesCount}/3 Complete
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3 pt-2">
+            {/* Step 1 */}
+            <div className="rounded-2xl border border-white/5 bg-zinc-950/40 p-4 flex flex-col justify-between h-32 relative">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">Step 1</p>
+                  <h3 className="text-xs font-bold text-zinc-200">Complete Profile Setup</h3>
+                </div>
+                <div className="rounded-full bg-emerald-500/10 border border-emerald-500/20 p-1 text-emerald-400">
+                  <CheckCircle2 className="w-4 h-4 fill-emerald-500/10" />
+                </div>
+              </div>
+              <div className="flex justify-between items-end">
+                <span className="text-[10px] text-zinc-500">Reward: +30 signup +10 setup stars</span>
+                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-semibold font-mono">Claimed</span>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className={`rounded-2xl border p-4 flex flex-col justify-between h-32 transition-all duration-300 ${isStep2Complete
+              ? "border-white/5 bg-zinc-950/40"
+              : "border-brand/20 bg-zinc-950/60 shadow-[0_0_15px_rgba(139,92,246,0.02)]"
+              }`}>
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">Step 2</p>
+                  <h3 className="text-xs font-bold text-zinc-200">Sync a Newsletter Feed</h3>
+                </div>
+                {isStep2Complete ? (
+                  <div className="rounded-full bg-emerald-500/10 border border-emerald-500/20 p-1 text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4 fill-emerald-500/10" />
+                  </div>
+                ) : (
+                  <Link
+                    href="/workspace/channels"
+                    className="rounded-full bg-brand hover:bg-brand/90 p-1 text-white transition-colors"
+                    title="Connect channels or newsletter sources"
+                  >
+                    <ArrowUpRight className="w-4 h-4" />
+                  </Link>
+                )}
+              </div>
+              <div className="flex justify-between items-end">
+                <span className="text-[10px] text-zinc-500">Sync Milestone</span>
+                {isStep2Complete ? (
+                  <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-semibold font-mono">Claimed</span>
+                ) : (
+                  <Link
+                    href="/workspace/channels"
+                    className="text-[10px] text-brand hover:underline font-semibold"
+                  >
+                    Sync Now ➔
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className={`rounded-2xl border p-4 flex flex-col justify-between h-32 transition-all duration-300 ${isStep3Complete
+              ? "border-white/5 bg-zinc-950/40 animate-in zoom-in-95 duration-100"
+              : "border-brand/10 bg-zinc-950/30"
+              }`}>
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">Step 3</p>
+                  <h3 className="text-xs font-bold text-zinc-200">Schedule Your First Post</h3>
+                </div>
+                {isStep3Complete ? (
+                  <div className="rounded-full bg-emerald-500/10 border border-emerald-500/20 p-1 text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4 fill-emerald-500/10" />
+                  </div>
+                ) : (
+                  <Link
+                    href="/workspace/create/new"
+                    className="rounded-full bg-brand/20 hover:bg-brand/30 border border-brand/30 p-1 text-brand transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Link>
+                )}
+              </div>
+              <div className="flex justify-between items-end">
+                <span className="text-[10px] text-zinc-500">Reward: +10 publishing stars</span>
+                {isStep3Complete ? (
+                  <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-semibold font-mono">Claimed</span>
+                ) : (
+                  <span className="text-[10px] text-zinc-400 font-semibold font-mono">🎁 +10 Stars</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ─── Metrics Grid ─── */}
       <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

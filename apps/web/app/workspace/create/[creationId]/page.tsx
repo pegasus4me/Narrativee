@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { ArrowLeft, CalendarDays, Loader2, Calendar, Clock, Check, AlertCircle } from "lucide-react";
 import { useCreationSession, useUpdateCreationSession, useScheduleCreationDraft, useRenderCreationCarousel } from "@/app/hooks/api";
 import { toUTCISOString, getBrowserTimezone } from "@/app/components/workspace/TimezoneSelect";
@@ -129,7 +130,7 @@ export default function CreationDetailPage() {
       const userTimezone = getBrowserTimezone();
       const scheduledAtUTC = toUTCISOString(selectedDate, selectedTime, userTimezone);
 
-      await scheduleDraft.mutateAsync({
+      const result = await scheduleDraft.mutateAsync({
         creationId,
         channelId: draft.channelId,
         variantNumber: draft.variantNumber,
@@ -138,9 +139,18 @@ export default function CreationDetailPage() {
       });
 
       setScheduledStatus((prev) => ({ ...prev, [key]: true }));
+
+      if (result && (result as any).firstScheduledPostRewarded) {
+        toast.success("🎉 Milestone Complete! You scheduled your first post and earned +10 Stars!", {
+          duration: 6000,
+        });
+      } else {
+        toast.success("Post scheduled successfully!");
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to schedule post";
       setScheduleError((prev) => ({ ...prev, [key]: message }));
+      toast.error(message);
     }
   };
 
@@ -333,7 +343,12 @@ export default function CreationDetailPage() {
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium capitalize text-zinc-100">{draft.platform}</p>
+                          <p className="text-sm font-medium capitalize text-zinc-100 flex items-center gap-1.5">
+                            {draft.platform}
+                            {((channel?.accountName || draft.accountName || "").toLowerCase().includes("demo")) && (
+                              <span className="text-[9px] bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-full font-mono uppercase font-semibold">Demo</span>
+                            )}
+                          </p>
                           <p className="text-xs text-zinc-500">{draft.accountName ?? "Connected account"}</p>
                         </div>
                       </div>

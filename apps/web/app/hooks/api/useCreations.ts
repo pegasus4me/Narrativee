@@ -170,7 +170,7 @@ export function useScheduleCreationDraft() {
         }),
       });
 
-      const data = await readJsonResponse<{ success?: boolean; error?: string }>(
+      const data = await readJsonResponse<{ success?: boolean; error?: string; firstScheduledPostRewarded?: boolean }>(
         response,
         "The scheduling endpoint is unavailable. Restart the backend and try again.",
       );
@@ -183,6 +183,7 @@ export function useScheduleCreationDraft() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["drafts", "queue"] });
       queryClient.invalidateQueries({ queryKey: CREATION_SESSION_KEY(variables.creationId) });
+      queryClient.invalidateQueries({ queryKey: ["credits"] });
     },
   });
 }

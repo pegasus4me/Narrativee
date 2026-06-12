@@ -2,54 +2,54 @@ import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-const FROM = "Safoan <hello@narrativee.com>";
+const FROM = "Safoan from Narrativee <hello@narrativee.com>";
 
 interface WeeklyDigestData {
-    email: string;
-    name: string;
-    notesPosted: number;
-    totalLikes: number;
-    totalComments: number;
-    totalRestacks: number;
-    newSubscribers: number;
-    topNote: { content: string; likes: number } | null;
+  email: string;
+  name: string;
+  notesPosted: number;
+  totalLikes: number;
+  totalComments: number;
+  totalRestacks: number;
+  newSubscribers: number;
+  topNote: { content: string; likes: number } | null;
 }
 
 export const EmailService = {
-    async sendWeeklyDigest(data: WeeklyDigestData) {
-        if (!resend) {
-            console.error("❌ RESEND_API_KEY is missing — weekly digest skipped");
-            return;
-        }
-        const { data: result, error } = await resend.emails.send({
-            from: FROM,
-            to: data.email,
-            subject: "Your Narrativee weekly recap",
-            html: weeklyDigestHtml(data),
-        });
-        if (error) console.error('[Email] Weekly digest error:', error);
-    },
+  async sendWeeklyDigest(data: WeeklyDigestData) {
+    if (!resend) {
+      console.error("❌ RESEND_API_KEY is missing — weekly digest skipped");
+      return;
+    }
+    const { data: result, error } = await resend.emails.send({
+      from: FROM,
+      to: data.email,
+      subject: "Your Narrativee weekly recap",
+      html: weeklyDigestHtml(data),
+    });
+    if (error) console.error('[Email] Weekly digest error:', error);
+  },
 
-    async sendWelcome({ email, name, promoCode }: { email: string; name: string; promoCode: string }) {
-        if (!resend) {
-            console.error("❌ RESEND_API_KEY is missing — welcome email skipped");
-            return;
-        }
-        const { error } = await resend.emails.send({
-            from: FROM,
-            to: email,
-            subject: "Welcome to Narrativee",
-            html: welcomeEmailHtml({ name, promoCode }),
-        });
-        if (error) {
-            console.error('[Email] Welcome email error:', error);
-        }
-    },
+  async sendWelcome({ email, name, promoCode }: { email: string; name: string; promoCode: string }) {
+    if (!resend) {
+      console.error("❌ RESEND_API_KEY is missing — welcome email skipped");
+      return;
+    }
+    const { error } = await resend.emails.send({
+      from: FROM,
+      to: email,
+      subject: "Welcome to Narrativee",
+      html: welcomeEmailHtml({ name, promoCode }),
+    });
+    if (error) {
+      console.error('[Email] Welcome email error:', error);
+    }
+  },
 };
 
 function welcomeEmailHtml({ name, promoCode }: { name: string; promoCode: string }) {
-    const firstName = name?.split(" ")[0] || "there";
-    return `<!DOCTYPE html>
+  const firstName = name?.split(" ")[0] || "there";
+  return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -139,23 +139,23 @@ function welcomeEmailHtml({ name, promoCode }: { name: string; promoCode: string
 }
 
 function weeklyDigestHtml(d: WeeklyDigestData) {
-    const firstName = d.name?.split(" ")[0] || "there";
-    const weekLabel = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-    const topNoteHtml = d.topNote
-        ? `<div style="margin-top:24px;padding:16px;background:#111;border-left:3px solid #f97316;border-radius:6px;">
+  const firstName = d.name?.split(" ")[0] || "there";
+  const weekLabel = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  const topNoteHtml = d.topNote
+    ? `<div style="margin-top:24px;padding:16px;background:#111;border-left:3px solid #f97316;border-radius:6px;">
             <p style="margin:0 0 8px;font-size:11px;color:#f97316;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Top note this week</p>
             <p style="margin:0 0 8px;font-size:14px;color:#d1d5db;line-height:1.5;">"${d.topNote.content.substring(0, 120)}${d.topNote.content.length > 120 ? '...' : ''}"</p>
             <p style="margin:0;font-size:12px;color:#6b7280;">${d.topNote.likes} likes</p>
           </div>`
-        : "";
+    : "";
 
-    const stat = (value: number | string, label: string, color: string) =>
-        `<td style="text-align:center;padding:16px 8px;">
+  const stat = (value: number | string, label: string, color: string) =>
+    `<td style="text-align:center;padding:16px 8px;">
             <div style="font-size:24px;font-weight:700;color:${color};">${value}</div>
             <div style="font-size:11px;color:#6b7280;margin-top:4px;">${label}</div>
          </td>`;
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
 <body style="margin:0;padding:0;background:#0f0f0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
