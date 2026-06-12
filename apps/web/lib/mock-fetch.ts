@@ -16,6 +16,13 @@ export function setupMockFetch() {
     }
 
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+
+    // Only intercept backend API and ideas requests; do not intercept page routes, Next.js assets, or Server Actions
+    const isApiRequest = url.includes("/api/") || url.includes("/ideas");
+    if (!isApiRequest) {
+      return originalFetch(input, init);
+    }
+
     console.log(`[MockFetch] Intercepted Request: ${url}`, init);
 
     const makeResponse = (data: any, status = 200) => {

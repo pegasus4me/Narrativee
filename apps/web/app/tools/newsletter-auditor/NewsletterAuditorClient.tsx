@@ -17,7 +17,6 @@ import LandingPageAudit from "./components/LandingPageAudit";
 import MonetizationProjectionSection from "./components/MonetizationProjection";
 import GrowthRecommendations from "./components/GrowthRecommendations";
 import AuthGateOverlay from "./components/AuthGateOverlay";
-import SamplePostPreview from "./components/SamplePostPreview";
 
 /**
  * Main orchestrator for the Newsletter Growth & Monetization Audit tool.
@@ -88,7 +87,8 @@ export default function NewsletterAuditorClient() {
           setCrawlStep(0);
         }
       } catch (err) {
-        alert("An unexpected error occurred during the audit.");
+        const msg = err instanceof Error ? err.message : String(err);
+        alert("An unexpected error occurred during the audit.\n\n" + msg);
         setCrawlStep(0);
       } finally {
         timers.forEach(clearTimeout);
@@ -294,18 +294,7 @@ export default function NewsletterAuditorClient() {
               </div>
             </div>
 
-            {/* ── Sample Post Bridge ───────────────────────────────── */}
-            <SamplePostPreview
-              auditResult={auditResult}
-              onSignup={() => {
-                posthog?.capture("sample_post_cta_clicked", {
-                  niche: auditResult.input?.niche,
-                  subscriberCount: auditResult.input?.subscriberCount,
-                  isLoggedIn: !!user,
-                });
-                setShowAuthGate(true);
-              }}
-            />
+
 
             {/* ── Growth Recommendations ───────────────────────────── */}
             <GrowthRecommendations
