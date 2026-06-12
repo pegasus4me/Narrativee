@@ -7,6 +7,7 @@ import { buildScheduledDraftContent, extractCarouselPlatforms, findCreationDraft
 import { type CreationDraft } from "../agentic/types";
 import { markCarouselRenderFailure, renderCreationDraftCarousel, createCarouselRenderProvider } from "../carousels/render-carousel";
 import { generateCreationDrafts } from "../services/creation-service";
+import { posthog } from "../lib/posthog";
 
 const router = Router();
 
@@ -353,6 +354,20 @@ router.post("/", verifyAuth, async (req: AuthRequest, res: Response) => {
       })
       .returning({ id: creationSessions.id });
 
+    posthog.capture({
+      distinctId: req.user.id,
+      event: "creation_session_created",
+      properties: {
+        creation_id: createdSession.id,
+        article_id: article.id,
+        draft_count: generationResult.drafts.length,
+        channel_count: normalizedChannelIds.length,
+        platforms: orderedChannels.map((c) => c.platform),
+        carousel_platforms: normalizedCarouselPlatforms,
+        angle_count: normalizedAngles.length,
+      },
+    });
+
     return res.status(201).json({ creationId: createdSession.id });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to create draft session";
@@ -643,6 +658,19 @@ router.post("/:creationId/drafts/:channelId/schedule", verifyAuth, async (req: A
         scheduledAt: new Date(scheduledAt),
       })
       .returning();
+
+    posthog.capture({
+      distinctId: req.user.id,
+      event: "post_scheduled",
+      properties: {
+        post_id: newPost.id,
+        creation_id: creationId,
+        channel_id: targetChannelId,
+        platform: draft.platform,
+        is_first_post: isFirstSchedule,
+        scheduled_at: scheduledAt,
+      },
+    });
 
     let firstScheduledPostRewarded = false;
     if (isFirstSchedule) {
