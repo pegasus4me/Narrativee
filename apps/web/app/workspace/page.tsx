@@ -154,9 +154,6 @@ export default function WorkspaceDashboard() {
             <h1 className="text-3xl font-display tracking-tight text-zinc-100 md:text-4xl leading-tight">
               Welcome back, <span className="text-white font-light">{user?.name || "Creator"}</span>
             </h1>
-            <p className="text-sm leading-relaxed text-zinc-400">
-              Narrativee helps you translate your deep-dive newsletter issues into high-performing, native-channel social campaigns. Monitor your queues and launch packs below.
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
