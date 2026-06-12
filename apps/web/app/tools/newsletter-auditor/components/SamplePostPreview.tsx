@@ -68,8 +68,8 @@ function generatePost(auditResult: AuditResult): string {
   const desc = auditResult.crawledData?.descText ?? "";
   const freq = auditResult.crawledData?.estimatedFrequency;
 
-  const hooks = NICHE_HOOKS[niche] ?? NICHE_HOOKS.other;
-  const hook = (hooks[Math.floor(subs % hooks.length)] ?? hooks[0])
+  const hooks = NICHE_HOOKS[niche] ?? NICHE_HOOKS["other"] ?? [];
+  const hook = (hooks[Math.floor(subs % Math.max(hooks.length, 1))] ?? hooks[0] ?? "")
     .replace("{n}", subs.toLocaleString());
 
   const topRec = auditResult.recommendations?.find(
@@ -80,7 +80,7 @@ function generatePost(auditResult: AuditResult): string {
     ? `My newsletter "${h1}" covers exactly this.`
     : desc.length > 20
       ? desc.slice(0, 100) + (desc.length > 100 ? "..." : "")
-      : `I write about ${niche} every ${freq !== "Unknown" ? freq.toLowerCase() : "week"}.`;
+      : `I write about ${niche} every ${freq && freq !== "Unknown" ? freq.toLowerCase() : "week"}.`;
 
   const freqLine = freq && freq !== "Unknown"
     ? `I send it ${freq.toLowerCase()} to ${subs.toLocaleString()}+ subscribers.`
