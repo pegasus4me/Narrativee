@@ -55,32 +55,32 @@ export default function ProfileMenuHeader() {
             {/* The trigger button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 focus:outline-none p-1 rounded-lg hover:bg-zinc-800/40 transition-colors"
+                className="flex items-center gap-2 focus:outline-none p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer"
             >
                 <Image
                     src={getAvatar(image)}
                     alt={name || 'User'}
                     width={32}
                     height={32}
-                    className="rounded-full shrink-0 object-cover border border-zinc-800"
+                    className="rounded-full shrink-0 object-cover border border-zinc-200 dark:border-zinc-800"
                 />
-                <span className="hidden md:block text-sm font-medium text-zinc-300 max-w-[100px] truncate">
+                <span className="hidden md:block text-sm font-medium text-zinc-700 dark:text-zinc-300 max-w-[100px] truncate">
                     {name}
                 </span>
-                <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0" />
+                <ChevronDown className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0" />
             </button>
 
             {/* The dropdown menu (pops DOWN) */}
             {isOpen && (
-                <div className="absolute top-full right-0 mt-2 w-56 bg-[#18181b] border border-zinc-800/80 rounded-xl shadow-lg shadow-black/50 py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-100">
-                    <div className="px-4 py-2 border-b border-zinc-800/80 mb-1">
-                        <p className="text-sm font-medium text-zinc-200 truncate">{name}</p>
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800/80 rounded-xl shadow-lg shadow-black/5 dark:shadow-black/50 py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-100">
+                    <div className="px-4 py-2 border-b border-zinc-100 dark:border-zinc-800/80 mb-1">
+                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-200 truncate">{name}</p>
                         <p className="text-xs text-zinc-500 truncate">{email}</p>
                     </div>
 
                     <Link
                         href="/setting"
-                        className="block px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                        className="block px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white transition-colors"
                         onClick={() => setIsOpen(false)}
                     >
                         Account Settings
@@ -88,7 +88,7 @@ export default function ProfileMenuHeader() {
 
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-2 text-left px-4 py-2 text-sm text-red-400 hover:bg-red-950/20 hover:text-red-300 transition-colors"
+                        className="w-full flex items-center gap-2 text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-300 transition-colors cursor-pointer"
                     >
                         <LogOut className="w-4 h-4" />
                         Log out

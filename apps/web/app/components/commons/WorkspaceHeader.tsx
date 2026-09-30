@@ -1,53 +1,32 @@
 "use client";
 
-import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import Breadcrumbs from "./Breadcrumbs";
 import ProfileMenuHeader from "./ProfileMenuHeader";
-import { useCredits } from "@/app/hooks/api/useCredits";
 import { Sparkles } from "lucide-react";
-
-interface UserWithPlan {
-  readonly plan?: string;
-}
+import { reportApi } from "@/lib/apis";
 
 /**
- * Type guard to check if a user object contains a free plan property.
- * Avoids raw unsafe type assertions.
- */
-function isFreePlanUser(user: unknown): user is UserWithPlan {
-  if (typeof user !== "object" || user === null) {
-    return false;
-  }
-  return "plan" in user && (user as UserWithPlan).plan === "free";
-}
-
-/**
- * Premium Sticky Top Header Bar component for the workspace shell.
- * Renders Breadcrumbs navigation, Upgrade Plan button (for free trial users),
- * and the user profile dropdown menu.
+ * WorkspaceHeader component for the workspace shell.
+ * Spans full width edge-to-edge across the page with breadcrumb navigation,
+ * credits indicator, and user profile dropdown.
  */
 export default function WorkspaceHeader(): React.JSX.Element {
   const session = authClient.useSession();
   const user = session.data?.user;
-  const isFreePlan = isFreePlanUser(user);
-  const { data: creditsData } = useCredits(!!user);
-  const credits = creditsData?.credits ?? 0;
+  const [credits, setCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (session.data?.user) {
+      reportApi.getUserCredits().then(setCredits).catch(() => {});
+    }
+  }, [session.data?.user]);
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-white/20 bg-[#09090b]/80 backdrop-blur-md">
-      <div className="mx-auto w-[90%] px-6 py-4 flex items-center justify-between">
-        <Breadcrumbs />
-        <div className="flex items-center gap-4">
-          {user && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand/10 border border-brand/20 shadow-[0_0_15px_rgba(233,154,177,0.05)] text-brand font-urbanist text-xs select-none">
-              <Sparkles className="w-3.5 h-3.5 fill-brand text-brand animate-pulse" />
-              <span className="font-semibold text-white">{credits}</span>
-              <span className="text-brand/85">Credits</span>
-            </div>
-          )}
-          <ProfileMenuHeader />
+    <header className="sticky top-0 z-30 w-full h-14 shrink-0 border-b border-zinc-200 dark:border-white/[0.08] bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md transition-colors duration-200">
+      <div className="w-full h-full px-4 sm:px-6 flex items-center justify-between">
+        <div className="flex items-center gap-3 ml-auto">
+        
         </div>
       </div>
     </header>

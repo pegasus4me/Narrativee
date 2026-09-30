@@ -1,14 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Github, Menu, X, Star } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { authClient } from "../../../lib/auth-client";
-import logo from "../../../public/logo.png"
-import PrimaryButton from "./PrimaryButton";
-import ProfileMenu from "./ProfileMenu";
+import dark_logo from "public/logo-dark.png";
+import white_logo from "public/logo-white.png";
 
 interface HeaderProps {
   onBetaSignup?: () => void;
@@ -16,88 +14,39 @@ interface HeaderProps {
 
 export default function Header({ onBetaSignup }: HeaderProps = {}) {
   const router = useRouter();
+  const ph = usePostHog();
   const { data: session } = authClient.useSession();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const start = () => {
+    ph?.capture("header_cta_clicked", { action: session ? "go_to_workspace" : "scroll_to_waitlist" });
+    if (onBetaSignup) onBetaSignup();
+    else router.push(session ? "/workspace" : "/#start");
+  };
 
   return (
-    <header className="">
-      {/* Main header bar */}
-      <div className="relative flex items-center justify-between px-4 md:px-6 py-2 text-black">
-        {/* Logo */}
-        <div className="flex items-center gap-2 z-10">
-          <div className="w-[120px] md:w-[160px]">
-            <Image src={logo} alt="Narrativee - Newsletter Repurposing" width={160} height={100} className="w-full h-auto" />
-          </div>
-        </div>
+    <header className="relative z-2 mx-auto grid w-[calc(100%-48px)] md:w-[min(60%,1120px)] h-[100px] md:h-[116px] grid-cols-[1fr_auto] md:grid-cols-3 items-start pt-5 text-[17px] font-semibold text-[#f3f3f3]">
+      <Link className="w-max text-[20px] tracking-[-0.04em]" href="/" aria-label="Narrativee home">
+        <Image src={dark_logo} alt="Narrativee" width={160} height={31} className="h-7 w-auto object-contain dark:hidden md:h-8" priority />
+        <Image src={white_logo} alt="" width={160} height={31} className="hidden h-7 w-auto object-contain dark:block md:h-8" priority />
+      </Link>
 
-        {/* Desktop nav - Absolutely centered */}
-        <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2  items-center gap-8 text-sm font-medium font-manrope">
-          <Link href="/pricing" className="hover:opacity-70">Pricing</Link>
-          <Link href="/#features" className="hover:opacity-70">Features</Link>
-          <Link href="/#solution" className="hover:opacity-70">Solution</Link>
-        </nav>
+      <nav className="hidden md:flex flex-row gap-5 justify-self-center gap-0 leading-[1.38]" aria-label="Main navigation">
+        <Link className="text-[#f3f3f3] transition-colors duration-180 hover:text-white" href="/#features" onClick={() => ph?.capture("nav_clicked", { target: "features" })}>Explore</Link>
+        <Link className="text-[#858585] transition-colors duration-180 hover:text-white" href="/#solution" onClick={() => ph?.capture("nav_clicked", { target: "solution" })}>Solution</Link>
+        <Link className="text-[#858585] transition-colors duration-180 hover:text-white" href="/#start" onClick={() => ph?.capture("nav_clicked", { target: "waitlist" })}>Waitlist</Link>
+      </nav>
 
-        {/* Desktop CTA */}
-        <div className="hidden md:flex gap-4 items-center z-10">
-          {session ? (
-            < ProfileMenu />
-          ) : (
-            <>
-              <button
-                className="text-sm font-medium  hover:opacity-70 transition-opacity"
-                onClick={onBetaSignup || (() => router.push('/auth/signin'))}
-              >
-                Login
-              </button>
-              <PrimaryButton onClick={onBetaSignup || (() => router.push('/auth/signup'))}>Get Started for free</PrimaryButton>
-            </>
-          )}
-        </div>
-
-        {/* Mobile menu button */}
+      <div className="flex items-center justify-self-end">
         <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden text-white p-2"
-          aria-label="Toggle menu"
+          className="group inline-flex items-center whitespace-nowrap text-[15px] md:text-base font-semibold text-[#f3f3f3] transition-colors hover:text-white cursor-pointer"
+          type="button"
+          onClick={start}
+          data-ph-capture-attribute="header-cta-button"
         >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {session ? "Dashboard" : "Join waitlist"}
+          <span aria-hidden="true" className="inline-block ml-2 text-[1.1em] transition-transform duration-180 group-hover:translate-x-1">→</span>
         </button>
       </div>
-
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-tertiary border-t border-white/10 px-4 py-4">
-          <nav className="flex flex-col gap-4 text-white text-sm font-medium font-manrope mb-4">
-            <Link href="/pricing" className="hover:opacity-70" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
-            <Link href="/#features" className="hover:opacity-70" onClick={() => setMobileMenuOpen(false)}>Features</Link>
-            <Link href="/#solution" className="hover:opacity-70" onClick={() => setMobileMenuOpen(false)}>Solution</Link>
-            <Link href="/pricing#calculator" className="hover:opacity-70" onClick={() => setMobileMenuOpen(false)}>ROI Calculator</Link>
-          </nav>
-          <div className="flex flex-col gap-3">
-            {session ? (
-              < ProfileMenu  />
-            ) : (
-              <>
-                <button
-                  className="text-sm font-medium text-tertiary hover:opacity-70 transition-opacity text-left"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onBetaSignup) onBetaSignup();
-                    else router.push('/auth/signin');
-                  }}
-                >
-                  Login
-                </button>
-                <PrimaryButton onClick={() => {
-                  setMobileMenuOpen(false);
-                  if (onBetaSignup) onBetaSignup();
-                  else router.push('/auth/signup');
-                }}>Get Started</PrimaryButton>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </header>
   );
 }

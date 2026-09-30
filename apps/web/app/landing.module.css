@@ -1,0 +1,525 @@
+.page {
+  --page-bg: #050505;
+  --page-fg: #f3f3f3;
+  --page-muted: #929292;
+  --page-line: #252525;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--page-bg);
+  color: var(--page-fg);
+  font-family: var(--font-manrope), Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page,
+.page * {
+  box-sizing: border-box;
+}
+
+.wrap {
+  width: min(60%, 1120px);
+  margin-inline: auto;
+}
+
+.topbar {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: min(60%, 1120px);
+  height: 116px;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: start;
+  padding-top: 22px;
+  margin-inline: auto;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.brand {
+  width: max-content;
+  font-size: 20px;
+  letter-spacing: -0.04em;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  justify-self: center;
+  gap: 0;
+  line-height: 1.38;
+}
+
+.nav a,
+.loginLink {
+  color: #858585;
+  transition: color 180ms ease;
+}
+
+.nav a:first-child {
+  color: var(--page-fg);
+}
+
+.nav a:hover,
+.loginLink:hover,
+.textLink:hover,
+.footer a:hover {
+  color: #fff;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 18px;
+}
+
+.loginLink {
+  font-size: 14px;
+}
+
+.topCta {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.arrow {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 1.1em;
+  transition: transform 180ms ease;
+}
+
+.topCta:hover .arrow {
+  transform: translateX(4px);
+}
+
+.hero {
+  padding-top: clamp(88px, 10vw, 150px);
+}
+
+.heroCentered {
+  text-align: center;
+}
+
+.split,
+.sectionRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.eyebrow,
+.sectionTitle {
+  margin: 0;
+  color: var(--page-muted);
+  font-size: 18px;
+  font-weight: 550;
+  line-height: 1.4;
+}
+
+.heroCopy {
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(36px, 3.25vw, 52px);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.08;
+}
+
+.heroTitle span {
+  display: block;
+  color: #888;
+}
+
+.heroCopy > p {
+  max-width: 620px;
+  margin: 40px 0 36px;
+  color: #9a9a9a;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.4;
+}
+
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  font-size: 17px;
+  font-weight: 600;
+  transition: color 180ms ease;
+}
+
+.textLink:hover,
+.footer a:hover {
+  color: #fff;
+}
+
+.heroForm {
+  margin-top: 28px;
+}
+
+.heroArt {
+  position: relative;
+  height: clamp(210px, 31vw, 420px);
+  margin: 80px 0 170px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #080808;
+}
+
+.heroImage {
+  object-fit: cover;
+}
+
+.section {
+  margin-bottom: 155px;
+  scroll-margin-top: 48px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+}
+
+.features {
+  max-width: 720px;
+}
+
+.feature {
+  display: block;
+  padding: 0 0 27px;
+  margin-bottom: 34px;
+  border-bottom: 1px solid var(--page-line);
+}
+
+.feature:last-child {
+  margin-bottom: 0;
+}
+
+.featureTitle {
+  margin-bottom: 5px;
+  font-size: 20px;
+  font-weight: 550;
+}
+
+.feature p {
+  max-width: 610px;
+  margin: 0;
+  color: var(--page-muted);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.useImages {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 52px;
+}
+
+.useImage {
+  position: relative;
+  height: clamp(190px, 25vw, 360px);
+  overflow: hidden;
+  background: #080808;
+}
+
+.useImage img {
+  object-fit: cover;
+}
+
+.productCopy {
+  grid-column: 2;
+  max-width: 690px;
+}
+
+.productCopy p {
+  margin: 0;
+  color: #999;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+}
+
+.journalGrid {
+  display: grid;
+  grid-column: 2;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.journalItem {
+  min-height: 180px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--page-line);
+}
+
+.journalItem:first-child {
+  grid-column: 1 / -1;
+  min-height: 0;
+}
+
+.journalKicker {
+  margin-bottom: 16px;
+  color: #858585;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.journalItem h3 {
+  margin: 0 0 12px;
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.journalItem p {
+  margin: 0;
+  color: #929292;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.pricingCopy {
+  grid-column: 2;
+  max-width: 700px;
+}
+
+.pricingCopy p {
+  margin: 0 0 26px;
+  color: #999;
+  font-size: 19px;
+  line-height: 1.5;
+}
+
+.faqList {
+  grid-column: 2;
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--page-line);
+}
+
+.faqQuestion {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 21px 0;
+  color: var(--page-fg);
+  font: inherit;
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
+  list-style: none;
+}
+
+.faqQuestion::-webkit-details-marker {
+  display: none;
+}
+
+.faqQuestion::after {
+  content: "+";
+  color: #999;
+  font-size: 22px;
+  transition: transform 180ms ease;
+}
+
+.faqItem[open] .faqQuestion::after {
+  transform: rotate(45deg);
+}
+
+.faqAnswer {
+  max-width: 680px;
+  padding: 0 35px 22px 0;
+  color: #929292;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.footer {
+  padding: 26px 0 30px;
+  margin-top: 40px;
+  border-top: 1px solid #222;
+}
+
+.footerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.footerBrand {
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.footerMeta {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  color: #929292;
+  font-size: 13px;
+}
+
+.footer a {
+  transition: color 180ms ease;
+}
+
+.copyright {
+  color: #747474;
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    width: calc(100% - 48px);
+    height: 100px;
+    grid-template-columns: 1fr auto;
+    padding-top: 20px;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .headerActions {
+    gap: 14px;
+  }
+
+  .topCta {
+    font-size: 15px;
+  }
+
+  .loginLink {
+    font-size: 13px;
+  }
+
+  .wrap {
+    width: calc(100% - 48px);
+  }
+
+  .hero {
+    padding-top: 78px;
+  }
+
+  .split,
+  .sectionRow {
+    grid-template-columns: 1fr;
+  }
+
+  .hero .eyebrow {
+    margin-bottom: 22px;
+  }
+
+  .heroTitle {
+    font-size: clamp(36px, 9vw, 54px);
+  }
+
+  .heroCopy > p {
+    margin: 25px 0;
+    font-size: 17px;
+  }
+
+  .heroArt {
+    height: 230px;
+    margin: 58px 0 115px;
+  }
+
+  .section {
+    margin-bottom: 110px;
+  }
+
+  .sectionRow {
+    gap: 28px;
+  }
+
+  .sectionTitle {
+    font-size: 17px;
+  }
+
+  .features,
+  .productCopy,
+  .journalGrid,
+  .pricingCopy,
+  .faqList {
+    grid-column: 1;
+  }
+
+  .feature {
+    padding-bottom: 21px;
+    margin-bottom: 25px;
+  }
+
+  .featureTitle {
+    font-size: 18px;
+  }
+
+  .feature p {
+    font-size: 15px;
+  }
+
+  .useImages {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .useImage {
+    height: auto;
+    aspect-ratio: 1.8;
+  }
+
+  .productCopy p {
+    font-size: 17px;
+  }
+
+  .journalGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .journalItem,
+  .journalItem:first-child {
+    grid-column: 1;
+    min-height: 0;
+  }
+
+  .pricingCopy p {
+    font-size: 17px;
+  }
+
+  .faqQuestion {
+    font-size: 15px;
+  }
+
+  .footerInner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .footerMeta {
+    flex-wrap: wrap;
+    gap: 14px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}

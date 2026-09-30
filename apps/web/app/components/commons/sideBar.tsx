@@ -1,445 +1,517 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
-import { useSideBarStore } from "../../state/SideBar.store";
-import { authClient } from "../../../lib/auth-client";
-import { usePathname, useRouter } from "next/navigation";
-import logo from "../../../public/logo.png"
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
+import BrandNavigation from "../workspace/BrandNavigation";
+import { useBrands } from "../workspace/BrandProvider";
+import { createStudioProject } from "@/lib/api/studio";
+import StudioSplashTransition from "../studio/StudioSplashTransition";
+import {
+  ChevronDown as IconChevronDownSmall,
+  X as IconCrossSmall,
+  SquarePen as IconEditBig,
+  Home as IconHome,
+  Search as IconMagnifyingGlass,
+  PanelLeftClose as IconSidebarLeftArrow,
+  Sun,
+  Moon,
+  UserPlus as IconUserAdd,
+  Brain,
+  Blocks,
+} from "lucide-react";
 import Image from "next/image";
-import { Home, Lightbulb, CalendarDays, Link2, Instagram, Rss, ChevronLeft, ChevronRight, Brain, Sparkles, Plus, MessageCircle } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import GlideMenu from "@/components/primitives/GlideMenu";
+import { useThemeStore } from "../../stores/themeStore";
+import darkLogo from "public/logo-dark.png";
+import whiteLogo from "public/logo-white.png";
 
-import { LINKEDIN_LOGO, X_LOGO, THREADS_LOGO, FACEBOOK_LOGO } from "@/app/constants";
-import PrimaryButton from "./PrimaryButton";
-import PricingPopUp from "../workspace/pricingPopUp";
-import SupportPopUp from "./SupportPopUp";
-import { useChannels } from "@/app/hooks/api/useChannels";
-import { useSources } from "@/app/hooks/api/useSources";
-import { useCredits } from "@/app/hooks/api/useCredits";
+/* ─────────────────────────────────────────────────────────
+ * SIDEBAR NAV
+ * Shared by the design-system preview and the harness shell:
+ * compact workspace switcher, primary navigation, searchable
+ * chat history, and a collapse that preserves icon alignment.
+ * ───────────────────────────────────────────────────────── */
 
-const PLATFORM_META: Record<string, { label: string; icon: React.ReactNode }> = {
-  linkedin: {
-    label: "LinkedIn",
-    icon: <img src={LINKEDIN_LOGO} alt="LinkedIn" className="w-5 h-5 object-contain" />,
-  },
-  x: {
-    label: "X (Twitter)",
-    icon: <img src={X_LOGO} alt="X (Twitter)" className="w-5 h-5 object-contain invert" />,
-  },
-  instagram: {
-    label: "Instagram",
-    icon: <Instagram className="w-5 h-5 text-[#E1306C]" />,
-  },
-  threads: {
-    label: "Threads",
-    icon: <img src={THREADS_LOGO} alt="Threads" className="w-5 h-5 object-contain" />,
-  },
-  facebook: {
-    label: "Facebook",
-    icon: <img src={FACEBOOK_LOGO} alt="Facebook" className="w-5 h-5 object-contain" />,
-  },
+type NavItem = {
+  key: string;
+  label: string;
+  icon: ReactNode;
+  count?: string;
 };
 
+const NAV_ITEMS: NavItem[] = [
+  { key: "studio", label: "Studio", icon: <IconHome size={18} /> },
+  { key: "brand-brain", label: "Brand brain", icon: <Brain size={18} /> },
+  { key: "integrations", label: "Integrations", icon: <Blocks size={18} /> },
+];
 
+export type SidebarRecent = {
+  id: string;
+  label: string;
+  prompt?: string;
+};
 
+type SidebarNavProps = {
+  activeTitle?: string | null;
+  className?: string;
+  fill?: boolean;
+  onPick?: (id: string, label: string, prompt?: string) => void;
+  /** controlled primary-nav selection (e.g. "home" | "invite") */
+  activeNav?: string;
+  onNavigate?: (key: string) => void;
+  /** footer call-to-action — defaults to the demo "Upgrade" button */
+  footerLabel?: string;
+  footerIcon?: ReactNode;
+  onFooterClick?: () => void;
+  recents?: SidebarRecent[];
+  variant?: string;
+};
 
+const SIDEBAR_MOTION = {
+  expandedWidth: 224,
+  collapsedWidth: 52,
+  duration: 280,
+  copyDuration: 180,
+  copyOffset: 8,
+  easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+};
 
-interface SideBarProps {
-  selectedTemplateId?: string | null;
+/* ─────────────────────────────────────────────────────────
+ * CHAT SEARCH STORYBOARD
+ *
+ *   0ms   search is triggered; Chats label begins fading
+ *   0ms   field grows right → left from the search control
+ * 180ms   field fills the row; cursor is focused and ready
+ * ───────────────────────────────────────────────────────── */
+const CHAT_SEARCH_MOTION = {
+  duration: 180,
+  closedWidth: 28,
+  easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+};
+
+const STUDIO_SPLASH_DURATION_MS = 2_900;
+
+function GlideGroup({ children }: { children: ReactNode }) {
+  return (
+    <GlideMenu
+      rowSelector="[data-row]"
+      highlightClassName="sidebar-glide-highlight rounded-[7px] bg-hover-2"
+      className="group/glide flex flex-col gap-px"
+    >
+      {children}
+    </GlideMenu>
+  );
 }
 
+function RailButton({
+  icon,
+  label,
+  active = false,
+  count,
+  onClick,
+  disabled = false,
+}: {
+  icon: ReactNode;
+  label: string;
+  active?: boolean;
+  count?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      data-row
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`sidebar-row relative z-10 mx-2 flex h-8 items-center rounded-[8px] px-2 text-left
+        transition-[width,background-color,color,transform] duration-150 active:scale-[0.98] disabled:cursor-wait disabled:opacity-50
+        ${active ? "bg-hover-2 group-hover/glide:bg-transparent" : ""}`}
+    >
+      <span
+        className={`flex size-5 shrink-0 items-center justify-center ${active ? "text-ink" : "text-ink-2"}`}
+      >
+        {icon}
+      </span>
+      <span
+        className={`sidebar-copy ml-1.5 min-w-0 flex-1 truncate text-[14px] font-medium ${active ? "text-ink" : "text-ink-2"}`}
+      >
+        {label}
+      </span>
+      {count && (
+        <span className="sidebar-copy mr-2 shrink-0 text-[12px] font-medium tabular-nums text-ink-3">
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}
 
+export default function SidebarNav({
+  activeTitle,
+  className = "",
+  fill = false,
+  onPick,
+  activeNav,
+  onNavigate,
+  footerLabel = "Upgrade",
+  footerIcon,
+  onFooterClick,
+  recents,
+}: SidebarNavProps) {
+  const router = useRouter();
+  const { active: activeBrand } = useBrands();
+  const pathname = usePathname();
+  const theme = useThemeStore((state) => state.theme);
+  const toggleTheme = useThemeStore((state) => state.toggleTheme);
+  const [mounted, setMounted] = useState(false);
 
-/** Renders workspace navigation and authenticated connection summaries. */
-export function SideBar({ selectedTemplateId }: SideBarProps) {
-  const path = usePathname()
-  const router = useRouter()
-  const isSidebarOpen = useSideBarStore((state) => state.opened);
-  const toggleSidebar = useSideBarStore((state) => state.toggleSidebar);
-  const { data: session } = authClient.useSession();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const isLoggedIn = !!session?.user;
-  const plan = useSideBarStore((state) => state.plan);
+  const isDark = mounted
+    ? typeof document !== "undefined"
+      ? document.documentElement.classList.contains("dark")
+      : theme === "dark"
+    : true;
 
-  const [showPricing, setShowPricing] = useState(false);
-  const [showSupport, setShowSupport] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [creatingProject, setCreatingProject] = useState(false);
+  const [creationError, setCreationError] = useState<string | null>(null);
+  const [internalNav, setInternalNav] = useState(
+    pathname.startsWith("/workspace/studio") ? "studio" : "chats",
+  );
+  useEffect(() => {
+    setInternalNav(
+      pathname.startsWith("/workspace/studio") ? "studio" : "chats",
+    );
+  }, [pathname]);
+  const currentNav = activeNav ?? internalNav;
+  const selectNav = (key: string) => {
+    setInternalNav(key);
+    onNavigate?.(key);
+    if (key === "studio") router.push("/workspace/studio");
+  };
 
-  const { data: channelsData } = useChannels(isLoggedIn);
-  const { data: sourcesData } = useSources(isLoggedIn);
-  const { data: creditsData } = useCredits(isLoggedIn);
-
-  const credits = creditsData?.credits ?? null;
-
-  const user = session?.user;
-  const trialDaysLeft = useMemo(() => {
-    if (!user?.createdAt || (user as any).plan !== "free") return null;
-    const createdAt = new Date(user.createdAt);
-    const now = new Date();
-    const diffTime = now.getTime() - createdAt.getTime();
-    const trialDurationMs = 14 * 24 * 60 * 60 * 1000;
-    const msLeft = trialDurationMs - diffTime;
-    if (msLeft <= 0) return 0;
-    return Math.ceil(msLeft / (1000 * 60 * 60 * 24));
-  }, [user]);
-
-  const channels = channelsData ?? [];
-  const sources = sourcesData ?? [];
-
-  const isActive = (href: string) => {
-    if (href === "/workspace") {
-      return path === "/workspace";
+  async function newProject() {
+    if (creatingProject) return;
+    if (!activeBrand?.id) {
+      setCreationError("Sélectionne une marque avant de créer un projet.");
+      return;
     }
-    return path?.startsWith(href);
+    setCreatingProject(true);
+    setCreationError(null);
+    try {
+      const splashDuration = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches
+        ? 250
+        : STUDIO_SPLASH_DURATION_MS;
+      const [project] = await Promise.all([
+        createStudioProject(activeBrand.id),
+        new Promise((resolve) => setTimeout(resolve, splashDuration)),
+      ]);
+      setInternalNav("studio");
+      router.push(`/workspace/studio/${project.id}`);
+    } catch (error) {
+      setCreationError(
+        error instanceof Error
+          ? error.message
+          : "Impossible de créer le projet.",
+      );
+      setCreatingProject(false);
+    }
+  }
+  const [demoActiveTitle, setDemoActiveTitle] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const selectedTitle =
+    activeTitle === undefined ? demoActiveTitle : activeTitle;
+  const visibleRecents = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return recents;
+    return recents?.filter((item) => item.label.toLowerCase().includes(q));
+  }, [recents, query]);
+
+  useEffect(() => {
+    if (searchOpen) searchRef.current?.focus();
+  }, [searchOpen]);
+
+  const collapse = () => {
+    setCollapsed(true);
+    setSearchOpen(false);
+    setQuery("");
   };
 
   return (
-    <>
+    <aside
+      data-sidebar-collapsed={collapsed}
+      aria-label="Workspace navigation"
+      className={`relative flex shrink-0 overflow-hidden transition-[width] ${fill ? "h-full" : "h-[600px]"} ${className}`}
+      style={
+        {
+          width: collapsed
+            ? SIDEBAR_MOTION.collapsedWidth
+            : SIDEBAR_MOTION.expandedWidth,
+          transitionDuration: `${SIDEBAR_MOTION.duration}ms`,
+          transitionTimingFunction: SIDEBAR_MOTION.easing,
+          "--sidebar-copy-duration": `${SIDEBAR_MOTION.copyDuration}ms`,
+          "--sidebar-copy-offset": `${SIDEBAR_MOTION.copyOffset}px`,
+          "--sidebar-easing": SIDEBAR_MOTION.easing,
+        } as CSSProperties
+      }
+    >
+      <div className="flex min-h-0 w-[224px] shrink-0 flex-col h-full py-3">
+        <div className="relative mb-2.5 flex h-8 shrink-0 items-center justify-between px-3">
+          <Link
+            href="/"
+            className="sidebar-copy flex min-w-0 items-center"
+            aria-label="Narrativee home"
+          >
+            <Image
+              src={darkLogo}
+              alt="Narrativee"
+              width={125}
+              height={25}
+              className="h-[22px] w-auto object-contain dark:hidden"
+              priority
+            />
+            <Image
+              src={whiteLogo}
+              alt="Narrativee"
+              width={125}
+              height={25}
+              className="hidden h-[22px] w-auto object-contain dark:block"
+              priority
+            />
+          </Link>
 
+          <button
+            type="button"
+            aria-label="Collapse sidebar"
+            aria-hidden={collapsed}
+            tabIndex={collapsed ? -1 : 0}
+            onClick={collapse}
+            className="sidebar-collapse-control flex size-7 items-center justify-center rounded-[8px] text-ink-3 transition-[opacity,background-color,color] duration-150 hover:bg-hover-2 hover:text-ink"
+          >
+            <IconSidebarLeftArrow size={17} />
+          </button>
+          <button
+            type="button"
+            aria-label="Expand sidebar"
+            aria-hidden={!collapsed}
+            tabIndex={collapsed ? 0 : -1}
+            onClick={() => setCollapsed(false)}
+            className="sidebar-expand-control absolute left-[10px] top-0 flex size-8 items-center justify-center rounded-[8px] text-ink-3 transition-[opacity,background-color,color] duration-150 hover:bg-hover-2 hover:text-ink"
+          >
+            <IconSidebarLeftArrow size={17} className="rotate-180" />
+          </button>
+        </div>
 
-      <aside
-        className={`
-          h-screen   
-          ${isSidebarOpen ? "w-60" : "w-16"}
-          overflow-hidden 
-          border-r border-zinc-800
-        `}
-      >
-        {/* 1. h-full: Makes the container take full height 
-           2. flex-col: Stacks children vertically
-        */}
-        <div className="p-3 h-full overflow-y-auto flex flex-col text-zinc-300 bg-[#09090b]">
+        <BrandNavigation collapsed={collapsed} />
 
-          <div className="flex items-center justify-between w-full mb-2 px-2">
-            {isSidebarOpen ? (
-              <>
-                <Image src={logo} alt="Logo" width={140} height={100} className="object-contain" />
-                <button
-                  type="button"
-                  onClick={toggleSidebar}
-                  className="p-1.5 rounded-lg hover:bg-zinc-800/60 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-              </>
-            ) : (
-              <div className="flex flex-col items-center gap-4 w-full">
-                <button
-                  type="button"
-                  onClick={toggleSidebar}
-                  className="p-1.5 rounded-lg hover:bg-zinc-800/60 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-                <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center font-bold text-black shadow-md text-lg">
-                  N
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Create New Button */}
-          <div className={`flex justify-center ${isSidebarOpen ? 'px-2 my-4' : 'my-3'}`}>
-            {isSidebarOpen ? (
-              <Link
-                href="/workspace/create/new"
-                className="w-full flex items-center justify-center gap-2 rounded-full hover:bg-brand/90 text-white py-2.5 text-sm font-base transition-all duration-200 shadow-md shadow-brand/10 hover:shadow-brand/20 bg-brand"
-              >
-                <span>Create New</span>
-              </Link>
-            ) : (
-              <Link
-                href="/workspace/create/new"
-                title="Create New"
-                className="w-8 h-8 rounded-xl bg-brand hover:bg-brand/90 text-white flex items-center justify-center transition-all duration-200 shadow-md shadow-brand/10 active:scale-[0.95]"
-              >
-                <Plus className="w-4 h-4 shrink-0 stroke-[3]" />
-              </Link>
-            )}
-          </div>
-
-          <div className="border-gray-700 mt-4 space-y-1.5 font-sans">
-
-            <Link
-              href="/workspace"
-              className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace")
-                ? "bg-brand/10 text-white font-semibold "
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-                } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
+        <GlideGroup>
+          <RailButton
+            icon={<IconEditBig size={18} />}
+            label={creatingProject ? "Creating…" : "New Project"}
+            onClick={newProject}
+            disabled={creatingProject}
+          />
+          {NAV_ITEMS.map((item) => (
+            <RailButton
+              key={item.key}
+              icon={item.icon}
+              label={item.label}
+              count={item.count}
+              active={currentNav === item.key}
+              onClick={() => selectNav(item.key)}
+            />
+          ))}
+        </GlideGroup>
+        {creationError && (
+          <p role="alert" className="sidebar-copy mx-4 mt-2 text-xs leading-4 text-red-600 dark:text-red-400">
+            {creationError}
+          </p>
+        )}
+        <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
+          <div className="sidebar-copy relative mx-2 mb-1 h-8">
+            <div
+              aria-hidden={searchOpen}
+              className={`absolute inset-0 flex items-center gap-1.5 px-2 text-[12.5px] font-medium text-ink-3 transition-[opacity,transform] ${searchOpen ? "pointer-events-none -translate-x-1 opacity-0" : "translate-x-0 opacity-100"}`}
+              style={{
+                transitionDuration: `${CHAT_SEARCH_MOTION.duration}ms`,
+                transitionTimingFunction: CHAT_SEARCH_MOTION.easing,
+              }}
             >
-              <Home className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace") ? "text-brand" : "text-zinc-400 group-hover:text-white"
-                }`} />
-              {isSidebarOpen && <span className="text-sm font-medium">Home</span>}
-            </Link>
-
-            <Link
-              href="/workspace/create"
-              className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace/create")
-                ? "bg-brand/10 text-white font-semibold "
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-                } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
-            >
-              <Lightbulb className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/create") ? "text-brand" : "text-zinc-400 group-hover:text-white"
-                }`} />
-              {isSidebarOpen && <span className="text-sm font-medium">Create</span>}
-            </Link>
-
-
-            {/* — Tools — */}
-            <Link
-              href="/workspace/calendar"
-              className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace/calendar")
-                ? "bg-brand/10 text-white font-semibold "
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-                } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
-            >
-              <CalendarDays className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/calendar") ? "text-brand" : "text-zinc-400 group-hover:text-white"
-                }`} />
-              {isSidebarOpen && <span className="text-sm font-medium">Calendar</span>}
-            </Link>
-
-            <Link
-              href="/workspace/channels"
-              className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace/channels")
-                ? "bg-brand/10 text-white font-semibold "
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-                } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
-            >
-              <Link2 className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/channels") ? "text-brand" : "text-zinc-400 group-hover:text-white"
-                }`} />
-              {isSidebarOpen && <span className="text-sm font-medium">Channels</span>}
-            </Link>
-
-            <Link
-              href="/workspace/memory"
-              className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace/memory")
-                ? "bg-brand/10 text-white font-semibold "
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-                } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
-            >
-              <Brain className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/memory") ? "text-brand" : "text-zinc-400 group-hover:text-white"
-                }`} />
-              {isSidebarOpen && <span className="text-sm font-medium">Memory</span>}
-            </Link>
-
-            <Link
-              href="/workspace/hooks"
-              className={`group flex items-center gap-3 py-2 px-3.5 mx-1 rounded-xl transition-all duration-300 ${isActive("/workspace/hooks")
-                ? "bg-brand/10 text-white font-semibold "
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-                } ${!isSidebarOpen ? 'justify-center px-0' : ''}`}
-            >
-              <Sparkles className={`w-5 h-5 shrink-0 transition-colors duration-300 ${isActive("/workspace/hooks") ? "text-brand" : "text-white opacity-70 group-hover:opacity-100"
-                }`} />
-              {isSidebarOpen && <span className="text-sm font-medium">Hooks Library</span>}
-            </Link>
-
-            {/* — Connected Channels — */}
-            <div className="pt-4 mt-4 border-t border-zinc-800/60">
-              {isSidebarOpen ? (
-                <div className="flex items-center justify-between px-4 mb-2">
-                  <small className=" font-light text-zinc-500">Channels</small>
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500/50" />
-                </div>
-              ) : (
-                <div className="h-px bg-zinc-800/60 my-2 mx-4" />
-              )}
-              <div className="space-y-1.5">
-                {channels.length > 0 ? (
-                  channels.map((channel) => {
-                    const meta = PLATFORM_META[channel.platform];
-                    if (!meta) return null;
-                    return (
-                      <div
-                        key={channel.id}
-                        className={`group/item flex items-center gap-3 py-1.5 transition-all duration-200 cursor-pointer ${!isSidebarOpen
-                          ? 'justify-center px-0'
-                          : 'px-4 hover:bg-zinc-800/40 rounded-xl mx-2 text-zinc-300 hover:text-white'
-                          }`}
-                      >
-                        <div className="relative shrink-0 flex items-center justify-center">
-                          {channel.avatarUrl ? (
-                            <img src={channel.avatarUrl} alt={channel.accountName} className="w-6 h-6 rounded-full object-cover border border-zinc-800" />
-                          ) : (
-                            <div className="w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700/60 flex items-center justify-center text-[10px] font-bold text-zinc-300">
-                              {(channel.accountName || meta.label).charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-zinc-950 rounded-full flex items-center justify-center shadow-md p-0.5 border border-zinc-800">
-                            {meta.icon}
-                          </div>
-                        </div>
-                        {isSidebarOpen && (
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-xs font-semibold truncate leading-none">{channel.accountName || meta.label}</span>
-                            <span className="text-[9px] text-zinc-500 mt-0.5 capitalize leading-none">{channel.platform}</span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  isSidebarOpen && (
-                    <div className="px-4 text-[11px] text-zinc-600 font-medium">
-                      No channels connected
-                    </div>
-                  )
-                )}
-              </div>
+              <IconChevronDownSmall size={16} />
+              <span>recent work</span>
             </div>
 
-            {/* — Connected Newsletters — */}
-            <div className="pt-2 mt-2">
-              {isSidebarOpen ? (
-                <div className="flex items-center justify-between px-4 mb-2">
-                  <small className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Newsletters</small>
-                </div>
-              ) : null}
-              <div className="space-y-1.5">
-                {sources.length > 0 ? (
-                  sources.map((source) => {
-                    const getInitials = (urlStr: string) => {
-                      try {
-                        const domain = new URL(urlStr).hostname;
-                        const part = domain.split('.')[0];
-                        return (part && typeof part === 'string' ? part : 'S').substring(0, 1).toUpperCase();
-                      } catch {
-                        return 'S';
-                      }
-                    };
-
-                    const getFaviconUrl = (urlStr: string) => {
-                      try {
-                        const url = new URL(urlStr);
-                        return `${url.protocol}//${url.hostname}/favicon.ico`;
-                      } catch {
-                        return null;
-                      }
-                    };
-
-                    const favicon = getFaviconUrl(source.url);
-                    const imgUrl = source.avatarUrl || favicon;
-
-                    return (
-                      <div
-                        key={source.id}
-                        className={`group/item flex items-center gap-3 py-1.5 transition-all duration-200 cursor-pointer ${!isSidebarOpen
-                          ? 'justify-center px-0'
-                          : 'px-4 hover:bg-zinc-800/40 rounded-xl mx-2 text-zinc-300 hover:text-white'
-                          }`}
-                      >
-                        <div className="relative shrink-0 flex items-center justify-center w-6 h-6">
-                          {imgUrl ? (
-                            <img
-                              src={imgUrl}
-                              alt="Substack Avatar"
-                              className="w-6 h-6 rounded-full object-cover border border-zinc-800"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                const fallback = document.getElementById(`sidebar-fallback-${source.id}`);
-                                if (fallback) fallback.classList.remove('hidden');
-                              }}
-                            />
-                          ) : null}
-                          <div
-                            id={`sidebar-fallback-${source.id}`}
-                            className={`w-6 h-6 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[9px] font-bold text-orange-500 ${imgUrl ? 'hidden' : ''
-                              }`}
-                          >
-                            {getInitials(source.url)}
-                          </div>
-                          <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-zinc-950 rounded-full flex items-center justify-center shadow-md p-0.5 border border-zinc-800">
-                            <img src="https://cdn.worldvectorlogo.com/logos/substack-1.svg" alt="Substack" className="w-2.5 h-2.5 object-contain" />
-                          </div>
-                        </div>
-                        {isSidebarOpen && (
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-xs font-semibold truncate leading-none">
-                              {source.url.replace('https://', '').replace('/feed', '').split('.')[0]}
-                            </span>
-                            <span className="text-[9px] text-zinc-500 mt-0.5 truncate leading-none">
-                              {source.url.replace('https://', '').replace('/feed', '')}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  isSidebarOpen && (
-                    <div className="px-4 text-[11px] text-zinc-600 font-medium">
-                      No newsletters connected
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-
-          </div>
-
-          {/* --- Bottom Section ---
-              Added `mt-auto` to push this to the bottom
-              Added `space-y-2` for spacing between buttons
-          */}
-          <div className="mt-auto w-full pb-4 space-y-2">
-
-            {session?.user && (plan === 'free' || !plan) && isSidebarOpen && (
-              <div className="mx-2 p-3 space-y-2.5 font-urbanist">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-medium text-brand px-2 py-0.5 rounded-full">
-                    Free Trial
-                  </span>
-                  <span className="text-[11px] font-medium text-zinc-400">
-                    {credits !== null ? `${credits}/40 credits` : "40 credits"}
-                  </span>
-                </div>
-                <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-brand h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(100, Math.max(0, ((credits ?? 40) / 40) * 100))}%` }}
-                  />
-                </div>
-                {trialDaysLeft !== null && (
-                  <div className="text-[10px] text-zinc-400 text-center font-mono font-medium">
-                    {trialDaysLeft} {trialDaysLeft === 1 ? "day" : "days"} remaining
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setShowPricing(true)}
-                  className="block w-full text-center text-sm font-light text-white bg-brand hover:bg-brand/90 py-2 rounded-full transition-colors shadow-xs"
-                >
-                  upgrade now
-                </button>
-              </div>
-            )}
-
-            {session?.user && (plan === 'free' || !plan) && !isSidebarOpen && (
-              <div className="flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setShowPricing(true)}
-                  title={`Upgrade - ${credits ?? 0}/40 credits left${trialDaysLeft !== null ? ` (${trialDaysLeft} days left)` : ""}`}
-                  className="w-8 h-8 rounded-full bg-brand/10 border border-brand/20 hover:bg-brand/20 flex items-center justify-center text-[10px] font-bold text-brand transition-all"
-                >
-                  {credits !== null ? credits : "T"}
-                </button>
-              </div>
-            )}
             <button
               type="button"
-              onClick={() => setShowSupport(true)}
-              className={`w-full text-left text-[16px] py-1 px-4 flex items-center gap-2 transition-colors hover:text-white cursor-pointer ${!isSidebarOpen ? 'justify-center px-0' : 'px-4'}`}
+              aria-label="Search chats"
+              aria-expanded={searchOpen}
+              onClick={() => setSearchOpen(true)}
+              className={`absolute right-0 top-0 z-10 flex size-8 items-center justify-center rounded-[8px] text-ink-3 transition-[opacity,background-color,color,transform] hover:bg-hover-2 hover:text-ink active:scale-[0.96] ${searchOpen ? "pointer-events-none opacity-0" : "opacity-100"}`}
+              style={{ transitionDuration: `${CHAT_SEARCH_MOTION.duration}ms` }}
             >
-              <MessageCircle className="w-5 h-5 shrink-0 " />
-              {isSidebarOpen && <span className="text-md font-medium">Support</span>}
+              <IconMagnifyingGlass size={16} />
             </button>
 
+            <div
+              className={`absolute right-0 top-0 z-20 flex h-8 items-center overflow-hidden rounded-[8px] bg-field text-ink-3 shadow-hairline transition-[width,opacity] focus-within:text-ink-2 ${searchOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+              style={{
+                width: searchOpen ? "100%" : CHAT_SEARCH_MOTION.closedWidth,
+                transitionDuration: `${CHAT_SEARCH_MOTION.duration}ms`,
+                transitionTimingFunction: CHAT_SEARCH_MOTION.easing,
+              }}
+            >
+              <span className="ml-2 flex shrink-0 items-center justify-center">
+                <IconMagnifyingGlass size={15} />
+              </span>
+              <input
+                ref={searchRef}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    setSearchOpen(false);
+                    setQuery("");
+                  }
+                }}
+                placeholder="Search chats"
+                aria-label="Search chat history"
+                className="ml-1.5 min-w-0 flex-1 bg-transparent text-[13px] font-medium text-ink outline-none placeholder:text-ink-3"
+              />
+              <button
+                type="button"
+                aria-label="Close chat search"
+                onClick={() => {
+                  setSearchOpen(false);
+                  setQuery("");
+                }}
+                className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-ink-3 transition-[background-color,color,transform] duration-150 hover:bg-hover-2 hover:text-ink active:scale-[0.96]"
+              >
+                <IconCrossSmall size={16} />
+              </button>
+            </div>
+          </div>
+
+          <GlideGroup>
+            {visibleRecents?.map((item) => {
+              const isActive = item.label === selectedTitle;
+              return (
+                <button
+                  key={item.id}
+                  data-row
+                  type="button"
+                  title={item.label}
+                  onClick={() => {
+                    setInternalNav("chats");
+                    if (activeTitle === undefined)
+                      setDemoActiveTitle(item.label);
+                    onPick?.(item.id, item.label, item.prompt);
+                  }}
+                  className={`sidebar-row relative z-10 mx-2 flex h-8 items-center rounded-[8px] px-2 text-left transition-[width,background-color,color,transform] duration-150 active:scale-[0.98] ${
+                    isActive
+                      ? "bg-hover-2 group-hover/glide:bg-transparent"
+                      : ""
+                  }`}
+                >
+                  <span
+                    className={`sidebar-copy min-w-0 flex-1 truncate text-[14px] font-medium ${isActive ? "text-ink" : "text-ink-2"}`}
+                  >
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
+            {query && visibleRecents?.length === 0 && (
+              <div className="sidebar-copy mx-2 px-2 py-2 text-[12.5px] text-ink-3">
+                No chats found
+              </div>
+            )}
+          </GlideGroup>
+        </div>
+
+        <div className="mt-auto flex flex-col gap-1.5 pt-2.5">
+          {/* Invite users */}
+          <GlideGroup>
+            <RailButton
+              icon={<IconUserAdd size={18} />}
+              label="Invite users"
+              count="3/10"
+              active={currentNav === "invite"}
+              onClick={() => selectNav("invite")}
+            />
+          </GlideGroup>
+
+          <div className="mx-2 flex flex-col gap-1.5">
+            {/* Theme Toggle Switch */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleTheme();
+              }}
+              aria-label="Toggle dark/light mode"
+              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              className="sidebar-row relative z-10 flex h-8 w-full items-center justify-between rounded-[8px] px-2 text-left transition-[background-color,color,transform] duration-150 hover:bg-hover-2 active:scale-[0.98] cursor-pointer"
+            >
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="flex size-5 shrink-0 items-center justify-center text-ink-2">
+                  {isDark ? <Moon size={16} /> : <Sun size={16} />}
+                </span>
+                <span className="sidebar-copy ml-1.5 text-[13.5px] font-medium text-ink-2 truncate">
+                  {isDark ? "Dark mode" : "Light mode"}
+                </span>
+              </div>
+
+              {/* Switch pill */}
+              <div
+                role="switch"
+                aria-checked={isDark}
+                className={`sidebar-copy relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ${
+                  isDark ? "bg-secondary" : "bg-neutral-300"
+                }`}
+              >
+                <span
+                  className={`inline-block size-3.5 transform rounded-full transition-transform duration-200 shadow-sm ${
+                    isDark
+                      ? "translate-x-[18px] bg-black"
+                      : "translate-x-[2px] bg-white"
+                  }`}
+                />
+              </div>
+            </button>
+
+            {/* Footer CTA Button */}
+            <div className="sidebar-copy w-full">
+              <button
+                type="button"
+                onClick={onFooterClick}
+                className="flex h-8 w-full items-center justify-center gap-1.5 rounded-control bg-hover-2 text-[12.5px] font-medium text-ink bg-secondary transition-[background-color,transform] duration-150 hover:bg-line-strong active:scale-[0.98] dark:text-black"
+              >
+                {footerIcon}
+                {footerLabel}
+              </button>
+            </div>
           </div>
         </div>
-      </aside>
-
-      <PricingPopUp isOpen={showPricing} onClose={() => setShowPricing(false)} />
-      <SupportPopUp isOpen={showSupport} onClose={() => setShowSupport(false)} />
-    </>
+      </div>
+      <StudioSplashTransition isVisible={creatingProject} />
+    </aside>
   );
 }

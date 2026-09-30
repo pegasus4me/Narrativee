@@ -1,41 +1,30 @@
-"use client"
+"use client";
+
+import Link from "next/link";
 import { AlertCircle } from "clicons-react";
-import PrimaryButton from "./components/commons/PrimaryButton";
-import { useRouter } from "next/navigation";
 
 export default function NotFound() {
-    const router = useRouter();
-    return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4 text-center">
-            <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center mb-6">
-                <AlertCircle className="w-12 h-12 text-white" />
-            </div>
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#09090b] p-4 text-center text-zinc-100">
+      <div className="w-20 h-20 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mb-6">
+        <AlertCircle className="w-10 h-10 text-zinc-400" />
+      </div>
 
-            <h1
-                className="text-6xl font-bold text-gray-900 mb-4"
-            >
-                404
-            </h1>
+      <h1 className="text-5xl font-bold text-white mb-3">404</h1>
 
-            <h2
-                className="text-2xl font-medium text-gray-800 mb-6"
-            >
-                Page not found
-            </h2>
+      <h2 className="text-xl font-medium text-zinc-300 mb-4">Page not found</h2>
 
-            <p
-                className="text-gray-600 max-w-md mb-10 leading-relaxed"
-            >
-                Sorry, we couldn't find the page you're looking for. It might have been moved, deleted, or never existed.
-            </p>
+      <p className="text-zinc-500 max-w-md mb-8 leading-relaxed text-sm">
+        Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have been moved or doesn&apos;t exist.
+      </p>
 
-            <PrimaryButton
-                onClick={() => {
-                    router.push("/");
-                }}
-            >
-                Return Home
-            </PrimaryButton>
-        </div>
-    );
+      <Link
+        href="/"
+        className="px-5 py-2.5 rounded-xl bg-white text-black font-medium text-sm hover:bg-zinc-200 transition-colors"
+      >
+        Return Home
+      </Link>
+    </div>
+  );
 }
+

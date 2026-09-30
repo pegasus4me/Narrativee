@@ -1,0 +1,58 @@
+.backdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 820px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.backdrop::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    radial-gradient(
+      ellipse 48% 44% at 50% 32%,
+      rgb(5 5 5 / 68%) 0%,
+      rgb(5 5 5 / 40%) 62%,
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgb(5 5 5 / 48%) 0%,
+      rgb(5 5 5 / 40%) 22%,
+      rgb(5 5 5 / 63%) 50%,
+      rgb(5 5 5 / 94%) 76%,
+      #050505 100%
+    );
+}
+
+.art {
+  position: absolute;
+  right: -8%;
+  top: 0;
+  left: -8%;
+  width: 116%;
+  height: 610px;
+  opacity: 0.85;
+  transform: rotate(180deg);
+}
+
+@media (max-width: 767px) {
+  .backdrop {
+    height: 790px;
+  }
+
+  .art {
+    right: -34%;
+    left: -34%;
+    width: 168%;
+    height: 570px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .art rect {
+    fill: url("#narrativee-hero-rainbow");
+  }
+}

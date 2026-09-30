@@ -1,506 +1,526 @@
 "use client";
 
+import React, { useEffect, useState, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useMemo } from "react";
 import {
-  CalendarDays,
   Sparkles,
-  Brain,
-  Loader2,
-  ArrowRight,
-  Layers,
   CheckCircle2,
-  Zap,
-  ArrowUpRight,
-  Plus,
-  Link2,
-  Activity,
-  Rss,
-  RssIcon,
-  ChevronLeft,
+  AlertCircle,
+  ArrowRight,
+  Loader2,
+  ExternalLink,
+  Brain,
+  Quote,
+  Layers,
+  HelpCircle,
+  AlertTriangle,
+  RefreshCw,
+  Compass,
+  FileText,
 } from "lucide-react";
+import {
+  getSiteAnalysis,
+  type SiteAnalysis,
+  type Inference,
+  type Observation,
+  type Question,
+} from "@/lib/api/analysis";
 import { authClient } from "@/lib/auth-client";
-import {
-  useChannels,
-  useCreationSessions,
-  useDraftsQueue,
-  useArticles,
-  useCredits,
-  useKnowledgeBase,
-} from "@/app/hooks/api";
-import { useSources } from "@/app/hooks/api/useSources";
-import {
-  LINKEDIN_LOGO,
-  X_LOGO,
-  THREADS_LOGO,
-  FACEBOOK_LOGO,
-  INSTAGRAM_LOGO,
-} from "@/app/constants";
 
-const PLATFORM_LOGOS: Record<string, string> = {
-  linkedin: LINKEDIN_LOGO,
-  x: X_LOGO,
-  twitter: X_LOGO,
-  threads: THREADS_LOGO,
-  facebook: FACEBOOK_LOGO,
-  instagram: INSTAGRAM_LOGO,
-};
+function WorkspaceContent() {
+  const searchParams = useSearchParams();
+  const { data: session } = authClient.useSession();
 
-function getPlatformLogo(platform: string): string | null {
-  return PLATFORM_LOGOS[platform.toLowerCase()] ?? null;
-}
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<SiteAnalysis | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [pollingError, setPollingError] = useState<string | null>(null);
 
-function formatFriendlyTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-}
+  // Active question answers state
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
 
-/** Dashboard for authenticated workspace metrics and recent activity. */
-export default function WorkspaceDashboard() {
-  const session = authClient.useSession();
-  const user = session.data?.user;
-  const isAuthenticated = !!user;
+  // Initialize analysisId from URL or storage
+  useEffect(() => {
+    const urlId = searchParams.get("analysisId");
+    if (urlId) {
+      setAnalysisId(urlId);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("current_analysis_id", urlId);
+      }
+    } else if (typeof window !== "undefined") {
+      const storedId =
+        window.sessionStorage.getItem("current_analysis_id") ||
+        window.localStorage.getItem("current_analysis_id");
+      if (storedId) {
+        setAnalysisId(storedId);
+      }
+    }
+  }, [searchParams]);
 
-  // Query database metrics using hooks
-  const { data: channels, isLoading: loadingChannels } = useChannels(isAuthenticated);
-  const { data: creations, isLoading: loadingCreations } = useCreationSessions(isAuthenticated);
-  const { data: queue, isLoading: loadingQueue } = useDraftsQueue(isAuthenticated);
-  const { data: articles, isLoading: loadingArticles } = useArticles(isAuthenticated);
-  const { data: creditsData, isLoading: loadingCredits } = useCredits(isAuthenticated);
-  const { data: kb, isLoading: loadingKB } = useKnowledgeBase(isAuthenticated);
-  const { data: sourcesData, isLoading: loadingSources } = useSources(isAuthenticated);
+  // Polling logic
+  const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const activeChannels = channels ?? [];
-  const savedCreations = creations ?? [];
-  const scheduledPosts = useMemo(
-    () => (queue ?? []).filter((p) => p.status === "scheduled" && p.scheduledAt),
-    [queue]
-  );
-  const recentArticles = articles ?? [];
-  const creditBalance = creditsData?.credits ?? 0;
-  const maxCredits = 1000; // Visual denominator for progress bar
+  useEffect(() => {
+    if (!analysisId) return;
 
-  const sources = sourcesData ?? [];
-  const isStep2Complete = sources.length > 0;
-  const isStep3Complete = (queue ?? []).length > 0;
-  const completedMilestonesCount = 1 + (isStep2Complete ? 1 : 0) + (isStep3Complete ? 1 : 0);
-  const showRoadmap = !isStep3Complete;
+    let isMounted = true;
+    setLoading(true);
+    setPollingError(null);
 
-  const isMainLoading =
-    session.isPending ||
-    loadingChannels ||
-    loadingCreations ||
-    loadingQueue ||
-    loadingArticles ||
-    loadingCredits ||
-    loadingKB ||
-    loadingSources;
+    const fetchStatus = async () => {
+      try {
+        const data = await getSiteAnalysis(analysisId);
+        if (!isMounted) return;
 
-  if (isMainLoading) {
+        setAnalysis(data);
+        setLoading(false);
+
+        // Keep polling if still in progress
+        if (data.status === "queued" || data.status === "scraping" || data.status === "synthesizing") {
+          pollTimerRef.current = setTimeout(fetchStatus, 1800);
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        setPollingError(err instanceof Error ? err.message : "Failed to load analysis");
+        setLoading(false);
+      }
+    };
+
+    void fetchStatus();
+
+    return () => {
+      isMounted = false;
+      if (pollTimerRef.current) {
+        clearTimeout(pollTimerRef.current);
+      }
+    };
+  }, [analysisId]);
+
+  const isGuest = !session?.user;
+
+  // 1. NO ANALYSIS ACTIVE: Clean empty canvas
+  if (!analysisId && !loading) {
+    return <div className="h-full w-full" />;
+  }
+
+  // 2. IN PROGRESS: Live progress & pipeline stage indicator
+  const isInProgress =
+    analysis?.status === "queued" ||
+    analysis?.status === "scraping" ||
+    analysis?.status === "synthesizing";
+
+  if (isInProgress) {
+    const progress = analysis?.progress ?? 0;
+    const stage =
+      analysis?.status === "scraping"
+        ? "Scraping homepage & visual assets..."
+        : analysis?.status === "synthesizing"
+        ? "Synthesizing evidence-based brand diagnosis with AI..."
+        : "Queued for analysis...";
+
     return (
-      <div className="flex min-h-[80vh] w-full items-center justify-center">
-        <div className="flex items-center gap-3 text-sm text-zinc-400">
-          <Loader2 className="h-5 w-5 animate-spin text-brand" />
-          Synchronizing mission control...
+      <div className="flex min-h-[85vh] flex-col items-center justify-center p-6 text-center">
+        <div className="relative mb-6 flex size-20 items-center justify-center">
+          <div className="absolute inset-0 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" />
+          <Brain className="size-8 text-emerald-500 dark:text-emerald-400 animate-pulse" />
+        </div>
+
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 mb-3">
+          <Sparkles className="size-3.5" />
+          Evidence-First Engine Running
+        </span>
+
+        <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white">
+          Analyzing {analysis?.url}
+        </h2>
+        <p className="mt-2 text-sm text-neutral-500 dark:text-zinc-400 max-w-md">
+          {stage}
+        </p>
+
+        {/* Progress Bar */}
+        <div className="mt-6 w-full max-w-md">
+          <div className="flex justify-between text-xs font-medium text-neutral-500 dark:text-zinc-400 mb-1.5">
+            <span>Progress</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+            <div
+              className="h-full bg-emerald-500 transition-all duration-500 ease-out"
+              style={{ width: `${Math.max(progress, 8)}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Live Step Checklist */}
+        <div className="mt-8 flex flex-col gap-2 text-left w-full max-w-sm">
+          <div className="flex items-center gap-2.5 text-xs text-neutral-700 dark:text-zinc-300">
+            <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+            <span>Target URL normalized & verified</span>
+          </div>
+          <div className="flex items-center gap-2.5 text-xs text-neutral-700 dark:text-zinc-300">
+            {progress >= 55 ? (
+              <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+            ) : (
+              <Loader2 className="size-4 animate-spin text-emerald-500 shrink-0" />
+            )}
+            <span>Scraping site structure & brand content</span>
+          </div>
+          <div className="flex items-center gap-2.5 text-xs text-neutral-700 dark:text-zinc-300">
+            {progress >= 100 ? (
+              <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+            ) : progress >= 55 ? (
+              <Loader2 className="size-4 animate-spin text-emerald-500 shrink-0" />
+            ) : (
+              <div className="size-4 rounded-full border border-zinc-300 dark:border-zinc-700 shrink-0" />
+            )}
+            <span>Synthesizing observations & inferences with AI</span>
+          </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="mx-auto w-[90%] space-y-8 px-6 py-10 antialiased">
-      {/* ─── Creator Launch Roadmap Checklist ─── */}
-      {showRoadmap && (
-        <section className="rounded-3xl border border-brand/20 bg-brand/[0.02] p-6 backdrop-blur-md shadow-[0_8px_32px_rgba(139,92,246,0.05)] space-y-4 relative overflow-hidden animate-in slide-in-from-top-4 duration-300">
-
-
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold text-zinc-100 flex items-center gap-2">
-                  Creator Launch Roadmap
-                </h2>
-              </div>
-              <p className="text-xs text-zinc-400 mt-1 max-w-xl">
-                Complete these three quick milestones to unlock your credit boosts and get fully set up for publishing!
-              </p>
-            </div>
-            <div className="flex items-center gap-2 bg-brand/10 border border-brand/20 px-3.5 py-1.5 rounded-full text-xs font-semibold text-brand w-fit font-mono">
-              Progress: {completedMilestonesCount}/3 Complete
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3 pt-2">
-            {/* Step 1 */}
-            <div className="rounded-2xl border border-white/5 bg-zinc-950/40 p-4 flex flex-col justify-between h-32 relative">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">Step 1</p>
-                  <h3 className="text-xs font-bold text-zinc-200">Complete Profile Setup</h3>
-                </div>
-                <div className="rounded-full bg-emerald-500/10 border border-emerald-500/20 p-1 text-emerald-400">
-                  <CheckCircle2 className="w-4 h-4 fill-emerald-500/10" />
-                </div>
-              </div>
-              <div className="flex justify-between items-end">
-                <span className="text-[10px] text-zinc-500">Reward: +30 signup +10 setup credits</span>
-                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-semibold font-mono">Claimed</span>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className={`rounded-2xl border p-4 flex flex-col justify-between h-32 transition-all duration-300 ${isStep2Complete
-              ? "border-white/5 bg-zinc-950/40"
-              : "border-brand/20 bg-zinc-950/60 shadow-[0_0_15px_rgba(139,92,246,0.02)]"
-              }`}>
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">Step 2</p>
-                  <h3 className="text-xs font-bold text-zinc-200">Sync a Newsletter Feed</h3>
-                </div>
-                {isStep2Complete ? (
-                  <div className="rounded-full bg-emerald-500/10 border border-emerald-500/20 p-1 text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4 fill-emerald-500/10" />
-                  </div>
-                ) : (
-                  <Link
-                    href="/workspace/channels"
-                    className="rounded-full bg-brand hover:bg-brand/90 p-1 text-white transition-colors"
-                    title="Connect channels or newsletter sources"
-                  >
-                    <ArrowUpRight className="w-4 h-4" />
-                  </Link>
-                )}
-              </div>
-              <div className="flex justify-between items-end">
-                <span className="text-[10px] text-zinc-500">Sync Milestone</span>
-                {isStep2Complete ? (
-                  <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-semibold font-mono">Claimed</span>
-                ) : (
-                  <Link
-                    href="/workspace/channels"
-                    className="text-[10px] text-brand hover:underline font-semibold"
-                  >
-                    Sync Now ➔
-                  </Link>
-                )}
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className={`rounded-2xl border p-4 flex flex-col justify-between h-32 transition-all duration-300 ${isStep3Complete
-              ? "border-white/5 bg-zinc-950/40 animate-in zoom-in-95 duration-100"
-              : "border-brand/10 bg-zinc-950/30"
-              }`}>
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">Step 3</p>
-                  <h3 className="text-xs font-bold text-zinc-200">Schedule Your First Post</h3>
-                </div>
-                {isStep3Complete ? (
-                  <div className="rounded-full bg-emerald-500/10 border border-emerald-500/20 p-1 text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4 fill-emerald-500/10" />
-                  </div>
-                ) : (
-                  <Link
-                    href="/workspace/create/new"
-                    className="rounded-full bg-brand/20 hover:bg-brand/30 border border-brand/30 p-1 text-brand transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Link>
-                )}
-              </div>
-              <div className="flex justify-between items-end">
-                <span className="text-[10px] text-zinc-500">Reward: +10 publishing credits</span>
-                {isStep3Complete ? (
-                  <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-semibold font-mono">Claimed</span>
-                ) : (
-                  <span className="text-[10px] text-zinc-400 font-semibold font-mono">🎁 +10 Credits</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ─── Metrics Grid ─── */}
-      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Metric: Scheduled Queue */}
-        <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-6 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-zinc-950/60 flex flex-col justify-between h-36 hover:scale-[1.02] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-base text-white">Active Queue</span>
-            <div className="">
-              <CalendarDays className="h-4 w-4" />
-            </div>
-          </div>
-          <div>
-            <span className="text-3xl font-display text-zinc-100 block">{scheduledPosts.length} posts</span>
-            <Link href="/workspace/calendar" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand hover:text-brand/80 transition-colors mt-1.5">
-              Open Calendar
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
+  // 3. FAILED: Error state
+  if (analysis?.status === "failed") {
+    return (
+      <div className="flex min-h-[85vh] flex-col items-center justify-center p-6 text-center">
+        <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 mb-4">
+          <AlertCircle className="size-7" />
         </div>
-
-        {/* Metric: Connected Channels */}
-        <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-6 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-zinc-950/60 flex flex-col justify-between h-36 hover:scale-[1.02] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-base text-white">Social Channels</span>
-            <div className="">
-              <Link2 className="h-4 w-4" />
-            </div>
-          </div>
-          <div>
-            <span className="text-3xl font-display text-zinc-100 block">{activeChannels.length} profiles</span>
-            <Link href="/workspace/channels" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition-colors mt-1.5">
-              Manage Profiles
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Metric: Brand Voice Memory */}
-        <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-6 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-zinc-950/60 flex flex-col justify-between h-36 hover:scale-[1.02] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-base text-zinc-100">Voice Memory</span>
-            <div className="">
-              <Brain className="h-4 w-4" />
-            </div>
-          </div>
-          <div>
-            <span className="text-md font-display text-zinc-100 block">
-              {kb?.brandVoiceTraining ? "Dynamic Profile Configured" : "Awaiting Training"}
-            </span>
-            <Link href="/workspace/memory" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#e99ab1] hover:text-[#e99ab1]/80 transition-colors mt-1.5">
-              {kb?.brandVoiceTraining ? "Analyze Voice profile" : "Train Voice Profile"}
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Metric: Credit Balance */}
-        <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-6 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-zinc-950/60 flex flex-col justify-between h-36 hover:scale-[1.02] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-base text-zinc-100">Credits Available</span>
-            <div className="">
-              <Sparkles className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-end justify-between">
-              <span className="text-2xl font-display text-zinc-100">{creditBalance}</span>
-              <span className="text-[10px] text-zinc-500">of {maxCredits}</span>
-            </div>
-            <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-white/5">
-              <div
-                className="bg-brand h-full rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, Math.max(0, (creditBalance / maxCredits) * 100))}%` }}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Creations Horizontal Scroller ─── */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-display text-zinc-100">Creations Library</h2>
-            <p className="text-xs text-zinc-500 mt-1">Select previously saved channel pack iterations</p>
-          </div>
-          <Link href="/workspace/create" className="text-xs font-semibold text-brand hover:text-brand/80 transition-colors flex items-center gap-1">
-            View All Packs
-            <ChevronLeft className="h-3 w-3 rotate-180" />
+        <h2 className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white">
+          Analysis Encountered an Issue
+        </h2>
+        <p className="mt-2 text-sm text-neutral-500 dark:text-zinc-400 max-w-md">
+          {analysis.error || "Unable to complete site analysis."}
+        </p>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 rounded-full bg-secondary px-5 py-2 text-sm font-medium text-black hover:bg-secondary/90 transition-colors cursor-pointer"
+          >
+            Try another website on home
           </Link>
         </div>
+      </div>
+    );
+  }
 
-        {savedCreations.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-zinc-950/20 py-12 text-center">
-            <p className="text-xs text-zinc-500 max-w-sm mx-auto">
-              No saved packs generated yet. Import your first issue and translate it to connect to social templates!
-            </p>
-            <Link href="/workspace/create/new" className="inline-flex items-center gap-1.5 text-xs text-brand hover:text-brand/80 mt-3 font-semibold">
-              Create a Draft Pack
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {savedCreations.slice(0, 3).map((creation) => (
-              <article
-                key={creation.id}
-                className="group relative rounded-2xl border border-white/10 bg-zinc-950/40 p-5 backdrop-blur-md transition-all duration-300 hover:border-white/30 hover:bg-zinc-950/60 flex flex-col justify-between min-h-[170px] hover:scale-[1.02] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-full border border-brand/20 bg-brand/10 px-2.5 py-0.5 text-[9px] font-semibold text-brand">
-                      {creation.draftCountPerChannel} drafts per channel
-                    </span>
-                    <span className="text-[10px] text-zinc-650">
-                      {new Date(creation.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-semibold text-zinc-100 group-hover:text-white line-clamp-2 leading-snug">
-                    {creation.articleTitle || "Untitled creation"}
-                  </h3>
-                </div>
+  // 4. COMPLETED: Rich Brand Diagnosis Dashboard
+  const diagnosis = analysis?.diagnosis;
 
-                <div className="mt-5 border-t border-white/5 pt-4 flex items-center justify-between">
-                  <span className="text-[10px] text-zinc-505">
-                    {creation.draftCount} drafts generated
-                  </span>
-                  <Link
-                    href={`/workspace/create/${creation.id}`}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-brand hover:text-brand/80 transition-colors"
-                  >
-                    Open Pack
-                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  </Link>
-                </div>
-              </article>
-            ))}
+  if (!diagnosis) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="size-6 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-8">
+      {/* Guest Mode Banner: Prompts sign up to save diagnosis */}
+      {isGuest && (
+        <div className="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+              <Sparkles className="size-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                Guest Preview Mode
+              </h3>
+              <p className="text-xs text-neutral-600 dark:text-zinc-400">
+                Create a free account to save this brand diagnosis, edit decisions, and generate tailored brand assets.
+              </p>
+            </div>
           </div>
-        )}
+          <Link
+            href={`/auth/signup?analysisId=${encodeURIComponent(analysis.id)}&website=${encodeURIComponent(
+              analysis.url.replace(/^https?:\/\//, "")
+            )}`}
+            className="shrink-0 flex items-center gap-1.5 rounded-full bg-secondary hover:bg-secondary/90 px-4 py-2 text-xs font-semibold text-black transition-all shadow-sm cursor-pointer"
+          >
+            <span>Save Brand Brain</span>
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
+      )}
+
+      {/* Hero Header Card */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-200 dark:border-white/[0.08]">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+              <CheckCircle2 className="size-3" />
+              Evidence-Backed Diagnosis
+            </span>
+            <span className="text-xs text-neutral-400 dark:text-zinc-500">•</span>
+            <a
+              href={analysis.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-neutral-500 dark:text-zinc-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors"
+            >
+              <span>{analysis.url}</span>
+              <ExternalLink className="size-3" />
+            </a>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-white">
+            {diagnosis.companyName}
+          </h1>
+          <p className="mt-2 text-sm sm:text-base text-neutral-600 dark:text-zinc-300 max-w-3xl leading-relaxed">
+            {diagnosis.summary}
+          </p>
+        </div>
+
+        {/* Action button to re-analyze / analyze another site */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 text-xs font-medium text-neutral-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+          >
+            <RefreshCw className="size-3.5" />
+            <span>Analyze another website</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Section 1: Positioning & Strategic Inferences */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Compass className="size-4 text-emerald-500" />
+          <h2 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-white">
+            Strategic Inferences & Hypotheses
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {diagnosis.inferences.map((inf, idx) => (
+            <InferenceCard key={idx} inference={inf} />
+          ))}
+        </div>
       </section>
 
-      {/* ─── Bottom Columns: Queue Preview & Ready newsletters ─── */}
-      <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
-        {/* Left Column: Scheduled Timeline */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-display text-zinc-100">Weekly Queue Feed</h2>
-              <p className="text-xs text-zinc-500 mt-1">Live overview of upcoming publishing slots</p>
-            </div>
-            <Link href="/workspace/calendar" className="text-xs font-semibold text-brand hover:text-brand/80 transition-colors flex items-center gap-1">
-              View Calendar
-              <ArrowRight className="h-3 w-3" />
-            </Link>
+      {/* Section 2: Grounded Observations with Quoted Evidence */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <FileText className="size-4 text-emerald-500" />
+          <h2 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-white">
+            Grounded Evidence & Observations
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {diagnosis.observations.map((obs, idx) => (
+            <ObservationCard key={idx} observation={obs} />
+          ))}
+        </div>
+      </section>
+
+      {/* Section 3: Strategic Contradictions & Open Questions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+        {/* Contradictions */}
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="size-4 text-amber-500" />
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+              Messaging Contradictions & Tensions
+            </h3>
+          </div>
+          {diagnosis.contradictions.length > 0 ? (
+            <ul className="space-y-2.5">
+              {diagnosis.contradictions.map((item, i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-2.5 text-xs text-neutral-600 dark:text-zinc-300 bg-amber-500/5 border border-amber-500/20 rounded-xl p-3"
+                >
+                  <span className="size-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-neutral-500 dark:text-zinc-400 py-4 text-center">
+              No significant messaging contradictions detected in the scraped evidence.
+            </p>
+          )}
+        </div>
+
+        {/* High-Leverage Strategic Questions */}
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <HelpCircle className="size-4 text-emerald-500" />
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+              High-Leverage Strategic Questions
+            </h3>
           </div>
 
-          {scheduledPosts.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-white/10 bg-zinc-950/20 py-16 text-center">
-              <p className="text-xs text-zinc-500 max-w-sm mx-auto leading-relaxed">
-                Your post-dispatch queue is empty. Choose a channel card variations pack and schedule your releases!
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3.5">
-              {scheduledPosts.slice(0, 3).map((post) => (
-                <div
-                  key={post.id}
-                  className="rounded-2xl border border-white/10 bg-zinc-950/40 p-5 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-zinc-950/50 flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:scale-[1.01] hover:shadow-[0_4px_20px_rgb(0,0,0,0.08)]"
-                >
-                  <div className="flex items-start gap-3.5 min-w-0">
-                    <div className="relative h-8 w-8 shrink-0">
-                      {post.channel?.avatarUrl ? (
-                        <img
-                          src={post.channel.avatarUrl}
-                          alt=""
-                          className="h-8 w-8 rounded-full object-cover border border-zinc-800"
-                        />
-                      ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-xs font-bold text-zinc-300 border border-zinc-800">
-                          {(post.channel?.accountName || post.channel?.platform || "?").charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      {post.channel?.platform && getPlatformLogo(post.channel.platform) ? (
-                        <div className="absolute -bottom-1 -right-1 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-zinc-950 p-0.5 border border-zinc-800">
-                          <img
-                            src={getPlatformLogo(post.channel.platform) ?? ""}
-                            alt=""
-                            className="h-full w-full object-contain"
-                          />
-                        </div>
-                      ) : null}
-                    </div>
+          <div className="space-y-4">
+            {diagnosis.openQuestions.map((q, qIndex) => (
+              <div
+                key={qIndex}
+                className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/70 p-3.5 space-y-2"
+              >
+                <p className="text-xs font-semibold text-neutral-900 dark:text-white">
+                  {q.question}
+                </p>
+                <p className="text-[11px] text-neutral-500 dark:text-zinc-400 italic">
+                  Why this matters: {q.reason}
+                </p>
 
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-zinc-200">
-                          {post.channel?.accountName || "Connected profile"}
-                        </span>
-                        <span className="text-[10px] text-zinc-500 bg-white/[0.02] px-2 py-0.5 rounded-full border border-white/5 capitalize">
-                          {post.channel?.platform}
-                        </span>
-                      </div>
-                      <p className="text-xs text-zinc-300/80 truncate max-w-xl font-normal pr-4">
-                        {post.content?.text || ""}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0 justify-between sm:justify-start">
-                    <div className="text-right">
-                      <span className="text-[10px] font-bold text-zinc-400 block">
-                        {new Date(post.scheduledAt!).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                      </span>
-                      <span className="text-[9px] text-zinc-500 block mt-0.5">
-                        {formatFriendlyTime(post.scheduledAt!)}
-                      </span>
-                    </div>
-                    <Link
-                      href="/workspace/calendar"
-                      className="rounded-lg bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
-                    >
-                      <ArrowUpRight className="h-4 w-4" />
-                    </Link>
-                  </div>
+                {/* Option selector pills */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {q.options.map((opt, oIndex) => {
+                    const isSelected = selectedAnswers[qIndex] === opt;
+                    return (
+                      <button
+                        key={oIndex}
+                        type="button"
+                        onClick={() =>
+                          setSelectedAnswers((prev) => ({
+                            ...prev,
+                            [qIndex]: isSelected ? "" : opt,
+                          }))
+                        }
+                        className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition-colors cursor-pointer border ${
+                          isSelected
+                            ? "bg-secondary text-black border-secondary"
+                            : "bg-white dark:bg-zinc-800 text-neutral-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500"
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Right Column: Ready Newsletter Issues */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-display text-zinc-100">Import Pipeline</h2>
-              <p className="text-xs text-zinc-500 mt-1">Ready issues for packing</p>
-            </div>
-            <Link href="/workspace/create/new" className="text-xs font-semibold text-brand hover:text-brand/80 transition-colors flex items-center gap-0.5">
-              Import
-              <Plus className="h-3.5 w-3.5" />
-            </Link>
+              </div>
+            ))}
           </div>
-
-          {recentArticles.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-white/10 bg-zinc-950/20 p-8 text-center">
-              <RssIcon className="h-6 w-6 text-zinc-700 mx-auto mb-2" />
-              <p className="text-[11px] text-zinc-650 leading-normal max-w-[160px] mx-auto">
-                No articles imported. Feed your newsletter RSS link to fetch!
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-3">
-              {recentArticles.slice(0, 4).map((art) => (
-                <div
-                  key={art.id}
-                  className="rounded-xl border border-white/10 bg-zinc-950/40 p-4 transition-all duration-300 hover:border-white/20 flex flex-col justify-between gap-3 hover:scale-[1.02] hover:shadow-[0_4px_20px_rgb(0,0,0,0.08)]"
-                >
-                  <div className="space-y-1">
-                    <h4 className="text-xs font-semibold text-zinc-202 line-clamp-1 leading-normal">
-                      {art.title}
-                    </h4>
-                    <span className="text-[9px] text-zinc-505 block">
-                      Imported {new Date(art.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </span>
-                  </div>
-
-                  <Link
-                    href={`/workspace/create/new?articleId=${art.id}`}
-                    className="inline-flex items-center gap-1 text-[10px] font-bold text-brand hover:text-brand/80 transition-colors w-fit"
-                  >
-                    Launch Pack
-                    <ArrowRight className="h-3 w-3 shrink-0" />
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+        </div>
       </div>
     </div>
   );
 }
+
+// Subcomponents: Inference Card
+function InferenceCard({ inference }: { inference: Inference }) {
+  const [showEvidence, setShowEvidence] = useState(false);
+
+  const typeLabels: Record<string, string> = {
+    audience: "Target Audience",
+    category: "Market Category",
+    positioning: "Positioning Angle",
+    personality: "Brand Personality",
+  };
+
+  const confidencePct = Math.round(inference.confidence * 100);
+
+  return (
+    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 p-5 shadow-sm space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="inline-flex rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 capitalize">
+          {typeLabels[inference.type] || inference.type}
+        </span>
+        <span className="text-[11px] font-medium text-neutral-500 dark:text-zinc-400 tabular-nums">
+          {confidencePct}% confidence
+        </span>
+      </div>
+
+      <p className="text-sm font-medium text-neutral-900 dark:text-white leading-snug">
+        {inference.statement}
+      </p>
+
+      {inference.evidence && inference.evidence.length > 0 && (
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => setShowEvidence((prev) => !prev)}
+            className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+          >
+            <Quote className="size-3" />
+            <span>{showEvidence ? "Hide evidence" : `View quoted evidence (${inference.evidence.length})`}</span>
+          </button>
+
+          {showEvidence && (
+            <div className="mt-2 space-y-2 border-l-2 border-emerald-500/40 pl-3 pt-1">
+              {inference.evidence.map((ev, i) => (
+                <div key={i} className="text-xs space-y-0.5">
+                  <p className="text-neutral-700 dark:text-zinc-300 font-mono text-[11px] bg-zinc-100 dark:bg-zinc-800/80 p-2 rounded">
+                    &ldquo;{ev.sourceText}&rdquo;
+                  </p>
+                  <p className="text-[10px] text-neutral-400 dark:text-zinc-500 truncate">
+                    Source: {ev.sourceUrl}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Subcomponents: Observation Card
+function ObservationCard({ observation }: { observation: Observation }) {
+  const [showEvidence, setShowEvidence] = useState(false);
+
+  const typeLabels: Record<string, string> = {
+    product: "Product Offering",
+    audience_signal: "Audience Signal",
+    claim: "Core Claim",
+    proof: "Proof Point",
+    voice: "Voice & Tone",
+    visual: "Visual Identity",
+  };
+
+  return (
+    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/30 p-4 space-y-2.5">
+      <div className="flex items-center justify-between">
+        <span className="inline-flex rounded px-2 py-0.5 text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-neutral-600 dark:text-zinc-300">
+          {typeLabels[observation.type] || observation.type}
+        </span>
+        <span className="text-[10px] text-neutral-400 tabular-nums">
+          {Math.round(observation.confidence * 100)}%
+        </span>
+      </div>
+
+      <p className="text-xs text-neutral-800 dark:text-zinc-200 font-medium">
+        {observation.statement}
+      </p>
+
+      {observation.evidence && observation.evidence.length > 0 && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowEvidence((prev) => !prev)}
+            className="text-[10px] text-neutral-500 dark:text-zinc-400 hover:text-emerald-500 cursor-pointer underline"
+          >
+            {showEvidence ? "Hide quote" : "Quoted source"}
+          </button>
+          {showEvidence && (
+            <p className="mt-1.5 text-[11px] font-mono text-neutral-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/60 p-1.5 rounded">
+              &ldquo;{observation.evidence[0]?.sourceText}&rdquo;
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function WorkspacePage(): React.ReactNode {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="size-6 animate-spin text-zinc-400" />
+        </div>
+      }
+    >
+      <WorkspaceContent />
+    </Suspense>
+  );
+}
+

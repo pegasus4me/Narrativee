@@ -1,113 +1,71 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Urbanist, Manrope, Instrument_Sans, JetBrains_Mono } from 'next/font/google'
-import { GoogleTagManager } from '@next/third-parties/google'
-import { GoogleAnalytics } from '@next/third-parties/google'
-import "./globals.css";
+import { Instrument_Sans, Manrope, Stack_Sans_Notch, Belleza } from "next/font/google";
+import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 import { Toaster } from "sonner";
+import "./globals.css";
 import { PostHogProvider } from "./components/providers/PostHogProvider";
 import { QueryProvider } from "./components/providers/QueryProvider";
-import ScreenSizeGuard  from "./components/workspace/ScreenSizeGuard";
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
 });
 
-const urbanist = Urbanist({
-  variable: "--font-urbanist",
-  weight: ["400", '500', '600', '700', '800', '900'],
-  subsets: ['latin']
-})
-
-const manrope = Manrope({
-  variable: "--font-manrope",
-  weight: ["400", '500', '600', '700', '800'],
-  subsets: ['latin']
-})
-
-const instrumentSans = Instrument_Sans({ 
+const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
-  variable: '--font-instrument'
+  variable: "--font-instrument",
 });
 
-const jetbrainsMono = JetBrains_Mono({ 
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: '--font-jetbrains'
+  variable: "--font-manrope",
+});
+
+const stackSans = Stack_Sans_Notch({
+  subsets: ["latin"],
+  variable: "--font-stack",
+});
+
+const belleza = Belleza({
+  subsets: ["latin"],
+  variable: "--font-belleza",
+  weight: "400",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://narrativee.com"),
   title: {
-    default: "Narrativee | AI Content Repurposing Tool for Social Media",
+    default: "Narrativee | Your AI Brand Designer",
     template: "%s | Narrativee",
   },
-  description: "Narrativee is the premium AI content repurposing tool. Automatically repurpose Substack, beehiiv, and RSS newsletters into posts for LinkedIn, X, and Threads.",
-  keywords: [
-    "content repurposing tool",
-    "repurposing content for social media",
-    "newsletter repurposing",
-    "substack growth",
-    "social media distribution",
-    "ai voice cloner",
-    "newsletter promotion"
-  ],
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://narrativee.com",
-    siteName: "Narrativee",
-    title: "Narrativee | AI Content Repurposing Tool for Social Media",
-    description: "Narrativee is the premium AI content repurposing tool. Automatically repurpose Substack, beehiiv, and RSS newsletters into posts for LinkedIn, X, and Threads.",
-    images: [
-      {
-        url: "/og-image-v2.png",
-        width: 1200,
-        height: 630,
-        alt: "Narrativee Platform - AI Content Repurposing System",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Narrativee | AI Content Repurposing Tool for Social Media",
-    description: "Narrativee is the premium AI content repurposing tool. Automatically repurpose Substack, beehiiv, and RSS newsletters into posts for LinkedIn, X, and Threads.",
-    images: ["/og-image-v2.png"],
-    creator: "@narrativee",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
+  description:
+    "Meet your AI brand designer. Explore identities, campaigns and creative assets with an agent that learns your brand over time. Join the early-access waitlist.",
+  alternates: { canonical: "/" },
 };
 
+/** Global providers and metadata shared by every application route. */
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>): React.ReactNode {
   return (
-    <html lang="en">
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem('theme')==='light'){document.documentElement.classList.remove('dark')}else{document.documentElement.classList.add('dark')}}catch(e){}`,
+          }}
+        />
+      </head>
       <body
-        className={`${urbanist.variable} ${manrope.variable} ${geistMono.variable} ${instrumentSans.variable} ${jetbrainsMono.variable}`}
+        className={`${geistMono.variable} ${instrumentSans.variable} ${manrope.variable} ${stackSans.variable} ${belleza.variable}`}
         suppressHydrationWarning
       >
         <GoogleTagManager gtmId="GTM-5BCN3HMQ" />
         <GoogleAnalytics gaId="G-L8W7KEVHQ4" />
         <QueryProvider>
           <PostHogProvider>
-            <ScreenSizeGuard>
-              {children}
-            </ScreenSizeGuard>
+            {children}
             <Toaster />
           </PostHogProvider>
         </QueryProvider>

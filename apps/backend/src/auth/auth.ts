@@ -7,8 +7,6 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import dns from 'node:dns';
 import path from 'node:path';
 import fs from 'node:fs';
-import { EmailService } from "../services/email-service";
-import { posthog } from "../lib/posthog";
 
 // Load .env: walk up from CWD until we find it (works for both turbo & docker)
 const loadEnv = () => {
@@ -71,92 +69,22 @@ export const auth = betterAuth({
   ],
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
-    // REMOVE THIS IN LOCAL DEVELOPEMENT
-
   },
   databaseHooks: {
     user: {
-
       create: {
         before: async (user) => {
           return {
             data: {
               ...user,
-              image: user.image || "https://static.vecteezy.com/system/resources/previews/059/545/358/non_2x/abstract-pixel-art-background-soft-purple-and-pale-yellow-mosaic-ideal-for-website-banners-digital-art-presentations-and-tech-designs-conveys-a-sense-of-modern-technology-and-digital-fluidity-vector.jpg"
-            }
+              image:
+                user.image ||
+                "https://static.vecteezy.com/system/resources/previews/059/545/358/non_2x/abstract-pixel-art-background-soft-purple-and-pale-yellow-mosaic-ideal-for-website-banners-digital-art-presentations-and-tech-designs-conveys-a-sense-of-modern-technology-and-digital-fluidity-vector.jpg",
+            },
           };
         },
-        after: async (user) => {
-          try {
-            await EmailService.sendWelcome({
-              email: user.email,
-              name: user.name ?? "",
-              promoCode: process.env.WELCOME_PROMO_CODE || "EARLYBIRD26",
-            });
-          } catch (e) {
-            console.error("Failed to send welcome email:", e);
-          }
-          posthog.identify({
-            distinctId: user.id,
-            properties: {
-              email: user.email,
-              name: user.name,
-              is_social_signup: !!user.image, // detects Google / Microsoft signup
-              plan: user.plan,
-
-            },
-          });
-          posthog.capture({
-            distinctId: user.id,
-            event: 'user_signed_up',
-            properties: {
-              email: user.email,
-              name: user.name,
-            },
-          });
-        }
-      }
-    }
+      },
+    },
   },
-  user: {
-    additionalFields: {
-
-      plan: {
-        type: "string",
-        defaultValue: "free"
-      },
-      tokens: {
-        type: "number",
-        defaultValue: 30
-      },
-      carouselTokens: {
-        type: "number",
-        defaultValue: 6
-      },
-      subscriptionStatus: {
-        type: "string",
-        required: false
-      },
-      stripeCustomerId: {
-        type: "string",
-        required: false
-      },
-      onboarded: {
-        type: "boolean",
-        defaultValue: false
-      },
-      utmSource: {
-        type: "string",
-        required: false
-      },
-      utmMedium: {
-        type: "string",
-        required: false
-      },
-      utmCampaign: {
-        type: "string",
-        required: false
-      }
-    }
-  }
 });
+

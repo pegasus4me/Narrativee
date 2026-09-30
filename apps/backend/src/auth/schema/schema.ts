@@ -1,5 +1,15 @@
-import { relations } from 'drizzle-orm';
-import { pgTable, text, timestamp, boolean, integer, jsonb, uuid } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import {
+  boolean,
+  bigserial,
+  integer,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -9,27 +19,6 @@ export const user = pgTable("user", {
   image: text("image"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-  plan: text("plan").notNull().default("free"),
-  tokens: integer("tokens").default(40),
-  carouselTokens: integer("carouselTokens").default(6),
-  stripeCustomerId: text("stripeCustomerId"),
-  stripeSubscriptionId: text("stripeSubscriptionId"),
-  subscriptionStatus: text("subscriptionStatus"),
-  currentPeriodEnd: timestamp("currentPeriodEnd"),
-  onboarded: boolean("onboarded").default(false),
-  substackHandle: text("substackHandle"),
-  // User Preferences
-  language: text("language"),
-  writingStyle: text("writingStyle"),
-  contentTopics: jsonb("contentTopics"), // Array of strings
-  // UTM Attribution parameters
-  utmSource: text("utmSource"),
-  utmMedium: text("utmMedium"),
-  utmCampaign: text("utmCampaign"),
-  // Legacy fields (kept to avoid data loss warning during push)
-  orgName: text("orgName"),
-  orgUrl: text("orgUrl"),
-  orgLogo: text("orgLogo"),
 });
 
 export const session = pgTable("session", {
@@ -66,117 +55,125 @@ export const account = pgTable("account", {
 export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
-  value: text("value").notNull(), // Must be text for better-auth to parse correctly
+  value: text("value").notNull(),
   expiresAt: timestamp("expiresAt").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-// ─── Content Pipeline Architecture ──────────────────────────────────────────
-
-export const contentSources = pgTable("content_sources", {
+export const waitlistEntry = pgTable("waitlist_entry", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  platform: text("platform").notNull(), // 'substack', 'beehiiv', 'custom_rss'
-  url: text("url"), // e.g., https://myblog.substack.com/feed
-  avatarUrl: text("avatar_url"),
-  apiKey: text("api_key"), // For Beehiiv API
-  lastSyncedAt: timestamp("last_synced_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  email: text("email").notNull().unique(),
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
+  utmContent: text("utm_content"),
+  utmTerm: text("utm_term"),
+  fbclid: text("fbclid"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const channels = pgTable("channels", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  platform: text("platform").notNull(), // 'x', 'linkedin', 'threads', 'instagram'
-  providerAccountId: text("provider_account_id").notNull(), // ID from the social network
-  accountName: text("account_name"), // e.g., "@narrativee"
-  avatarUrl: text("avatar_url"),
-  accessToken: text("access_token").notNull(),
-  refreshToken: text("refresh_token"),
-  expiresAt: timestamp("expires_at"),
-  isConnected: boolean("is_connected").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const brand = pgTable(
+  "brand",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    url: text("url"),
+    creationKeyHash: text("creation_key_hash").unique(),
+    guestTokenHash: text("guest_token_hash"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("brand_user_created_idx").on(table.userId, table.createdAt),
+  ],
+);
 
-export const articles = pgTable("articles", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  sourceId: uuid("source_id").references(() => contentSources.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  content: text("content").notNull(), // Full HTML or Markdown
-  url: text("url"),
-  publishedAt: timestamp("published_at"),
-  /** Cached atomic ideas / angles from last extraction (string[]) */
-  extractedAngles: jsonb("extracted_angles"),
-  anglesExtractedAt: timestamp("angles_extracted_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const siteAnalysis = pgTable(
+  "site_analysis",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    brandId: uuid("brand_id").references(() => brand.id, {
+      onDelete: "cascade",
+    }),
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    url: text("url").notNull(),
+    status: text("status").default("queued").notNull(),
+    progress: integer("progress").default(0).notNull(),
+    rawDocument: jsonb("raw_document"),
+    diagnosis: jsonb("diagnosis"),
+    competitorCandidates: jsonb("competitor_candidates"),
+    selectedCompetitorUrls: jsonb("selected_competitor_urls"),
+    competitorAnalysis: jsonb("competitor_analysis"),
+    error: text("error"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [index("site_analysis_brand_idx").on(table.brandId)],
+);
 
-export const socialPosts = pgTable("social_posts", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  articleId: uuid("article_id").references(() => articles.id, { onDelete: "set null" }),
-  channelId: uuid("channel_id").notNull().references(() => channels.id, { onDelete: "cascade" }),
-  content: jsonb("content").notNull(), // Store text, media URLs, thread arrays, etc.
-  status: text("status").notNull().default("draft"), // 'draft', 'scheduled', 'published', 'failed'
-  scheduledAt: timestamp("scheduled_at"),
-  publishedAt: timestamp("published_at"),
-  externalPostId: text("external_post_id"), // The ID returned by X/LinkedIn after posting
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const discoveryMessage = pgTable(
+  "discovery_message",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    analysisId: uuid("analysis_id")
+      .notNull()
+      .references(() => siteAnalysis.id, { onDelete: "cascade" }),
+    role: text("role").notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("discovery_message_analysis_created_idx").on(
+      table.analysisId,
+      table.createdAt,
+    ),
+  ],
+);
 
-export const creationSessions = pgTable("creation_sessions", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  sourceId: uuid("source_id").references(() => contentSources.id, { onDelete: "set null" }),
-  articleId: uuid("article_id").references(() => articles.id, { onDelete: "set null" }),
-  selectedAngles: jsonb("selected_angles").notNull().default([]),
-  selectedChannelIds: jsonb("selected_channel_ids").notNull().default([]),
-  drafts: jsonb("drafts").notNull().default([]),
-  /** Orchestration provenance — agents used, strategy, RAG context, validation results. */
-  metadata: jsonb("metadata"),
-  status: text("status").notNull().default("ready"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const studioProject = pgTable(
+  "studio_project",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brand.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("studio_project_user_idx").on(table.userId),
+    index("studio_project_brand_idx").on(table.brandId),
+  ],
+);
 
-export const userRelations = relations(user, ({ many, one }) => ({
+export const studioMessage = pgTable(
+  "studio_message",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    sequence: bigserial("sequence", { mode: "number" }).notNull(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => studioProject.id, { onDelete: "cascade" }),
+    role: text("role").notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("studio_message_project_sequence_idx").on(
+      table.projectId,
+      table.sequence,
+    ),
+  ],
+);
+
+export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
-  contentSources: many(contentSources),
-  channels: many(channels),
-  articles: many(articles),
-  socialPosts: many(socialPosts),
-  creationSessions: many(creationSessions),
-  knowledgeBase: one(knowledgeBase),
-}));
-
-// DB-backed OAuth CSRF state store (replaces in-memory Map for multi-instance safety)
-export const oauthStates = pgTable("oauth_states", {
-  state: text("state").primaryKey(),
-  userId: text("user_id").notNull(),
-  platform: text("platform").notNull(),
-  codeVerifier: text("code_verifier"),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const knowledgeBase = pgTable("knowledge_base", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  customHooks: jsonb("custom_hooks").notNull().default([]), // { channel: string, hook: string }[]
-  customTemplates: jsonb("custom_templates").notNull().default([]), // { channel: string, template: string }[]
-  bannedWords: jsonb("banned_words").notNull().default([]), // string[]
-  brandVoiceTraining: text("brand_voice_training").default(""),
-  voiceMemory: jsonb("voice_memory").notNull().default({}),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const knowledgeBaseRelations = relations(knowledgeBase, ({ one }) => ({
-  user: one(user, { fields: [knowledgeBase.userId], references: [user.id] }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -185,33 +182,4 @@ export const sessionRelations = relations(session, ({ one }) => ({
 
 export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, { fields: [account.userId], references: [user.id] }),
-}));
-
-export const contentSourcesRelations = relations(contentSources, ({ one, many }) => ({
-  user: one(user, { fields: [contentSources.userId], references: [user.id] }),
-  articles: many(articles),
-}));
-
-export const channelsRelations = relations(channels, ({ one, many }) => ({
-  user: one(user, { fields: [channels.userId], references: [user.id] }),
-  socialPosts: many(socialPosts),
-}));
-
-export const articlesRelations = relations(articles, ({ one, many }) => ({
-  user: one(user, { fields: [articles.userId], references: [user.id] }),
-  source: one(contentSources, { fields: [articles.sourceId], references: [contentSources.id] }),
-  socialPosts: many(socialPosts),
-  creationSessions: many(creationSessions),
-}));
-
-export const socialPostsRelations = relations(socialPosts, ({ one }) => ({
-  user: one(user, { fields: [socialPosts.userId], references: [user.id] }),
-  article: one(articles, { fields: [socialPosts.articleId], references: [articles.id] }),
-  channel: one(channels, { fields: [socialPosts.channelId], references: [channels.id] }),
-}));
-
-export const creationSessionsRelations = relations(creationSessions, ({ one }) => ({
-  user: one(user, { fields: [creationSessions.userId], references: [user.id] }),
-  source: one(contentSources, { fields: [creationSessions.sourceId], references: [contentSources.id] }),
-  article: one(articles, { fields: [creationSessions.articleId], references: [articles.id] }),
 }));

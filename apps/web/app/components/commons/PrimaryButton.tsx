@@ -9,14 +9,15 @@ export default function PrimaryButton({ children, className, ...props }: Primary
     return (
         <Button
             className={`
-        bg-primary 
-        hover:bg-primary/80
-        text-white 
+        bg-transparent 
+        hover:bg-tertiary
+        text-black 
         font-medium 
         px-4 py-2 md:px-5 md:py-2 
         rounded-full 
         text-sm md:text-base 
         whitespace-nowrap 
+        dark:text-white
         transition-all 
         duration-200 
         border border-primary/20

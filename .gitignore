@@ -28,6 +28,8 @@ coverage
 out/
 build
 dist
+output/
+**/output/
 
 
 # Debug

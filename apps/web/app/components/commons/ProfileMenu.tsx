@@ -61,7 +61,7 @@ export default function ProfileMenu() {
             <div className="flex items-center gap-3">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-3 px-3 py-2 text-zinc-800 transition-colors cursor-pointer hover:bg-zinc-100 rounded-lg focus:outline-none"
+                    className="flex items-center gap-3 px-3 py-2 text-zinc-200 transition-colors cursor-pointer hover:bg-white/10 rounded-lg focus:outline-none"
                 >
                     <Image
                         src={getAvatar(session?.data?.user?.image)}
@@ -71,10 +71,10 @@ export default function ProfileMenu() {
                         className="rounded-md shrink-0"
                     />
                     <div className="flex flex-col text-left overflow-hidden">
-                        <span className="text-sm font-medium text-zinc-900 truncate max-w-[120px]">
+                        <span className="text-sm font-medium text-zinc-100 truncate max-w-[120px]">
                             {session.data.user.name}
                         </span>
-                        <span className="text-xs text-zinc-500 truncate max-w-[120px]">
+                        <span className="text-xs text-zinc-400 truncate max-w-[120px]">
                             {session.data.user.email}
                         </span>
                     </div>
@@ -82,24 +82,23 @@ export default function ProfileMenu() {
             </div>
 
             {isOpen && (
-                <div className="absolute border right-0 mt-2 w-48 bg-red border rounded-xs border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900 truncate">{session.data.user.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{session.data.user.email}</p>
+                <div className="absolute right-0 mt-2 w-48 bg-[#18181b] border border-white/10 rounded-xl py-1 z-50 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-100">
+                    <div className="px-4 py-2 border-b border-white/10">
+                        <p className="text-sm font-medium text-zinc-100 truncate">{session.data.user.name}</p>
+                        <p className="text-xs text-zinc-400 truncate">{session.data.user.email}</p>
                     </div>
-
 
                     <Link
                         href="/workspace"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="block px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"
                         onClick={() => setIsOpen(false)}
                     >
-                        workspace
+                        Workspace
                     </Link>
 
                     <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
                     >
                         Log out
                     </button>

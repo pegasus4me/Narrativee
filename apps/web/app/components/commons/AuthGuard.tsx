@@ -1,52 +1,58 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "../../../lib/auth-client";
 import { usePostHog } from "posthog-js/react";
-
-const isTrialExpired = (createdAtString?: string | Date | null, plan?: string | null) => {
-    if (!createdAtString || plan !== "free") return false;
-    const createdAt = new Date(createdAtString);
-    const now = new Date();
-    const diffTime = now.getTime() - createdAt.getTime();
-    const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
-    return diffTime > fourteenDaysMs;
-};
+import { useBrands } from "../workspace/BrandProvider";
+import { authLink } from "@/lib/auth-destination";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-    const router = useRouter();
-    const pathname = usePathname();
-    const { data: session, isPending } = authClient.useSession();
-    const ph = usePostHog();
+  const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+  const ph = usePostHog();
+  const { active, loading, error } = useBrands();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const discovery = pathname === "/workspace/discovery";
+  const legacy = pathname === "/workspace" && Boolean(params.get("analysisId"));
+  const isGuestAllowed = Boolean(active) && (discovery || legacy);
+  // An invalid discovery shows recovery controls in the sidebar; its body is always empty.
+  const showRecovery = discovery && Boolean(error);
+  const destination = `${pathname}${params.size ? `?${params}` : ""}`;
 
-    const isExpired = session?.user ? isTrialExpired(session.user.createdAt, (session.user as any).plan) : false;
-
-    useEffect(() => {
-        if (!isPending) {
-            if (!session?.user) {
-                // Not logged in => redirect to signin
-                router.push("/auth/signin");
-            } else if (isExpired) {
-                // Free trial expired => redirect to pricing
-                router.push("/pricing?expired=true");
-            } else if (!session.user.onboarded && pathname !== "/onboarding") {
-                // Logged in but not onboarded => redirect to onboarding
-                router.push("/onboarding");
-            } else if (session.user) {
-                // Identify the user in PostHog so all events are linked
-                ph?.identify(session.user.id, {
-                    email: session.user.email,
-                    name: session.user.name,
-                });
-            }
-        }
-    }, [isPending, session, pathname, router, ph, isExpired]);
-
-    // Keep the layout visually consistent while checking session
-    if (isPending || (!session?.user) || isExpired || (!session?.user?.onboarded)) {
-        return null;
+  useEffect(() => {
+    if (!isPending && !loading) {
+      if (!session?.user && !isGuestAllowed && !showRecovery) {
+        // Not logged in and no active analysis => redirect to signin
+        router.replace(authLink("signin", destination));
+      } else if (session?.user) {
+        // Identify the user in PostHog so all events are linked
+        ph?.identify(session.user.id, {
+          email: session.user.email,
+          name: session.user.name,
+        });
+      }
     }
+  }, [
+    isPending,
+    session,
+    router,
+    ph,
+    isGuestAllowed,
+    loading,
+    showRecovery,
+    destination,
+  ]);
 
-    return <>{children}</>;
+  // Keep the layout visually consistent while checking session
+  if (isPending || loading) {
+    return null;
+  }
+
+  if (!session?.user && !isGuestAllowed && !showRecovery) {
+    return null;
+  }
+
+  return <>{children}</>;
 }
