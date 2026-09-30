@@ -52,26 +52,6 @@ export interface StudioChat {
   updatedAt: string;
 }
 
-export interface StudioBoardRun {
-  runId: string;
-  createdAt: string;
-  concept: string;
-  critique: {
-    brandFit: number;
-    distinctiveness: number;
-    legibility: number;
-    strengths: string[];
-    issues: string[];
-    verdict: string;
-  };
-}
-
-export type StudioBoardStatus =
-  | { status: "idle" }
-  | { status: "running"; stage: string }
-  | { status: "failed"; error: string }
-  | ({ status: "ready" } & StudioBoardRun);
-
 export class StudioApiError extends Error {
   constructor(
     public status: number,
@@ -141,37 +121,6 @@ export const getStudioProject = (id: string, signal?: AbortSignal) =>
     { signal },
   );
 
-export const getStudioBoard = (id: string, signal?: AbortSignal) =>
-  request<StudioBoardStatus>(`/${encodeURIComponent(id)}/board`, { signal });
-
-export const getStudioBoardHistory = (id: string, signal?: AbortSignal) =>
-  request<StudioBoardRun[]>(`/${encodeURIComponent(id)}/board/history`, {
-    signal,
-  });
-
-export const generateStudioBoard = (id: string) =>
-  request<StudioBoardStatus>(`/${encodeURIComponent(id)}/board`, {
-    method: "POST",
-    body: "{}",
-  });
-
-export async function getStudioBoardFile(
-  id: string,
-  name: "board.png" | "direction.json" | "critique.json",
-  runId?: string,
-  signal?: AbortSignal,
-): Promise<Blob> {
-  const query = runId ? `?runId=${encodeURIComponent(runId)}` : "";
-  const response = await fetch(
-    `${API_URL}/studio/projects/${encodeURIComponent(id)}/board/files/${name}${query}`,
-    { credentials: "include", cache: "no-store", signal },
-  );
-  if (!response.ok) {
-    throw new StudioApiError(response.status, "Could not load board file");
-  }
-  return response.blob();
-}
-
 export const startStudioResearch = (id: string, url?: string) =>
   request<{ analysisId: string; status: string }>(
     `/${encodeURIComponent(id)}/research`,
@@ -184,6 +133,51 @@ export const sendStudioMessage = (id: string, content: string) =>
     { method: "POST", body: JSON.stringify({ content }) },
   );
 
+export interface LogoPathSpec {
+  d: string;
+  fill: "foreground" | "accent" | "none";
+  stroke: "foreground" | "accent" | "none";
+  strokeWidth: number;
+}
+
+export interface LogoStyleSpec {
+  background: string;
+  foreground: string;
+  accent: string;
+  fontFamily:
+    | "Instrument Sans"
+    | "Manrope"
+    | "Belleza"
+    | "Stack Sans Notch";
+  fontWeight: number;
+  letterSpacing: number;
+}
+
+export type CreatorCanvasEvent =
+  | { type: "stage"; text: string }
+  | {
+      type: "direction_start";
+      runId: string;
+      index: number;
+      name: string;
+      angle: string;
+      brandName: string;
+    }
+  | {
+      type: "direction_style";
+      runId: string;
+      index: number;
+      style: LogoStyleSpec;
+    }
+  | {
+      type: "direction_path";
+      runId: string;
+      index: number;
+      pathIndex: number;
+      path: LogoPathSpec;
+    }
+  | { type: "direction_complete"; runId: string; index: number };
+
 type StudioStreamEvent =
   | { type: "delta"; text: string }
   | {
@@ -191,15 +185,17 @@ type StudioStreamEvent =
       userMessage: StudioMessage;
       assistantMessage: StudioMessage;
     }
-  | { type: "error"; error: string };
+  | { type: "error"; error: string }
+  | CreatorCanvasEvent;
 
-export async function streamStudioMessage(
+async function readStudioStream(
   id: string,
   content: string,
-  onDelta: (text: string) => void,
+  endpoint: "messages" | "creator",
+  onEvent: (event: StudioStreamEvent) => void,
 ): Promise<{ userMessage: StudioMessage; assistantMessage: StudioMessage }> {
   const response = await fetch(
-    `${API_URL}/studio/projects/${encodeURIComponent(id)}/messages/stream`,
+    `${API_URL}/studio/projects/${encodeURIComponent(id)}/${endpoint}/stream`,
     {
       method: "POST",
       credentials: "include",
@@ -231,7 +227,6 @@ export async function streamStudioMessage(
   function readLine(line: string) {
     if (!line.trim()) return;
     const event = JSON.parse(line) as StudioStreamEvent;
-    if (event.type === "delta") onDelta(event.text);
     if (event.type === "error") throw new Error(event.error);
     if (event.type === "done") {
       completed = {
@@ -239,6 +234,7 @@ export async function streamStudioMessage(
         assistantMessage: event.assistantMessage,
       };
     }
+    if (event.type !== "done") onEvent(event);
   }
 
   while (true) {
@@ -257,3 +253,24 @@ export async function streamStudioMessage(
     throw new Error("The designer stream ended before completion");
   return completed;
 }
+
+export const streamStudioMessage = (
+  id: string,
+  content: string,
+  onDelta: (text: string) => void,
+) =>
+  readStudioStream(id, content, "messages", (event) => {
+    if (event.type === "delta") onDelta(event.text);
+  });
+
+export const streamStudioCreatorMessage = (
+  id: string,
+  content: string,
+  onDelta: (text: string) => void,
+  onCanvasEvent: (event: CreatorCanvasEvent) => void,
+) =>
+  readStudioStream(id, content, "creator", (event) => {
+    if (event.type === "delta") onDelta(event.text);
+    else if (event.type !== "error" && event.type !== "done")
+      onCanvasEvent(event);
+  });

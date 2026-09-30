@@ -435,6 +435,14 @@ export async function sendStudioMessage(
   if (!answer.trim())
     throw new Error("Studio designer returned an empty response");
 
+  return saveStudioExchange(projectId, content, answer);
+}
+
+export async function saveStudioExchange(
+  projectId: string,
+  content: string,
+  answer: string,
+) {
   return db.transaction(async (transaction) => {
     const [userMessage] = await transaction
       .insert(studioMessage)

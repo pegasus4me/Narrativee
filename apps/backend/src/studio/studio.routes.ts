@@ -14,12 +14,7 @@ import {
   StudioResearchError,
   type StudioReply,
 } from "./studio.service";
-import {
-  getBrandBoardStatus,
-  listBrandBoardRuns,
-  readBrandBoardArtifact,
-  startBrandBoardExperiment,
-} from "./brand-board-experiment";
+import { runCreatorRequest } from "./creator.service";
 import { BoardResearchUnavailableError } from "../brand-board/research";
 
 const projectIdSchema = z.string().uuid();
@@ -129,112 +124,6 @@ export function createStudioRouter(
     }
   });
 
-  router.get("/:id/board", async (request: AuthRequest, response: Response) => {
-    const id = projectIdSchema.safeParse(request.params.id);
-    if (!id.success) {
-      response.status(400).json({ error: "Invalid project ID" });
-      return;
-    }
-    try {
-      const project = await findStudioProject(id.data, request.user!.id);
-      if (!project) {
-        response.status(404).json({ error: "Project not found" });
-        return;
-      }
-      response.setHeader("Cache-Control", "no-store");
-      response.json(await getBrandBoardStatus(project.id));
-    } catch (error) {
-      console.error("Could not load brand board:", error);
-      response.status(500).json({ error: "Could not load brand board" });
-    }
-  });
-
-  router.post(
-    "/:id/board",
-    async (request: AuthRequest, response: Response) => {
-      const id = projectIdSchema.safeParse(request.params.id);
-      if (!id.success) {
-        response.status(400).json({ error: "Invalid project ID" });
-        return;
-      }
-      try {
-        const project = await findStudioProject(id.data, request.user!.id);
-        if (!project) {
-          response.status(404).json({ error: "Project not found" });
-          return;
-        }
-        const status = await startBrandBoardExperiment(
-          project.id,
-          project.brandId,
-        );
-        response.status(202).json(status);
-      } catch (error) {
-        if (error instanceof BoardResearchUnavailableError) {
-          response.status(409).json({ error: error.message });
-          return;
-        }
-        console.error("Could not start brand board:", error);
-        response.status(503).json({ error: "Could not start brand board" });
-      }
-    },
-  );
-
-  router.get(
-    "/:id/board/history",
-    async (request: AuthRequest, response: Response) => {
-      const id = projectIdSchema.safeParse(request.params.id);
-      if (!id.success) {
-        response.status(400).json({ error: "Invalid project ID" });
-        return;
-      }
-      try {
-        const project = await findStudioProject(id.data, request.user!.id);
-        if (!project) {
-          response.status(404).json({ error: "Project not found" });
-          return;
-        }
-        response.setHeader("Cache-Control", "no-store");
-        response.json(await listBrandBoardRuns(project.id));
-      } catch (error) {
-        console.error("Could not load board history:", error);
-        response.status(500).json({ error: "Could not load board history" });
-      }
-    },
-  );
-
-  router.get(
-    "/:id/board/files/:name",
-    async (request: AuthRequest, response: Response) => {
-      const id = projectIdSchema.safeParse(request.params.id);
-      if (!id.success) {
-        response.status(400).json({ error: "Invalid project ID" });
-        return;
-      }
-      try {
-        const project = await findStudioProject(id.data, request.user!.id);
-        if (!project) {
-          response.status(404).json({ error: "Project not found" });
-          return;
-        }
-        const name = String(request.params.name);
-        const runId =
-          typeof request.query.runId === "string"
-            ? request.query.runId
-            : undefined;
-        const artifact = await readBrandBoardArtifact(project.id, name, runId);
-        if (!artifact) {
-          response.status(404).json({ error: "Board file not found" });
-          return;
-        }
-        response.setHeader("Cache-Control", "private, no-store");
-        response.type(name.endsWith(".png") ? "png" : "json").send(artifact);
-      } catch (error) {
-        console.error("Could not read brand board file:", error);
-        response.status(500).json({ error: "Could not read brand board file" });
-      }
-    },
-  );
-
   router.post(
     "/:id/research",
     async (request: AuthRequest, response: Response) => {
@@ -263,6 +152,56 @@ export function createStudioRouter(
         }
         console.error("Could not start Studio research:", error);
         response.status(503).json({ error: "Brand research is unavailable" });
+      }
+    },
+  );
+
+  router.post(
+    "/:id/creator/stream",
+    async (request: AuthRequest, response: Response) => {
+      const id = projectIdSchema.safeParse(request.params.id);
+      const message = messageSchema.safeParse(request.body);
+      if (!id.success || !message.success) {
+        response.status(400).json({ error: "Invalid Creator request" });
+        return;
+      }
+
+      const project = await findStudioProject(id.data, request.user!.id);
+      if (!project) {
+        response.status(404).json({ error: "Project not found" });
+        return;
+      }
+      if (project.kind !== "creation") {
+        response.status(409).json({ error: "Open a Creator chat first" });
+        return;
+      }
+
+      response.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
+      response.setHeader("Cache-Control", "no-cache, no-transform");
+      response.setHeader("X-Accel-Buffering", "no");
+      response.flushHeaders();
+
+      try {
+        const result = await runCreatorRequest(
+          project.id,
+          project.brandId,
+          request.user!.id,
+          message.data.content,
+          (event) => response.write(`${JSON.stringify(event)}\n`),
+        );
+        if (!result) throw new Error("Project not found");
+        response.write(`${JSON.stringify({ type: "done", ...result })}\n`);
+      } catch (error) {
+        console.error("Studio Creator stream failed:", error);
+        const reason =
+          error instanceof BoardResearchUnavailableError
+            ? error.message
+            : error instanceof Error && error.name === "CreatorBusyError"
+              ? error.message
+              : "The designer could not finish. Completed canvas objects were kept.";
+        response.write(`${JSON.stringify({ type: "error", error: reason })}\n`);
+      } finally {
+        response.end();
       }
     },
   );

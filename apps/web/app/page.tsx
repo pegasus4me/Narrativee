@@ -62,7 +62,7 @@ const questions = [
 
 export default function Home(): React.ReactNode {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#050505] text-[#f3f3f3] font-sans antialiased">
+    <div className="relative min-h-screen overflow-x-clip bg-[#050505] text-[#f3f3f3] font-sans antialiased">
       <HeroGradient />
       <Header />
       <main id="top" className="relative mx-auto w-[calc(100%-48px)] md:w-[min(60%,1120px)]">
@@ -79,14 +79,14 @@ export default function Home(): React.ReactNode {
               <p className="mx-auto my-[25px] md:mt-10 md:mb-9 max-w-[620px] text-[17px] md:text-[20px] font-medium leading-[1.4] tracking-[-0.025em] text-[#9a9a9a]">
                 A creative partner for the work ahead. Explore identities, make campaigns and create beautiful assets with an agent that remembers what makes your brand yours.
               </p>
-              <div id="start" className="mt-7">
+              <div id="start" className="mt-7 scroll-mt-28">
                 <WaitlistForm />
               </div>
             </div>
           </div>
         </section>
 
-        <section id="features" className="mb-[110px] md:mb-[155px] scroll-mt-12 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6">
+        <section id="features" className="mb-[110px] md:mb-[155px] scroll-mt-24 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6">
           <h2 className="m-0 text-[17px] md:text-[18px] font-[550] leading-[1.4] text-[#929292]">More than a design tool</h2>
           <div className="max-w-[720px]">
             {features.map((feature) => (
@@ -106,7 +106,7 @@ export default function Home(): React.ReactNode {
           </div>
         </section>
 
-        <section id="solution" className="mb-[110px] md:mb-[155px] scroll-mt-12 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6">
+        <section id="solution" className="mb-[110px] md:mb-[155px] scroll-mt-24 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6">
           <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-[18px] md:mb-[52px]" aria-label="Abstract visual explorations">
             <div className="relative aspect-[1.8] md:aspect-auto md:h-[clamp(190px,25vw,360px)] overflow-hidden bg-[#080808]">
               <Image src="/narrativee-use-1.png" alt="Blue, pink and green abstract light texture" fill sizes="(max-width: 760px) 92vw, 30vw" className="object-cover" />
@@ -123,7 +123,7 @@ export default function Home(): React.ReactNode {
           </div>
         </section>
 
-        <section className="mb-[110px] md:mb-[155px] scroll-mt-12 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6">
+        <section className="mb-[110px] md:mb-[155px] scroll-mt-24 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6">
           <h2 className="m-0 text-[17px] md:text-[18px] font-[550] leading-[1.4] text-[#929292]">What you can create</h2>
           <div className="md:col-start-2 grid grid-cols-1 md:grid-cols-2 gap-[18px]">
             {journal.map((item) => (
@@ -139,7 +139,7 @@ export default function Home(): React.ReactNode {
           </div>
         </section>
 
-        <section id="waitlist" className="mb-[110px] md:mb-[155px] scroll-mt-12 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6">
+        <section id="waitlist" className="mb-[110px] md:mb-[155px] scroll-mt-24 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6">
           <h2 className="m-0 text-[17px] md:text-[18px] font-[550] leading-[1.4] text-[#929292]">Early access</h2>
           <div className="md:col-start-2 max-w-[700px]">
             <p className="m-0 mb-[26px] text-[17px] md:text-[19px] leading-[1.5] text-[#999999]">

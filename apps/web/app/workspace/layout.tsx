@@ -1,7 +1,7 @@
 "use client";
 
 import AuthGuard from "../components/commons/AuthGuard";
-import SidebarNav from "../components/commons/Sidebar";
+import SidebarNav from "../components/commons/sideBar";
 import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import { BrandProvider } from "../components/workspace/BrandProvider";

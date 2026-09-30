@@ -1,7 +1,6 @@
 "use client";
 
 import { useStudioCanvas } from "./useStudioCanvas";
-import { StudioBoardExperiment } from "../StudioBoardExperiment";
 
 export function StudioCanvas({ projectId }: { projectId: string }) {
   const editor = useStudioCanvas(projectId);
@@ -20,7 +19,6 @@ export function StudioCanvas({ projectId }: { projectId: string }) {
           aria-label="Editable brand design canvas"
         />
       </div>
-      <StudioBoardExperiment projectId={projectId} />
     </section>
   );
 }
