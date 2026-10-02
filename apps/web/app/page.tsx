@@ -73,7 +73,8 @@ export default function Home(): React.ReactNode {
                 id="hero-title"
                 className="m-0 text-[clamp(2.7rem,5vw,4.5rem)] font-medium leading-[1.08] tracking-[-0.045em]"
               >
-                Not another design tool. An AI brand designer that learns your business.
+                <span>Not another design tool.</span>{" "}
+                <span className="text-[#888888]">An AI brand designer that learns your business.</span>
               </h1>
               <p className="mx-auto my-[25px] md:mt-10 md:mb-9 max-w-[620px] text-[17px] md:text-[20px] font-medium leading-[1.4] tracking-[-0.025em] text-[#9a9a9a]">
                 A creative partner for the work ahead. Explore identities, make campaigns and create beautiful assets with an agent that remembers what makes your brand yours.
