@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
-import { authClient } from "../../../lib/auth-client";
 import darkLogo from "public/logo-dark.png";
 
 interface HeaderProps {
@@ -15,7 +14,6 @@ interface HeaderProps {
 export default function Header({ onBetaSignup }: HeaderProps = {}) {
   const router = useRouter();
   const ph = usePostHog();
-  const { data: session } = authClient.useSession();
   const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
@@ -27,10 +25,10 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
 
   const start = () => {
     ph?.capture("header_cta_clicked", {
-      action: session ? "go_to_workspace" : "scroll_to_waitlist",
+      action: "scroll_to_waitlist",
     });
     if (onBetaSignup) onBetaSignup();
-    else router.push(session ? "/workspace" : "/#start");
+    else router.push("/#start");
   };
 
   return (
@@ -90,7 +88,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             onClick={start}
             data-ph-capture-attribute="header-cta-button"
           >
-            {session ? "Dashboard" : "Join waitlist"}
+            Join waitlist
             <span
               aria-hidden="true"
               className="inline-block ml-2 text-[1.1em] transition-transform duration-180 group-hover:translate-x-1"
