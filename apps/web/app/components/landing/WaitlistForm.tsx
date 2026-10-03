@@ -47,6 +47,10 @@ export default function WaitlistForm({
   const [surveyPending, setSurveyPending] = useState(false);
   const [surveyError, setSurveyError] = useState("");
   const [joinedEmail, setJoinedEmail] = useState("");
+  const [attribution, setAttribution] = useState<{
+    utmSource?: string;
+    utmCampaign?: string;
+  }>({});
   const [error, setError] = useState("");
   const { trackEvent } = useGTMTracking();
   const posthog = usePostHog();
@@ -159,6 +163,10 @@ export default function WaitlistForm({
       setJoined(true);
       setShowReward(true);
       setJoinedEmail(trimmedEmail);
+      setAttribution({
+        utmSource: campaign.utm_source,
+        utmCampaign: campaign.utm_campaign,
+      });
       setSurveyAnswers(emptySurveyAnswers);
       setSurveySubmitted(false);
       setEmail("");
@@ -200,7 +208,11 @@ export default function WaitlistForm({
       const response = await fetch(`${API_URL}/waitlist/survey`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: joinedEmail, ...surveyAnswers }),
+        body: JSON.stringify({
+          email: joinedEmail,
+          ...surveyAnswers,
+          ...attribution,
+        }),
       });
       if (!response.ok) {
         const body = (await response.json().catch(() => ({}))) as {

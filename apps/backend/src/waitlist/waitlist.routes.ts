@@ -1,8 +1,5 @@
 import { Router } from "express";
 import { z } from "zod";
-import { db } from "../auth/auth";
-import { and, eq, isNull } from "drizzle-orm";
-import { waitlistEntry } from "../auth/schema/schema";
 import { notifyDiscordOfWaitlistSignup } from "./notify-discord";
 
 const inputSchema = z.object({
@@ -29,6 +26,8 @@ const surveySchema = z.object({
   ]),
   mainPain: z.enum(["brand_fit", "time", "quality", "cost", "starting"]),
   founderConversation: z.boolean(),
+  utmSource: z.string().max(200).optional(),
+  utmCampaign: z.string().max(200).optional(),
 });
 
 export const waitlistRouter = Router();
@@ -58,33 +57,14 @@ waitlistRouter.post("/", async (request, response) => {
     return;
   }
 
-  const {
-    email,
-    utmSource,
-    utmMedium,
-    utmCampaign,
-    utmContent,
-    utmTerm,
-    fbclid,
-  } = parsed.data;
+  const { email, utmSource, utmCampaign } = parsed.data;
   try {
-    const inserted = await db
-      .insert(waitlistEntry)
-      .values({
-        email: email.toLowerCase(),
-        utmSource,
-        utmMedium,
-        utmCampaign,
-        utmContent,
-        utmTerm,
-        fbclid,
-      })
-      .onConflictDoNothing({ target: waitlistEntry.email })
-      .returning({ id: waitlistEntry.id });
-
-    response
-      .status(inserted.length ? 201 : 200)
-      .json({ created: inserted.length > 0 });
+    await notifyDiscordOfWaitlistSignup({
+      email: email.toLowerCase(),
+      utmSource,
+      utmCampaign,
+    });
+    response.status(201).json({ created: true });
   } catch (error) {
     console.error("Waitlist signup failed", error);
     response
@@ -109,63 +89,16 @@ waitlistRouter.post("/survey", async (request, response) => {
 
   const parsed = surveySchema.safeParse(request.body);
   if (!parsed.success) {
-    response
-      .status(400)
-      .json({
-        error: "Please complete the survey before claiming your credits.",
-      });
+    response.status(400).json({
+      error: "Please complete the survey before claiming your credits.",
+    });
     return;
   }
 
   const data = parsed.data;
   const email = data.email.toLowerCase();
   try {
-    const completed = await db
-      .update(waitlistEntry)
-      .set({
-        surveyRole: data.role,
-        surveyFirstUseCase: data.firstUseCase,
-        surveyCurrentWorkflow: data.currentWorkflow,
-        surveyMainPain: data.mainPain,
-        surveyFounderConversation: data.founderConversation,
-        surveyCompletedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(waitlistEntry.email, email),
-          isNull(waitlistEntry.surveyCompletedAt),
-        ),
-      )
-      .returning({
-        email: waitlistEntry.email,
-        utmSource: waitlistEntry.utmSource,
-        utmCampaign: waitlistEntry.utmCampaign,
-      });
-
-    if (!completed.length) {
-      const [existing] = await db
-        .select({
-          surveyCompletedAt: waitlistEntry.surveyCompletedAt,
-        })
-        .from(waitlistEntry)
-        .where(eq(waitlistEntry.email, email))
-        .limit(1);
-      if (!existing) {
-        response
-          .status(404)
-          .json({ error: "Join the waitlist before submitting the survey." });
-        return;
-      }
-      response.json({ completed: Boolean(existing.surveyCompletedAt) });
-      return;
-    }
-
-    void notifyDiscordOfWaitlistSignup({
-      ...data,
-      email: completed[0].email,
-      utmSource: completed[0].utmSource ?? undefined,
-      utmCampaign: completed[0].utmCampaign ?? undefined,
-    });
+    await notifyDiscordOfWaitlistSignup({ ...data, email });
     response.json({ completed: true });
   } catch (error) {
     console.error("Waitlist survey submission failed", error);

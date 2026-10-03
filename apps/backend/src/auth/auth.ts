@@ -28,10 +28,6 @@ const databaseUrl =
     ? process.env.DATABASE_URL
     : process.env.LOCAL_DATABASE_URL || process.env.DATABASE_URL;
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL must be configured before starting the backend.");
-}
-
 const pool = new Pool({
   connectionString: databaseUrl,
   allowExitOnIdle: true,
