@@ -23,8 +23,17 @@ const loadEnv = () => {
 };
 loadEnv();
 
+const databaseUrl =
+  process.env.NODE_ENV === "production" || process.env.RENDER === "true"
+    ? process.env.DATABASE_URL
+    : process.env.LOCAL_DATABASE_URL || process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL must be configured before starting the backend.");
+}
+
 const pool = new Pool({
-  connectionString: process.env.LOCAL_DATABASE_URL || process.env.DATABASE_URL,
+  connectionString: databaseUrl,
   allowExitOnIdle: true,
 });
 
@@ -87,4 +96,3 @@ export const auth = betterAuth({
     },
   },
 });
-
