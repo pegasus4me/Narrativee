@@ -95,17 +95,13 @@ export default function Home(): React.ReactNode {
             <div className="mx-auto max-w-full">
               <h1
                 id="hero-title"
-                className="m-0 text-[clamp(2.7rem,5vw,4.5rem)] font-medium leading-[1.08] tracking-[-0.045em]"
+                className="m-0 text-7xl font-medium leading-[1.08] tracking-[-0.045em]"
               >
-                Your AI brand designer, always on.
-                <span className="mt-4 block text-6xl font-normal">
-                  And always learning your brand.
-                </span>
+                Your AI Brand Designer. Always On.
               </h1>
               <p className="mx-auto my-[25px] md:mt-10 md:mb-9 max-w-[760px] text-[17px] md:text-[20px] font-medium leading-[1.4] tracking-[-0.025em] text-[#525252]">
-                A creative partner for the work ahead. Explore identities, make
-                campaigns and create beautiful assets with an agent that
-                remembers what makes your brand yours.
+                Learns your business. Creates your brand identities, campaigns,
+                and social content.
               </p>
               <div id="start" className="mt-7 scroll-mt-28">
                 <WaitlistForm />
