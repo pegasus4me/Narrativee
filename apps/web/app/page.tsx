@@ -97,11 +97,12 @@ export default function Home(): React.ReactNode {
                 id="hero-title"
                 className="m-0 text-7xl font-medium leading-[1.08] tracking-[-0.045em]"
               >
-                Your AI Brand Designer. Always On.
+                AI that runs your Brand design, Always on
               </h1>
               <p className="mx-auto my-[25px] md:mt-10 md:mb-9 max-w-[760px] text-[17px] md:text-[20px] font-medium leading-[1.4] tracking-[-0.025em] text-[#525252]">
-                Learns your business. Creates your brand identities, campaigns,
-                and social content.
+                A creative partner for the work ahead. Explore identities, make
+                campaigns and create beautiful assets with an agent that
+                remembers what makes your brand yours.
               </p>
               <div id="start" className="mt-7 scroll-mt-28">
                 <WaitlistForm />
