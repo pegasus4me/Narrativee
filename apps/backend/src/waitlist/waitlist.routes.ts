@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "../auth/auth";
+import { and, eq, isNull } from "drizzle-orm";
 import { waitlistEntry } from "../auth/schema/schema";
 import { notifyDiscordOfWaitlistSignup } from "./notify-discord";
 
@@ -15,11 +16,33 @@ const inputSchema = z.object({
   companyUrl: z.string().max(2048).optional(),
 });
 
+const surveySchema = z.object({
+  email: z.string().trim().email().max(320),
+  role: z.enum(["founder", "marketing", "designer", "agency", "other"]),
+  firstUseCase: z.enum(["campaign", "social", "launch", "identity", "other"]),
+  currentWorkflow: z.enum([
+    "self",
+    "design_tool",
+    "image_ai",
+    "freelancer",
+    "in_house",
+  ]),
+  mainPain: z.enum(["brand_fit", "time", "quality", "cost", "starting"]),
+  founderConversation: z.boolean(),
+});
+
 export const waitlistRouter = Router();
 
 waitlistRouter.post("/", async (request, response) => {
   const origin = request.get("origin");
-  if (origin && !["http://localhost:3000", "http://localhost:3010", "https://narrativee.com"].includes(origin)) {
+  if (
+    origin &&
+    ![
+      "http://localhost:3000",
+      "http://localhost:3010",
+      "https://narrativee.com",
+    ].includes(origin)
+  ) {
     response.status(403).json({ error: "Origin not allowed" });
     return;
   }
@@ -35,29 +58,119 @@ waitlistRouter.post("/", async (request, response) => {
     return;
   }
 
-  const { email, utmSource, utmMedium, utmCampaign, utmContent, utmTerm, fbclid } = parsed.data;
+  const {
+    email,
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    utmContent,
+    utmTerm,
+    fbclid,
+  } = parsed.data;
   try {
-    const inserted = await db.insert(waitlistEntry).values({
-      email: email.toLowerCase(),
-      utmSource,
-      utmMedium,
-      utmCampaign,
-      utmContent,
-      utmTerm,
-      fbclid,
-    }).onConflictDoNothing({ target: waitlistEntry.email }).returning({ id: waitlistEntry.id });
-
-    if (inserted.length) {
-      void notifyDiscordOfWaitlistSignup({
+    const inserted = await db
+      .insert(waitlistEntry)
+      .values({
         email: email.toLowerCase(),
         utmSource,
+        utmMedium,
         utmCampaign,
-      });
-    }
+        utmContent,
+        utmTerm,
+        fbclid,
+      })
+      .onConflictDoNothing({ target: waitlistEntry.email })
+      .returning({ id: waitlistEntry.id });
 
-    response.status(inserted.length ? 201 : 200).json({ created: inserted.length > 0 });
+    response
+      .status(inserted.length ? 201 : 200)
+      .json({ created: inserted.length > 0 });
   } catch (error) {
     console.error("Waitlist signup failed", error);
-    response.status(503).json({ error: "Could not join the waitlist. Please try again." });
+    response
+      .status(503)
+      .json({ error: "Could not join the waitlist. Please try again." });
+  }
+});
+
+waitlistRouter.post("/survey", async (request, response) => {
+  const origin = request.get("origin");
+  if (
+    origin &&
+    ![
+      "http://localhost:3000",
+      "http://localhost:3010",
+      "https://narrativee.com",
+    ].includes(origin)
+  ) {
+    response.status(403).json({ error: "Origin not allowed" });
+    return;
+  }
+
+  const parsed = surveySchema.safeParse(request.body);
+  if (!parsed.success) {
+    response
+      .status(400)
+      .json({
+        error: "Please complete the survey before claiming your credits.",
+      });
+    return;
+  }
+
+  const data = parsed.data;
+  const email = data.email.toLowerCase();
+  try {
+    const completed = await db
+      .update(waitlistEntry)
+      .set({
+        surveyRole: data.role,
+        surveyFirstUseCase: data.firstUseCase,
+        surveyCurrentWorkflow: data.currentWorkflow,
+        surveyMainPain: data.mainPain,
+        surveyFounderConversation: data.founderConversation,
+        surveyCompletedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(waitlistEntry.email, email),
+          isNull(waitlistEntry.surveyCompletedAt),
+        ),
+      )
+      .returning({
+        email: waitlistEntry.email,
+        utmSource: waitlistEntry.utmSource,
+        utmCampaign: waitlistEntry.utmCampaign,
+      });
+
+    if (!completed.length) {
+      const [existing] = await db
+        .select({
+          surveyCompletedAt: waitlistEntry.surveyCompletedAt,
+        })
+        .from(waitlistEntry)
+        .where(eq(waitlistEntry.email, email))
+        .limit(1);
+      if (!existing) {
+        response
+          .status(404)
+          .json({ error: "Join the waitlist before submitting the survey." });
+        return;
+      }
+      response.json({ completed: Boolean(existing.surveyCompletedAt) });
+      return;
+    }
+
+    void notifyDiscordOfWaitlistSignup({
+      ...data,
+      email: completed[0].email,
+      utmSource: completed[0].utmSource ?? undefined,
+      utmCampaign: completed[0].utmCampaign ?? undefined,
+    });
+    response.json({ completed: true });
+  } catch (error) {
+    console.error("Waitlist survey submission failed", error);
+    response
+      .status(503)
+      .json({ error: "Could not save your answers. Please try again." });
   }
 });

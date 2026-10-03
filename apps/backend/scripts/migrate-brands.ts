@@ -18,6 +18,7 @@ async function main() {
       "0007_discovery_messages.sql",
       "0008_studio_projects.sql",
       "0009_waitlist.sql",
+      "0013_waitlist_survey.sql",
     ]) {
       await connection.query(await readFile(`drizzle/${name}`, "utf8"));
     }

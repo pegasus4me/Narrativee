@@ -70,6 +70,12 @@ export const waitlistEntry = pgTable("waitlist_entry", {
   utmContent: text("utm_content"),
   utmTerm: text("utm_term"),
   fbclid: text("fbclid"),
+  surveyRole: text("survey_role"),
+  surveyFirstUseCase: text("survey_first_use_case"),
+  surveyCurrentWorkflow: text("survey_current_workflow"),
+  surveyMainPain: text("survey_main_pain"),
+  surveyFounderConversation: boolean("survey_founder_conversation"),
+  surveyCompletedAt: timestamp("survey_completed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
