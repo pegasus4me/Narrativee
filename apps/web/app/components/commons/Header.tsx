@@ -89,7 +89,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             onClick={start}
             data-ph-capture-attribute="header-cta-button"
           >
-            Join waitlist
+            Add Narrativee to your business
             <span
               aria-hidden="true"
               className="ml-2 hidden text-[1.1em] transition-transform duration-180 group-hover:translate-x-1 md:inline-block"
