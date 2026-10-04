@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
 import darkLogo from "public/logo-dark.png";
+import VisitorStats from "../landing/VisitorStats";
 
 interface HeaderProps {
   onBetaSignup?: () => void;
@@ -37,7 +38,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
       className="sticky top-0 z-50 mx-auto w-full max-w-7xl px-4 pb-3"
     >
       <div
-        className={`mx-auto grid w-full grid-cols-[1fr_auto] items-center gap-3 rounded-b-[32px] bg-white px-3 py-3 text-[14px] font-medium text-[#292929] transition-[width] duration-300 ease-out motion-reduce:transition-none md:grid-cols-3 md:px-4 ${stuck ? "lg:w-[90%]" : "lg:w-full"}`}
+        className={`mx-auto grid w-full  grid-cols-[1fr_auto] items-center gap-3 rounded-b-[32px] bg-white px-3 py-3 text-[14px] font-medium text-[#292929] transition-[width] duration-300 ease-out motion-reduce:transition-none md:grid-cols-3 md:px-4 ${stuck ? "lg:w-[90%]" : "lg:w-full"}`}
       >
         <Link
           className="ml-2 w-max text-[20px] tracking-[-0.04em] md:col-start-2 md:row-start-1 md:ml-0 md:justify-self-center"
@@ -97,6 +98,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             </span>
           </button>
         </div>
+        <VisitorStats />
       </div>
     </header>
   );
