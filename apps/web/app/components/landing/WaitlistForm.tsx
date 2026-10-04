@@ -469,7 +469,7 @@ export default function WaitlistForm({
           data-ph-capture-attribute="waitlist-submit-button"
           className={`cursor-pointer rounded-md px-5 py-3 text-[15px] font-semibold whitespace-nowrap transition-colors disabled:cursor-wait disabled:opacity-60 ${dark ? "bg-white text-[#171717] hover:bg-[#e5e5e5]" : "bg-[#171717] text-white hover:bg-[#333333]"}`}
         >
-          {pending ? "Joining…" : "Join the waitlist"}
+          {pending ? "Joining…" : "Add Narrativee to your business"}
         </button>
       </form>
       <p
