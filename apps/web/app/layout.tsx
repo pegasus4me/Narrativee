@@ -41,11 +41,11 @@ const belleza = Belleza({
 export const metadata: Metadata = {
   metadataBase: new URL("https://narrativee.com"),
   title: {
-    default: "Narrativee | Your AI Brand Designer",
+    default: "Narrativee | AI Brand Designer for Social Media & Ads",
     template: "%s | Narrativee",
   },
   description:
-    "Meet your AI brand designer. Explore identities, campaigns and creative assets with an agent that learns your brand over time. Join the early-access waitlist.",
+    "Work with your AI brand designer on recurring social and ad creative. Bring your brand and a brief, then refine editable assets. Join the early-access waitlist.",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
@@ -56,18 +56,18 @@ export const metadata: Metadata = {
         url: "/social-preview.png",
         width: 1200,
         height: 630,
-        alt: "Narrativee — Your AI brand designer, always on.",
+        alt: "Narrativee — Your AI brand designer for social media and ads.",
       },
     ],
-    title: "Narrativee | Your AI Brand Designer",
+    title: "Narrativee | AI Brand Designer for Social Media & Ads",
     description:
-      "A creative partner that learns your business and creates brand identities, campaigns and beautiful assets. Join the early-access waitlist.",
+      "An AI brand designer alongside your team. Create editable social and ad creative using your brand and saved preferences. Join the early-access waitlist.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Narrativee | Your AI Brand Designer",
+    title: "Narrativee | AI Brand Designer for Social Media & Ads",
     description:
-      "Your AI brand designer, always on. Join the early-access waitlist.",
+      "Your AI brand designer for recurring social and ad creative. Bring your brand and the next brief. Join the early-access waitlist.",
     images: ["/social-preview.png"],
   },
 };

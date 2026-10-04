@@ -326,10 +326,9 @@ export default function WaitlistForm({
                         <option value="" disabled>
                           Select one
                         </option>
-                        <option value="campaign">Campaign visuals</option>
-                        <option value="social">Social content</option>
-                        <option value="launch">Launch creative</option>
-                        <option value="identity">Brand identity</option>
+                        <option value="campaign">Ad campaign visuals</option>
+                        <option value="social">Social media graphics</option>
+                        <option value="launch">Launch and offer visuals</option>
                         <option value="other">Other</option>
                       </select>
                     </label>
@@ -469,7 +468,7 @@ export default function WaitlistForm({
           data-ph-capture-attribute="waitlist-submit-button"
           className={`cursor-pointer rounded-md px-5 py-3 text-[15px] font-semibold whitespace-nowrap transition-colors disabled:cursor-wait disabled:opacity-60 ${dark ? "bg-white text-[#171717] hover:bg-[#e5e5e5]" : "bg-[#171717] text-white hover:bg-[#333333]"}`}
         >
-          {pending ? "Joining…" : "Join waitlist"}
+          {pending ? "Joining…" : "Join early access"}
         </button>
       </form>
       <p

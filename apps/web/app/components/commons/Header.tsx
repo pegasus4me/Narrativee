@@ -38,7 +38,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
       className="sticky top-0 z-50 mx-auto w-full max-w-7xl px-4 pb-3"
     >
       <div
-        className={`mx-auto grid w-full  grid-cols-[1fr_auto] items-center gap-3 rounded-b-[32px] bg-white px-3 py-3 text-[14px] font-medium text-[#292929] transition-[width] duration-300 ease-out motion-reduce:transition-none md:grid-cols-3 md:px-4 ${stuck ? "lg:w-[90%]" : "lg:w-full"}`}
+        className={`mx-auto border-b border-l border-neutral-300 border-r border-dashed grid w-full  grid-cols-[1fr_auto] items-center gap-3 rounded-b-[32px] bg-white px-3 py-3 text-[14px] font-medium text-[#292929] transition-[width] duration-300 ease-out motion-reduce:transition-none md:grid-cols-3 md:px-4 ${stuck ? "lg:w-[90%]" : "lg:w-full"}`}
       >
         <Link
           className="ml-2 w-max text-[20px] tracking-[-0.04em] md:col-start-2 md:row-start-1 md:ml-0 md:justify-self-center"
@@ -78,7 +78,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             href="/#start"
             onClick={() => ph?.capture("nav_clicked", { target: "waitlist" })}
           >
-            Waitlist
+            Early access
           </Link>
         </nav>
 
@@ -89,7 +89,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             onClick={start}
             data-ph-capture-attribute="header-cta-button"
           >
-            Add Narrativee to your business
+            Join early access
             <span
               aria-hidden="true"
               className="ml-2 hidden text-[1.1em] transition-transform duration-180 group-hover:translate-x-1 md:inline-block"

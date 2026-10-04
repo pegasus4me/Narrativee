@@ -6,37 +6,37 @@ import WaitlistForm from "./components/landing/WaitlistForm";
 const features = [
   {
     title: "A designer who knows your brand",
-    copy: "Bring your website, guidelines, references and past work. Your brand brain keeps that context close to every new project.",
+    copy: "Bring your website, logo, imagery and references. Your designer uses your approved brand rules and saved preferences for each new brief.",
   },
   {
-    title: "Creative direction, not just generation",
-    copy: "Explore ideas with an agent that considers your business, audience and competitors before making design decisions.",
+    title: "A creative partner for your team",
+    copy: "Share your audience, message and objective. Work with your designer on a concept, composition and visual direction that serve the brief.",
   },
   {
-    title: "From identity to campaign",
-    copy: "Work together on brand explorations, logos, illustrations, launch visuals and campaigns in one workspace.",
+    title: "Finished creative you can edit",
+    copy: "Keep your actual logo and imagery, with editable text and graphics. Adjust the details in Studio and export your creative when it is ready.",
   },
   {
-    title: "A relationship that gets better",
-    copy: "Keep the directions you love, change what you do not and carry those decisions into the next piece of work.",
+    title: "Brand context for the next brief",
+    copy: "Save the rules and feedback you want your designer to keep. The next request draws on that context, so you have less to explain again.",
   },
 ];
 
 const journal = [
   {
-    kicker: "Brand exploration",
-    title: "Find the look only your brand could own.",
-    copy: "Explore new directions with the story, audience and competitive landscape behind each creative choice.",
+    kicker: "Ad creative",
+    title: "Give your next campaign a clear direction.",
+    copy: "Turn your offer, message and source imagery into a static ad creative that fits your brand and gives you a direction to refine.",
   },
   {
-    kicker: "Campaigns",
-    title: "Make the next launch feel like you.",
-    copy: "Create a visual world for an announcement, an Instagram campaign or a new offer.",
+    kicker: "Social media",
+    title: "Show up as your brand.",
+    copy: "Create social graphics for announcements, customer stories and everyday updates using your brand's colors, typography and imagery.",
   },
   {
-    kicker: "Everyday design",
-    title: "Keep moving without starting over.",
-    copy: "Carry what your brand has learned into the next illustration, social asset or piece of promotional work.",
+    kicker: "Promotions",
+    title: "Make the next offer feel like you.",
+    copy: "Bring a new offer or launch brief to your designer. Shape the message and visual together, then edit and export the finished asset.",
   },
 ];
 
@@ -44,17 +44,17 @@ const questions = [
   {
     question: "What is Narrativee?",
     answer:
-      "Narrativee is your AI brand designer. It learns your business, develops creative directions, and creates brand identities and campaign assets, building on your feedback with every project.",
+      "Narrativee is an AI brand designer being built to work alongside companies and agencies on recurring social and ad creative. Bring an existing brand and a brief, then work together on an editable asset you can refine and export.",
   },
   {
     question: "What is the brand brain?",
     answer:
-      "It is the context your designer builds from your website, brand guidelines, references, past work and feedback, so each new project starts with an understanding of your brand.",
+      "Brand Brain holds your brand rules, references, imagery and saved feedback. Confirm your brand identity and save the preferences you want to reuse. Your designer receives that context for new briefs; automatic learning from Studio conversations is still in development.",
   },
   {
     question: "What could I make with it?",
     answer:
-      "Narrativee is being built for brand explorations, rebrands, logos, illustrations, launch materials and campaigns—not just one-off images.",
+      "The first offer focuses on static social media and ad creative for an existing brand: announcements, promotional offers and customer stories. We are starting with one editable square creative per brief, with text, graphics and imagery you can adjust in Studio.",
   },
   {
     question: "Can I try it today?",
@@ -72,37 +72,21 @@ export default function Home(): React.ReactNode {
         className="relative mx-auto w-[calc(100%-48px)] md:w-[min(60%,1120px)]"
       >
         <section
-          className="relative isolate min-h-[680px] pt-24 md:min-h-[705px] md:pt-32"
+          className="min-h-[680px] pt-24 md:min-h-[705px] md:pt-32"
           aria-labelledby="hero-title"
         >
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 overflow-hidden"
-          >
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              className="h-full w-full object-cover opacity-60 motion-reduce:hidden"
-            >
-              <source src="/hero-ascii.mp4" type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-white/30" />
-          </div>
           <div className="text-center">
             <div className="mx-auto max-w-full">
               <h1
                 id="hero-title"
-                className="m-0 text-7xl font-medium leading-[1.08] tracking-[-0.045em]"
+                className="m-0 text-[clamp(2.25rem,4.5vw,4rem)] font-medium leading-[1.3] tracking-[-0.045em]"
               >
-                AI that runs your Brand design, Always on
+                Your AI brand designer, For social media and ads.
               </h1>
-              <p className="mx-auto my-[25px] md:mt-10 md:mb-9 max-w-[760px] text-[17px] md:text-[20px] font-medium leading-[1.4] tracking-[-0.025em] text-[#525252]">
-                A creative partner for the work ahead. Explore identities, make
-                campaigns and create beautiful assets with an agent that
-                remembers what makes your brand yours.
+              <p className="mx-auto my-[25px] md:mt-10 md:mb-9 max-w-[620px] text-[17px] md:text-[20px] font-medium leading-[1.4] tracking-[-0.025em] text-[#525252]">
+                An AI designer alongside your team. Turn your next brief into
+                editable social and ad creative, using your brand’s logos,
+                fonts, imagery and saved preferences.
               </p>
               <div id="start" className="mt-7 scroll-mt-28">
                 <WaitlistForm />
@@ -117,7 +101,7 @@ export default function Home(): React.ReactNode {
         >
           <div className="mx-auto grid w-[calc(100%-48px)] grid-cols-1 gap-7 md:w-[min(60%,1120px)] md:grid-cols-2 md:gap-6">
             <h2 className="m-0 max-w-[420px] text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-white md:text-4xl">
-              More than a design tool
+              A designer alongside your team
             </h2>
             <div className="max-w-[720px]">
               {features.map((feature) => (
@@ -166,14 +150,15 @@ export default function Home(): React.ReactNode {
             </div>
           </div>
           <h2 className="m-0 max-w-[420px] text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-4xl">
-            One brand, every project
+            Your brand, the next brief
           </h2>
           <div className="md:col-start-2 max-w-[690px]">
             <p className="m-0 text-[17px] md:text-[20px] font-medium tracking-[-0.02em] leading-[1.5] text-[#595959]">
-              A new identity. A launch campaign. The illustration you need by
-              tomorrow. Narrativee is being built to connect all of it: your
-              creative decisions, your finished work and the context behind
-              them, ready for whatever you make next.
+              An announcement. A new offer. Another social post. Give your
+              designer the brief and source material, then steer the result in
+              Studio. Narrativee brings your saved brand context into the work,
+              with editable elements you can refine and export for your
+              existing workflow.
             </p>
           </div>
         </section>
@@ -194,7 +179,7 @@ export default function Home(): React.ReactNode {
                 <h3 className="m-0 mb-3 text-[21px] font-medium leading-[1.2] tracking-[-0.03em] text-[#171717]">
                   {item.title}
                 </h3>
-                <p className="m-0 text-[17px] leading-[1.5] text-[#595959] md:text-[20px]">
+                <p className="m-0 text-sm leading-[1.55] text-[#595959]">
                   {item.copy}
                 </p>
               </article>
@@ -204,19 +189,23 @@ export default function Home(): React.ReactNode {
 
         <section
           id="waitlist"
-          className="relative left-1/2 mb-[110px] w-screen -translate-x-1/2 scroll-mt-24 bg-[#111111] py-20 text-white md:mb-[155px] md:py-28"
+          className="mb-[110px] md:mb-[155px] scroll-mt-24 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6"
         >
-          <div className="mx-auto grid w-[calc(100%-48px)] grid-cols-1 gap-7 md:w-[min(60%,1120px)] md:grid-cols-2 md:gap-6">
-            <h2 className="m-0 max-w-[420px] text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-white md:text-4xl">
-              Early access
-            </h2>
-            <div className="md:col-start-2 max-w-[700px]">
-              <p className="m-0 mb-[26px] text-[17px] md:text-[19px] leading-[1.5] text-[#a3a3a3]">
-                Join the waitlist for early access. We’ll let you know when
-                Narrativee is ready for you to try.
-              </p>
-              <WaitlistForm location="landing_early_access" dark />
-            </div>
+          <h2 className="m-0 max-w-[420px] text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-4xl">
+            Early access
+          </h2>
+          <div className="md:col-start-2 max-w-[700px]">
+            <p className="m-0 mb-[26px] text-[17px] md:text-[19px] leading-[1.5] text-[#595959]">
+              Need social and ad creative regularly? Join the early-access
+              waitlist. We’ll let you know when you can bring your brand and
+              first brief to Narrativee.
+            </p>
+            <a
+              className="inline-flex items-center text-[17px] font-semibold text-inherit transition-colors duration-180 hover:text-black"
+              href="#start"
+            >
+              Join early access
+            </a>
           </div>
         </section>
 
@@ -265,11 +254,11 @@ export default function Home(): React.ReactNode {
               className="block h-auto w-full opacity-10"
             />
           </Link>
-          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-[#e5e5e5] pt-5 text-[12px] text-[#747474] md:mt-14">
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-[#e5e5e5] pt-5 text-[12px] text-[#747474] md:mt-14">
             <span>© {new Date().getFullYear()} Narrativee</span>
             <a
+              className="transition-colors hover:text-[#171717]"
               href="mailto:contact@narrativee.com"
-              className="transition-colors hover:text-black"
             >
               contact@narrativee.com
             </a>
