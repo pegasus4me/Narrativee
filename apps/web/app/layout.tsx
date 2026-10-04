@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Instrument_Sans, Manrope, Stack_Sans_Notch, Belleza } from "next/font/google";
+import {
+  Instrument_Sans,
+  Manrope,
+  Stack_Sans_Notch,
+  Belleza,
+} from "next/font/google";
 import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -42,6 +47,21 @@ export const metadata: Metadata = {
   description:
     "Meet your AI brand designer. Explore identities, campaigns and creative assets with an agent that learns your brand over time. Join the early-access waitlist.",
   alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "https://narrativee.com",
+    siteName: "Narrativee",
+    title: "Narrativee | Your AI Brand Designer",
+    description:
+      "A creative partner that learns your business and creates brand identities, campaigns and beautiful assets. Join the early-access waitlist.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Narrativee | Your AI Brand Designer",
+    description:
+      "Your AI brand designer, always on. Join the early-access waitlist.",
+    images: ["/opengraph-image"],
+  },
 };
 
 /** Global providers and metadata shared by every application route. */
