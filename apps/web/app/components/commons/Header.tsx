@@ -50,7 +50,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             alt="Narrativee"
             width={160}
             height={31}
-            className="h-6 w-auto object-contain md:h-7"
+            className="h-5 w-auto object-contain md:h-7"
             priority
           />
         </Link>
@@ -84,7 +84,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
 
         <div className="flex h-10 items-center justify-self-end rounded-full bg-[#f3f3f4] px-1.5 md:col-start-3 md:row-start-1">
           <button
-            className="group inline-flex h-7 cursor-pointer items-center whitespace-nowrap rounded-full bg-white px-4 text-[14px] text-[#292929] shadow-sm transition-colors duration-200 hover:bg-[#fafafa]"
+            className="group inline-flex min-h-7 max-w-[148px] cursor-pointer items-center rounded-full bg-white px-3 py-1 text-[12px] leading-tight text-[#292929] shadow-sm transition-colors duration-200 hover:bg-[#fafafa] md:max-w-none md:whitespace-nowrap md:px-4 md:text-[14px]"
             type="button"
             onClick={start}
             data-ph-capture-attribute="header-cta-button"
@@ -92,7 +92,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             Add Narrativee to your business
             <span
               aria-hidden="true"
-              className="inline-block ml-2 text-[1.1em] transition-transform duration-180 group-hover:translate-x-1"
+              className="ml-2 hidden text-[1.1em] transition-transform duration-180 group-hover:translate-x-1 md:inline-block"
             >
               →
             </span>
