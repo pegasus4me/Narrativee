@@ -51,6 +51,14 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://narrativee.com",
     siteName: "Narrativee",
+    images: [
+      {
+        url: "/social-preview.png",
+        width: 1200,
+        height: 630,
+        alt: "Narrativee — Your AI brand designer, always on.",
+      },
+    ],
     title: "Narrativee | Your AI Brand Designer",
     description:
       "A creative partner that learns your business and creates brand identities, campaigns and beautiful assets. Join the early-access waitlist.",
@@ -60,7 +68,7 @@ export const metadata: Metadata = {
     title: "Narrativee | Your AI Brand Designer",
     description:
       "Your AI brand designer, always on. Join the early-access waitlist.",
-    images: ["/opengraph-image"],
+    images: ["/social-preview.png"],
   },
 };
 
