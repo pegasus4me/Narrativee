@@ -22,10 +22,13 @@ export default function VisitorStats() {
           signal: controller.signal,
         });
         if (!response.ok) throw new Error("Unavailable");
-        const data = await response.json();
+        const data = (await response.json()) as {
+          online?: unknown;
+          total?: unknown;
+        };
         if (typeof data.online !== "number" || typeof data.total !== "number")
           throw new Error("Invalid counts");
-        setCounts(data);
+        setCounts({ online: data.online, total: data.total });
       } catch {
         if (!controller.signal.aborted) setCounts(null);
       } finally {
