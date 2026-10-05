@@ -426,7 +426,7 @@ export default function WaitlistForm({
   }
 
   return (
-    <div className="mx-auto max-w-[540px]">
+    <div className="max-w-[540px]">
       <form
         onSubmit={submit}
         className="flex flex-col gap-3 sm:flex-row"
@@ -472,9 +472,9 @@ export default function WaitlistForm({
         </button>
       </form>
       <p
-        className={`mt-3 text-[13px] font-semibold ${dark ? "text-[#a3a3a3]" : "text-[#595959]"}`}
+        className={`mt-3 text-[13px] font-semibold ${dark ? "text-white" : "text-dark"}`}
       >
-        Complete the short survey after joining to reserve 300 credits for early
+        Complete the short survey after joining to reserve <span className="font-bold">300 credits</span> for early
         access.
       </p>
       {error && (

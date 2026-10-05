@@ -37,10 +37,10 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
       className="sticky top-0 z-50 mx-auto w-full max-w-7xl px-4 pb-3"
     >
       <div
-        className={`mx-auto border-b border-l border-neutral-300 border-r border-dashed grid w-full  grid-cols-[1fr_auto] items-center gap-3 rounded-b-[32px] bg-white px-3 py-3 text-[14px] font-medium text-[#292929] transition-[width] duration-300 ease-out motion-reduce:transition-none md:grid-cols-3 md:px-4 ${stuck ? "lg:w-[90%]" : "lg:w-full"}`}
+        className={`mx-auto border-b border-l bg-neutral-50 border-neutral-300 border-r border-dashed grid w-full  grid-cols-[1fr_auto] items-center gap-3 rounded-b-[32px]  px-3 py-3 text-[14px] font-medium text-[#292929] transition-[width] duration-300 ease-out motion-reduce:transition-none lg:grid-cols-3 lg:px-4 ${stuck ? "lg:w-[90%]" : "lg:w-full"}`}
       >
         <Link
-          className="ml-2 w-max text-[20px] tracking-[-0.04em] md:col-start-2 md:row-start-1 md:ml-0 md:justify-self-center"
+          className="ml-2 w-max text-[20px] tracking-[-0.04em] lg:col-start-2 lg:row-start-1 lg:ml-0 lg:justify-self-center"
           href="/"
           aria-label="Narrativee home"
         >
@@ -49,13 +49,13 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             alt="Narrativee"
             width={160}
             height={31}
-            className="h-5 w-auto object-contain md:h-7"
+            className="h-5 w-auto object-contain lg:h-7"
             priority
           />
         </Link>
 
         <nav
-          className="hidden h-10 md:flex flex-row items-center gap-1 rounded-full bg-[#f3f3f4] px-1.5 md:col-start-1 md:row-start-1 justify-self-start leading-[1.38]"
+          className="hidden h-10 lg:flex flex-row items-center gap-1 rounded-full bg-[#f3f3f4] px-1.5 lg:col-start-1 lg:row-start-1 justify-self-start leading-[1.38]"
           aria-label="Main navigation"
         >
           <Link
@@ -81,17 +81,17 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
           </Link>
         </nav>
 
-        <div className="flex h-10 items-center justify-self-end rounded-full bg-[#f3f3f4] px-1.5 md:col-start-3 md:row-start-1">
+        <div className="flex h-10 items-center justify-self-end rounded-full bg-[#f3f3f4] px-1.5 lg:col-start-3 lg:row-start-1">
           <button
-            className="group inline-flex min-h-7 max-w-[148px] cursor-pointer items-center rounded-full bg-white px-3 py-1 text-[12px] leading-tight text-[#292929] shadow-sm transition-colors duration-200 hover:bg-[#fafafa] md:max-w-none md:whitespace-nowrap md:px-4 md:text-[14px]"
+            className="group inline-flex min-h-7 max-w-[148px] cursor-pointer items-center rounded-full bg-white px-3 py-1 text-[12px] leading-tight text-[#292929] shadow-sm transition-colors duration-200 hover:bg-[#fafafa] lg:max-w-none lg:whitespace-nowrap lg:px-4 lg:text-[14px]"
             type="button"
             onClick={start}
             data-ph-capture-attribute="header-cta-button"
           >
-            Join early access
+            Integrate Narrativee to your company
             <span
               aria-hidden="true"
-              className="ml-2 hidden text-[1.1em] transition-transform duration-180 group-hover:translate-x-1 md:inline-block"
+              className="ml-2 hidden text-[1.1em] transition-transform duration-180 group-hover:translate-x-1 lg:inline-block"
             >
               →
             </span>
