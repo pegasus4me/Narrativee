@@ -24,17 +24,28 @@ function PostHogPageview() {
       const source = searchParams.get("utm_source");
       const medium = searchParams.get("utm_medium");
       const campaign = searchParams.get("utm_campaign");
-      if (source && window.sessionStorage) window.sessionStorage.setItem("utm_source", source);
-      if (medium && window.sessionStorage) window.sessionStorage.setItem("utm_medium", medium);
-      if (campaign && window.sessionStorage) window.sessionStorage.setItem("utm_campaign", campaign);
+      if (source && window.sessionStorage)
+        window.sessionStorage.setItem("utm_source", source);
+      if (medium && window.sessionStorage)
+        window.sessionStorage.setItem("utm_medium", medium);
+      if (campaign && window.sessionStorage)
+        window.sessionStorage.setItem("utm_campaign", campaign);
 
       const utms: Record<string, string> = {};
-      (["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid", "ref"] as const).forEach(
-        (param) => {
-          const val = searchParams.get(param);
-          if (val) utms[param] = val;
-        }
-      );
+      (
+        [
+          "utm_source",
+          "utm_medium",
+          "utm_campaign",
+          "utm_content",
+          "utm_term",
+          "fbclid",
+          "ref",
+        ] as const
+      ).forEach((param) => {
+        const val = searchParams.get(param);
+        if (val) utms[param] = val;
+      });
       if (Object.keys(utms).length > 0 && ph) {
         ph.register(utms);
       }
@@ -45,9 +56,10 @@ function PostHogPageview() {
 }
 
 const POSTHOG_KEY =
-  process.env.NEXT_PUBLIC_POSTHOG_KEY || "phc_cOCA9zK75sqDuz5q0zVbaw6eUFU6CK4z0EydxaI50iU";
+  process.env.NEXT_PUBLIC_POSTHOG_KEY ||
+  "phc_yaMuiR6UcAj9JTbPNkK65Jm4b8MGGi268a3wQYfnyotc";
 const POSTHOG_HOST =
-  process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
+  process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://eu.i.posthog.com";
 
 // Initialize PostHog once on the client side
 if (typeof window !== "undefined") {

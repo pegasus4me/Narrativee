@@ -25,7 +25,7 @@ async function readCounts(): Promise<Counts> {
   }
 
   const response = await fetch(
-    `https://us.posthog.com/api/projects/${projectId}/query/`,
+    `https://eu.posthog.com/api/projects/${projectId}/query/`,
     {
       method: "POST",
       headers: {
