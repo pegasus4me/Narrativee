@@ -1,5 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import brandDesignerIllustration from "public/brand-designer-rose-painter.png";
+import brandDesignerRocket from "public/brand-designer-rose-rocket-transparent.png";
+import brandDesignerBoard from "public/brand-designer-rose-brand-board.png";
+import brandDesignerCards from "public/brand-designer-rose-social-cards.png";
 import Header from "./components/commons/Header";
 import WaitlistForm from "./components/landing/WaitlistForm";
 
@@ -66,43 +70,97 @@ const questions = [
 export default function Home(): React.ReactNode {
   return (
     <div className="relative min-h-screen overflow-x-clip bg-white text-[#171717] [color-scheme:light] font-sans antialiased">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-1/2 z-20 w-[calc(100%-32px)] max-w-[1248px] -translate-x-1/2 border-x border-dashed border-neutral-400"
+      />
       <Header />
       <main
         id="top"
         className="relative mx-auto w-[calc(100%-48px)] md:w-[min(60%,1120px)]"
       >
         <section
-          className="min-h-[680px] pt-24 md:min-h-[705px] md:pt-32"
+          className="relative left-1/2 grid w-[min(calc(100vw-48px),1120px)] -translate-x-1/2 grid-cols-1 items-center gap-8 py-16 md:min-h-[615px] md:grid-cols-[1.15fr_1fr] md:gap-10 md:py-24"
           aria-labelledby="hero-title"
         >
-          <div className="text-center">
-            <div className="mx-auto max-w-full">
+          <div className="min-w-0 text-left">
+            <div className="max-w-full">
               <h1
                 id="hero-title"
-                className="m-0 text-[clamp(2.25rem,4.5vw,4rem)] font-medium leading-[1.3] tracking-[-0.045em]"
+                className="m-0 text-[clamp(2.25rem,4.5vw,4rem)] font-stackSans font-medium leading-[1.3] tracking-[-0.045em]"
               >
-                Your AI brand designer, For social media and ads.
+                Your AI copilot
+                <br />
+                for social and ad{" "}
+                <span className="inline-block whitespace-nowrap">
+                  <Image
+                    src="/hero-creatives.svg"
+                    alt="creatives"
+                    width={526}
+                    height={134}
+                    className="inline-block h-auto w-[5.25em] align-[-0.08em]"
+                    unoptimized
+                  />
+                  .
+                </span>
               </h1>
-              <p className="mx-auto my-[25px] md:mt-10 md:mb-9 max-w-[620px] text-[17px] md:text-[20px] font-medium leading-[1.4] tracking-[-0.025em] text-[#525252]">
-                An AI designer alongside your team. Turn your next brief into
-                editable social and ad creative, using your brand’s logos,
-                fonts, imagery and saved preferences.
+              <h4 className="font-semibold text-black mt-5">
+                [ Your AI brand designer ]
+              </h4>
+              <p className="my-[45px] md:mt-10 md:mb-9 max-w-[620px] text-[17px] md:text-[20px] font-semibold tracking-[-0.025em] text-[#525252]">
+                Work with an AI brand designer that turns your briefs into
+                editable visuals, using your brand identity and saved
+                preferences.
               </p>
               <div id="start" className="mt-7 scroll-mt-28">
                 <WaitlistForm />
               </div>
             </div>
           </div>
+          <Image
+            src={brandDesignerIllustration}
+            alt="A playful designer painting a rose-pink canvas"
+            sizes="(max-width: 767px) min(100vw - 48px, 420px), (max-width: 1168px) 45vw, 502px"
+            className="mx-auto h-auto w-full max-w-[420px] md:max-w-none"
+            priority
+          />
         </section>
 
         <section
           id="features"
           className="relative left-1/2 mb-[110px] w-screen -translate-x-1/2 scroll-mt-24 bg-[#111111] py-20 text-white md:mb-[155px] md:py-28"
         >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 -top-px h-10 overflow-hidden md:h-16"
+          >
+            <svg
+              className="h-full w-[200%] motion-safe:animate-[marquee_30s_linear_infinite]"
+              viewBox="0 0 2880 80"
+              preserveAspectRatio="none"
+            >
+              <path
+                id="hero-wave-shape"
+                fill="#ffffff"
+                d="M0 0H1440V40C1400 0 1360 0 1320 40S1240 80 1200 40S1120 0 1080 40S1000 80 960 40S880 0 840 40S760 80 720 40S640 0 600 40S520 80 480 40S400 0 360 40S280 80 240 40S160 0 120 40S40 80 0 40Z"
+              />
+              <use href="#hero-wave-shape" x="1440" />
+            </svg>
+          </div>
           <div className="mx-auto grid w-[calc(100%-48px)] grid-cols-1 gap-7 md:w-[min(60%,1120px)] md:grid-cols-2 md:gap-6">
-            <h2 className="m-0 max-w-[420px] text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-white md:text-4xl">
-              A designer alongside your team
-            </h2>
+            <div className="max-w-[420px]">
+              <h2 className="m-0 text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-white md:text-4xl">
+                A designer alongside your team
+              </h2>
+              <div className="mt-8">
+                <Image
+                  src={brandDesignerRocket}
+                  alt="A playful designer riding a rose-pink pencil rocket"
+                  sizes="(max-width: 767px) min(100vw - 48px, 420px), min(30vw, 420px)"
+                  className="h-auto w-full"
+                />
+              </div>
+            </div>
             <div className="max-w-[720px]">
               {features.map((feature) => (
                 <a
@@ -126,47 +184,40 @@ export default function Home(): React.ReactNode {
           id="solution"
           className="mb-[110px] md:mb-[155px] scroll-mt-24 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6"
         >
-          <div
-            className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-[18px] md:mb-[52px]"
-            aria-label="Abstract visual explorations"
-          >
-            <div className="relative aspect-[1.8] md:aspect-auto md:h-[clamp(190px,25vw,360px)] overflow-hidden bg-[#f5f5f5]">
-              <Image
-                src="/narrativee-use-1.png"
-                alt="Blue, pink and green abstract light texture"
-                fill
-                sizes="(max-width: 760px) 92vw, 30vw"
-                className="object-cover"
-              />
-            </div>
-            <div className="relative aspect-[1.8] md:aspect-auto md:h-[clamp(190px,25vw,360px)] overflow-hidden bg-[#f5f5f5]">
-              <Image
-                src="/narrativee-use-2.png"
-                alt="Blue and magenta abstract light texture"
-                fill
-                sizes="(max-width: 760px) 92vw, 30vw"
-                className="object-cover"
-              />
-            </div>
+          <div className="max-w-[420px]">
+            <h2 className="m-0 text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-4xl">
+              Your brand, the next brief
+            </h2>
+            <Image
+              src={brandDesignerBoard}
+              alt="A playful designer arranging a logo and color palette on a brand board"
+              sizes="(max-width: 767px) min(100vw - 48px, 420px), min(30vw, 420px)"
+              className="mt-8 h-auto w-full"
+            />
           </div>
-          <h2 className="m-0 max-w-[420px] text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-4xl">
-            Your brand, the next brief
-          </h2>
           <div className="md:col-start-2 max-w-[690px]">
             <p className="m-0 text-[17px] md:text-[20px] font-medium tracking-[-0.02em] leading-[1.5] text-[#595959]">
               An announcement. A new offer. Another social post. Give your
               designer the brief and source material, then steer the result in
               Studio. Narrativee brings your saved brand context into the work,
-              with editable elements you can refine and export for your
-              existing workflow.
+              with editable elements you can refine and export for your existing
+              workflow.
             </p>
           </div>
         </section>
 
         <section className="mb-[110px] md:mb-[155px] scroll-mt-24 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6">
-          <h2 className="m-0 max-w-[420px] text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-4xl">
-            What you can create
-          </h2>
+          <div className="max-w-[420px]">
+            <h2 className="m-0 text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-4xl">
+              What you can create
+            </h2>
+            <Image
+              src={brandDesignerCards}
+              alt="A playful designer assembling rose-pink social posts and ad cards"
+              sizes="(max-width: 767px) min(100vw - 48px, 420px), min(30vw, 420px)"
+              className="mt-8 h-auto w-full"
+            />
+          </div>
           <div className="md:col-start-2 grid grid-cols-1 md:grid-cols-2 gap-[18px]">
             {journal.map((item) => (
               <article
