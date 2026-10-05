@@ -6,6 +6,7 @@ import brandDesignerBoard from "public/brand-designer-rose-brand-board.png";
 import brandDesignerCards from "public/brand-designer-rose-social-cards.png";
 import Header from "./components/commons/Header";
 import WaitlistForm from "./components/landing/WaitlistForm";
+import VisitorStats from "./components/landing/VisitorStats";
 
 const features = [
   {
@@ -314,6 +315,7 @@ export default function Home(): React.ReactNode {
               contact@narrativee.com
             </a>
             <span>Designed to keep creating.</span>
+            <VisitorStats />
           </div>
         </div>
       </footer>

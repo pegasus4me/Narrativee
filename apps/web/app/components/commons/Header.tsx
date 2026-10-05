@@ -6,7 +6,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
 import darkLogo from "public/logo-dark.png";
-import VisitorStats from "../landing/VisitorStats";
 
 interface HeaderProps {
   onBetaSignup?: () => void;
@@ -98,7 +97,6 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             </span>
           </button>
         </div>
-        <VisitorStats />
       </div>
     </header>
   );
