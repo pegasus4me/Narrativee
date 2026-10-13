@@ -1,57 +1,17 @@
-## Running the Project with Docker
+# Narrativee API
 
-This project is containerized using Docker and can be built and run using Docker Compose. Below are the specific instructions and requirements for this setup.
+The production API runs on Render at [`www.api.narrativee.com`](https://www.api.narrativee.com), with Cloudflare proxying the public domain. The Render web service is defined in the repository-root [`render.yaml`](../../render.yaml); sync that Blueprint with the existing Render service to apply its health check, build filters, and deploy-after-CI settings. The API readiness endpoint is `/health`.
 
-### Requirements
-- **Node.js Version:** The Dockerfile uses `node:22.13.1-slim`. Ensure compatibility if extending or modifying the image.
-- **Dependencies:** All dependencies are installed via `npm ci` for deterministic builds. Only production dependencies are included in the final image.
+Render builds from the repository root with `apps/backend/Dockerfile`. Keep production secrets and service configuration in the existing Render environment. See [production deployment](../../docs/launch/deployment.md) for required settings and release checks.
 
-### Environment Variables
-- The Docker setup supports environment variables via a `.env` file. Uncomment the `env_file: ./.env` line in `docker-compose.yml` to enable this. Ensure your `.env` file is present and contains all required variables for your application.
+For local development, create `apps/backend/.env` from `.env.example`, then run:
 
-### Build and Run Instructions
-1. **Build and Start the Service:**
-   ```sh
-   docker compose up --build
-   ```
-   This will build the Docker image and start the `ts-app` service.
+```sh
+pnpm --filter backend dev
+```
 
-   ```sh
-   docker build --platform linux/amd64 -f apps/backend/Dockerfile -t safoantouil/narrative:latest .
-   docker push safoantouil/narrative:latest
-   ```
-   
-   ```sh
-   sudo docker pull safoantouil/narrative:latest
-   sudo docker rm -f narrative-backend
-   sudo docker run -d --name narrative-backend --restart always -p 3002:3002 --env-file .env safoantouil/narrative:latest
-   ```
+The API listens on port `3002` by default. To build and test the production container locally:
 
-
-2. **Environment Configuration:**
-
-   - If your application requires environment variables, create a `.env` file in the project root and uncomment the `env_file` line in `docker-compose.yml`.
-
-### Special Configuration
-- The application runs as a non-root user (`appuser`) for improved security.
-- The build process removes development dependencies and only includes production dependencies in the final image.
-- No external services (e.g., databases) are configured by default. If needed, add them to `docker-compose.yml` under `services` and configure `depends_on` and `networks` as appropriate.
-
-### Ports
-- **No ports are exposed by default.**
-  - If your application listens on a port, add the `ports:` section to the `ts-app` service in `docker-compose.yml`, e.g.:
-    ```yaml
-    ports:
-      - "3000:3000"
-    ```
-  - Update this section based on your application's requirements.
-
-- **Cross Subdomain Cookies:** REMOVE IT IN LOCAL DEVELOPMENT
-    ```yaml
-    crossSubDomainCookies: {
-      enabled: true,
-      domain: ".narrativee.com"
-    },
-    ```
-
-*Update this section as your Docker setup evolves or if you add additional services or configuration.*
+```sh
+docker build -f apps/backend/Dockerfile -t narrativee-api .
+```

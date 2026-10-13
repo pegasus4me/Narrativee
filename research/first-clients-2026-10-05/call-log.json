@@ -1,0 +1,50 @@
+{
+  "researched_at": "2026-10-05",
+  "team": "narrativee",
+  "charged_usd": 0.01316,
+  "calls": [
+    {
+      "file": "canva-brand.json",
+      "http_status": 200,
+      "call_id": "2e4094776a8847589c077725fd952586",
+      "charged_micro": 1880
+    },
+    {
+      "file": "creatives-designer.json",
+      "http_status": 200,
+      "call_id": "5574cfb5d91b476786782774773e915a",
+      "charged_micro": 1880
+    },
+    {
+      "file": "entrepreneurs-creative.json",
+      "http_status": 200,
+      "call_id": "0891f654132f40f39a59f073606ea1d5",
+      "charged_micro": 1880
+    },
+    {
+      "file": "meta-static.json",
+      "http_status": 200,
+      "call_id": "7232a2a06e9947929e212c5392c56625",
+      "charged_micro": 1880
+    },
+    {
+      "file": "neo-comments.json",
+      "http_status": 200,
+      "call_id": "02b8d489c9174db78c07219786ebc2d4",
+      "charged_micro": 1880
+    },
+    {
+      "file": "smallbusiness-canva.json",
+      "http_status": 200,
+      "call_id": "e7b8bde7442743aeb696d4cf2c22342e",
+      "charged_micro": 1880
+    },
+    {
+      "file": "smallbusiness-design.json",
+      "http_status": 200,
+      "call_id": "28ce02d2a6214a6dad3233ff9e6b17e0",
+      "charged_micro": 1880,
+      "hint": "feedback"
+    }
+  ]
+}

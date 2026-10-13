@@ -11,6 +11,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
+      url: `${baseUrl}/pricing`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/auth/signin`,
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
@@ -24,4 +30,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 }
-

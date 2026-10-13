@@ -1,0 +1,117 @@
+{
+  "date": "2026-10-05",
+  "team": "narrativee",
+  "charged_usd": 0.01974,
+  "calls": [
+    {
+      "file": "linkedin-social.json",
+      "http_status": 200,
+      "call_id": "691085d3f4694a9fa372c905a6a7a4eb",
+      "charged_micro": 4000
+    },
+    {
+      "file": "linkedin-static.json",
+      "http_status": 200,
+      "call_id": "284cc7ae710d4a47abed1ce166a463f1",
+      "charged_micro": 4000
+    },
+    {
+      "file": "profile-GustavWalsted.json",
+      "http_status": 200,
+      "call_id": "ec0f49eeff7342acbbace4ca011ec88c",
+      "charged_micro": 220
+    },
+    {
+      "file": "profile-ecom_dan.json",
+      "http_status": 200,
+      "call_id": "d5920b4620e74607b7090b54c16f1330",
+      "charged_micro": 220
+    },
+    {
+      "file": "profile-shaharan_akram.json",
+      "http_status": 200,
+      "call_id": "30fa9bbdf38b44219e7e4dec6535b538",
+      "charged_micro": 220
+    },
+    {
+      "file": "threads-indresh.json",
+      "http_status": 200,
+      "call_id": "76d9bd31fa8248cbbe24e2752f434bea",
+      "charged_micro": 1880
+    },
+    {
+      "file": "web-communities.json",
+      "http_status": 200,
+      "call_id": "f6895a900732474f9498c096926262d7",
+      "charged_micro": 1000
+    },
+    {
+      "file": "web-founder-demand.json",
+      "http_status": 200,
+      "call_id": "3d56e85ec36b45de844620ad4a830d6e",
+      "charged_micro": 1000
+    },
+    {
+      "file": "web-founders.json",
+      "http_status": 200,
+      "call_id": "08116c8909df4825b69fb347d92ccf99",
+      "charged_micro": 1000
+    },
+    {
+      "file": "web-indiehackers.json",
+      "http_status": 200,
+      "call_id": "10a1571af29d44569aea4851583c3ed0",
+      "charged_micro": 1000
+    },
+    {
+      "file": "web-threads-demand.json",
+      "http_status": 200,
+      "call_id": "8ac23912b47543f9b98e228f07b9a923",
+      "charged_micro": 1000
+    },
+    {
+      "file": "x-buyers.json",
+      "http_status": 200,
+      "call_id": "53035cd4a69d42f7b2572c3667dece77",
+      "charged_micro": 600
+    },
+    {
+      "file": "x-ecom-dan.json",
+      "http_status": 200,
+      "call_id": "d93d5812738f48b0a1dd35cf4f4d8fc2",
+      "charged_micro": 600
+    },
+    {
+      "file": "x-founder-social.json",
+      "http_status": 200,
+      "call_id": "48a33567569c43a998f7ef416b34a815",
+      "charged_micro": 600,
+      "hint": "review"
+    },
+    {
+      "file": "x-gustav.json",
+      "http_status": 200,
+      "call_id": "8ee2ef6f38584f2b978afb631bbc9eed",
+      "charged_micro": 600,
+      "hint": "feedback"
+    },
+    {
+      "file": "x-shaharan.json",
+      "http_status": 200,
+      "call_id": "51b0b8e97e914599a619a04260307bbe",
+      "charged_micro": 600
+    },
+    {
+      "file": "x-social.json",
+      "http_status": 200,
+      "call_id": "a54c0abe69e149cbbf5d69fdcd2e4ac2",
+      "charged_micro": 600
+    },
+    {
+      "file": "x-static.json",
+      "http_status": 200,
+      "call_id": "aaaa799d24774ec3a15c6e16744fd2e3",
+      "charged_micro": 600
+    }
+  ]
+}

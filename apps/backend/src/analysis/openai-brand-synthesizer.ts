@@ -1,3 +1,4 @@
+import { meteredOpenAI } from "../usage/openai";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import {
@@ -28,7 +29,7 @@ export class OpenAIBrandSynthesizer {
     apiKey: string,
     private readonly model = "gpt-6-luna",
   ) {
-    this.client = new OpenAI({ apiKey });
+    this.client = meteredOpenAI({ apiKey });
   }
 
   async planCompetitorResearch(
@@ -43,7 +44,10 @@ export class OpenAIBrandSynthesizer {
         { role: "user", content: JSON.stringify({ companyUrl, diagnosis }) },
       ],
       text: {
-        format: zodTextFormat(competitorResearchPlanSchema, "competitor_research_plan"),
+        format: zodTextFormat(
+          competitorResearchPlanSchema,
+          "competitor_research_plan",
+        ),
       },
     });
 
@@ -122,11 +126,16 @@ export class OpenAIBrandSynthesizer {
     diagnosis: BrandDiagnosis,
     competitors: Array<{ url: string; document: FirecrawlDocument }>,
   ): Promise<CompetitorAnalysis> {
+    // Bound homepage excerpts across the selection; the transport counts the full request.
+    const markdownLimit = Math.min(
+      20_000,
+      Math.floor(60_000 / competitors.length),
+    );
     const evidence = competitors.map(({ url, document }, index) => ({
       url,
       title: document.metadata?.title ?? "",
       description: document.metadata?.description ?? "",
-      markdown: document.markdown?.slice(0, 50_000) ?? "",
+      markdown: document.markdown?.slice(0, markdownLimit) ?? "",
       branding: document.branding ?? null,
       screenshotIndex: usableScreenshot(document.screenshot) ? index : null,
     }));
@@ -134,15 +143,24 @@ export class OpenAIBrandSynthesizer {
     const content: Array<
       | { type: "input_text"; text: string }
       | { type: "input_image"; image_url: string; detail: "low" }
-    > = [{
-      type: "input_text",
-      text: JSON.stringify({ companyUrl, diagnosis, competitors: evidence }),
-    }];
+    > = [
+      {
+        type: "input_text",
+        text: JSON.stringify({ companyUrl, diagnosis, competitors: evidence }),
+      },
+    ];
     competitors.forEach(({ document }, index) => {
       const screenshot = usableScreenshot(document.screenshot);
       if (screenshot) {
-        content.push({ type: "input_text", text: `Screenshot ${index}: ${competitors[index]?.url}` });
-        content.push({ type: "input_image", image_url: screenshot, detail: "low" });
+        content.push({
+          type: "input_text",
+          text: `Screenshot ${index}: ${competitors[index]?.url}`,
+        });
+        content.push({
+          type: "input_image",
+          image_url: screenshot,
+          detail: "low",
+        });
       }
     });
 
@@ -171,7 +189,10 @@ export class OpenAIBrandSynthesizer {
 
 function usableScreenshot(screenshot: string | undefined): string | null {
   if (!screenshot) return null;
-  if (/^https:\/\//i.test(screenshot) || /^data:image\/(?:png|jpeg|webp);base64,/i.test(screenshot)) {
+  if (
+    /^https:\/\//i.test(screenshot) ||
+    /^data:image\/(?:png|jpeg|webp);base64,/i.test(screenshot)
+  ) {
     return screenshot;
   }
   return null;

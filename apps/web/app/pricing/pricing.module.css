@@ -1,0 +1,363 @@
+.page {
+  --pricing-pink: #ef5da8;
+  --pricing-pink-ink: color-mix(in srgb, var(--pricing-pink) 60%, #171717);
+  min-height: 100vh;
+  background: #fff;
+  color: #171717;
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+}
+
+.main {
+  width: calc(100% - 48px);
+  max-width: 1248px;
+  margin: 0 auto;
+}
+
+.hero {
+  padding: 88px 0 34px;
+  text-align: center;
+}
+
+.hero h1 {
+  margin: 33px 0 14px;
+  font-family: var(--font-stack), sans-serif;
+  font-size: clamp(38px, calc(4.4vw + 2px), 64px);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.05em;
+}
+
+.hero > p {
+  margin: 0;
+  color: #737373;
+  font-size: 18px;
+  line-height: 1.6;
+  letter-spacing: -0.025em;
+}
+
+.billing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 64px;
+}
+
+.billingToggle {
+  display: flex;
+  gap: 3px;
+  border-radius: 999px;
+  padding: 4px;
+  background: #f3f3f3;
+}
+
+.billingToggle button {
+  min-height: 36px;
+  border-radius: 999px;
+  padding: 0 18px;
+  color: #525252;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 180ms,
+    color 180ms;
+}
+
+.billingToggle button[aria-pressed="true"] {
+  background: #262626;
+  color: #fff;
+  box-shadow: 0 1px 3px #0000001a;
+}
+
+.savings {
+  color: var(--pricing-pink-ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.plan {
+  position: relative;
+  border: 1px solid #e5e5e5;
+  background: #fff;
+}
+
+.plan + .plan {
+  border-left: 0;
+}
+
+.plan:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+.plan.featured {
+  z-index: 1;
+  margin-bottom: -16px;
+  border-radius: 12px;
+  box-shadow: 0 3px 5px #00000003;
+}
+
+.planBody {
+  padding: 36px 32px 40px;
+}
+
+.plan h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.featured h2 {
+  color: var(--pricing-pink-ink);
+}
+
+.planDescription {
+  margin-top: 9px;
+  color: #737373;
+  font-size: 14px;
+}
+
+.priceBlock {
+  margin: 32px 0;
+}
+
+.priceRow {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+}
+
+.price {
+  line-height: 1.25;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.priceCaption {
+  min-height: 18px;
+  margin-top: 4px;
+  color: #737373;
+  font-size: 13px;
+}
+
+.features {
+  display: grid;
+  gap: 24px;
+  margin: 36px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.features svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #858585;
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 44px 0 68px;
+  color: #737373;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.betaDot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--pricing-pink);
+}
+
+.note a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 12px;
+  color: #404040;
+}
+
+.footer {
+  border-top: 1px solid #eaeaea;
+}
+
+.footerInner {
+  display: grid;
+  width: calc(100% - 48px);
+  max-width: 1248px;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 40px;
+  margin: 0 auto;
+  padding: 57px 0 60px;
+}
+
+.logo {
+  width: 148px;
+  height: auto;
+}
+
+.footerBrand p {
+  margin: 17px 0 23px;
+  color: #737373;
+  font-size: 14px;
+}
+
+.footerBrand > span {
+  color: #8a8a8a;
+  font-size: 12px;
+}
+
+.footerLinks {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 17px;
+  font-size: 14px;
+}
+
+.footerLinks h2 {
+  margin: 0 0 1px;
+  font-weight: 600;
+}
+
+.footerLinks a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #737373;
+}
+
+.footerLinks a:hover,
+.note a:hover {
+  color: #171717;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.page a:focus-visible,
+.page button:focus-visible {
+  outline: 2px solid var(--pricing-pink);
+  outline-offset: 4px;
+}
+
+@media (max-width: 900px) {
+  .planBody {
+    padding-right: 24px;
+    padding-left: 24px;
+  }
+
+  .features li {
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .note {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 700px) {
+  .main {
+    width: calc(100% - 32px);
+  }
+
+  .hero {
+    padding-top: 55px;
+  }
+
+  .hero h1 {
+    margin-top: 26px;
+  }
+
+  .hero > p {
+    max-width: 280px;
+    margin: 0 auto;
+    font-size: 16px;
+  }
+
+  .billing {
+    gap: 9px;
+    margin-bottom: 32px;
+  }
+
+  .billingToggle button {
+    min-height: 40px;
+    padding: 0 14px;
+  }
+
+  .plans {
+    max-width: 520px;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin: 0 auto;
+  }
+
+  .plan,
+  .plan:last-child,
+  .plan.featured {
+    margin: 0;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+  }
+
+  .planBody {
+    padding: 28px;
+  }
+
+  .features li {
+    gap: 12px;
+    font-size: 15px;
+  }
+
+  .note {
+    max-width: 330px;
+    align-items: baseline;
+    margin: 25px auto 40px;
+    text-align: center;
+  }
+
+  .note p {
+    flex: 1;
+  }
+
+  .note a {
+    margin: 0;
+  }
+
+  .footerInner {
+    grid-template-columns: 1fr 1fr;
+    gap: 36px 24px;
+    padding: 35px 0;
+  }
+
+  .footerBrand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page * {
+    transition: none;
+  }
+}

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { contrastRatio } from "../brand-board/render";
 
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
@@ -14,16 +15,18 @@ export const identityPlanSchema = z.object({
     .length(3),
 });
 
+export const logoFontFamilies = [
+  "Instrument Sans",
+  "Manrope",
+  "Belleza",
+  "Stack Sans Notch",
+] as const;
+
 export const logoSceneSchema = z.object({
   background: color,
   foreground: color,
   accent: color,
-  fontFamily: z.enum([
-    "Instrument Sans",
-    "Manrope",
-    "Belleza",
-    "Stack Sans Notch",
-  ]),
+  fontFamily: z.enum(logoFontFamilies),
   fontWeight: z.number().int().min(400).max(700),
   letterSpacing: z.number().min(-3).max(12),
   paths: z
@@ -39,10 +42,13 @@ export const logoSceneSchema = z.object({
     .max(8),
 });
 
-export type IdentityPlan = z.infer<typeof identityPlanSchema>;
+export type { IdentityPlan } from "./identity.types";
 export type LogoScene = z.infer<typeof logoSceneSchema>;
 
 export function validateLogoScene(scene: LogoScene): void {
+  if (contrastRatio(scene.background, scene.foreground) < 4.5) {
+    throw new Error("Logo wordmark does not contrast with its background");
+  }
   for (const shape of scene.paths) {
     if (!/^[MmLlHhVvCcQqZz0-9\s,.-]+$/.test(shape.d)) {
       throw new Error("Logo path contains an unsupported SVG command");

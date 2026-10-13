@@ -1,15 +1,20 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { authClient } from '../../../lib/auth-client';
-import { ViewOff, View, Sparkles, Loader } from "clicons-react";
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
+import React, { useState } from "react";
+import { authClient } from "../../../lib/auth-client";
+import {
+  EyeOff as ViewOff,
+  Eye as View,
+  LoaderCircle as Loader,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 import dark_logo from "public/logo-dark.png";
 import white_logo from "public/logo-white.png";
 import { useGTMTracking } from "../../hooks/useGTMTracking";
 import { authDestination, authLink } from "@/lib/auth-destination";
+import { Button } from "@/components/ui/button";
 
 export default function SignUp() {
   const router = useRouter();
@@ -36,7 +41,11 @@ export default function SignUp() {
       }
     } catch (err: any) {
       console.error("Google sign-up exception:", err);
-      setError(err?.message || "Failed to connect with Google. Make sure backend is running on http://localhost:3002");
+      const message =
+        err?.message === "Failed to fetch"
+          ? "Unable to reach the authentication server. Please verify the backend is running."
+          : err?.message || "Failed to connect with Google.";
+      setError(message);
       setIsLoading(false);
     }
   };
@@ -46,33 +55,24 @@ export default function SignUp() {
     setIsLoading(true);
     setError(null);
 
-    // Retrieve UTM parameters for database attribution
-    let utmSource: string | undefined = undefined;
-    let utmMedium: string | undefined = undefined;
-    let utmCampaign: string | undefined = undefined;
-
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      utmSource = params.get("utm_source") || window.sessionStorage.getItem("utm_source") || undefined;
-      utmMedium = params.get("utm_medium") || window.sessionStorage.getItem("utm_medium") || undefined;
-      utmCampaign = params.get("utm_campaign") || window.sessionStorage.getItem("utm_campaign") || undefined;
-    }
-
     try {
-      await authClient.signUp.email({
-        email,
-        password,
-        name,
-      }, {
-        onSuccess: () => {
-          trackSignUp('email');
-          router.push(authDestination());
+      await authClient.signUp.email(
+        {
+          email,
+          password,
+          name,
         },
-        onError: (ctx) => {
-          setError(ctx.error.message);
-          setIsLoading(false);
-        }
-      });
+        {
+          onSuccess: () => {
+            trackSignUp("email");
+            router.push(authDestination());
+          },
+          onError: (ctx) => {
+            setError(ctx.error.message);
+            setIsLoading(false);
+          },
+        },
+      );
     } catch (err: any) {
       setError(err.message || "Failed to sign up");
       setIsLoading(false);
@@ -104,19 +104,26 @@ export default function SignUp() {
               />
             </Link>
           </div>
-          <h1 className="text-3xl font-medium tracking-tight text-neutral-900 dark:text-white" style={{ fontFamily: 'var(--font-petrona)' }}>
+          <h1
+            className="text-3xl font-medium tracking-tight text-neutral-900 dark:text-white"
+            style={{ fontFamily: "var(--font-petrona)" }}
+          >
             Sign up
           </h1>
-          <h3 className="text-neutral-500 dark:text-zinc-400 text-sm mt-2">Get started for free. No credit card required.</h3>
+          <h3 className="text-neutral-500 dark:text-zinc-400 text-sm mt-2">
+            Get started for free. No credit card required.
+          </h3>
         </div>
 
         {/* Card Content */}
         <div>
           {/* Google Button */}
-          <button
+          <Button
+            variant="outline"
+            size="lg"
             onClick={handleGoogleSignUp}
             disabled={isLoading}
-            className="w-full h-12 border border-neutral-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 text-neutral-800 dark:text-zinc-100 font-medium rounded-xl flex items-center justify-center gap-3 transition-all duration-200 hover:bg-neutral-50 dark:hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed group shadow-xs dark:shadow-none cursor-pointer"
+            className="w-full gap-3 font-medium dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:[--btn-contrast:#09090b] dark:hover:bg-zinc-800"
           >
             {isLoading ? (
               <Loader className="w-5 h-5 animate-spin text-neutral-400 dark:text-zinc-500" />
@@ -140,10 +147,12 @@ export default function SignUp() {
                     fill="#EA4335"
                   />
                 </svg>
-                <span className="text-neutral-700 dark:text-zinc-200 font-medium">Continue with Google</span>
+                <span className="text-neutral-700 dark:text-zinc-200 font-medium">
+                  Continue with Google
+                </span>
               </>
             )}
-          </button>
+          </Button>
 
           {/* Divider */}
           <div className="relative my-8">
@@ -151,7 +160,12 @@ export default function SignUp() {
               <div className="w-full border-t border-neutral-200 dark:border-zinc-800"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-3 text-neutral-400 dark:text-zinc-500 tracking-widest font-medium" style={{ fontFamily: 'var(--font-petrona)' }}>Or</span>
+              <span
+                className="bg-background px-3 text-neutral-400 dark:text-zinc-500 tracking-widest font-medium"
+                style={{ fontFamily: "var(--font-petrona)" }}
+              >
+                Or
+              </span>
             </div>
           </div>
 
@@ -164,7 +178,9 @@ export default function SignUp() {
             )}
 
             <div className="space-y-1.5">
-              <label className="text-[13px] font-medium text-neutral-700 dark:text-zinc-300 ml-1">Name</label>
+              <label className="text-[13px] font-medium text-neutral-700 dark:text-zinc-300 ml-1">
+                Name
+              </label>
               <input
                 type="text"
                 required
@@ -176,7 +192,9 @@ export default function SignUp() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[13px] font-medium text-neutral-700 dark:text-zinc-300 ml-1">Email</label>
+              <label className="text-[13px] font-medium text-neutral-700 dark:text-zinc-300 ml-1">
+                Email
+              </label>
               <input
                 type="email"
                 required
@@ -188,7 +206,9 @@ export default function SignUp() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[13px] font-medium text-neutral-700 dark:text-zinc-300 ml-1">Password</label>
+              <label className="text-[13px] font-medium text-neutral-700 dark:text-zinc-300 ml-1">
+                Password
+              </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -208,24 +228,34 @@ export default function SignUp() {
               </div>
             </div>
 
-            <button
+            <Button
+              variant="tertiary"
+              size="lg"
+              contrastColor="#600174ff"
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black font-medium rounded-xl flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full text-white"
             >
               {isLoading ? (
-                <Loader className="w-5 h-5 animate-spin text-white dark:text-black" />
+                <Loader className="w-5 h-5 animate-spin" />
               ) : (
                 "Create Account"
               )}
-            </button>
+            </Button>
           </form>
 
           {/* Footer */}
           <div className="text-center mt-8">
             <p className="text-neutral-500 dark:text-zinc-400 text-sm">
               Already have an account?{" "}
-              <a href="/auth/signin" onClick={(event) => { event.preventDefault(); router.push(authLink("signin", authDestination())); }} className="text-brand font-medium hover:underline transition-colors">
+              <a
+                href="/auth/signin"
+                onClick={(event) => {
+                  event.preventDefault();
+                  router.push(authLink("signin", authDestination()));
+                }}
+                className="text-brand font-medium hover:underline transition-colors"
+              >
                 Sign in
               </a>
             </p>
@@ -233,7 +263,10 @@ export default function SignUp() {
         </div>
 
         {/* Footer Branding */}
-        <div className="mt-12 text-center text-neutral-400 dark:text-zinc-650 text-xs" style={{ fontFamily: 'var(--font-petrona)' }}>
+        <div
+          className="mt-12 text-center text-neutral-400 dark:text-zinc-650 text-xs"
+          style={{ fontFamily: "var(--font-petrona)" }}
+        >
           &copy; 2026 Narrativee.
         </div>
       </div>

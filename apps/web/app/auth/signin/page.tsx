@@ -1,15 +1,20 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { authClient } from '../../../lib/auth-client';
-import { ViewOff, View, Sparkles, Loader } from "clicons-react";
-import { useRouter } from 'next/navigation';
+import React, { useState } from "react";
+import { authClient } from "../../../lib/auth-client";
+import {
+  EyeOff as ViewOff,
+  Eye as View,
+  LoaderCircle as Loader,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import { authDestination, authLink } from "@/lib/auth-destination";
-import Image from 'next/image';
-import Link from 'next/link';
+import Image from "next/image";
+import Link from "next/link";
 import dark_logo from "public/logo-dark.png";
 import white_logo from "public/logo-white.png";
 import { useGTMTracking } from "../../hooks/useGTMTracking";
+import { Button } from "@/components/ui/button";
 
 export default function SignIn() {
   const router = useRouter();
@@ -36,15 +41,12 @@ export default function SignIn() {
       }
     } catch (err: any) {
       console.error("Google sign-in exception:", err);
-      setError(err?.message || "Failed to connect with Google. Make sure backend is running on http://localhost:3002");
+      const message =
+        err?.message === "Failed to fetch"
+          ? "Unable to reach the authentication server. Please verify the backend is running."
+          : err?.message || "Failed to connect with Google.";
+      setError(message);
       setIsLoading(false);
-    }
-  };
-
-  const handleEmailContinue = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!showPasswordField) {
-      setShowPasswordField(true);
     }
   };
 
@@ -59,19 +61,22 @@ export default function SignIn() {
     setError(null);
 
     try {
-      await authClient.signIn.email({
-        email,
-        password,
-      }, {
-        onSuccess: () => {
-          trackEvent({ eventName: 'login', eventData: { method: 'email' } });
-          router.push(authDestination());
+      await authClient.signIn.email(
+        {
+          email,
+          password,
         },
-        onError: (ctx) => {
-          setError(ctx.error.message);
-          setIsLoading(false);
-        }
-      });
+        {
+          onSuccess: () => {
+            trackEvent({ eventName: "login", eventData: { method: "email" } });
+            router.push(authDestination());
+          },
+          onError: (ctx) => {
+            setError(ctx.error.message);
+            setIsLoading(false);
+          },
+        },
+      );
     } catch (err: any) {
       setError(err.message || "Failed to sign in");
       setIsLoading(false);
@@ -103,7 +108,10 @@ export default function SignIn() {
               />
             </Link>
           </div>
-          <h1 className="text-3xl font-medium tracking-tight text-neutral-900 dark:text-white" style={{ fontFamily: 'var(--font-petrona)' }}>
+          <h1
+            className="text-3xl font-medium tracking-tight text-neutral-900 dark:text-white"
+            style={{ fontFamily: "var(--font-petrona)" }}
+          >
             Sign in
           </h1>
           <p className="mt-2 text-neutral-500 dark:text-zinc-400 text-sm">
@@ -114,10 +122,12 @@ export default function SignIn() {
         {/* Card Content */}
         <div>
           {/* Google Button */}
-          <button
+          <Button
+            variant="outline"
+            size="lg"
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full h-12 border border-neutral-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 text-neutral-800 dark:text-zinc-100 font-medium rounded-xl flex items-center justify-center gap-3 transition-all duration-200 hover:bg-neutral-50 dark:hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed group shadow-xs dark:shadow-none cursor-pointer"
+            className="w-full gap-3 font-medium dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:[--btn-contrast:#09090b] dark:hover:bg-zinc-800"
           >
             {isLoading ? (
               <Loader className="w-5 h-5 animate-spin text-neutral-400 dark:text-zinc-500" />
@@ -141,10 +151,12 @@ export default function SignIn() {
                     fill="#EA4335"
                   />
                 </svg>
-                <span className="text-neutral-700 dark:text-zinc-200 font-medium">Continue with Google</span>
+                <span className="text-neutral-700 dark:text-zinc-200 font-medium">
+                  Continue with Google
+                </span>
               </>
             )}
-          </button>
+          </Button>
 
           {/* Divider */}
           <div className="relative my-8">
@@ -152,7 +164,12 @@ export default function SignIn() {
               <div className="w-full border-t border-neutral-200 dark:border-zinc-800"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-3 text-neutral-400 dark:text-zinc-500 tracking-widest font-medium" style={{ fontFamily: 'var(--font-petrona)' }}>Or</span>
+              <span
+                className="bg-background px-3 text-neutral-400 dark:text-zinc-500 tracking-widest font-medium"
+                style={{ fontFamily: "var(--font-petrona)" }}
+              >
+                Or
+              </span>
             </div>
           </div>
 
@@ -165,7 +182,9 @@ export default function SignIn() {
             )}
 
             <div className="space-y-1.5">
-              <label className="text-[13px] font-medium text-neutral-700 dark:text-zinc-300 ml-1">Email</label>
+              <label className="text-[13px] font-medium text-neutral-700 dark:text-zinc-300 ml-1">
+                Email
+              </label>
               <input
                 type="email"
                 required
@@ -179,8 +198,15 @@ export default function SignIn() {
             {showPasswordField && (
               <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2">
                 <div className="flex justify-between items-center ml-1">
-                  <label className="text-[13px] font-medium text-neutral-700 dark:text-zinc-300">Password</label>
-                  <a href="/forgot-password" className="text-[12px] text-neutral-500 hover:text-neutral-800 dark:text-zinc-400 dark:hover:text-white transition-colors">Forgot?</a>
+                  <label className="text-[13px] font-medium text-neutral-700 dark:text-zinc-300">
+                    Password
+                  </label>
+                  <a
+                    href="/forgot-password"
+                    className="text-[12px] text-neutral-500 hover:text-neutral-800 dark:text-zinc-400 dark:hover:text-white transition-colors"
+                  >
+                    Forgot?
+                  </a>
                 </div>
                 <div className="relative">
                   <input
@@ -202,24 +228,36 @@ export default function SignIn() {
               </div>
             )}
 
-            <button
+            <Button
+              variant="tertiary"
+              size="lg"
+              contrastColor="#600174ff"
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black font-medium rounded-xl flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full text-white"
             >
               {isLoading ? (
-                <Loader className="w-5 h-5 animate-spin text-white dark:text-black" />
+                <Loader className="w-5 h-5 animate-spin" />
+              ) : showPasswordField ? (
+                "Sign in"
               ) : (
-                showPasswordField ? "Sign in" : "Continue"
+                "Continue"
               )}
-            </button>
+            </Button>
           </form>
 
           {/* Footer */}
           <div className="text-center mt-8">
             <p className="text-neutral-500 dark:text-zinc-400 text-sm">
               Don't have an account?{" "}
-              <a href="/auth/signup" onClick={(event) => { event.preventDefault(); router.push(authLink("signup", authDestination())); }} className="text-brand font-medium hover:underline transition-colors">
+              <a
+                href="/auth/signup"
+                onClick={(event) => {
+                  event.preventDefault();
+                  router.push(authLink("signup", authDestination()));
+                }}
+                className="text-brand font-medium hover:underline transition-colors"
+              >
                 Sign up
               </a>
             </p>
@@ -227,7 +265,10 @@ export default function SignIn() {
         </div>
 
         {/* Footer Branding */}
-        <div className="mt-12 text-center text-neutral-400 dark:text-zinc-650 text-xs" style={{ fontFamily: 'var(--font-petrona)' }}>
+        <div
+          className="mt-12 text-center text-neutral-400 dark:text-zinc-650 text-xs"
+          style={{ fontFamily: "var(--font-petrona)" }}
+        >
           &copy; 2026 Narrativee.
         </div>
       </div>

@@ -8,3 +8,16 @@ apps/backend/node_modules
 apps/docs/node_modules
 packages/ui/node_modules
 packages/typescript-config/node_modules
+**/.env
+**/.env.*
+!**/.env.example
+**/.data
+**/.open-next
+**/.wrangler
+**/*.log
+research/
+.aws
+.codex
+.agents
+**/*.pem
+**/*.key

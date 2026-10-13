@@ -1,7 +1,7 @@
 import { studioPath } from "./api/brands";
 
 export function authDestination(): string {
-  if (typeof window === "undefined") return "/workspace";
+  if (typeof window === "undefined") return "/workspace/studio";
   const params = new URLSearchParams(window.location.search);
   const next = params.get("next");
   if (next) {
@@ -26,8 +26,31 @@ export function authDestination(): string {
   const analysisId = params.get("analysisId");
   return analysisId
     ? `/workspace?analysisId=${encodeURIComponent(analysisId)}`
-    : "/workspace";
+    : "/workspace/studio";
 }
 
 export const authLink = (page: "signin" | "signup", destination: string) =>
   `/auth/${page}?next=${encodeURIComponent(destination)}`;
+
+export function websiteSetupPath(value: string): string {
+  const input = value.trim();
+  let website: URL;
+  try {
+    website = new URL(input.includes("://") ? input : `https://${input}`);
+  } catch {
+    throw new Error("Enter a valid website, like company.com.");
+  }
+  if (
+    !["http:", "https:"].includes(website.protocol) ||
+    !website.hostname.includes(".") ||
+    website.username ||
+    website.password
+  ) {
+    throw new Error("Enter a valid website, like company.com.");
+  }
+  website.hash = "";
+  return `/workspace/studio?${new URLSearchParams({
+    website: website.toString(),
+    setup: "true",
+  })}`;
+}

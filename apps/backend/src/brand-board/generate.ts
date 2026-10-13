@@ -1,3 +1,4 @@
+import { meteredOpenAI } from "../usage/openai";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import {
@@ -28,7 +29,7 @@ export class BrandBoardGenerator {
   private readonly imageModel: string;
 
   constructor(apiKey: string) {
-    this.client = new OpenAI({ apiKey });
+    this.client = meteredOpenAI({ apiKey });
     this.textModel =
       process.env.BRAND_BOARD_TEXT_MODEL ??
       process.env.OPENAI_MODEL ??

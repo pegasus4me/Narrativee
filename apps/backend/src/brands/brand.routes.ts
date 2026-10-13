@@ -7,12 +7,14 @@ import { optionalAuth, verifyAuth, type AuthRequest } from "../middleware/auth";
 import { normalizePublicUrl } from "../analysis/url-policy";
 import { createAnalysisService } from "../analysis/create-service";
 import { guestCookieName, setGuestCookie } from "./brand-access";
+import { requireTrialAccess } from "../usage/usage.routes";
 import {
   BrandError,
   brandFields,
   claimBrand,
   createBrand,
   readBrand,
+  removeBrand,
   resolveLegacyAnalysis,
 } from "./brand.service";
 
@@ -65,6 +67,13 @@ brandRouter.use((request, response, next) => {
 
 brandRouter.post(
   "/",
+  (request, response, next) => {
+    if (!request.body?.url) {
+      next();
+      return;
+    }
+    void requireTrialAccess(request, response, next);
+  },
   handle(async (request, response) => {
     const input = createInput.parse(request.body);
     let url: string | null = null;
@@ -111,7 +120,12 @@ brandRouter.get(
     const analyses = await db
       .select({ id: siteAnalysis.id, brandId: siteAnalysis.brandId })
       .from(siteAnalysis)
-      .where(inArray(siteAnalysis.brandId, records.map((record) => record.id)))
+      .where(
+        inArray(
+          siteAnalysis.brandId,
+          records.map((record) => record.id),
+        ),
+      )
       .orderBy(desc(siteAnalysis.createdAt));
     const latestAnalysis = new Map<string, string>();
     for (const analysis of analyses) {
@@ -157,5 +171,13 @@ brandRouter.get(
   "/:id",
   handle(async (request, response) => {
     response.json(await readBrand(uuid.parse(request.params.id), request));
+  }),
+);
+
+brandRouter.delete(
+  "/:id",
+  verifyAuth,
+  handle(async (request, response) => {
+    response.json(await removeBrand(uuid.parse(request.params.id), request));
   }),
 );

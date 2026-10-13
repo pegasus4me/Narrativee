@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <radialGradient
+      id="rim"
+      cx="0"
+      cy="0"
+      r="1"
+      gradientTransform="translate(43 28) rotate(55) scale(99)"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop stop-color="#fffefa" />
+      <stop offset=".65" stop-color="#eeeae6" />
+      <stop offset="1" stop-color="#c9c4bf" />
+    </radialGradient>
+    <radialGradient
+      id="face"
+      cx="0"
+      cy="0"
+      r="1"
+      gradientTransform="translate(44 38) rotate(52) scale(86)"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop stop-color="#eee8ff" />
+      <stop offset=".58" stop-color="#cfc3f2" />
+      <stop offset="1" stop-color="#a393ce" />
+    </radialGradient>
+    <linearGradient
+      id="eyes"
+      x1="50"
+      y1="51"
+      x2="75"
+      y2="76"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop stop-color="#41383f" />
+      <stop offset="1" stop-color="#2e292f" />
+    </linearGradient>
+    <filter
+      id="shadow"
+      x="12"
+      y="102"
+      width="104"
+      height="24"
+      filterUnits="userSpaceOnUse"
+    >
+      <feGaussianBlur stdDeviation="3" />
+    </filter>
+  </defs>
+  <ellipse
+    cx="64"
+    cy="114"
+    rx="43"
+    ry="4"
+    fill="#29202b"
+    opacity=".24"
+    filter="url(#shadow)"
+  />
+  <circle cx="64" cy="61" r="54" fill="url(#rim)" />
+  <circle cx="64" cy="61" r="50.5" fill="url(#face)" />
+  <circle cx="64" cy="61" r="53.5" stroke="white" stroke-opacity=".5" />
+  <ellipse cx="51" cy="63" rx="6.7" ry="11" fill="url(#eyes)" />
+  <ellipse cx="77" cy="62" rx="6.9" ry="12" fill="url(#eyes)" />
+</svg>

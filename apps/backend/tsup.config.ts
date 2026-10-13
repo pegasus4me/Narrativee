@@ -1,8 +1,11 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ['src/index.ts'],
-  format: ['cjs'],
+  entry: {
+    index: "src/index.ts",
+    "migrate-brands": "scripts/migrate-brands.ts",
+  },
+  format: ["cjs"],
   clean: true,
-  noExternal: ['nanoid', 'better-auth', 'creator-agent-orchestrator'],
-})
+  noExternal: ["nanoid", "better-auth"],
+});

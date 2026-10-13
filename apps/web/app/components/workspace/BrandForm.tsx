@@ -7,11 +7,15 @@ import BrandFavicon from "./BrandFavicon";
 
 export default function BrandForm({
   onCreated,
+  submitLabel = "Open Studio",
+  initialWebsite = "",
 }: {
-  onCreated: (brand: Brand) => void;
+  onCreated: (brand: Brand) => void | Promise<void>;
+  submitLabel?: string;
+  initialWebsite?: string;
 }) {
   const [hasSite, setHasSite] = useState(true);
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialWebsite);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pending = useRef(false);
@@ -32,7 +36,7 @@ export default function BrandForm({
         key: attempt.current.key,
       });
       rememberBrand(brand);
-      onCreated(brand);
+      await onCreated(brand);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "Unable to create brand",
@@ -60,7 +64,7 @@ export default function BrandForm({
             }}
             className={`rounded-lg px-2 py-1.5 text-xs ${hasSite === choice ? "bg-hover-2 text-ink" : "text-ink-2"}`}
           >
-            {choice ? "I have a website" : "Start from scratch"}
+            {choice ? "I have a website" : "I don't have a website"}
           </button>
         ))}
       </div>
@@ -78,6 +82,8 @@ export default function BrandForm({
           )}
           <input
             autoFocus
+            autoComplete={hasSite ? "url" : "organization"}
+            inputMode={hasSite ? "url" : "text"}
             required
             maxLength={hasSite ? 2048 : 120}
             value={value}
@@ -99,7 +105,11 @@ export default function BrandForm({
         disabled={busy || !value.trim()}
         className="h-8 w-full rounded-lg bg-ink text-xs font-medium text-surface disabled:opacity-50"
       >
-        {busy ? "Creating…" : "Open Studio"}
+        {busy
+          ? "Setting up your brand…"
+          : hasSite
+            ? submitLabel
+            : "Set up my brand"}
       </button>
     </form>
   );

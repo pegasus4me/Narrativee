@@ -81,7 +81,8 @@ export default function StudioCompetitorPicker({
         Choose up to five competitors
       </p>
       <p className="text-xs leading-5 text-ink-3">
-        Their websites will be compared with the brand before creative work.
+        Compare their websites to find positioning and creative angles. You can
+        do this later in Studio.
       </p>
       <div className="space-y-1">
         {analysis.competitorCandidates.map((candidate) => (

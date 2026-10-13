@@ -12,7 +12,6 @@ import {
   ExternalLink,
   Brain,
   Quote,
-  Layers,
   HelpCircle,
   AlertTriangle,
   RefreshCw,
@@ -24,7 +23,6 @@ import {
   type SiteAnalysis,
   type Inference,
   type Observation,
-  type Question,
 } from "@/lib/api/analysis";
 import { authClient } from "@/lib/auth-client";
 
@@ -35,10 +33,11 @@ function WorkspaceContent() {
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<SiteAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
-  const [pollingError, setPollingError] = useState<string | null>(null);
 
   // Active question answers state
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<
+    Record<number, string>
+  >({});
 
   // Initialize analysisId from URL or storage
   useEffect(() => {
@@ -66,7 +65,6 @@ function WorkspaceContent() {
 
     let isMounted = true;
     setLoading(true);
-    setPollingError(null);
 
     const fetchStatus = async () => {
       try {
@@ -77,12 +75,16 @@ function WorkspaceContent() {
         setLoading(false);
 
         // Keep polling if still in progress
-        if (data.status === "queued" || data.status === "scraping" || data.status === "synthesizing") {
+        if (
+          data.status === "queued" ||
+          data.status === "scraping" ||
+          data.status === "synthesizing"
+        ) {
           pollTimerRef.current = setTimeout(fetchStatus, 1800);
         }
       } catch (err) {
         if (!isMounted) return;
-        setPollingError(err instanceof Error ? err.message : "Failed to load analysis");
+        console.error("Failed to load analysis", err);
         setLoading(false);
       }
     };
@@ -116,8 +118,8 @@ function WorkspaceContent() {
       analysis?.status === "scraping"
         ? "Scraping homepage & visual assets..."
         : analysis?.status === "synthesizing"
-        ? "Synthesizing evidence-based brand diagnosis with AI..."
-        : "Queued for analysis...";
+          ? "Synthesizing evidence-based brand diagnosis with AI..."
+          : "Queued for analysis...";
 
     return (
       <div className="flex min-h-[85vh] flex-col items-center justify-center p-6 text-center">
@@ -231,13 +233,14 @@ function WorkspaceContent() {
                 Guest Preview Mode
               </h3>
               <p className="text-xs text-neutral-600 dark:text-zinc-400">
-                Create a free account to save this brand diagnosis, edit decisions, and generate tailored brand assets.
+                Create a free account to save this brand diagnosis, edit
+                decisions, and generate tailored brand assets.
               </p>
             </div>
           </div>
           <Link
             href={`/auth/signup?analysisId=${encodeURIComponent(analysis.id)}&website=${encodeURIComponent(
-              analysis.url.replace(/^https?:\/\//, "")
+              analysis.url.replace(/^https?:\/\//, ""),
             )}`}
             className="shrink-0 flex items-center gap-1.5 rounded-full bg-secondary hover:bg-secondary/90 px-4 py-2 text-xs font-semibold text-black transition-all shadow-sm cursor-pointer"
           >
@@ -255,7 +258,9 @@ function WorkspaceContent() {
               <CheckCircle2 className="size-3" />
               Evidence-Backed Diagnosis
             </span>
-            <span className="text-xs text-neutral-400 dark:text-zinc-500">•</span>
+            <span className="text-xs text-neutral-400 dark:text-zinc-500">
+              •
+            </span>
             <a
               href={analysis.url}
               target="_blank"
@@ -342,7 +347,8 @@ function WorkspaceContent() {
             </ul>
           ) : (
             <p className="text-xs text-neutral-500 dark:text-zinc-400 py-4 text-center">
-              No significant messaging contradictions detected in the scraped evidence.
+              No significant messaging contradictions detected in the scraped
+              evidence.
             </p>
           )}
         </div>
@@ -439,7 +445,11 @@ function InferenceCard({ inference }: { inference: Inference }) {
             className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
           >
             <Quote className="size-3" />
-            <span>{showEvidence ? "Hide evidence" : `View quoted evidence (${inference.evidence.length})`}</span>
+            <span>
+              {showEvidence
+                ? "Hide evidence"
+                : `View quoted evidence (${inference.evidence.length})`}
+            </span>
           </button>
 
           {showEvidence && (
@@ -523,4 +533,3 @@ export default function WorkspacePage(): React.ReactNode {
     </Suspense>
   );
 }
-

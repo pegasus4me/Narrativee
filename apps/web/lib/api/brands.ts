@@ -1,3 +1,4 @@
+import { billingFetch } from "./billing";
 import { API_URL } from "../api-config";
 
 export interface Brand {
@@ -20,7 +21,7 @@ export class BrandApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}/brands${path}`, {
+  const response = await billingFetch(`${API_URL}/brands${path}`, {
     ...init,
     credentials: "include",
     cache: "no-store",
@@ -36,6 +37,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const listBrands = () => request<Brand[]>("");
+export const removeBrand = (id: string) =>
+  request<{
+    projectIds: string[];
+    analysisIds: string[];
+    warning: string | null;
+  }>(`/${encodeURIComponent(id)}`, { method: "DELETE" });
 export const getBrand = (id: string) =>
   request<Brand>(`/${encodeURIComponent(id)}`);
 export const claimBrand = (id: string) =>

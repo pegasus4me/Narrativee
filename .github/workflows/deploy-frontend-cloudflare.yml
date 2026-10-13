@@ -1,47 +1,60 @@
-name: Deploy Frontend to Cloudflare Pages
+name: Deploy Frontend to Cloudflare Workers
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - 'apps/web/**'
-      - '.github/workflows/deploy-frontend-cloudflare.yml'
+      - "apps/web/**"
+      - "packages/**"
+      - "scripts/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - ".github/workflows/deploy-frontend-cloudflare.yml"
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-frontend
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_API_URL: ${{ vars.PRODUCTION_API_URL || 'https://www.api.narrativee.com' }}
+      NEXT_PUBLIC_APP_REVISION: ${{ github.sha }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: '18'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
+          version: 9.0.0
+      - uses: actions/setup-node@v4
         with:
-          version: 9
-
-      - name: Install dependencies
-        run: |
-          cd apps/web
-          pnpm install --frozen-lockfile
-
-      - name: Build project
-        run: |
-          cd apps/web
-          pnpm build
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: narrativee
-          directory: apps/web/.next
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Type check
+        run: pnpm --filter web check-types
+      - name: Frontend workflow tests
+        run: pnpm --filter web test:ci
+      - name: Deployment check tests
+        run: pnpm test:deploy
+      - name: Build Cloudflare Worker
+        run: pnpm --filter web build:cloudflare
+      - name: Validate Worker bundle
+        run: pnpm --filter web exec wrangler deploy --dry-run
+      - name: Deploy the checked Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm --filter web exec opennextjs-cloudflare deploy
+      - name: Verify the deployed release
+        env:
+          SMOKE_BASE_URL: ${{ vars.PRODUCTION_FRONTEND_URL || 'https://narrativee.com' }}
+          EXPECTED_REVISION: ${{ github.sha }}
+        run: node scripts/smoke-deployment.mjs frontend

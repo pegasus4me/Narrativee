@@ -14,7 +14,8 @@ import {
 import { useBrands } from "./BrandProvider";
 import BrandForm from "./BrandForm";
 import BrandFavicon from "./BrandFavicon";
-import { studioPath } from "@/lib/api/brands";
+import RemoveBrandConfirmation from "./RemoveBrandConfirmation";
+import { studioPath, type Brand } from "@/lib/api/brands";
 import { authLink } from "@/lib/auth-destination";
 
 function getSafeDomain(rawUrl?: string | null): string | null {
@@ -42,6 +43,7 @@ export default function BrandNavigation({ collapsed }: { collapsed: boolean }) {
       : active?.name;
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [removing, setRemoving] = useState<Brand | null>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -91,7 +93,7 @@ export default function BrandNavigation({ collapsed }: { collapsed: boolean }) {
       document.removeEventListener("pointerdown", close);
       document.removeEventListener("keydown", keyboard);
     };
-  }, [open, creating]);
+  }, [open, creating, removing]);
 
   function toggle() {
     const rect = trigger.current?.getBoundingClientRect();
@@ -101,6 +103,7 @@ export default function BrandNavigation({ collapsed }: { collapsed: boolean }) {
         left: Math.min(rect.left, window.innerWidth - 300),
       });
     setCreating(!active && !brands.length);
+    setRemoving(null);
     setOpen(!open);
   }
 
@@ -219,7 +222,16 @@ export default function BrandNavigation({ collapsed }: { collapsed: boolean }) {
                 <X size={15} />
               </button>
             </div>
-            {creating ? (
+            {removing ? (
+              <RemoveBrandConfirmation
+                brand={removing}
+                onCancel={() => setRemoving(null)}
+                onRemoved={() => {
+                  setRemoving(null);
+                  setCreating(brands.length === 1);
+                }}
+              />
+            ) : creating ? (
               <BrandForm
                 onCreated={(record) => {
                   select(record);
@@ -230,28 +242,40 @@ export default function BrandNavigation({ collapsed }: { collapsed: boolean }) {
             ) : (
               <>
                 {brands.map((record) => (
-                  <button
+                  <div
                     key={record.id}
-                    onClick={() => {
-                      select(record);
-                      setOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 truncate rounded-lg px-2 py-2 text-left text-sm text-ink hover:bg-hover-2"
+                    className="flex items-center rounded-lg hover:bg-hover-2"
                   >
-                    {record.url ? (
-                      <BrandFavicon
-                        url={record.url}
-                        name={record.name}
-                        size={15}
-                        fallback={
-                          <Globe size={15} className="shrink-0 text-ink-3" />
-                        }
-                      />
-                    ) : (
-                      <Shapes size={15} className="shrink-0 text-ink-3" />
-                    )}
-                    <span className="truncate">{record.name}</span>
-                  </button>
+                    <button
+                      onClick={() => {
+                        select(record);
+                        setOpen(false);
+                      }}
+                      className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-ink"
+                    >
+                      {record.url ? (
+                        <BrandFavicon
+                          url={record.url}
+                          name={record.name}
+                          size={15}
+                          fallback={
+                            <Globe size={15} className="shrink-0 text-ink-3" />
+                          }
+                        />
+                      ) : (
+                        <Shapes size={15} className="shrink-0 text-ink-3" />
+                      )}
+                      <span className="truncate">{record.name}</span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Remove ${record.name}`}
+                      onClick={() => setRemoving(record)}
+                      className="mr-1 shrink-0 rounded-md px-2 py-1.5 text-xs text-ink-3 hover:bg-red-500/10 hover:text-red-500 focus-visible:outline focus-visible:outline-2"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 ))}
                 <button
                   onClick={() => setCreating(true)}

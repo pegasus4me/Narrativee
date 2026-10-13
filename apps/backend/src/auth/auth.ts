@@ -2,17 +2,16 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { Pool } from "pg";
 import * as schema from "./schema/schema";
-import dotenv from "dotenv"
-import { drizzle } from 'drizzle-orm/node-postgres'
-import dns from 'node:dns';
-import path from 'node:path';
-import fs from 'node:fs';
+import dotenv from "dotenv";
+import { drizzle } from "drizzle-orm/node-postgres";
+import path from "node:path";
+import fs from "node:fs";
 
 // Load .env: walk up from CWD until we find it (works for both turbo & docker)
 const loadEnv = () => {
   let dir = process.cwd();
   for (let i = 0; i < 6; i++) {
-    const candidate = path.join(dir, '.env');
+    const candidate = path.join(dir, ".env");
     if (fs.existsSync(candidate)) {
       dotenv.config({ path: candidate });
       return;
@@ -28,14 +27,15 @@ const databaseUrl =
     ? process.env.DATABASE_URL
     : process.env.LOCAL_DATABASE_URL || process.env.DATABASE_URL;
 
-const pool = new Pool({
+// Hosted database URLs include sslmode=verify-full and the trusted CA path.
+export const pool = new Pool({
   connectionString: databaseUrl,
   allowExitOnIdle: true,
 });
 
 // Prevent crash on idle client error
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
+pool.on("error", (err) => {
+  console.error("Unexpected error on idle client", err);
 });
 
 export const db = drizzle(pool, { schema: schema });
@@ -48,7 +48,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false
+    requireEmailVerification: false,
   },
   socialProviders: {
     google: {
@@ -62,7 +62,7 @@ export const auth = betterAuth({
     accountLinking: {
       enabled: true,
       trustedProviders: ["google", "microsoft"],
-      allowDifferentEmails: true
+      allowDifferentEmails: true,
     },
   },
   secret: process.env.BETTER_AUTH_SECRET,
@@ -70,7 +70,6 @@ export const auth = betterAuth({
     "http://localhost:3000",
     "http://localhost:3010",
     "https://narrativee.com",
-
   ],
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",

@@ -3,17 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import StartCreatingLink from "../landing/StartCreatingLink";
+import { authLink } from "@/lib/auth-destination";
 import { usePostHog } from "posthog-js/react";
 import darkLogo from "public/logo-dark.png";
 
-interface HeaderProps {
-  onBetaSignup?: () => void;
-}
-
-export default function Header({ onBetaSignup }: HeaderProps = {}) {
-  const router = useRouter();
+export default function Header() {
   const ph = usePostHog();
+  const pathname = usePathname();
   const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
@@ -23,21 +21,13 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const start = () => {
-    ph?.capture("header_cta_clicked", {
-      action: "scroll_to_waitlist",
-    });
-    if (onBetaSignup) onBetaSignup();
-    else router.push("/#start");
-  };
-
   return (
     <header
       data-stuck={stuck}
       className="sticky top-0 z-50 mx-auto w-full max-w-7xl px-4 pb-3"
     >
       <div
-        className={`mx-auto border-b border-l bg-neutral-50 border-neutral-300 border-r border-dashed grid w-full  grid-cols-[1fr_auto] items-center gap-3 rounded-b-[32px]  px-3 py-3 text-[14px] font-medium text-[#292929] transition-[width] duration-300 ease-out motion-reduce:transition-none lg:grid-cols-3 lg:px-4 ${stuck ? "lg:w-[90%]" : "lg:w-full"}`}
+        className={`mx-auto grid w-full grid-cols-[1fr_auto] items-center gap-3 rounded-b-[32px] bg-neutral-50 px-3 py-3 text-[14px] font-medium text-[#292929] shadow-[inset_0_1px_3px_rgba(0,0,0,0.07)] transition-[width] duration-300 ease-out motion-reduce:transition-none lg:grid-cols-3 lg:px-4 ${stuck ? "lg:w-[90%]" : "lg:w-full"}`}
       >
         <Link
           className="ml-2 w-max text-[20px] tracking-[-0.04em] lg:col-start-2 lg:row-start-1 lg:ml-0 lg:justify-self-center"
@@ -59,7 +49,7 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
           aria-label="Main navigation"
         >
           <Link
-            className="flex h-7 items-center rounded-full bg-white px-4 text-[#292929] shadow-sm transition-colors duration-200 hover:bg-[#fafafa]"
+            className={`flex h-7 items-center rounded-full px-4 transition-colors duration-200 hover:bg-white hover:text-[#292929] ${pathname === "/" ? "bg-white text-[#292929] shadow-sm" : "text-[#737373]"}`}
             href="/#features"
             onClick={() => ph?.capture("nav_clicked", { target: "features" })}
           >
@@ -73,29 +63,29 @@ export default function Header({ onBetaSignup }: HeaderProps = {}) {
             Solution
           </Link>
           <Link
-            className="flex h-7 items-center rounded-full px-4 text-[#737373] transition-colors duration-200 hover:bg-white hover:text-[#292929]"
-            href="/#start"
-            onClick={() => ph?.capture("nav_clicked", { target: "waitlist" })}
+            className={`flex h-7 items-center rounded-full px-4 transition-colors duration-200 hover:bg-white hover:text-[#292929] ${pathname === "/pricing" ? "bg-white text-[#292929] shadow-sm" : "text-[#737373]"}`}
+            href="/pricing"
+            aria-current={pathname === "/pricing" ? "page" : undefined}
+            onClick={() => ph?.capture("nav_clicked", { target: "pricing" })}
           >
-            Early access
+            Pricing
           </Link>
         </nav>
 
-        <div className="flex h-10 items-center justify-self-end rounded-full bg-[#f3f3f4] px-1.5 lg:col-start-3 lg:row-start-1">
-          <button
-            className="group inline-flex min-h-7 max-w-[148px] cursor-pointer items-center rounded-full bg-white px-3 py-1 text-[12px] leading-tight text-[#292929] shadow-sm transition-colors duration-200 hover:bg-[#fafafa] lg:max-w-none lg:whitespace-nowrap lg:px-4 lg:text-[14px]"
-            type="button"
-            onClick={start}
-            data-ph-capture-attribute="header-cta-button"
+        <div className="flex h-10 items-center justify-self-end gap-3 lg:col-start-3 lg:row-start-1">
+          <Link
+            href={authLink("signin", "/workspace/studio")}
+            onClick={() => ph?.capture("nav_clicked", { target: "signin" })}
+            className="rounded-full px-3 py-2 text-[#737373] transition-colors duration-200 hover:text-[#292929]"
           >
-            Integrate Narrativee to your company
-            <span
-              aria-hidden="true"
-              className="ml-2 hidden text-[1.1em] transition-transform duration-180 group-hover:translate-x-1 lg:inline-block"
-            >
-              →
-            </span>
-          </button>
+            Login
+          </Link>
+          <StartCreatingLink
+            location="header"
+            className="inline-flex min-h-9 cursor-pointer items-center whitespace-nowrap rounded-full bg-tertiary px-4 py-2 text-[13px] leading-tight text-[#292929] transition-colors duration-200 hover:brightness-95 lg:text-[14px]"
+          >
+            Get started
+          </StartCreatingLink>
         </div>
       </div>
     </header>

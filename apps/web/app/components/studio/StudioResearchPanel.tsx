@@ -38,11 +38,15 @@ export default function StudioResearchPanel({
   busy,
   onUpdated,
   onExplore,
+  exploreLabel = "Explore 3 creative directions",
+  onboarding = false,
 }: {
   project: StudioProject;
   busy: boolean;
   onUpdated: () => void;
   onExplore: () => void;
+  exploreLabel?: string;
+  onboarding?: boolean;
 }) {
   const analysis = project.analysis;
   const isRunning = Boolean(analysis && runningStatuses.has(analysis.status));
@@ -57,7 +61,7 @@ export default function StudioResearchPanel({
   useEffect(() => setWebsite(project.brandUrl ?? ""), [project.brandUrl]);
 
   async function startScan() {
-    if (working) return;
+    if (working || busy) return;
     setWorking(true);
     setError(null);
     try {
@@ -117,10 +121,14 @@ export default function StudioResearchPanel({
             />
             <button
               type="submit"
-              disabled={working}
+              disabled={working || busy}
               className="rounded-lg bg-ink px-3 py-2 text-sm font-medium text-surface disabled:opacity-50"
             >
-              {working ? "Starting…" : "Scan"}
+              {working || busy
+                ? "Starting…"
+                : analysis?.status === "failed"
+                  ? "Retry scan"
+                  : "Scan"}
             </button>
           </form>
         </div>
@@ -149,9 +157,18 @@ export default function StudioResearchPanel({
         </div>
       )}
 
-      {needsCompetitors && analysis && (
-        <StudioCompetitorPicker analysis={analysis} onUpdated={onUpdated} />
-      )}
+      {needsCompetitors &&
+        analysis &&
+        (onboarding ? (
+          <details className="mt-5 text-sm text-ink-2">
+            <summary className="cursor-pointer">
+              Compare competitors (optional)
+            </summary>
+            <StudioCompetitorPicker analysis={analysis} onUpdated={onUpdated} />
+          </details>
+        ) : (
+          <StudioCompetitorPicker analysis={analysis} onUpdated={onUpdated} />
+        ))}
 
       {analysis?.competitorAnalysis && (
         <details className="mt-4 text-sm text-ink-2">
@@ -179,14 +196,14 @@ export default function StudioResearchPanel({
         </p>
       )}
 
-      {canExplore && (
+      {canExplore && !onboarding && (
         <button
           type="button"
           onClick={onExplore}
           disabled={busy}
           className="mt-5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-ink hover:bg-hover-2 disabled:opacity-50"
         >
-          Explore 3 creative directions
+          {exploreLabel}
         </button>
       )}
     </section>

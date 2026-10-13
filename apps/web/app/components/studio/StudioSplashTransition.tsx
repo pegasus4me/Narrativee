@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { InkFlood } from "../ink-flood/engine";
 import { VAULT_SCENE } from "../ink-flood/presets";
 import type { Scene } from "../ink-flood/scene";
@@ -29,13 +29,10 @@ export default function StudioSplashTransition({
   const activeScene = useMemo<Scene>(() => {
     const base = scene ?? VAULT_SCENE;
 
-    // The splash transition starts on a crisp light field (#fafafa),
-    // where the pen writes a thick black scribble (#0a0a0a).
-    // The black ink then swells and zooms, flooding the entire frame into deep black (#0a0a0a),
-    // which seamlessly reveals the dark studio workspace.
+    // The transition ends on white to match the Studio workspace.
     const fields: readonly [string, string] = scene?.palette?.fields ?? [
       "#fafafa",
-      "#0a0a0a",
+      "#ffffff",
     ];
     const dot = scene?.palette?.dot ?? "#8c8c8c";
 
@@ -55,7 +52,9 @@ export default function StudioSplashTransition({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     let engine: InkFlood | null = new InkFlood(canvas, activeScene);
     engineRef.current = engine;
 
@@ -118,10 +117,7 @@ export default function StudioSplashTransition({
           role="status"
           aria-label="Loading studio"
         >
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 h-full w-full"
-          />
+          <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
           <motion.div
             aria-hidden="true"
             initial={{ opacity: 0, scale: 0.82 }}

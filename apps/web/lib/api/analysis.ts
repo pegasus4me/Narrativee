@@ -1,3 +1,4 @@
+import { billingFetch } from "./billing";
 import { API_URL } from "../api-config";
 
 async function readApiJson<T>(response: Response): Promise<T> {
@@ -117,32 +118,8 @@ export interface SiteAnalysis {
   updatedAt: string;
 }
 
-export interface CreateAnalysisResponse {
-  analysisId: string;
-  status: string;
-}
-
-export async function createSiteAnalysis(url: string): Promise<CreateAnalysisResponse> {
-  const response = await fetch(`${API_URL}/site-analyses`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify({ url }),
-  });
-
-  const data = await readApiJson<{ error?: string } & Partial<CreateAnalysisResponse>>(response);
-
-  if (!response.ok) {
-    throw new Error(data.error || "Failed to start site analysis");
-  }
-
-  return data as CreateAnalysisResponse;
-}
-
 export async function getSiteAnalysis(id: string): Promise<SiteAnalysis> {
-  const response = await fetch(`${API_URL}/site-analyses/${id}`, {
+  const response = await billingFetch(`${API_URL}/site-analyses/${id}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -150,7 +127,9 @@ export async function getSiteAnalysis(id: string): Promise<SiteAnalysis> {
     credentials: "include",
   });
 
-  const data = await readApiJson<{ error?: string } & Partial<SiteAnalysis>>(response);
+  const data = await readApiJson<{ error?: string } & Partial<SiteAnalysis>>(
+    response,
+  );
 
   if (!response.ok) {
     throw new Error(data.error || "Failed to load site analysis");
@@ -163,7 +142,7 @@ export async function confirmCompetitors(
   id: string,
   urls: string[],
 ): Promise<void> {
-  const response = await fetch(
+  const response = await billingFetch(
     `${API_URL}/site-analyses/${encodeURIComponent(id)}/competitors`,
     {
       method: "POST",
@@ -179,20 +158,36 @@ export async function confirmCompetitors(
   }
 }
 
-export async function getDiscoveryMessages(id: string): Promise<DiscoveryMessage[]> {
-  const response = await fetch(`${API_URL}/site-analyses/${encodeURIComponent(id)}/messages`, { credentials: "include" });
-  const data = await readApiJson<{ error?: string; messages?: DiscoveryMessage[] }>(response);
-  if (!response.ok) throw new Error(data.error || "Unable to load conversation");
+export async function getDiscoveryMessages(
+  id: string,
+): Promise<DiscoveryMessage[]> {
+  const response = await billingFetch(
+    `${API_URL}/site-analyses/${encodeURIComponent(id)}/messages`,
+    { credentials: "include" },
+  );
+  const data = await readApiJson<{
+    error?: string;
+    messages?: DiscoveryMessage[];
+  }>(response);
+  if (!response.ok)
+    throw new Error(data.error || "Unable to load conversation");
   return data.messages ?? [];
 }
 
-export async function sendDiscoveryMessage(id: string, content: string, images: string[] = []): Promise<string> {
-  const response = await fetch(`${API_URL}/site-analyses/${encodeURIComponent(id)}/messages`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ content, images }),
-  });
+export async function sendDiscoveryMessage(
+  id: string,
+  content: string,
+  images: string[] = [],
+): Promise<string> {
+  const response = await billingFetch(
+    `${API_URL}/site-analyses/${encodeURIComponent(id)}/messages`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ content, images }),
+    },
+  );
   const data = await readApiJson<{ error?: string; answer?: string }>(response);
   if (!response.ok) throw new Error(data.error || "Unable to send message");
   return data.answer ?? "";

@@ -16,6 +16,7 @@ import {
   studioPath,
   getBrand,
   listBrands,
+  removeBrand,
   type Brand,
 } from "@/lib/api/brands";
 import { getSiteAnalysis } from "@/lib/api/analysis";
@@ -28,6 +29,7 @@ type Context = {
   legacyId: string | null;
   retry: () => void;
   select: (brand: Brand) => void;
+  remove: (brand: Brand) => Promise<string | null>;
 };
 const BrandContext = createContext<Context | null>(null);
 
@@ -43,6 +45,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
   const params = useSearchParams();
   const brandId = params.get("brandId");
   const analysisId = params.get("analysisId");
+  const website = params.get("website");
   const userId = session?.user.id;
   const [revision, setRevision] = useState(0);
   const [state, setState] = useState({
@@ -130,7 +133,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
           window.sessionStorage.setItem("active_brand_id", active.id);
         }
         setState({ brands, active, loading: false, error: null, legacyId });
-        if (active?.id && (analysisId || (!brandId && pendingId)))
+        if (!website && active?.id && (analysisId || (!brandId && pendingId)))
           router.replace(studioPath(active.id));
       } catch (error) {
         if (!cancelled)
@@ -150,7 +153,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [brandId, analysisId, userId, isPending, revision, router]);
+  }, [brandId, analysisId, website, userId, isPending, revision, router]);
 
   function select(brand: Brand) {
     setState((current) => ({
@@ -163,6 +166,42 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     router.push(studioPath(brand.id));
   }
 
+  async function remove(brand: Brand) {
+    const result = await removeBrand(brand.id);
+    const remaining = state.brands.filter((item) => item.id !== brand.id);
+    const removingActive = state.active?.id === brand.id;
+    const next = remaining[0] ?? null;
+    setState((current) => ({
+      ...current,
+      brands: current.brands.filter((item) => item.id !== brand.id),
+      active: current.active?.id === brand.id ? next : current.active,
+      legacyId: removingActive ? null : current.legacyId,
+    }));
+    try {
+      for (const key of ["active_brand_id", "pending_brand_id"]) {
+        if (window.sessionStorage.getItem(key) === brand.id)
+          window.sessionStorage.removeItem(key);
+      }
+      for (const projectId of result.projectIds)
+        window.localStorage.removeItem(`studio-canvas:${projectId}`);
+      for (const storage of [window.sessionStorage, window.localStorage]) {
+        if (
+          result.analysisIds.includes(
+            storage.getItem("current_analysis_id") ?? "",
+          )
+        )
+          storage.removeItem("current_analysis_id");
+      }
+      if (removingActive && next)
+        window.sessionStorage.setItem("active_brand_id", next.id);
+    } catch {
+      // Restricted browser storage must not turn successful deletion into an error.
+    }
+    if (removingActive)
+      router.replace(next ? studioPath(next.id) : "/workspace/studio");
+    return result.warning;
+  }
+
   return (
     <BrandContext.Provider
       value={{
@@ -170,6 +209,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
         loading: state.loading || isPending,
         retry: () => setRevision((value) => value + 1),
         select,
+        remove,
       }}
     >
       {children}

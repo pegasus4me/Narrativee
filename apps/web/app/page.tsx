@@ -1,12 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
-import brandDesignerIllustration from "public/brand-designer-rose-painter.png";
 import brandDesignerRocket from "public/brand-designer-rose-rocket-transparent.png";
 import brandDesignerBoard from "public/brand-designer-rose-brand-board.png";
 import brandDesignerCards from "public/brand-designer-rose-social-cards.png";
 import Header from "./components/commons/Header";
-import WaitlistForm from "./components/landing/WaitlistForm";
+import StartCreatingLink from "./components/landing/StartCreatingLink";
 import VisitorStats from "./components/landing/VisitorStats";
+import HeroPlatformStack from "./components/landing/HeroPlatformStack";
+import {
+  socialPlatformBackgrounds,
+  socialPlatformLogos,
+} from "@/lib/social-platform-logos";
 
 const features = [
   {
@@ -64,66 +68,92 @@ const questions = [
   {
     question: "Can I try it today?",
     answer:
-      "Narrativee is in development. Join the waitlist and we will let you know when early access opens.",
+      "Create an account to try the beta. Scan your website, review your Brand Brain, then brief your creative team in Studio. The first version creates one editable square social post or ad at a time.",
   },
 ];
 
 export default function Home(): React.ReactNode {
   return (
     <div className="relative min-h-screen overflow-x-clip bg-white text-[#171717] [color-scheme:light] font-sans antialiased">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-1/2 z-20 w-[calc(100%-32px)] max-w-[1248px] -translate-x-1/2 border-x border-dashed border-neutral-400"
-      />
       <Header />
       <main
         id="top"
         className="relative mx-auto w-[calc(100%-48px)] md:w-[min(60%,1120px)]"
       >
         <section
-          className="relative left-1/2 grid w-[min(calc(100vw-48px),1120px)] -translate-x-1/2 grid-cols-1 items-center gap-8 py-16 md:min-h-[615px] md:grid-cols-[1.15fr_1fr] md:gap-10 md:py-24"
+          className="relative left-1/2 flex w-[min(calc(100vw-48px),1120px)] -translate-x-1/2 justify-center py-12 text-center md:py-20"
           aria-labelledby="hero-title"
         >
-          <div className="min-w-0 text-left">
+          <div className="w-full min-w-0 max-w-[960px]">
             <div className="max-w-full">
               <h1
                 id="hero-title"
-                className="m-0 text-[clamp(2.25rem,4.5vw,4rem)] font-stackSans font-medium leading-[1.3] tracking-[-0.045em]"
+                className="m-0 text-[clamp(2.5rem,5.5vw,4.5rem)] font-stackSans font-medium leading-[1.2] tracking-[-0.045em]"
               >
-                Your AI copilot
-                <br />
-                for social and ad{" "}
-                <span className="inline-block whitespace-nowrap">
-                  <Image
-                    src="/hero-creatives.svg"
-                    alt="creatives"
-                    width={526}
-                    height={134}
-                    className="inline-block h-auto w-[5.25em] align-[-0.08em]"
-                    unoptimized
-                  />
-                  .
+                From brand context to creative ads your team can{" "}
+                <span className="whitespace-nowrap">
+                  ship.
+                  <HeroPlatformStack />
                 </span>
               </h1>
-              <h4 className="font-semibold text-black mt-5">
-                [ Your AI brand designer ]
-              </h4>
-              <p className="my-[45px] md:mt-10 md:mb-9 max-w-[620px] text-[17px] md:text-[20px] font-semibold tracking-[-0.025em] text-[#525252]">
-                Work with an AI brand designer that turns your briefs into
-                editable visuals, using your brand identity and saved
-                preferences.
+              <p className="mx-auto mt-6 max-w-[620px] text-[18px] md:text-[22px] font-semibold tracking-[-0.025em] text-[#525252]">
+                Bring research, brand rules and team feedback into every brief,
+                then shape editable social and ad creative in one shared
+                workspace.
               </p>
-              <div id="start" className="mt-7 scroll-mt-28">
-                <WaitlistForm />
+              <div
+                id="start"
+                className="mx-auto mt-8 w-full max-w-xl scroll-mt-28"
+              >
+                <StartCreatingLink
+                  location="hero"
+                  websiteInput
+                  className="inline-flex items-center rounded-full bg-tertiary px-6 py-4 text-base font-semibold text-[#171717] hover:bg-tertiary/90"
+                >
+                  Try Narrativee →
+                </StartCreatingLink>
               </div>
+              <ul
+                aria-label="Social platforms"
+                className="mx-auto mt-8 flex max-w-full flex-wrap items-center justify-center gap-4 p-0 list-none sm:gap-6"
+              >
+                {Object.entries(socialPlatformLogos).map(([platform, src]) => (
+                  <li
+                    key={platform}
+                    style={{
+                      filter:
+                        platform === "tiktok"
+                          ? "drop-shadow(-1px -1px 0 #25f4ee) drop-shadow(1px 1px 0 #fe2c55)"
+                          : undefined,
+                    }}
+                  >
+                    <span
+                      role="img"
+                      aria-label={platform === "x" ? "X" : platform}
+                      className="block size-5 sm:size-6"
+                      style={{
+                        background: socialPlatformBackgrounds[platform],
+                        mask: `url(${src}) center / contain no-repeat`,
+                      }}
+                    />
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
+        </section>
+
+        <section
+          className="relative left-1/2 mb-[110px] w-[min(calc(100vw-48px),1120px)] -translate-x-1/2 overflow-hidden rounded-xl md:mb-[155px]"
+          aria-label="Narrativee creative workspace"
+        >
           <Image
-            src={brandDesignerIllustration}
-            alt="A playful designer painting a rose-pink canvas"
-            sizes="(max-width: 767px) min(100vw - 48px, 420px), (max-width: 1168px) 45vw, 502px"
-            className="mx-auto h-auto w-full max-w-[420px] md:max-w-none"
-            priority
+            src="/landing-workspace.png"
+            alt="Narrativee creative workspace showing a perfume campaign in progress"
+            width={3600}
+            height={2082}
+            sizes="(max-width: 768px) calc(100vw - 48px), min(60vw, 1120px)"
+            className="block h-auto w-full"
           />
         </section>
 
@@ -131,26 +161,9 @@ export default function Home(): React.ReactNode {
           id="features"
           className="relative left-1/2 mb-[110px] w-screen -translate-x-1/2 scroll-mt-24 bg-[#111111] py-20 text-white md:mb-[155px] md:py-28"
         >
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 -top-px h-10 overflow-hidden md:h-16"
-          >
-            <svg
-              className="h-full w-[200%] motion-safe:animate-[marquee_30s_linear_infinite]"
-              viewBox="0 0 2880 80"
-              preserveAspectRatio="none"
-            >
-              <path
-                id="hero-wave-shape"
-                fill="#ffffff"
-                d="M0 0H1440V40C1400 0 1360 0 1320 40S1240 80 1200 40S1120 0 1080 40S1000 80 960 40S880 0 840 40S760 80 720 40S640 0 600 40S520 80 480 40S400 0 360 40S280 80 240 40S160 0 120 40S40 80 0 40Z"
-              />
-              <use href="#hero-wave-shape" x="1440" />
-            </svg>
-          </div>
           <div className="mx-auto grid w-[calc(100%-48px)] grid-cols-1 gap-7 md:w-[min(60%,1120px)] md:grid-cols-2 md:gap-6">
             <div className="max-w-[420px]">
-              <h2 className="m-0 text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-white md:text-4xl">
+              <h2 className="m-0 text-4xl font-medium leading-[1.15] tracking-[-0.035em] text-white md:text-[2.75rem]">
                 A designer alongside your team
               </h2>
               <div className="mt-8">
@@ -169,10 +182,10 @@ export default function Home(): React.ReactNode {
                   href="#start"
                   key={feature.title}
                 >
-                  <div className="mb-[5px] text-[18px] md:text-[20px] font-[550] text-[#f3f3f3] transition-colors group-hover:text-white">
+                  <div className="mb-[5px] text-[20px] md:text-[22px] font-[550] text-[#f3f3f3] transition-colors group-hover:text-white">
                     {feature.title}
                   </div>
-                  <p className="m-0 max-w-[610px] text-[15px] md:text-[17px] font-medium leading-[1.5] text-[#a3a3a3]">
+                  <p className="m-0 max-w-[610px] text-[17px] md:text-[19px] font-medium leading-[1.5] text-[#a3a3a3]">
                     {feature.copy}
                   </p>
                 </a>
@@ -186,8 +199,8 @@ export default function Home(): React.ReactNode {
           className="mb-[110px] md:mb-[155px] scroll-mt-24 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6"
         >
           <div className="max-w-[420px]">
-            <h2 className="m-0 text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-4xl">
-              Your brand, the next brief
+            <h2 className="m-0 text-4xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-[2.75rem]">
+              Your brand. Your feedback. Better creatives, together.
             </h2>
             <Image
               src={brandDesignerBoard}
@@ -197,19 +210,16 @@ export default function Home(): React.ReactNode {
             />
           </div>
           <div className="md:col-start-2 max-w-[690px]">
-            <p className="m-0 text-[17px] md:text-[20px] font-medium tracking-[-0.02em] leading-[1.5] text-[#595959]">
-              An announcement. A new offer. Another social post. Give your
-              designer the brief and source material, then steer the result in
-              Studio. Narrativee brings your saved brand context into the work,
-              with editable elements you can refine and export for your existing
-              workflow.
+            <p className="m-0 text-[19px] md:text-[22px] font-medium tracking-[-0.02em] leading-[1.5] text-[#595959]">
+              Narrativee learns how you like to create, helping you shape social
+              posts and ads with less repeated briefing.
             </p>
           </div>
         </section>
 
         <section className="mb-[110px] md:mb-[155px] scroll-mt-24 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6">
           <div className="max-w-[420px]">
-            <h2 className="m-0 text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-4xl">
+            <h2 className="m-0 text-4xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-[2.75rem]">
               What you can create
             </h2>
             <Image
@@ -225,13 +235,13 @@ export default function Home(): React.ReactNode {
                 className="first:col-span-full first:min-h-0 min-h-0 md:min-h-[180px] pb-6 border-b border-[#e5e5e5]"
                 key={item.title}
               >
-                <div className="mb-4 text-xs uppercase tracking-[0.08em] text-[#666666]">
+                <div className="mb-4 text-sm uppercase tracking-[0.08em] text-[#666666]">
                   {item.kicker}
                 </div>
-                <h3 className="m-0 mb-3 text-[21px] font-medium leading-[1.2] tracking-[-0.03em] text-[#171717]">
+                <h3 className="m-0 mb-3 text-2xl font-medium leading-[1.2] tracking-[-0.03em] text-[#171717]">
                   {item.title}
                 </h3>
-                <p className="m-0 text-sm leading-[1.55] text-[#595959]">
+                <p className="m-0 text-base leading-[1.55] text-[#595959]">
                   {item.copy}
                 </p>
               </article>
@@ -240,24 +250,24 @@ export default function Home(): React.ReactNode {
         </section>
 
         <section
-          id="waitlist"
+          id="get-started"
           className="mb-[110px] md:mb-[155px] scroll-mt-24 grid grid-cols-1 md:grid-cols-2 gap-7 md:gap-6"
         >
-          <h2 className="m-0 max-w-[420px] text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-4xl">
-            Early access
+          <h2 className="m-0 max-w-[420px] text-4xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-[2.75rem]">
+            Meet your creative team
           </h2>
           <div className="md:col-start-2 max-w-[700px]">
-            <p className="m-0 mb-[26px] text-[17px] md:text-[19px] leading-[1.5] text-[#595959]">
-              Need social and ad creative regularly? Join the early-access
-              waitlist. We’ll let you know when you can bring your brand and
-              first brief to Narrativee.
+            <p className="m-0 mb-[26px] text-[19px] md:text-[21px] leading-[1.5] text-[#595959]">
+              Bring your website, brand materials and a brief. Work with your
+              research, brand and creative agents in one shared workspace.
             </p>
-            <a
-              className="inline-flex items-center text-[17px] font-semibold text-inherit transition-colors duration-180 hover:text-black"
-              href="#start"
+            <StartCreatingLink
+              location="footer"
+              websiteInput
+              className="inline-flex items-center rounded-full bg-[#171717] px-6 py-3 text-base font-semibold text-white hover:bg-black"
             >
-              Join early access
-            </a>
+              Start creating →
+            </StartCreatingLink>
           </div>
         </section>
 
@@ -267,7 +277,7 @@ export default function Home(): React.ReactNode {
         >
           <h2
             id="faq-title"
-            className="m-0 max-w-[420px] text-3xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-4xl"
+            className="m-0 max-w-[420px] text-4xl font-medium leading-[1.15] tracking-[-0.035em] text-[#171717] md:text-[2.75rem]"
           >
             Frequently asked
           </h2>
@@ -278,10 +288,10 @@ export default function Home(): React.ReactNode {
                 key={item.question}
                 open={index === 0}
               >
-                <summary className="flex w-full cursor-pointer list-none items-center justify-between gap-4 py-[21px] text-left text-[15px] md:text-[17px] text-[#171717] [&::-webkit-details-marker]:hidden after:content-['+'] after:text-[#595959] after:text-[22px] after:transition-transform after:duration-180 group-open:after:rotate-45">
+                <summary className="flex w-full cursor-pointer list-none items-center justify-between gap-4 py-[21px] text-left text-[17px] md:text-[19px] text-[#171717] [&::-webkit-details-marker]:hidden after:content-['+'] after:text-[#595959] after:text-[24px] after:transition-transform after:duration-180 group-open:after:rotate-45">
                   {item.question}
                 </summary>
-                <div className="max-w-[680px] pr-[35px] pb-[22px] text-[15px] leading-[1.55] text-[#595959]">
+                <div className="max-w-[680px] pr-[35px] pb-[22px] text-[17px] leading-[1.55] text-[#595959]">
                   {item.answer}
                 </div>
               </details>
@@ -306,8 +316,14 @@ export default function Home(): React.ReactNode {
               className="block h-auto w-full opacity-10"
             />
           </Link>
-          <div className="mt-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-[#e5e5e5] pt-5 text-[12px] text-[#747474] md:mt-14">
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-[#e5e5e5] pt-5 text-sm text-[#747474] md:mt-14">
             <span>© {new Date().getFullYear()} Narrativee</span>
+            <Link
+              className="transition-colors hover:text-[#171717]"
+              href="/pricing"
+            >
+              Pricing
+            </Link>
             <a
               className="transition-colors hover:text-[#171717]"
               href="mailto:contact@narrativee.com"

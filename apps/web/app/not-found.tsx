@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertCircle } from "clicons-react";
+import { AlertCircle } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -15,7 +15,8 @@ export default function NotFound() {
       <h2 className="text-xl font-medium text-zinc-300 mb-4">Page not found</h2>
 
       <p className="text-zinc-500 max-w-md mb-8 leading-relaxed text-sm">
-        Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have been moved or doesn&apos;t exist.
+        Sorry, we couldn&apos;t find the page you&apos;re looking for. It might
+        have been moved or doesn&apos;t exist.
       </p>
 
       <Link
@@ -27,4 +28,3 @@ export default function NotFound() {
     </div>
   );
 }
-

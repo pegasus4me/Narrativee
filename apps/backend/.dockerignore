@@ -26,6 +26,7 @@ out/
 *.pem
 *.key
 *.crt
+!certs/supabase-ca.crt
 config.local.*
 *.local.yml
 

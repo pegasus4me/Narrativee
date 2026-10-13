@@ -7,6 +7,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
   type ReactNode,
+  type RefObject,
   type TextareaHTMLAttributes,
   useCallback,
   useEffect,
@@ -44,10 +45,11 @@ export interface PromptAction {
   disabled?: boolean;
 }
 
-export interface PromptInputProps extends Omit<
-  TextareaHTMLAttributes<HTMLTextAreaElement>,
-  "value" | "defaultValue" | "onChange" | "onSubmit" | "children"
-> {
+export interface PromptInputProps
+  extends Omit<
+    TextareaHTMLAttributes<HTMLTextAreaElement>,
+    "value" | "defaultValue" | "onChange" | "onSubmit" | "children"
+  > {
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
@@ -59,11 +61,14 @@ export interface PromptInputProps extends Omit<
   onAction?: (action: string) => void;
   onSubmit?: (value: string, model?: string) => void | Promise<void>;
   submitDisabled?: boolean;
+  submitLabel?: string;
   loading?: boolean;
   onStop?: () => void;
   minRows?: number;
   maxRows?: number;
   leadingAction?: ReactNode;
+  trailingAction?: ReactNode;
+  textareaRef?: RefObject<HTMLTextAreaElement | null>;
   className?: string;
 }
 
@@ -79,11 +84,14 @@ export function PromptInput({
   onAction,
   onSubmit,
   submitDisabled = false,
+  submitLabel,
   loading = false,
   onStop,
   minRows = 2,
   maxRows = 8,
   leadingAction,
+  trailingAction,
+  textareaRef: externalTextareaRef,
   className,
   disabled,
   placeholder = "Ask the agent to do something…",
@@ -92,7 +100,8 @@ export function PromptInput({
   ...textareaProps
 }: PromptInputProps) {
   const reduce = useReducedMotion() ?? false;
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const internalTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = externalTextareaRef ?? internalTextareaRef;
   const measurementRef = useRef<HTMLDivElement>(null);
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [internalModel, setInternalModel] = useState(
@@ -196,7 +205,7 @@ export function PromptInput({
         className="scrollbar-hide block w-full resize-none overflow-y-auto bg-transparent px-2 pt-1.5 text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground/55"
       />
 
-      <div className="mt-1 flex min-h-8 items-center gap-1">
+      <div className="mt-1 flex min-h-3 items-center gap-1">
         {actions.length ? (
           <MorphPopover open={actionsOpen} onOpenChange={setActionsOpen}>
             <MorphPopoverTrigger>
@@ -264,7 +273,7 @@ export function PromptInput({
             disabled={disabled || loading}
             className="min-w-0"
           >
-            <SelectTrigger className="h-8 w-auto max-w-52 rounded-xl border-0 bg-transparent px-2 py-0 text-xs hover:bg-muted focus-visible:ring-2">
+            <SelectTrigger className="h-8 w-auto min-w-0 max-w-52 rounded-xl border-0 bg-transparent px-2 py-0 text-xs hover:bg-muted focus-visible:ring-2">
               <span className="flex min-w-0 items-center gap-1.5">
                 {currentModel?.icon ? (
                   <span className="grid size-4 shrink-0 place-items-center text-muted-foreground [&_svg]:size-3.5">
@@ -299,19 +308,28 @@ export function PromptInput({
             </SelectContent>
           </Select>
         ) : null}
+        {trailingAction}
 
         <Button
           type={loading ? "button" : "submit"}
-          size="icon"
+          size={submitLabel ? "sm" : "icon"}
           disabled={loading ? !onStop : !canSubmit}
-          aria-label={loading ? "Stop generating" : "Send prompt"}
+          aria-label={
+            loading ? "Stop generating" : (submitLabel ?? "Send prompt")
+          }
           onClick={loading ? onStop : undefined}
-          className="ml-auto size-8 rounded-full"
+          className={
+            submitLabel
+              ? "ml-auto h-8 w-auto gap-2 rounded-full bg-tertiary px-3 text-xs"
+              : "ml-auto size-8 rounded-full bg-tertiary"
+          }
         >
           <AnimatePresence initial={false} mode="popLayout">
             <motion.span
               key={loading ? "stop" : "send"}
-              initial={reduce ? { opacity: 1 } : { opacity: 0, y: 3, scale: 0.8 }}
+              initial={
+                reduce ? { opacity: 1 } : { opacity: 0, y: 3, scale: 0.8 }
+              }
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? { opacity: 0 } : { opacity: 0, y: -3, scale: 0.8 }}
               transition={reduce ? { duration: 0 } : SPRING_SWAP}
@@ -324,6 +342,7 @@ export function PromptInput({
               )}
             </motion.span>
           </AnimatePresence>
+          {!loading && submitLabel}
         </Button>
       </div>
     </form>

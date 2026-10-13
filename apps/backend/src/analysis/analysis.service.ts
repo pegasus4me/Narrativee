@@ -1,15 +1,27 @@
+import { billable, deliveryMarker } from "../usage/operations";
+import { meteredOpenAI } from "../usage/openai";
 import { asc, eq } from "drizzle-orm";
-import OpenAI from "openai";
 import { db } from "../auth/auth";
 import { brand, discoveryMessage, siteAnalysis } from "../auth/schema/schema";
 import { canAccessBrand } from "../brands/brand-access";
 import type { AuthRequest } from "../middleware/auth";
-import { brandDiagnosisSchema, type BrandDiagnosis, type CompetitorCandidate } from "./analysis.schema";
-import { FirecrawlClient, type FirecrawlSearchResult } from "./firecrawl.client";
+import {
+  brandDiagnosisSchema,
+  type CompetitorCandidate,
+} from "./analysis.schema";
+import {
+  FirecrawlClient,
+  type FirecrawlSearchResult,
+} from "./firecrawl.client";
 import { OpenAIBrandSynthesizer } from "./openai-brand-synthesizer";
+import { syncWebsiteBrain } from "../brand-brain/website-sync";
+import { asAccessError } from "../billing/catalog";
+import { analysisFailureMessage } from "./analysis.errors";
 
 export class AnalysisService {
-  private readonly chatClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  private readonly chatClient = meteredOpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
   constructor(
     private readonly firecrawl: FirecrawlClient,
     private readonly synthesizer: OpenAIBrandSynthesizer,
@@ -29,9 +41,41 @@ export class AnalysisService {
   }
 
   async run(id: string, url: string): Promise<void> {
+    const analysis = await findInternalAnalysis(id);
+    if (!analysis?.userId) {
+      await this.update(id, {
+        status: "failed",
+        error: "Sign in before scanning a website",
+      });
+      return;
+    }
+    try {
+      await billable(
+        analysis.userId,
+        "research",
+        async () => {
+          await this.runInternal(id, url);
+          const result = await findInternalAnalysis(id);
+          if (!result?.diagnosis)
+            throw new Error(
+              result?.error ?? "Research did not produce a result",
+            );
+          return { analysisId: id };
+        },
+        `research:${id}`,
+      );
+    } catch (error) {
+      console.error("Website research failed", error);
+      await this.update(id, {
+        status: "failed",
+        error: analysisFailureMessage(error),
+      });
+    }
+  }
+  private async runInternal(id: string, url: string): Promise<void> {
     try {
       await this.update(id, { status: "scraping", progress: 10, error: null });
-      const document = await this.firecrawl.scrapeHomepage(url);
+      const document = await this.firecrawl.scrapeInitialHomepage(url);
 
       await this.update(id, {
         status: "synthesizing",
@@ -46,21 +90,38 @@ export class AnalysisService {
         diagnosis,
       });
 
+      const analysis = await findInternalAnalysis(id);
+      if (analysis?.brandId) {
+        // Populate the kit independently of competitor research and confirmation.
+        void syncWebsiteBrain(analysis.brandId).catch((error) =>
+          console.error("Website Brand Brain population failed", error),
+        );
+      }
+
       try {
-        const plan = await this.synthesizer.planCompetitorResearch(url, diagnosis);
-        const searches = [...new Map(
-          plan.searches
-            .filter(({ angle, query }) =>
-              ["direct", "workflow", "substitute", "category"].includes(angle) &&
-              query.trim().length >= 8,
-            )
-            .map(({ angle, query }) => [angle, query.trim().slice(0, 220)]),
-        ).values()].slice(0, 4);
+        const plan = await this.synthesizer.planCompetitorResearch(
+          url,
+          diagnosis,
+        );
+        const searches = [
+          ...new Map(
+            plan.searches
+              .filter(
+                ({ angle, query }) =>
+                  ["direct", "workflow", "substitute", "category"].includes(
+                    angle,
+                  ) && query.trim().length >= 8,
+              )
+              .map(({ angle, query }) => [angle, query.trim().slice(0, 220)]),
+          ).values(),
+        ].slice(0, 4);
         if (searches.length < 3) {
-          throw new Error("Competitor research plan lacked distinct search angles");
+          throw new Error(
+            "Competitor research plan lacked distinct search angles",
+          );
         }
         const searchBatches = await Promise.allSettled(
-          searches.map((query) => this.firecrawl.searchWeb(query, 8)),
+          searches.map((query) => this.firecrawl.searchInitialWeb(query, 8)),
         );
         const searchResults = dedupeSearchResults(
           searchBatches.flatMap((result) =>
@@ -86,10 +147,8 @@ export class AnalysisService {
           ),
         });
       } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Competitor discovery failed";
+        console.error("Competitor discovery failed", error);
+        const message = analysisFailureMessage(error);
         await this.update(id, {
           status: "awaiting_competitor_confirmation",
           progress: 100,
@@ -98,13 +157,35 @@ export class AnalysisService {
         });
       }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown analysis error";
+      console.error("Website analysis failed", error);
+      const message = analysisFailureMessage(error);
       await this.update(id, { status: "failed", error: message });
     }
   }
 
   async analyzeCompetitors(id: string, urls: string[]): Promise<void> {
+    const analysis = await findInternalAnalysis(id);
+    if (!analysis?.userId) return;
+    try {
+      await billable(analysis.userId, "competitors", async () => {
+        await this.analyzeCompetitorsInternal(id, urls);
+        const result = await findInternalAnalysis(id);
+        if (!result?.competitorAnalysis)
+          throw new Error(result?.error ?? "No comparison was saved");
+        return { analysisId: id };
+      });
+    } catch (error) {
+      console.error("Competitor comparison failed", error);
+      await this.update(id, {
+        status: "competitor_analysis_failed",
+        error: analysisFailureMessage(error),
+      });
+    }
+  }
+  private async analyzeCompetitorsInternal(
+    id: string,
+    urls: string[],
+  ): Promise<void> {
     try {
       const analysis = await findInternalAnalysis(id);
       if (!analysis?.diagnosis) {
@@ -151,10 +232,8 @@ export class AnalysisService {
         competitorAnalysis: { ...competitorAnalysis, visualReferences },
       });
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Unknown competitor analysis error";
+      console.error("Competitor analysis failed", error);
+      const message = analysisFailureMessage(error);
       await this.update(id, {
         status: "competitor_analysis_failed",
         error: message,
@@ -164,15 +243,30 @@ export class AnalysisService {
 
   async replyToDiscovery(id: string, userText: string): Promise<string> {
     const analysis = await findInternalAnalysis(id);
+    if (!analysis?.userId) throw new Error("Sign in before using AI");
+    return billable(analysis.userId, "discovery-chat", () =>
+      this.replyToDiscoveryInternal(id, userText),
+    );
+  }
+  private async replyToDiscoveryInternal(
+    id: string,
+    userText: string,
+  ): Promise<string> {
+    const analysis = await findInternalAnalysis(id);
     if (!analysis?.diagnosis) throw new Error("Discovery context is not ready");
     const previousMessages = await db
-      .select({ role: discoveryMessage.role, content: discoveryMessage.content })
+      .select({
+        role: discoveryMessage.role,
+        content: discoveryMessage.content,
+      })
       .from(discoveryMessage)
       .where(eq(discoveryMessage.analysisId, id))
       .orderBy(asc(discoveryMessage.createdAt))
       .limit(30);
 
-    await db.insert(discoveryMessage).values({ analysisId: id, role: "user", content: userText });
+    await db
+      .insert(discoveryMessage)
+      .values({ analysisId: id, role: "user", content: userText });
     const context = {
       brandUrl: analysis.url,
       diagnosis: analysis.diagnosis,
@@ -195,7 +289,12 @@ export class AnalysisService {
     });
     const answer = response.output_text.trim();
     if (!answer) throw new Error("Designer agent returned an empty response");
-    await db.insert(discoveryMessage).values({ analysisId: id, role: "assistant", content: answer });
+    await db.transaction(async (transaction) => {
+      await transaction
+        .insert(discoveryMessage)
+        .values({ analysisId: id, role: "assistant", content: answer });
+      await transaction.execute(deliveryMarker());
+    });
     return answer;
   }
 
@@ -217,6 +316,10 @@ export class AnalysisService {
       for (const result of results) {
         if (result.status === "fulfilled") {
           competitors.push(result.value);
+        } else {
+          const access = asAccessError(result.reason);
+          if (access) throw access;
+          console.error("Competitor website scan failed", result.reason);
         }
       }
     }
@@ -228,10 +331,14 @@ export class AnalysisService {
     id: string,
     values: Partial<typeof siteAnalysis.$inferInsert>,
   ): Promise<void> {
-    await db
-      .update(siteAnalysis)
-      .set({ ...values, updatedAt: new Date() })
-      .where(eq(siteAnalysis.id, id));
+    await db.transaction(async (transaction) => {
+      await transaction
+        .update(siteAnalysis)
+        .set({ ...values, updatedAt: new Date() })
+        .where(eq(siteAnalysis.id, id));
+      if (values.diagnosis || values.competitorAnalysis)
+        await transaction.execute(deliveryMarker());
+    });
   }
 }
 
@@ -292,21 +399,26 @@ async function findInternalAnalysis(id: string) {
 function hostnameOf(url: string): string | null {
   try {
     const parsed = new URL(url);
-    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:")
+      return null;
     return parsed.hostname.toLowerCase().replace(/^www\./, "");
   } catch {
     return null;
   }
 }
 
-export function dedupeSearchResults(results: FirecrawlSearchResult[]): FirecrawlSearchResult[] {
+export function dedupeSearchResults(
+  results: FirecrawlSearchResult[],
+): FirecrawlSearchResult[] {
   const seen = new Set<string>();
-  return results.filter((result) => {
-    const hostname = hostnameOf(result.url);
-    if (!hostname || seen.has(hostname)) return false;
-    seen.add(hostname);
-    return true;
-  }).slice(0, 30);
+  return results
+    .filter((result) => {
+      const hostname = hostnameOf(result.url);
+      if (!hostname || seen.has(hostname)) return false;
+      seen.add(hostname);
+      return true;
+    })
+    .slice(0, 30);
 }
 
 export function selectSupportedCandidates(
@@ -317,12 +429,19 @@ export function selectSupportedCandidates(
   const companyHostname = hostnameOf(companyUrl);
   const supported = new Set(results.map((result) => hostnameOf(result.url)));
   const seen = new Set<string>();
-  return candidates.filter((candidate) => {
-    const hostname = hostnameOf(candidate.url);
-    if (!hostname || hostname === companyHostname || !supported.has(hostname) || seen.has(hostname)) {
-      return false;
-    }
-    seen.add(hostname);
-    return true;
-  }).slice(0, 8);
+  return candidates
+    .filter((candidate) => {
+      const hostname = hostnameOf(candidate.url);
+      if (
+        !hostname ||
+        hostname === companyHostname ||
+        !supported.has(hostname) ||
+        seen.has(hostname)
+      ) {
+        return false;
+      }
+      seen.add(hostname);
+      return true;
+    })
+    .slice(0, 8);
 }

@@ -62,23 +62,3 @@ export const GRAPHITE = authored({
   scribble: { humps: 3, amplitude: 0.2, crestR: 22, valleyR: 46, seed: 3 },
   ease: "drift",
 });
-
-export const SULPHUR = authored({
-  id: "sulphur",
-  name: "Sulphur",
-  fields: ["#d8e600", "#14161a"],
-  dot: "#7de2ff",
-  scribble: { humps: 3, amplitude: 0.22, crestR: 20, valleyR: 48, seed: 11 },
-  ease: "surge",
-});
-
-export const TIDE = authored({
-  id: "tide",
-  name: "Tide",
-  fields: ["#0b2b3f", "#39d0c4"],
-  dot: "#eafff4",
-  scribble: { humps: 4, amplitude: 0.17, crestR: 18, valleyR: 40, seed: 7 },
-  ease: "quintInOut",
-});
-
-export const AUTHORED: Scene[] = [GRAPHITE, SULPHUR, TIDE];

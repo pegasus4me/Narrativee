@@ -1,3 +1,4 @@
+import { meteredTool } from "../usage/tools";
 export interface FirecrawlDocument {
   markdown?: string;
   links?: string[];
@@ -34,7 +35,19 @@ interface FirecrawlSearchResponse {
 export class FirecrawlClient {
   constructor(private readonly apiKey: string) {}
 
+  // Initial onboarding scrape is an operating cost, not customer credit usage.
+  async scrapeInitialHomepage(url: string): Promise<FirecrawlDocument> {
+    return this.scrapeHomepageInternal(url);
+  }
+
   async scrapeHomepage(url: string): Promise<FirecrawlDocument> {
+    return meteredTool("firecrawl:scrapeHomepage", () =>
+      this.scrapeHomepageInternal(url),
+    );
+  }
+  private async scrapeHomepageInternal(
+    url: string,
+  ): Promise<FirecrawlDocument> {
     const response = await fetch("https://api.firecrawl.dev/v2/scrape", {
       method: "POST",
       headers: {
@@ -60,6 +73,21 @@ export class FirecrawlClient {
   }
 
   async searchWeb(query: string, limit = 10): Promise<FirecrawlSearchResult[]> {
+    // Fixed request contract includes at most eight returned search results.
+    return meteredTool("firecrawl:searchWeb", () =>
+      this.searchWebInternal(query, Math.min(limit, 8)),
+    );
+  }
+  async searchInitialWeb(
+    query: string,
+    limit = 8,
+  ): Promise<FirecrawlSearchResult[]> {
+    return this.searchWebInternal(query, Math.min(limit, 8));
+  }
+  private async searchWebInternal(
+    query: string,
+    limit: number,
+  ): Promise<FirecrawlSearchResult[]> {
     const response = await fetch("https://api.firecrawl.dev/v2/search", {
       method: "POST",
       headers: {

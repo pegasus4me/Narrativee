@@ -6,6 +6,7 @@ node_modules
 .pnp.js
 
 # Local env files
+.data/
 .env
 .env.local
 .env.development.local
@@ -25,6 +26,7 @@ coverage
 
 # Build Outputs
 .next/
+.open-next/
 out/
 build
 dist
@@ -42,3 +44,6 @@ yarn-error.log*
 *.pem
 .agents/
 .wrangler/
+
+# Generated Stripe sandbox configuration
+apps/backend/.env.billing.test

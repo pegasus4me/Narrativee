@@ -6,9 +6,15 @@ import { optionalAuth, type AuthRequest } from "../middleware/auth";
 import { findPublicAnalysis } from "./analysis.service";
 import { createAnalysisService as createService } from "./create-service";
 import { normalizePublicUrl } from "./url-policy";
+import { requireTrialAccess } from "../usage/usage.routes";
+import { asAccessError, billingError } from "../billing/catalog";
 
 export const analysisRouter = Router();
 analysisRouter.use(optionalAuth);
+analysisRouter.post(
+  ["/", "/:id/competitors", "/:id/messages"],
+  requireTrialAccess,
+);
 
 analysisRouter.post(
   "/",
@@ -189,12 +195,10 @@ analysisRouter.post(
         return;
       }
       if (!analysis.diagnosis || analysis.status !== "completed") {
-        response
-          .status(409)
-          .json({
-            error:
-              "Wait for the brand and competitor exploration to finish first",
-          });
+        response.status(409).json({
+          error:
+            "Wait for the brand and competitor exploration to finish first",
+        });
         return;
       }
       const answer = await createService().replyToDiscovery(
@@ -203,14 +207,13 @@ analysisRouter.post(
       );
       response.json({ answer });
     } catch (error) {
-      response
-        .status(500)
-        .json({
-          error:
-            error instanceof Error
-              ? error.message
-              : "Designer agent is unavailable",
-        });
+      response.status(asAccessError(error)?.status ?? 500).json({
+        ...billingError(error),
+        error:
+          error instanceof Error
+            ? error.message
+            : "Designer agent is unavailable",
+      });
     }
   },
 );

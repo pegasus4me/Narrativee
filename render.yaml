@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: narrativee-api
+    runtime: docker
+    dockerfilePath: ./apps/backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    buildFilter:
+      paths:
+        - apps/backend/**
+        - packages/**
+        - scripts/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - turbo.json
+        - .dockerignore
+        - render.yaml
+        - .github/workflows/deploy-backend.yml

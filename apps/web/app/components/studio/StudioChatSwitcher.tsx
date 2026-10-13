@@ -21,8 +21,7 @@ export default function StudioChatSwitcher({
   const menu = useRef<HTMLElement>(null);
 
   const title =
-    chats.find((chat) => chat.id === projectId)?.title ??
-    (kind === "discovery" ? "Discovery" : "Creation");
+    chats.find((chat) => chat.id === projectId)?.title ?? "Untitled project";
 
   useEffect(() => {
     const controller = new AbortController();
@@ -54,7 +53,7 @@ export default function StudioChatSwitcher({
   }, [open]);
 
   return (
-    <nav ref={menu} aria-label="Studio chats" className="relative min-w-0">
+    <nav ref={menu} aria-label="Creative projects" className="relative min-w-0">
       <button
         type="button"
         aria-expanded={open}

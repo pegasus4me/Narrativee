@@ -11,13 +11,25 @@
     "test:brands": "tsx --test tests/brand-flow.test.ts",
     "test:studio": "tsx --test tests/studio-flow.test.ts",
     "test:brand-board": "node --import tsx --test tests/brand-board.test.ts",
+    "test:brand-brain": "node --import tsx --test tests/brand-brain-*.test.ts",
+    "test:identity": "node --import tsx --test tests/identity-*.test.ts",
+    "test:campaign": "node --import tsx --test tests/campaign-*.test.ts",
     "board:generate": "node --import tsx scripts/generate-brand-board.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "pnpm test:unit",
+    "test:billing": "node --import tsx scripts/run-billing-tests.ts",
+    "billing:verify": "node --import tsx scripts/verify-billing.ts",
+    "billing:setup-test": "node --import tsx scripts/setup-stripe-test.ts",
+    "billing:grant-legacy": "node --import tsx scripts/grant-legacy-trials.ts --cutover",
+    "billing:metrics": "node --import tsx scripts/billing-metrics.ts",
+    "check-types": "tsc --noEmit",
+    "test:unit": "node --import tsx --test tests/*.test.ts",
+    "test:ci": "pnpm build && pnpm test:unit && node --import tsx scripts/run-billing-tests.ts ci"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1144.0",
     "better-auth": "^1.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -28,6 +40,7 @@
     "openai": "^6.38.0",
     "pg": "^8.16.3",
     "sharp": "0.34.5",
+    "stripe": "^23.0.0",
     "zod": "^4.1.13"
   },
   "devDependencies": {

@@ -19,8 +19,6 @@ import {
   Home as IconHome,
   Search as IconMagnifyingGlass,
   PanelLeftClose as IconSidebarLeftArrow,
-  Sun,
-  Moon,
   UserPlus as IconUserAdd,
   Brain,
   Blocks,
@@ -29,9 +27,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import GlideMenu from "@/components/primitives/GlideMenu";
-import { useThemeStore } from "../../stores/themeStore";
 import darkLogo from "public/logo-dark.png";
-import whiteLogo from "public/logo-white.png";
 
 /* ─────────────────────────────────────────────────────────
  * SIDEBAR NAV
@@ -170,29 +166,23 @@ export default function SidebarNav({
   const router = useRouter();
   const { active: activeBrand } = useBrands();
   const pathname = usePathname();
-  const theme = useThemeStore((state) => state.theme);
-  const toggleTheme = useThemeStore((state) => state.toggleTheme);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isDark = mounted
-    ? typeof document !== "undefined"
-      ? document.documentElement.classList.contains("dark")
-      : theme === "dark"
-    : true;
-
   const [collapsed, setCollapsed] = useState(false);
   const [creatingProject, setCreatingProject] = useState(false);
   const [creationError, setCreationError] = useState<string | null>(null);
   const [internalNav, setInternalNav] = useState(
-    pathname.startsWith("/workspace/studio") ? "studio" : "chats",
+    pathname.startsWith("/workspace/studio")
+      ? "studio"
+      : pathname.startsWith("/workspace/brand-brain")
+        ? "brand-brain"
+        : "chats",
   );
   useEffect(() => {
     setInternalNav(
-      pathname.startsWith("/workspace/studio") ? "studio" : "chats",
+      pathname.startsWith("/workspace/studio")
+        ? "studio"
+        : pathname.startsWith("/workspace/brand-brain")
+          ? "brand-brain"
+          : "chats",
     );
   }, [pathname]);
   const currentNav = activeNav ?? internalNav;
@@ -200,6 +190,7 @@ export default function SidebarNav({
     setInternalNav(key);
     onNavigate?.(key);
     if (key === "studio") router.push("/workspace/studio");
+    if (key === "brand-brain") router.push("/workspace/brand-brain");
   };
 
   async function newProject() {
@@ -256,7 +247,7 @@ export default function SidebarNav({
 
   return (
     <aside
-      data-sidebar-collapsed={collapsed}
+      data-sidebar-collapsed={collapsed ? "true" : "false"}
       aria-label="Workspace navigation"
       className={`relative flex shrink-0 overflow-hidden transition-[width] ${fill ? "h-full" : "h-[600px]"} ${className}`}
       style={
@@ -284,15 +275,7 @@ export default function SidebarNav({
               alt="Narrativee"
               width={125}
               height={25}
-              className="h-[22px] w-auto object-contain dark:hidden"
-              priority
-            />
-            <Image
-              src={whiteLogo}
-              alt="Narrativee"
-              width={125}
-              height={25}
-              className="hidden h-[22px] w-auto object-contain dark:block"
+              className="h-[22px] w-auto object-contain"
               priority
             />
           </Link>
@@ -340,7 +323,10 @@ export default function SidebarNav({
           ))}
         </GlideGroup>
         {creationError && (
-          <p role="alert" className="sidebar-copy mx-4 mt-2 text-xs leading-4 text-red-600 dark:text-red-400">
+          <p
+            role="alert"
+            className="sidebar-copy mx-4 mt-2 text-xs leading-4 text-red-600 dark:text-red-400"
+          >
             {creationError}
           </p>
         )}
@@ -458,45 +444,6 @@ export default function SidebarNav({
           </GlideGroup>
 
           <div className="mx-2 flex flex-col gap-1.5">
-            {/* Theme Toggle Switch */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleTheme();
-              }}
-              aria-label="Toggle dark/light mode"
-              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-              className="sidebar-row relative z-10 flex h-8 w-full items-center justify-between rounded-[8px] px-2 text-left transition-[background-color,color,transform] duration-150 hover:bg-hover-2 active:scale-[0.98] cursor-pointer"
-            >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="flex size-5 shrink-0 items-center justify-center text-ink-2">
-                  {isDark ? <Moon size={16} /> : <Sun size={16} />}
-                </span>
-                <span className="sidebar-copy ml-1.5 text-[13.5px] font-medium text-ink-2 truncate">
-                  {isDark ? "Dark mode" : "Light mode"}
-                </span>
-              </div>
-
-              {/* Switch pill */}
-              <div
-                role="switch"
-                aria-checked={isDark}
-                className={`sidebar-copy relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ${
-                  isDark ? "bg-secondary" : "bg-neutral-300"
-                }`}
-              >
-                <span
-                  className={`inline-block size-3.5 transform rounded-full transition-transform duration-200 shadow-sm ${
-                    isDark
-                      ? "translate-x-[18px] bg-black"
-                      : "translate-x-[2px] bg-white"
-                  }`}
-                />
-              </div>
-            </button>
-
             {/* Footer CTA Button */}
             <div className="sidebar-copy w-full">
               <button

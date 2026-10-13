@@ -1,6 +1,7 @@
+import { deliveryMarker } from "../usage/operations";
 import { and, asc, desc, eq } from "drizzle-orm";
-import OpenAI from "openai";
 import { db } from "../auth/auth";
+import { loadBrandBrainContext } from "../brand-brain/context";
 import {
   brand,
   siteAnalysis,
@@ -17,9 +18,39 @@ import {
 import { createAnalysisService } from "../analysis/create-service";
 import { normalizePublicUrl } from "../analysis/url-policy";
 import { buildCreativeDirectionSystemPrompt } from "./prompts/creative-direction.prompt";
+import { readCanvas } from "./canvas/canvas.service";
+import { studioCanvasContext } from "./canvas/canvas.context";
+import type {
+  CreativeAgent,
+  CreativeAgentSelection,
+  StudioAgentAnswer,
+} from "./agent-team";
+import type { VisualApproval } from "./visual-approval";
 
-type Turn = { role: "user" | "assistant"; content: string };
-export type StudioReply = (system: string, turns: Turn[]) => Promise<string>;
+export function presentStudioMessage(
+  message: typeof studioMessage.$inferSelect,
+) {
+  const { approvalData, approvalStatus, ...visible } = message;
+  return {
+    ...visible,
+    approval:
+      approvalData && approvalStatus
+        ? {
+            status: approvalStatus,
+            kind: approvalData.kind,
+            brief: approvalData.brief,
+          }
+        : null,
+  };
+}
+
+export type StudioReplyOptions = { model: string };
+export type Turn = { role: "user" | "assistant"; content: string };
+export type StudioReply = (
+  system: string,
+  turns: Turn[],
+  options?: StudioReplyOptions,
+) => Promise<string>;
 
 const activeResearchStatuses = new Set([
   "queued",
@@ -37,64 +68,6 @@ export class StudioResearchError extends Error {
   ) {
     super(message);
   }
-}
-
-let openAiClientInstance: OpenAI | null = null;
-function getOpenAIClient(): OpenAI {
-  if (!openAiClientInstance) {
-    openAiClientInstance = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  }
-  return openAiClientInstance;
-}
-
-export async function generateStudioReply(
-  system: string,
-  turns: Turn[],
-): Promise<string> {
-  const client = getOpenAIClient();
-  const response = await client.responses.create({
-    model: process.env.OPENAI_MODEL ?? "gpt-5.6-luna",
-    reasoning: { effort: "medium" },
-    input: [{ role: "system", content: system }, ...turns],
-  });
-  const answer = response.output_text.trim();
-  if (!answer) throw new Error("Studio designer returned an empty response");
-  return answer;
-}
-
-export async function generateStudioReplyStream(
-  system: string,
-  turns: Turn[],
-  onDelta: (delta: string) => void,
-): Promise<string> {
-  const client = getOpenAIClient();
-  const stream = await client.responses.create({
-    model: process.env.OPENAI_MODEL ?? "gpt-5.6-luna",
-    reasoning: { effort: "medium" },
-    input: [{ role: "system", content: system }, ...turns],
-    stream: true,
-  });
-
-  let answer = "";
-  let completed = false;
-  for await (const event of stream) {
-    if (event.type === "response.output_text.delta") {
-      answer += event.delta;
-      onDelta(event.delta);
-    }
-    if (
-      event.type === "response.failed" ||
-      event.type === "response.incomplete"
-    ) {
-      throw new Error("Studio designer did not complete its response");
-    }
-    if (event.type === "response.completed") completed = true;
-  }
-
-  if (!completed || !answer.trim()) {
-    throw new Error("Studio designer did not complete its response");
-  }
-  return answer;
 }
 
 export async function createStudioProject(brandId: string, userId: string) {
@@ -174,6 +147,7 @@ export async function findStudioProject(id: string, userId: string) {
       id: studioProject.id,
       brandId: studioProject.brandId,
       brandName: brand.name,
+      title: studioProject.title,
       brandUrl: brand.url,
       createdAt: studioProject.createdAt,
       updatedAt: studioProject.updatedAt,
@@ -206,6 +180,7 @@ export async function findStudioProject(id: string, userId: string) {
 
   return {
     ...project,
+    title: project.title ?? "Untitled",
     kind:
       discovery?.id === project.id
         ? ("discovery" as const)
@@ -236,6 +211,7 @@ export async function listStudioProjects(brandId: string, userId: string) {
   const projects = await db
     .select({
       id: studioProject.id,
+      title: studioProject.title,
       createdAt: studioProject.createdAt,
       updatedAt: studioProject.updatedAt,
     })
@@ -248,8 +224,21 @@ export async function listStudioProjects(brandId: string, userId: string) {
   return projects.map((project, index) => ({
     ...project,
     kind: index === 0 ? ("discovery" as const) : ("creation" as const),
-    title: index === 0 ? "Discovery" : `Creation ${index}`,
+    title: project.title ?? (index === 0 ? "Discovery" : "Untitled"),
   }));
+}
+
+export async function renameStudioProject(
+  id: string,
+  userId: string,
+  title: string,
+) {
+  const [project] = await db
+    .update(studioProject)
+    .set({ title, updatedAt: new Date() })
+    .where(and(eq(studioProject.id, id), eq(studioProject.userId, userId)))
+    .returning({ id: studioProject.id, title: studioProject.title });
+  return project ?? null;
 }
 
 async function readLatestBrandAnalysis(brandId: string) {
@@ -379,24 +368,28 @@ function compactCompetitorAnalysis(analysis: CompetitorAnalysis) {
   };
 }
 
-export async function readStudioMessages(projectId: string) {
-  return db
-    .select({
-      id: studioMessage.id,
-      role: studioMessage.role,
-      content: studioMessage.content,
-      createdAt: studioMessage.createdAt,
-    })
+export async function readStudioMessages(
+  projectId: string,
+  thread?: CreativeAgentSelection,
+) {
+  const messages = await db
+    .select()
     .from(studioMessage)
-    .where(eq(studioMessage.projectId, projectId))
+    .where(
+      and(
+        eq(studioMessage.projectId, projectId),
+        thread ? eq(studioMessage.thread, thread) : undefined,
+      ),
+    )
     .orderBy(asc(studioMessage.sequence));
+  return messages.map(presentStudioMessage);
 }
 
-export async function sendStudioMessage(
+export async function loadStudioConversation(
   projectId: string,
   userId: string,
   content: string,
-  generate: StudioReply = generateStudioReply,
+  thread: CreativeAgentSelection = "team",
 ) {
   const project = await findStudioProject(projectId, userId);
   if (!project) return null;
@@ -404,14 +397,21 @@ export async function sendStudioMessage(
   const previous = await db
     .select({ role: studioMessage.role, content: studioMessage.content })
     .from(studioMessage)
-    .where(eq(studioMessage.projectId, projectId))
+    .where(
+      and(
+        eq(studioMessage.projectId, projectId),
+        eq(studioMessage.thread, thread),
+      ),
+    )
     .orderBy(desc(studioMessage.sequence))
     .limit(12);
+  const sharedMessages = await readStudioTeamContext(projectId);
   const analysis = await readLatestBrandAnalysis(project.brandId);
   const diagnosis = brandDiagnosisSchema.safeParse(analysis?.diagnosis);
   const competitorAnalysis = competitorAnalysisSchema.safeParse(
     analysis?.competitorAnalysis,
   );
+  const brandBrain = await loadBrandBrainContext(project.brandId);
   const brandContext: Record<string, unknown> = {
     brandName: project.brandName,
     brandUrl: project.brandUrl,
@@ -422,6 +422,13 @@ export async function sendStudioMessage(
     competitorAnalysis: competitorAnalysis.success
       ? compactCompetitorAnalysis(competitorAnalysis.data)
       : null,
+    brandBrain,
+    teamConversation: sharedMessages,
+    studioMode: project.kind,
+    canvas:
+      project.kind === "creation"
+        ? studioCanvasContext((await readCanvas(projectId, userId)).snapshot)
+        : null,
   };
   const system = buildCreativeDirectionSystemPrompt(brandContext);
   const turns: Turn[] = [
@@ -431,26 +438,76 @@ export async function sendStudioMessage(
     })),
     { role: "user", content },
   ];
-  const answer = await generate(system, turns);
-  if (!answer.trim())
-    throw new Error("Studio designer returned an empty response");
+  return { project, system, turns };
+}
 
-  return saveStudioExchange(projectId, content, answer);
+export async function readStudioTeamContext(projectId: string) {
+  const messages = await db
+    .select({
+      role: studioMessage.role,
+      agent: studioMessage.agent,
+      thread: studioMessage.thread,
+      content: studioMessage.content,
+    })
+    .from(studioMessage)
+    .where(eq(studioMessage.projectId, projectId))
+    .orderBy(desc(studioMessage.sequence))
+    .limit(24);
+  return messages.reverse();
 }
 
 export async function saveStudioExchange(
   projectId: string,
   content: string,
   answer: string,
+  agent: CreativeAgent = "brand",
+  thread: CreativeAgentSelection = "team",
+  contributions: StudioAgentAnswer[] = [],
+  approval?: VisualApproval,
 ) {
   return db.transaction(async (transaction) => {
+    if (approval || contributions.some((reply) => reply.approval))
+      await transaction
+        .update(studioMessage)
+        .set({ approvalStatus: "rejected" })
+        .where(
+          and(
+            eq(studioMessage.projectId, projectId),
+            eq(studioMessage.thread, thread),
+            eq(studioMessage.approvalStatus, "pending"),
+          ),
+        );
     const [userMessage] = await transaction
       .insert(studioMessage)
-      .values({ projectId, role: "user", content })
+      .values({ projectId, role: "user", thread, content })
       .returning();
+    const collaborationMessages = contributions.length
+      ? await transaction
+          .insert(studioMessage)
+          .values(
+            contributions.map((reply) => ({
+              projectId,
+              role: "assistant",
+              thread: "team" as const,
+              agent: reply.agent,
+              content: reply.content.trim(),
+              approvalData: reply.approval ?? null,
+              approvalStatus: reply.approval ? ("pending" as const) : null,
+            })),
+          )
+          .returning()
+      : [];
     const [assistantMessage] = await transaction
       .insert(studioMessage)
-      .values({ projectId, role: "assistant", content: answer.trim() })
+      .values({
+        projectId,
+        role: "assistant",
+        agent,
+        thread,
+        content: answer.trim(),
+        approvalData: approval ?? null,
+        approvalStatus: approval ? "pending" : null,
+      })
       .returning();
     await transaction
       .update(studioProject)
@@ -458,7 +515,12 @@ export async function saveStudioExchange(
       .where(eq(studioProject.id, projectId));
     if (!userMessage || !assistantMessage)
       throw new Error("Could not save Studio conversation");
-    return { userMessage, assistantMessage };
+    await transaction.execute(deliveryMarker());
+    return {
+      userMessage: presentStudioMessage(userMessage),
+      assistantMessage: presentStudioMessage(assistantMessage),
+      collaborationMessages: collaborationMessages.map(presentStudioMessage),
+    };
   });
 }
 

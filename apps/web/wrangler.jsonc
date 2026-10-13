@@ -2,44 +2,25 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "main": ".open-next/worker.js",
   "name": "narrativee",
-  "compatibility_date": "2024-12-30",
+  "compatibility_date": "2026-10-13",
   "compatibility_flags": [
-    // Enable Node.js API
-    // see https://developers.cloudflare.com/workers/configuration/compatibility-flags/#nodejs-compatibility-flag
     "nodejs_compat",
-    // Allow to fetch URLs in your app
-    // see https://developers.cloudflare.com/workers/configuration/compatibility-flags/#global-fetch-strictly-public
-    "global_fetch_strictly_public",
+    "global_fetch_strictly_public"
   ],
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS",
+    "binding": "ASSETS"
   },
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      // The service should match the "name" of your worker
-      "service": "narrativee",
-    },
+      "service": "narrativee"
+    }
   ],
-
   "observability": {
     "enabled": true
   },
   "vars": {
-    "GOOGLE_CLIENT_ID": "REPLACE_ME",
-    "GOOGLE_CLIENT_SECRET": "REPLACE_ME",
-    "BETTER_AUTH_SECRET": "REPLACE_ME",
-    "PROD_DATABASE_URL": "REPLACE_ME",
-    "LOCAL_DB_URL": "postgres://postgres:password@localhost:5432/postgres",
-    "BACKEND_URL": "http://localhost:3002",
-    "GROK_API_KEY": "REPLACE_ME"
-  },
-  "hyperdrive": [
-    {
-      "binding": "HYPERDRIVE",
-      "localConnectionString": "postgres://postgres:password@localhost:5432/postgres",
-      "id": "e1f8bed3326d4d238eabe6aa36aaaf91"
-    }
-  ],
+    "POSTHOG_PROJECT_ID": "183482"
+  }
 }

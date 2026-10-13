@@ -1,6 +1,13 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "../auth/auth";
-import { brand, siteAnalysis } from "../auth/schema/schema";
+import {
+  brand,
+  brandBrainAsset,
+  siteAnalysis,
+  studioProject,
+  studioAsset,
+} from "../auth/schema/schema";
+import { removeAsset } from "../brand-brain/storage";
 import type { AuthRequest } from "../middleware/auth";
 import { canAccessBrand, guestToken, hash } from "./brand-access";
 
@@ -20,6 +27,56 @@ export const brandFields = {
   createdAt: brand.createdAt,
   updatedAt: brand.updatedAt,
 };
+
+export async function removeBrand(id: string, request: AuthRequest) {
+  if (!request.user) throw new BrandError(401, "Sign in to remove this brand");
+  const userId = request.user.id;
+  const removed = await db.transaction(async (tx) => {
+    const [record] = await tx
+      .select({ id: brand.id })
+      .from(brand)
+      .where(and(eq(brand.id, id), eq(brand.userId, userId)))
+      .for("update");
+    if (!record) throw new BrandError(404, "Brand not found");
+    const assets = await tx
+      .select({ key: brandBrainAsset.objectKey })
+      .from(brandBrainAsset)
+      .where(eq(brandBrainAsset.brandId, id));
+    const projects = await tx
+      .select({ id: studioProject.id })
+      .from(studioProject)
+      .where(eq(studioProject.brandId, id));
+    const analyses = await tx
+      .select({ id: siteAnalysis.id })
+      .from(siteAnalysis)
+      .where(eq(siteAnalysis.brandId, id));
+    const projectAssets = await tx
+      .select({ key: studioAsset.objectKey })
+      .from(studioAsset)
+      .innerJoin(studioProject, eq(studioAsset.projectId, studioProject.id))
+      .where(eq(studioProject.brandId, id));
+    // Foreign keys cascade to Discovery, Brand Brain, projects and messages.
+    await tx.delete(brand).where(eq(brand.id, id));
+    return { assets: [...assets, ...projectAssets], projects, analyses };
+  });
+  // Storage requests must not hold database locks. Failed files remain inaccessible.
+  let cleanupFailed = false;
+  for (const asset of removed.assets) {
+    try {
+      await removeAsset(asset.key);
+    } catch (error) {
+      cleanupFailed = true;
+      console.error("Removed brand image cleanup failed", asset.key, error);
+    }
+  }
+  return {
+    projectIds: removed.projects.map((project) => project.id),
+    analysisIds: removed.analyses.map((analysis) => analysis.id),
+    warning: cleanupFailed
+      ? "Brand removed, but some stored images could not be deleted. They are no longer accessible through Narrativee."
+      : null,
+  };
+}
 
 export async function readBrand(id: string, request: AuthRequest) {
   const [record] = await db.select().from(brand).where(eq(brand.id, id));

@@ -7,7 +7,7 @@
   overflow: hidden;
   background: var(--page-bg);
   color: var(--page-fg);
-  font-family: var(--font-manrope), Arial, sans-serif;
+  font-family: var(--font-sf-rounded), ui-rounded, "SF Pro Rounded", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

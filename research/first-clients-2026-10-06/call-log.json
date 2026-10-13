@@ -1,0 +1,139 @@
+{
+  "researched_at": "2026-10-06",
+  "total_cost_usd": 0.03492,
+  "calls": [
+    {
+      "key": "li-freelance",
+      "call_id": "ba36cfc9f8d44f25b80588c50ead1fe3",
+      "cost_usd": 0.004,
+      "status": 200
+    },
+    {
+      "key": "li-static",
+      "call_id": "2ab710ca7d9349d3b48472f1c1c33a60",
+      "cost_usd": 0.004,
+      "status": 200
+    },
+    {
+      "key": "threads-social",
+      "call_id": "7b9f7bfba65540f59026a94175d004d2",
+      "cost_usd": 0.00188,
+      "status": 200
+    },
+    {
+      "key": "x-statics",
+      "call_id": "22bdc1d55894408fab4af600102bf1fe",
+      "cost_usd": 0.0006,
+      "status": 200
+    },
+    {
+      "key": "david-profile",
+      "call_id": "dfe1ce20ebbd4cb8bb63aaf57d20a76c",
+      "cost_usd": 0.00022,
+      "status": 200
+    },
+    {
+      "key": "white-profile",
+      "call_id": "a4e00b715a414ff5ad95b190b8121cc5",
+      "cost_usd": 0.00188,
+      "status": 200
+    },
+    {
+      "key": "li-social",
+      "call_id": "bb7b0c075ace44d99071f73a29f3420c",
+      "cost_usd": 0.004,
+      "status": 200
+    },
+    {
+      "key": "x-looking",
+      "call_id": "ef6080dbb0ca4c3db34ee070dc3ed74d",
+      "cost_usd": 0.0006,
+      "status": 200
+    },
+    {
+      "key": "web-fr",
+      "call_id": "48256e02bc1e4acf9ec4011fe97c490c",
+      "cost_usd": 0.001,
+      "status": 200
+    },
+    {
+      "key": "web-pain",
+      "call_id": "7622908792f44f6d930a6d01a2132cc9",
+      "cost_usd": 0.001,
+      "status": 200
+    },
+    {
+      "key": "x-akshat",
+      "call_id": "f9332aae3e3840f0a680a127ed6deb15",
+      "cost_usd": 0.00022,
+      "status": 200
+    },
+    {
+      "key": "li-cadence",
+      "call_id": "420027c6028c47b49ed01e57fc6fc012",
+      "cost_usd": 0.004,
+      "status": 200
+    },
+    {
+      "key": "x-pain",
+      "call_id": "fbac9f17e1c04c6a8deb913aef23eaa7",
+      "cost_usd": 0.0006,
+      "status": 200
+    },
+    {
+      "key": "web-forums",
+      "call_id": "0992e7a5bd3940839deb1d2897c7eee8",
+      "cost_usd": 0.001,
+      "status": 200
+    },
+    {
+      "key": "li-fr",
+      "call_id": "4e6d964705c14096a6a8d177df63fc93",
+      "cost_usd": 0.004,
+      "status": 200
+    },
+    {
+      "key": "web-shopify",
+      "call_id": "371c9324f3f24c0f84be64a5b71a5abd",
+      "cost_usd": 0.001,
+      "status": 200
+    },
+    {
+      "key": "web-bluesky",
+      "call_id": "ea6410d775f542d4aa1b4acf131e26ad",
+      "cost_usd": 0.001,
+      "status": 200
+    },
+    {
+      "key": "threads-specific",
+      "call_id": "e63ce78112c142939c363c3c3fae5fd9",
+      "cost_usd": 0.00188,
+      "status": 200
+    },
+    {
+      "key": "x-ryan",
+      "call_id": "e003c8cf8d14447fa6038b3abd1de9f1",
+      "cost_usd": 0.00022,
+      "status": 200
+    },
+    {
+      "key": "x-alex",
+      "call_id": "d9841b30a92f4d9a84e0eb853bc05165",
+      "cost_usd": 0.00022,
+      "status": 200
+    },
+    {
+      "key": "x-consistency",
+      "call_id": "3befeaa39d764d74a5e7b0a8a9a2e8a5",
+      "cost_usd": 0.0006,
+      "status": 200
+    },
+    {
+      "key": "web-shravan",
+      "call_id": "4d66f523aeb24dd78f3b7cc13c9a79d8",
+      "cost_usd": 0.001,
+      "status": 200
+    }
+  ]
+}
+
