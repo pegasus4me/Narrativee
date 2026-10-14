@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import type { PoolClient } from "pg";
 import { pool } from "../auth/auth";
 import { transaction, lockAccount, snapshot } from "../usage/ledger";
 import { plans, CREDIT_MICRODOLLARS } from "./catalog";
@@ -75,16 +76,22 @@ export async function processStripeEvent(
       );
       return;
     }
-    await customerLock(account.user_id, async () => {
+    await customerLock(account.user_id, async (client) => {
       const {
         rows: [duplicate],
-      } = await pool.query(
+      } = await client.query(
         "SELECT processed_at FROM stripe_event WHERE id=$1",
         [event.id],
       );
       if (duplicate.processed_at) return;
-      await syncSubscriptionForCustomer(account.user_id, customer, stripe, risk);
-      await pool.query(
+      await syncSubscriptionForCustomer(
+        account.user_id,
+        customer,
+        stripe,
+        risk,
+        client,
+      );
+      await client.query(
         `UPDATE stripe_event SET processed_at=now(),error=NULL,attempts=attempts+1 WHERE id=$1`,
         [event.id],
       );
@@ -103,6 +110,7 @@ export async function syncSubscriptionForCustomer(
   customer: string,
   stripe: Stripe = stripeClient(),
   risk: { invoiceId: string; revoked: boolean }[] = [],
+  existingClient?: PoolClient,
 ) {
   const subscriptions = await stripe.subscriptions.list({
     customer,
@@ -114,9 +122,7 @@ export async function syncSubscriptionForCustomer(
     .sort((a, b) => b.created - a.created);
   const active = candidates.filter((s) => s.status !== "canceled");
   if (active.length > 1)
-    throw new Error(
-      "Multiple subscriptions require billing reconciliation",
-    );
+    throw new Error("Multiple subscriptions require billing reconciliation");
   const subscription = active[0] ?? candidates[0];
   if (!subscription) {
     return;
@@ -205,9 +211,7 @@ export async function syncSubscriptionForCustomer(
     );
     let paidUntil = coverage.paid_until as Date | null;
     if (subscription.ended_at && paidUntil)
-      paidUntil = new Date(
-        Math.min(+paidUntil, subscription.ended_at * 1000),
-      );
+      paidUntil = new Date(Math.min(+paidUntil, subscription.ended_at * 1000));
     const {
       rows: [prior],
     } = await client.query(
@@ -251,7 +255,7 @@ export async function syncSubscriptionForCustomer(
         [item.invoiceId],
       );
     await snapshot(client, userId);
-  });
+  }, existingClient);
 }
 
 export async function retryStripeEvents() {

@@ -52,8 +52,14 @@ usageRouter.get("/", verifyAuth, async (request: AuthRequest, response) => {
             acc.checkout_id,
           );
           if (session.status === "complete") {
-            await customerLock(userId, async () => {
-              await syncSubscriptionForCustomer(userId, acc.customer_id);
+            await customerLock(userId, async (client) => {
+              await syncSubscriptionForCustomer(
+                userId,
+                acc.customer_id,
+                stripeClient(),
+                [],
+                client,
+              );
             });
           }
         }

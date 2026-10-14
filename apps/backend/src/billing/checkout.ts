@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import type { PoolClient } from "pg";
 import { randomUUID } from "node:crypto";
 import { pool } from "../auth/auth";
 import { lockAccount, transaction } from "../usage/ledger";
@@ -6,19 +7,30 @@ import { AccessError, type PaidPlan, type BillingInterval } from "./catalog";
 import { priceId, stripeClient, verifyPrices, planForPrice } from "./stripe";
 
 // Session advisory lock serializes Stripe mutations without holding a SQL transaction open.
-export async function customerLock<T>(userId: string, work: () => Promise<T>) {
+export async function customerLock<T>(
+  userId: string,
+  work: (client: PoolClient) => Promise<T>,
+) {
   const client = await pool.connect();
   try {
     await client.query("SELECT pg_advisory_lock(hashtextextended($1,62110))", [
       userId,
     ]);
-    return await work();
+    return await work(client);
   } finally {
-    await client.query(
-      "SELECT pg_advisory_unlock(hashtextextended($1,62110))",
-      [userId],
-    );
-    client.release();
+    // A failed unlock must destroy the session, including any lock it still owns.
+    let destroy = false;
+    try {
+      await client.query(
+        "SELECT pg_advisory_unlock(hashtextextended($1,62110))",
+        [userId],
+      );
+    } catch (error) {
+      destroy = true;
+      throw error;
+    } finally {
+      client.release(destroy);
+    }
   }
 }
 export function returnUrl(path: string, status?: string) {
@@ -36,9 +48,10 @@ export function returnUrl(path: string, status?: string) {
   if (status) target.searchParams.set("billing", status);
   return target.toString();
 }
-async function accountFor(userId: string) {
+async function accountFor(userId: string, client?: PoolClient) {
   return transaction(
     async (client) => (await lockAccount(client, userId)).account,
+    client,
   );
 }
 export async function checkout(
@@ -48,20 +61,20 @@ export async function checkout(
   path: string,
   stripe: Stripe = stripeClient(),
 ) {
-  return customerLock(userId, async () => {
+  return customerLock(userId, async (client) => {
     await verifyPrices(stripe);
-    const account = await accountFor(userId);
+    const account = await accountFor(userId, client);
     let customer = account.customer_id;
     if (!customer) {
       const {
         rows: [user],
-      } = await pool.query('SELECT email FROM "user" WHERE id=$1', [userId]);
+      } = await client.query('SELECT email FROM "user" WHERE id=$1', [userId]);
       const created = await stripe.customers.create(
         { email: user.email, metadata: { narrativee_user_id: userId } },
         { idempotencyKey: `customer:${userId}` },
       );
       customer = created.id;
-      await pool.query(
+      await client.query(
         "UPDATE billing_account SET customer_id=$2 WHERE user_id=$1",
         [userId, customer],
       );
@@ -141,7 +154,7 @@ export async function checkout(
       resumed && account.checkout_return_path
         ? account.checkout_return_path
         : path;
-    await pool.query(
+    await client.query(
       `UPDATE billing_account SET checkout_key=$2,checkout_id=NULL,checkout_plan=$3,checkout_interval=$4,checkout_expires_at=to_timestamp($5),checkout_return_path=$6 WHERE user_id=$1`,
       [userId, key, plan, interval, expiresAt, checkoutPath],
     );
@@ -162,7 +175,7 @@ export async function checkout(
       },
       { idempotencyKey: `checkout:${userId}:${key}` },
     );
-    await pool.query(
+    await client.query(
       `UPDATE billing_account SET checkout_id=$2,checkout_url=$3,checkout_expires_at=to_timestamp($4) WHERE user_id=$1`,
       [userId, session.id, session.url, session.expires_at],
     );
@@ -170,9 +183,9 @@ export async function checkout(
   });
 }
 export async function upgrade(userId: string, path: string) {
-  return customerLock(userId, async () => {
+  return customerLock(userId, async (client) => {
     const stripe = stripeClient(),
-      account = await accountFor(userId);
+      account = await accountFor(userId, client);
     if (!account.subscription_id || account.plan !== "starter")
       throw new AccessError(
         "UPGRADE_UNAVAILABLE",
@@ -201,7 +214,7 @@ export async function upgrade(userId: string, path: string) {
       };
     }
     const key = account.upgrade_key ?? randomUUID();
-    await pool.query(
+    await client.query(
       "UPDATE billing_account SET upgrade_key=$2 WHERE user_id=$1",
       [userId, key],
     );

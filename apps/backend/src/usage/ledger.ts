@@ -10,8 +10,9 @@ import {
 
 export async function transaction<T>(
   work: (client: PoolClient) => Promise<T>,
+  existingClient?: PoolClient,
 ): Promise<T> {
-  const client = await pool.connect();
+  const client = existingClient ?? (await pool.connect());
   try {
     await client.query("BEGIN");
     await client.query("SET LOCAL statement_timeout = '10s'");
@@ -22,7 +23,7 @@ export async function transaction<T>(
     await client.query("ROLLBACK");
     throw error;
   } finally {
-    client.release();
+    if (!existingClient) client.release();
   }
 }
 

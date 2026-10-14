@@ -1051,26 +1051,41 @@ test(
               },
             },
           } as unknown as Stripe;
-          await assert.rejects(
-            checkout(
-              "checkout",
-              "starter",
-              "yearly",
-              "/workspace/studio?project=original",
-              sdk,
-            ),
-            /lost response/,
+          // Only one connection remains: checkout must reuse its advisory-lock client.
+          const heldClients = await Promise.all(
+            Array.from({ length: pool.options.max! - 1 }, () => pool.connect()),
           );
-          const results = await Promise.all([
-            checkout(
-              "checkout",
-              "starter",
-              "yearly",
-              "/workspace/studio?project=changed",
-              sdk,
-            ),
-            checkout("checkout", "starter", "yearly", "/workspace/studio", sdk),
-          ]);
+          let results;
+          try {
+            await assert.rejects(
+              checkout(
+                "checkout",
+                "starter",
+                "yearly",
+                "/workspace/studio?project=original",
+                sdk,
+              ),
+              /lost response/,
+            );
+            results = await Promise.all([
+              checkout(
+                "checkout",
+                "starter",
+                "yearly",
+                "/workspace/studio?project=changed",
+                sdk,
+              ),
+              checkout(
+                "checkout",
+                "starter",
+                "yearly",
+                "/workspace/studio",
+                sdk,
+              ),
+            ]);
+          } finally {
+            for (const client of heldClients) client.release();
+          }
           assert.equal(calls, 2);
           assert.deepEqual(results, [
             { url: session.url },

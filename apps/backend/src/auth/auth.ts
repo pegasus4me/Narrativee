@@ -30,6 +30,12 @@ const databaseUrl =
 // Hosted database URLs include sslmode=verify-full and the trusted CA path.
 export const pool = new Pool({
   connectionString: databaseUrl,
+  // Supabase session mode allows 15 clients shared by live and deploying processes.
+  max: 5,
+  connectionTimeoutMillis: 10_000,
+  idleTimeoutMillis: 10_000,
+  application_name:
+    process.env.NODE_ENV === "production" ? "narrativee-api" : "narrativee-dev",
   allowExitOnIdle: true,
 });
 
