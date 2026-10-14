@@ -13,10 +13,12 @@ import {
   brandFromAnalysis,
   BrandApiError,
   claimBrand,
-  studioPath,
+  analysisPath,
+  createBrand,
   getBrand,
   listBrands,
   removeBrand,
+  studioPath,
   type Brand,
 } from "@/lib/api/brands";
 import { getSiteAnalysis } from "@/lib/api/analysis";
@@ -28,7 +30,7 @@ type Context = {
   error: string | null;
   legacyId: string | null;
   retry: () => void;
-  select: (brand: Brand) => void;
+  select: (brand: Brand, showAnalysis?: boolean) => void;
   remove: (brand: Brand) => Promise<string | null>;
 };
 const BrandContext = createContext<Context | null>(null);
@@ -45,7 +47,9 @@ export function BrandProvider({ children }: { children: ReactNode }) {
   const params = useSearchParams();
   const brandId = params.get("brandId");
   const analysisId = params.get("analysisId");
+  const onboarding = params.get("onboarding") === "true";
   const website = params.get("website");
+  const setup = params.get("setup") === "true";
   const userId = session?.user.id;
   const [revision, setRevision] = useState(0);
   const [state, setState] = useState({
@@ -72,6 +76,34 @@ export function BrandProvider({ children }: { children: ReactNode }) {
         let legacyId: string | null = null;
         const pendingId = window.sessionStorage.getItem("pending_brand_id");
         const rememberedId = window.sessionStorage.getItem("active_brand_id");
+        if (website && setup && userId) {
+          const keyName = `pending_brand_creation_key:${website}`;
+          let key = window.sessionStorage.getItem(keyName);
+          if (!key) {
+            key = crypto.randomUUID();
+            window.sessionStorage.setItem(keyName, key);
+          }
+          const created = await createBrand({ url: website, key });
+          if (cancelled) return;
+          window.sessionStorage.removeItem(keyName);
+          window.sessionStorage.setItem("active_brand_id", created.id);
+          setState({
+            brands: [
+              created,
+              ...brands.filter((item) => item.id !== created.id),
+            ],
+            active: created,
+            loading: false,
+            error: null,
+            legacyId: null,
+          });
+          router.replace(
+            created.analysisId
+              ? analysisPath(created.analysisId)
+              : studioPath(created.id),
+          );
+          return;
+        }
         const targetId =
           brandId || (!analysisId && userId ? pendingId || rememberedId : null);
         if (targetId) {
@@ -133,7 +165,12 @@ export function BrandProvider({ children }: { children: ReactNode }) {
           window.sessionStorage.setItem("active_brand_id", active.id);
         }
         setState({ brands, active, loading: false, error: null, legacyId });
-        if (!website && active?.id && (analysisId || (!brandId && pendingId)))
+        if (
+          !setup &&
+          !onboarding &&
+          active?.id &&
+          (analysisId || (!brandId && pendingId))
+        )
           router.replace(studioPath(active.id));
       } catch (error) {
         if (!cancelled)
@@ -153,9 +190,19 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [brandId, analysisId, website, userId, isPending, revision, router]);
+  }, [
+    brandId,
+    analysisId,
+    onboarding,
+    website,
+    setup,
+    userId,
+    isPending,
+    revision,
+    router,
+  ]);
 
-  function select(brand: Brand) {
+  function select(brand: Brand, showAnalysis = false) {
     setState((current) => ({
       ...current,
       active: brand,
@@ -163,7 +210,11 @@ export function BrandProvider({ children }: { children: ReactNode }) {
       brands: [brand, ...current.brands.filter((item) => item.id !== brand.id)],
     }));
     window.sessionStorage.setItem("active_brand_id", brand.id);
-    router.push(studioPath(brand.id));
+    router.push(
+      showAnalysis && brand.analysisId
+        ? analysisPath(brand.analysisId)
+        : studioPath(brand.id),
+    );
   }
 
   async function remove(brand: Brand) {

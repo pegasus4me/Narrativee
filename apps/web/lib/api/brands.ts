@@ -60,6 +60,9 @@ export const createBrand = (input: {
 export const studioPath = (id: string) =>
   `/workspace/studio?brandId=${encodeURIComponent(id)}`;
 
+export const analysisPath = (id: string) =>
+  `/workspace?${new URLSearchParams({ analysisId: id, onboarding: "true" })}`;
+
 export function rememberBrand(brand: Brand) {
   if (brand.provisional)
     window.sessionStorage.setItem("pending_brand_id", brand.id);

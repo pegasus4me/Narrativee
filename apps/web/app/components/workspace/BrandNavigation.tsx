@@ -132,7 +132,10 @@ export default function BrandNavigation({ collapsed }: { collapsed: boolean }) {
               <Shapes size={17} className="relative z-10 shrink-0" />
             )}
             <div className="sidebar-copy relative z-10 flex min-w-0 flex-1 flex-col">
-              <a className="truncate text-[14px] font-medium leading-5 text-black " href={active.url ?? undefined}>
+              <a
+                className="truncate text-[14px] font-medium leading-5 text-black "
+                href={active.url ?? undefined}
+              >
                 {displayName}
               </a>
             </div>
@@ -220,8 +223,9 @@ export default function BrandNavigation({ collapsed }: { collapsed: boolean }) {
               />
             ) : creating ? (
               <BrandForm
+                submitLabel="Start brand scan"
                 onCreated={(record) => {
-                  select(record);
+                  select(record, Boolean(record.analysisId));
                   setOpen(false);
                   trigger.current?.focus();
                 }}
