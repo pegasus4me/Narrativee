@@ -11,10 +11,11 @@ export class StorageUnavailableError extends Error {}
 
 function useLocalStorage(): boolean {
   const configured = [
-    process.env.R2_ACCOUNT_ID,
-    process.env.R2_ACCESS_KEY_ID,
-    process.env.R2_SECRET_ACCESS_KEY,
-    process.env.R2_BUCKET,
+    process.env.SUPABASE_STORAGE_ENDPOINT,
+    process.env.SUPABASE_STORAGE_REGION,
+    process.env.SUPABASE_STORAGE_ACCESS_KEY_ID,
+    process.env.SUPABASE_STORAGE_SECRET_ACCESS_KEY,
+    process.env.SUPABASE_STORAGE_BUCKET,
   ].some(Boolean);
   return process.env.NODE_ENV !== "production" && !configured;
 }
@@ -31,25 +32,29 @@ function localPath(key: string): string {
   return path;
 }
 
+export function imageStorageConfiguration() {
+  const endpoint = process.env.SUPABASE_STORAGE_ENDPOINT;
+  const region = process.env.SUPABASE_STORAGE_REGION;
+  const accessKeyId = process.env.SUPABASE_STORAGE_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.SUPABASE_STORAGE_SECRET_ACCESS_KEY;
+  const bucket = process.env.SUPABASE_STORAGE_BUCKET;
+  if (!endpoint || !region || !accessKeyId || !secretAccessKey || !bucket) {
+    throw new StorageUnavailableError(
+      "Supabase image storage is not configured yet",
+    );
+  }
+  return { endpoint, region, accessKeyId, secretAccessKey, bucket };
+}
+
 function storage() {
-  const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET } =
-    process.env;
-  if (
-    !R2_ACCOUNT_ID ||
-    !R2_ACCESS_KEY_ID ||
-    !R2_SECRET_ACCESS_KEY ||
-    !R2_BUCKET
-  )
-    throw new StorageUnavailableError("Image storage is not configured yet");
+  const { bucket, ...configuration } = imageStorageConfiguration();
+  const { accessKeyId, secretAccessKey, ...connection } = configuration;
   return {
-    bucket: R2_BUCKET,
+    bucket,
     client: new S3Client({
-      region: "auto",
-      endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-      credentials: {
-        accessKeyId: R2_ACCESS_KEY_ID,
-        secretAccessKey: R2_SECRET_ACCESS_KEY,
-      },
+      ...connection,
+      forcePathStyle: true,
+      credentials: { accessKeyId, secretAccessKey },
     }),
   };
 }

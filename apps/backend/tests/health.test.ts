@@ -9,10 +9,11 @@ test("release health requires the current schema and production image storage", 
   const keys = [
     "NODE_ENV",
     "APP_REVISION",
-    "R2_ACCOUNT_ID",
-    "R2_ACCESS_KEY_ID",
-    "R2_SECRET_ACCESS_KEY",
-    "R2_BUCKET",
+    "SUPABASE_STORAGE_ENDPOINT",
+    "SUPABASE_STORAGE_REGION",
+    "SUPABASE_STORAGE_ACCESS_KEY_ID",
+    "SUPABASE_STORAGE_SECRET_ACCESS_KEY",
+    "SUPABASE_STORAGE_BUCKET",
   ];
   const previous = new Map(keys.map((key) => [key, process.env[key]]));
   t.after(() => {
@@ -41,14 +42,14 @@ test("release health requires the current schema and production image storage", 
   await health({} as Request, response as unknown as Response);
   assert.equal(status, 200);
   assert.deepEqual(body, { status: "ok", revision: "checked-release" });
-  delete process.env.R2_BUCKET;
+  delete process.env.SUPABASE_STORAGE_BUCKET;
   await health({} as Request, response as unknown as Response);
   assert.equal(status, 503);
   assert.deepEqual(body, {
     status: "unavailable",
     revision: "checked-release",
   });
-  process.env.R2_BUCKET = "configured";
+  process.env.SUPABASE_STORAGE_BUCKET = "configured";
   query.mock.mockImplementation(async () => {
     throw new Error("Missing database column with internal details");
   });

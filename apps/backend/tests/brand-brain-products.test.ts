@@ -26,10 +26,11 @@ test(
       "isolated-product-test-secret-000000000000000";
     process.env.BETTER_AUTH_URL = "http://localhost:3002";
     for (const key of [
-      "R2_ACCOUNT_ID",
-      "R2_ACCESS_KEY_ID",
-      "R2_SECRET_ACCESS_KEY",
-      "R2_BUCKET",
+      "SUPABASE_STORAGE_ENDPOINT",
+      "SUPABASE_STORAGE_REGION",
+      "SUPABASE_STORAGE_ACCESS_KEY_ID",
+      "SUPABASE_STORAGE_SECRET_ACCESS_KEY",
+      "SUPABASE_STORAGE_BUCKET",
     ])
       delete process.env[key];
     const pool = new Pool({ connectionString: url });

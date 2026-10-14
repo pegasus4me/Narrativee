@@ -30,10 +30,11 @@ test(
     process.env.TYPESAFE_API_KEY = "test-no-network";
     process.env.GOOGLE_FONTS_API_KEY = "test-no-network";
     for (const key of [
-      "R2_ACCOUNT_ID",
-      "R2_ACCESS_KEY_ID",
-      "R2_SECRET_ACCESS_KEY",
-      "R2_BUCKET",
+      "SUPABASE_STORAGE_ENDPOINT",
+      "SUPABASE_STORAGE_REGION",
+      "SUPABASE_STORAGE_ACCESS_KEY_ID",
+      "SUPABASE_STORAGE_SECRET_ACCESS_KEY",
+      "SUPABASE_STORAGE_BUCKET",
     ])
       delete process.env[key];
     const directory = await mkdtemp(
