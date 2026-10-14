@@ -2,19 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  ArrowUpRight,
-  Filter,
-  Layers,
-  Loader2,
-  MessageSquare,
-  Plus,
-  RefreshCw,
-  Search,
-  Sparkles,
-  Wand2,
-  X,
-} from "lucide-react";
 import { useBrands } from "@/app/components/workspace/BrandProvider";
 import {
   createStudioProject,
@@ -29,7 +16,12 @@ type FormatFilter = "all" | "square" | "portrait" | "landscape";
 
 export default function StudioPage() {
   const router = useRouter();
-  const { active, loading: brandLoading, error: brandError, retry } = useBrands();
+  const {
+    active,
+    loading: brandLoading,
+    error: brandError,
+    retry,
+  } = useBrands();
 
   const [creatives, setCreatives] = useState<StudioCreativeSummary[]>([]);
   const [projects, setProjects] = useState<StudioChat[]>([]);
@@ -167,8 +159,7 @@ export default function StudioPage() {
   if (brandLoading) {
     return (
       <div className="flex h-full min-h-[400px] items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <div role="status" className="text-muted-foreground">
           <p className="text-sm">Loading studio workspace…</p>
         </div>
       </div>
@@ -185,9 +176,8 @@ export default function StudioPage() {
           <button
             type="button"
             onClick={retry}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
           >
-            <RefreshCw className="h-4 w-4" />
             Try again
           </button>
         </div>
@@ -212,13 +202,12 @@ export default function StudioPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 p-6 md:p-8 lg:p-10 max-w-[1600px] mx-auto min-h-full">
+    <div className="flex flex-col gap-8 px-6 py-8 md:px-10 max-w-6xl mx-auto min-h-full">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-              <Sparkles className="h-3 w-3 text-primary" />
+            <span className="text-xs font-medium text-muted-foreground">
               Studio
             </span>
             <span className="text-xs text-muted-foreground">·</span>
@@ -226,7 +215,7 @@ export default function StudioPage() {
               {active.name}
             </span>
           </div>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Created Creatives
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -240,9 +229,8 @@ export default function StudioPage() {
             <button
               type="button"
               onClick={handleOpenLatest}
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground shadow-sm hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Layers className="h-4 w-4 text-muted-foreground" />
               Open Canvas
             </button>
           )}
@@ -251,36 +239,28 @@ export default function StudioPage() {
             type="button"
             disabled={creating}
             onClick={() => void handleCreateNew()}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {creating ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Opening Studio…
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4" />
-                New Creative
-              </>
-            )}
+            {creating ? "Opening Studio…" : "New Creative"}
           </button>
         </div>
       </div>
 
       {/* Recent Work & Chats Section */}
       {projects.length > 0 && (
-        <section aria-labelledby="recent-chats-heading" className="flex flex-col gap-3">
+        <section
+          aria-labelledby="recent-chats-heading"
+          className="flex flex-col gap-3"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-primary" />
               <h2
                 id="recent-chats-heading"
                 className="text-sm font-semibold tracking-tight text-foreground"
               >
                 Recent Chats & Work
               </h2>
-              <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground font-medium">
+              <span className="px-1 text-xs text-muted-foreground font-medium">
                 {projects.length}
               </span>
             </div>
@@ -288,9 +268,8 @@ export default function StudioPage() {
               type="button"
               disabled={creating}
               onClick={() => void handleCreateNew()}
-              className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline inline-flex items-center gap-1"
             >
-              <Plus className="h-3.5 w-3.5" />
               New chat
             </button>
           </div>
@@ -305,11 +284,11 @@ export default function StudioPage() {
                   key={chat.id}
                   type="button"
                   onClick={() => router.push(`/workspace/studio/${chat.id}`)}
-                  className="group flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-card p-3.5 text-left shadow-sm transition-all hover:border-zinc-400 hover:shadow-md dark:hover:border-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="group flex items-center justify-between gap-3 rounded-lg border border-border/80 bg-background p-3.5 text-left transition-colors hover:border-zinc-400 dark:hover:border-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="truncate text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                      <span className="truncate text-sm font-semibold text-foreground">
                         {chat.title}
                       </span>
                     </div>
@@ -322,9 +301,6 @@ export default function StudioPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center justify-center rounded-lg bg-muted/60 p-2 text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    <ArrowUpRight className="h-4 w-4" />
-                  </div>
                 </button>
               );
             })}
@@ -333,9 +309,12 @@ export default function StudioPage() {
       )}
 
       {/* Creatives Gallery Section */}
-      <section aria-labelledby="creatives-gallery-heading" className="flex flex-col gap-4">
+      <section
+        aria-labelledby="creatives-gallery-heading"
+        className="flex flex-col gap-4"
+      >
         {/* Gallery Section Header & Toolbar */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <h2
               id="creatives-gallery-heading"
@@ -343,20 +322,21 @@ export default function StudioPage() {
             >
               Creatives Board
             </h2>
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground font-medium">
+            <span className="px-1 text-xs text-muted-foreground font-medium">
               {creatives.length}
             </span>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
             {/* Format tabs */}
-            <div className="inline-flex items-center rounded-xl border border-border bg-muted/40 p-1 text-xs">
+            <div className="inline-flex min-w-0 max-w-full items-center overflow-x-auto rounded-lg bg-muted p-1 text-xs">
               <button
                 type="button"
                 onClick={() => setFormatFilter("all")}
-                className={`rounded-lg px-3 py-1.5 font-medium transition-colors ${
+                aria-pressed={formatFilter === "all"}
+                className={`shrink-0 rounded-md px-3 py-1.5 font-medium transition-colors ${
                   formatFilter === "all"
-                    ? "bg-background text-foreground shadow-sm"
+                    ? "bg-background text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -365,9 +345,10 @@ export default function StudioPage() {
               <button
                 type="button"
                 onClick={() => setFormatFilter("square")}
-                className={`rounded-lg px-3 py-1.5 font-medium transition-colors ${
+                aria-pressed={formatFilter === "square"}
+                className={`shrink-0 rounded-md px-3 py-1.5 font-medium transition-colors ${
                   formatFilter === "square"
-                    ? "bg-background text-foreground shadow-sm"
+                    ? "bg-background text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -376,9 +357,10 @@ export default function StudioPage() {
               <button
                 type="button"
                 onClick={() => setFormatFilter("portrait")}
-                className={`rounded-lg px-3 py-1.5 font-medium transition-colors ${
+                aria-pressed={formatFilter === "portrait"}
+                className={`shrink-0 rounded-md px-3 py-1.5 font-medium transition-colors ${
                   formatFilter === "portrait"
-                    ? "bg-background text-foreground shadow-sm"
+                    ? "bg-background text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -388,9 +370,10 @@ export default function StudioPage() {
                 <button
                   type="button"
                   onClick={() => setFormatFilter("landscape")}
-                  className={`rounded-lg px-3 py-1.5 font-medium transition-colors ${
+                  aria-pressed={formatFilter === "landscape"}
+                  className={`shrink-0 rounded-md px-3 py-1.5 font-medium transition-colors ${
                     formatFilter === "landscape"
-                      ? "bg-background text-foreground shadow-sm"
+                      ? "bg-background text-foreground"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -400,23 +383,23 @@ export default function StudioPage() {
             </div>
 
             {/* Search input */}
-            <div className="relative w-full sm:w-64">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div className="relative w-full shrink-0 sm:w-64">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search creatives…"
-                className="w-full rounded-xl border border-border bg-background py-2 pl-9 pr-9 text-xs placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                aria-label="Search creatives"
+                className="w-full rounded-lg border border-border bg-background py-2 pl-3 pr-14 text-xs placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
                   aria-label="Clear search"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded text-xs text-muted-foreground hover:text-foreground"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  Clear
                 </button>
               )}
             </div>
@@ -429,48 +412,34 @@ export default function StudioPage() {
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-square w-full animate-pulse rounded-2xl border border-border/70 bg-muted/40"
+                className="aspect-square w-full animate-pulse rounded-lg border border-border/70 bg-muted/40"
               />
             ))}
           </div>
         ) : creatives.length === 0 ? (
           /* Empty State: No creatives yet */
-          <div className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 p-8 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <Wand2 className="h-7 w-7" />
-            </div>
-            <h3 className="mt-4 text-xl font-semibold tracking-tight text-foreground">
+          <div className="flex min-h-[420px] flex-col items-center justify-center rounded-lg border border-dashed border-border bg-background p-8 text-center">
+            <h3 className="text-xl font-semibold tracking-tight text-foreground">
               No creatives created yet
             </h3>
             <p className="mt-2 max-w-md text-sm text-muted-foreground leading-relaxed">
-              Create your first campaign creative with Pixel. Describe your scene,
-              pick formats, and your rendered creatives will automatically appear here
-              in this gallery.
+              Create your first campaign creative with Pixel. Describe your
+              scene, pick formats, and your rendered creatives will
+              automatically appear here in this gallery.
             </p>
             <button
               type="button"
               disabled={creating}
               onClick={() => void handleCreateNew()}
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50 transition-opacity"
             >
-              {creating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Opening Studio…
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4" />
-                  Create my first creative
-                </>
-              )}
+              {creating ? "Opening Studio…" : "Create my first creative"}
             </button>
           </div>
         ) : filteredCreatives.length === 0 ? (
           /* Empty State: Filter/search returned nothing */
-          <div className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/20 p-8 text-center">
-            <Filter className="h-8 w-8 text-muted-foreground/60" />
-            <h3 className="mt-3 text-base font-semibold text-foreground">
+          <div className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-dashed border-border bg-background p-8 text-center">
+            <h3 className="text-base font-semibold text-foreground">
               No creatives match your filter
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -500,7 +469,7 @@ export default function StudioPage() {
       {error && (
         <div
           role="alert"
-          className="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive"
+          className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive"
         >
           {error}
         </div>

@@ -10,7 +10,7 @@
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-    "check-types": "tsc --noEmit",
+    "check-types": "next typegen && tsc --noEmit",
     "test:ci": "TSX_TSCONFIG_PATH=tests/tsconfig.json node --import tsx --test --test-concurrency=1 tests/*.test.ts tests/*.test.tsx",
     "build:cloudflare": "opennextjs-cloudflare build"
   },

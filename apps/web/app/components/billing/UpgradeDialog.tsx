@@ -94,7 +94,7 @@ export default function UpgradeDialog({
               {(
                 (PLAN_CREDITS.pro ?? 7000) - (PLAN_CREDITS.starter ?? 2000)
               ).toLocaleString()}{" "}
-              credits to this month’s allowance and keeps your reset date.
+              credits to this month allowance and keeps your reset date.
             </p>
           )}
           {usage?.resetAt && (

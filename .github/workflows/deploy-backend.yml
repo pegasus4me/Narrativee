@@ -40,6 +40,7 @@ jobs:
     env:
       LOCAL_DATABASE_URL: postgresql://postgres:ci-only-password@127.0.0.1:5432/postgres
       OPENAI_API_KEY: test-no-network
+      OPENAI_MODEL: gpt-6-luna
       BETTER_AUTH_SECRET: ci-auth-secret-never-use-in-production
       BETTER_AUTH_URL: http://localhost:3002
     steps:

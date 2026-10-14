@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Download, ExternalLink, Image as ImageIcon, Loader2 } from "lucide-react";
 import { fetchProjectImage, projectImageUrl } from "@/lib/api/studio-canvas";
 import type { StudioCreativeSummary } from "@/lib/api/studio";
 
@@ -21,7 +20,12 @@ export function parseCreativeName(fullName: string) {
     return { platform, dimensions, title, full: fullName };
   }
   if (parts.length === 2) {
-    return { platform: parts[0], dimensions: null, title: parts[1], full: fullName };
+    return {
+      platform: parts[0],
+      dimensions: null,
+      title: parts[1],
+      full: fullName,
+    };
   }
   return { platform: null, dimensions: null, title: fullName, full: fullName };
 }
@@ -31,7 +35,9 @@ export function StudioCreativeCard({ creative }: StudioCreativeCardProps) {
   const [imageSrc, setImageSrc] = useState<string | null>(
     () => previewCache.get(creative.assetId) ?? null,
   );
-  const [loadingImage, setLoadingImage] = useState(!previewCache.has(creative.assetId));
+  const [loadingImage, setLoadingImage] = useState(
+    !previewCache.has(creative.assetId),
+  );
   const [imageError, setImageError] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
@@ -84,59 +90,44 @@ export function StudioCreativeCard({ creative }: StudioCreativeCardProps) {
     try {
       let downloadUrl = imageSrc;
       if (!downloadUrl || !downloadUrl.startsWith("blob:")) {
-        const blob = await fetchProjectImage(creative.projectId, creative.assetId);
+        const blob = await fetchProjectImage(
+          creative.projectId,
+          creative.assetId,
+        );
         downloadUrl = URL.createObjectURL(blob);
       }
       const anchor = document.createElement("a");
       const safeTitle = title ?? "creative";
       const cleanName = safeTitle.replace(/[^a-z0-9_-]+/gi, "-").toLowerCase();
+      anchor.href = downloadUrl;
       anchor.download = `${cleanName || "creative"}.png`;
       anchor.click();
     } catch {
-      window.open(projectImageUrl(creative.projectId, creative.assetId), "_blank");
+      window.open(
+        projectImageUrl(creative.projectId, creative.assetId),
+        "_blank",
+      );
     } finally {
       setDownloading(false);
     }
   };
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={handleOpen}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          handleOpen();
-        }
-      }}
-      aria-label={`Open creative: ${title}`}
-      className="group relative aspect-square w-full cursor-pointer overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-100 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-400 hover:shadow-xl dark:border-white/10 dark:bg-zinc-900/60 dark:hover:border-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-    >
-      {/* Background canvas grid pattern */}
-      <div
-        className="absolute inset-0 opacity-40 dark:opacity-20"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, var(--studio-dot-color, rgba(120, 120, 120, 0.25)) 1px, transparent 1px)",
-          backgroundSize: "16px 16px",
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Creative Preview Inside */}
-      <div className="absolute inset-0 flex items-center justify-center p-3">
-        {loadingImage && (
-          <div className="flex h-full w-full items-center justify-center rounded-xl bg-zinc-200/60 dark:bg-zinc-800/60">
-            <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
-          </div>
-        )}
-
-        {imageError ? (
-          <div className="flex flex-col items-center justify-center gap-2 text-zinc-400">
-            <ImageIcon className="h-8 w-8" />
-            <span className="text-xs">Preview unavailable</span>
-          </div>
+    <article className="overflow-hidden rounded-lg border border-border bg-background">
+      <button
+        type="button"
+        onClick={handleOpen}
+        aria-label={`Open creative: ${title}`}
+        className="flex aspect-square w-full items-center justify-center bg-muted p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+      >
+        {loadingImage ? (
+          <span role="status" className="text-xs text-muted-foreground">
+            Loading preview…
+          </span>
+        ) : imageError ? (
+          <span className="text-xs text-muted-foreground">
+            Preview unavailable
+          </span>
         ) : (
           imageSrc && (
             <img
@@ -144,78 +135,40 @@ export function StudioCreativeCard({ creative }: StudioCreativeCardProps) {
               alt={creative.name}
               crossOrigin="use-credentials"
               onError={() => setImageError(true)}
-              className={`h-full w-full rounded-xl object-contain shadow-inner transition-transform duration-500 ease-out group-hover:scale-[1.03] ${
-                loadingImage ? "opacity-0" : "opacity-100"
-              }`}
+              className="h-full w-full object-contain"
             />
           )
         )}
-      </div>
-
-      {/* Top badges (Platform / Format / Version) */}
-      <div className="absolute left-3 right-3 top-3 z-10 flex items-center justify-between gap-2 pointer-events-none">
-        <div className="flex flex-wrap items-center gap-1.5">
-          {dimensions && (
-            <span className="rounded-full border border-black/10 bg-black/50 px-2 py-0.5 text-[11px] font-medium tracking-tight text-white backdrop-blur-md dark:border-white/10">
-              {dimensions.replace(" px", "")}
-            </span>
-          )}
-          {platform && platform !== "Any platform" && (
-            <span className="rounded-full border border-black/10 bg-black/50 px-2 py-0.5 text-[11px] font-medium tracking-tight text-white backdrop-blur-md dark:border-white/10">
-              {platform}
-            </span>
-          )}
+      </button>
+      <div className="space-y-2 border-t border-border p-3">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          {dimensions && <span>{dimensions.replace(" px", "")}</span>}
+          {platform && platform !== "Any platform" && <span>{platform}</span>}
+          {creative.version > 1 && <span>v{creative.version}</span>}
         </div>
-
-        {creative.version > 1 && (
-          <span className="rounded-full border border-white/10 bg-primary/90 px-2 py-0.5 text-[11px] font-semibold text-primary-foreground shadow-sm">
-            v{creative.version}
-          </span>
+        <button
+          type="button"
+          onClick={handleOpen}
+          title={creative.name}
+          className="line-clamp-2 text-left text-sm font-medium text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {title}
+        </button>
+        {creative.projectTitle && (
+          <p className="truncate text-xs text-muted-foreground">
+            {creative.projectTitle}
+          </p>
         )}
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={downloading}
+          aria-label={`Download image: ${title}`}
+          className="text-xs text-muted-foreground hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+        >
+          {downloading ? "Downloading…" : "Download"}
+        </button>
       </div>
-
-      {/* Bottom overlay with creative name and quick actions */}
-      <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col justify-end bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3.5 pt-12 text-white transition-opacity duration-200">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <p
-              title={creative.name}
-              className="line-clamp-2 text-sm font-semibold tracking-tight text-white drop-shadow-sm group-hover:text-primary-foreground"
-            >
-              {title}
-            </p>
-            {creative.projectTitle && (
-              <p className="mt-0.5 truncate text-[11px] text-zinc-300">
-                {creative.projectTitle}
-              </p>
-            )}
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex items-center gap-1 shrink-0 pt-0.5">
-            <button
-              type="button"
-              onClick={handleDownload}
-              title="Download image"
-              aria-label="Download image"
-              className="rounded-lg bg-white/15 p-1.5 text-white backdrop-blur-md transition-colors hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
-              {downloading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Download className="h-3.5 w-3.5" />
-              )}
-            </button>
-            <div
-              title="Open in Studio"
-              aria-hidden="true"
-              className="rounded-lg bg-white/15 p-1.5 text-white backdrop-blur-md transition-colors group-hover:bg-primary group-hover:text-primary-foreground"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </article>
   );
 }

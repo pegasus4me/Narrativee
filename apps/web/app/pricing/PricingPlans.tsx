@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Check, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PlanButton from "../components/billing/PlanButton";
@@ -131,21 +132,33 @@ export default function PricingPlans() {
                   {plan.features.map((copy, featureIndex) => (
                     <li
                       key={copy}
-                      className="flex items-start gap-3.5 text-base leading-[1.55]"
+                      className="flex items-start gap-3.5 text-base font-semibold leading-[1.55]"
                     >
                       <Check
                         size={18}
                         strokeWidth={3}
-                        className="mt-[3px] shrink-0 text-[#858585]"
+                        className="mt-[3px] shrink-0 text-tertiary"
                         aria-hidden="true"
                       />
-                      <span>
-                        {featureIndex === 0 &&
-                        credits !== null &&
-                        credits !== undefined
-                          ? `${credits.toLocaleString()} credits every month`
-                          : copy}
-                      </span>
+                      {featureIndex === 0 &&
+                      credits !== null &&
+                      credits !== undefined ? (
+                        <span className="inline-flex flex-wrap items-center gap-1.5">
+                          <span>{credits.toLocaleString()}</span>
+                          <Image
+                            src="/credit-pink.png"
+                            alt=""
+                            width={18}
+                            height={18}
+                            className="size-[18px] shrink-0 object-contain"
+                            unoptimized
+                          />
+                          <span>credits</span>
+                          <span>every month</span>
+                        </span>
+                      ) : (
+                        <span>{copy}</span>
+                      )}
                     </li>
                   ))}
                 </ul>
