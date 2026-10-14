@@ -4,7 +4,7 @@ import type { Request, Response } from "express";
 import { db } from "../src/auth/auth";
 import { health } from "../src/health";
 
-test("release health requires the current schema and production image storage", async (t) => {
+test("release health requires the current schema but not optional image storage", async (t) => {
   t.mock.method(console, "error", () => {});
   const keys = [
     "NODE_ENV",
@@ -44,9 +44,9 @@ test("release health requires the current schema and production image storage", 
   assert.deepEqual(body, { status: "ok", revision: "checked-release" });
   delete process.env.SUPABASE_STORAGE_BUCKET;
   await health({} as Request, response as unknown as Response);
-  assert.equal(status, 503);
+  assert.equal(status, 200);
   assert.deepEqual(body, {
-    status: "unavailable",
+    status: "ok",
     revision: "checked-release",
   });
   process.env.SUPABASE_STORAGE_BUCKET = "configured";
