@@ -65,3 +65,54 @@ test("landing websites survive signup, signin and OAuth return destinations with
     assert.throws(() => websiteSetupPath(value), /Enter a valid website/);
   }
 });
+
+test("auth destinations redirect to /workspace by default and not studio", () => {
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  try {
+    Reflect.deleteProperty(globalThis, "window");
+    assert.equal(authDestination(), "/workspace");
+
+    Object.defineProperty(globalThis, "window", {
+      configurable: true,
+      value: {
+        location: {
+          origin: "https://narrativee.com",
+          search: "",
+        },
+        sessionStorage: {
+          getItem: () => null,
+        },
+      },
+    });
+    assert.equal(authDestination(), "/workspace");
+    assert.equal(
+      `${window.location.origin}${authDestination()}`,
+      "https://narrativee.com/workspace",
+    );
+
+    const loginLink = authLink("signin", "/workspace");
+    assert.equal(loginLink, "/auth/signin?next=%2Fworkspace");
+
+    Object.defineProperty(globalThis, "window", {
+      configurable: true,
+      value: {
+        location: {
+          origin: "https://narrativee.com",
+          search: new URL(loginLink, "https://narrativee.com").search,
+        },
+        sessionStorage: {
+          getItem: () => null,
+        },
+      },
+    });
+    assert.equal(authDestination(), "/workspace");
+    assert.equal(
+      `${window.location.origin}${authDestination()}`,
+      "https://narrativee.com/workspace",
+    );
+  } finally {
+    if (previousWindow)
+      Object.defineProperty(globalThis, "window", previousWindow);
+    else Reflect.deleteProperty(globalThis, "window");
+  }
+});

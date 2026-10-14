@@ -1,10 +1,12 @@
 import { deliveryMarker } from "../usage/operations";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { db } from "../auth/auth";
 import { loadBrandBrainContext } from "../brand-brain/context";
 import {
   brand,
   siteAnalysis,
+  studioAsset,
+  studioCanvas,
   studioMessage,
   studioProject,
 } from "../auth/schema/schema";
@@ -226,6 +228,173 @@ export async function listStudioProjects(brandId: string, userId: string) {
     kind: index === 0 ? ("discovery" as const) : ("creation" as const),
     title: project.title ?? (index === 0 ? "Discovery" : "Untitled"),
   }));
+}
+
+export interface StudioCreativeSummary {
+  id: string;
+  name: string;
+  assetId: string;
+  projectId: string;
+  projectTitle: string;
+  formatId?: string;
+  version: number;
+  width: number;
+  height: number;
+  createdAt: string;
+}
+
+export async function listStudioCreatives(
+  brandId: string,
+  userId: string,
+): Promise<StudioCreativeSummary[] | null> {
+  const [ownedBrand] = await db
+    .select({ id: brand.id })
+    .from(brand)
+    .where(and(eq(brand.id, brandId), eq(brand.userId, userId)))
+    .limit(1);
+  if (!ownedBrand) return null;
+
+  const projects = await db
+    .select({
+      id: studioProject.id,
+      title: studioProject.title,
+      createdAt: studioProject.createdAt,
+      updatedAt: studioProject.updatedAt,
+    })
+    .from(studioProject)
+    .where(
+      and(eq(studioProject.brandId, brandId), eq(studioProject.userId, userId)),
+    )
+    .orderBy(desc(studioProject.updatedAt));
+
+  if (!projects.length) return [];
+
+  const projectIds = projects.map((project) => project.id);
+  const canvases = await db
+    .select({
+      projectId: studioCanvas.projectId,
+      snapshot: studioCanvas.snapshot,
+      updatedAt: studioCanvas.updatedAt,
+    })
+    .from(studioCanvas)
+    .where(inArray(studioCanvas.projectId, projectIds));
+
+  const projectMap = new Map(projects.map((project) => [project.id, project]));
+  const creatives: StudioCreativeSummary[] = [];
+  const seenAssetIds = new Set<string>();
+
+  for (const canvas of canvases) {
+    const snap = canvas.snapshot as Record<string, unknown> | null;
+    const project = projectMap.get(canvas.projectId);
+    const canvasData = snap?.canvas as Record<string, unknown> | null;
+    const objects = Array.isArray(canvasData?.objects)
+      ? (canvasData.objects as Array<Record<string, unknown>>)
+      : [];
+
+    for (const obj of objects) {
+      const data = obj.data as Record<string, unknown> | undefined;
+      if (!data) continue;
+      const role = String(data.role || "");
+      const assetId = typeof data.assetId === "string" ? data.assetId : null;
+      const name = typeof data.name === "string" ? data.name : "Creative Image";
+      const directionId =
+        typeof data.directionId === "string" ? data.directionId : null;
+      const formatId =
+        typeof data.formatId === "string" ? data.formatId : undefined;
+      const version = typeof data.version === "number" ? data.version : 1;
+      const width =
+        typeof data.exportWidth === "number"
+          ? data.exportWidth
+          : typeof obj.width === "number"
+            ? obj.width
+            : 1080;
+      const height =
+        typeof data.exportHeight === "number"
+          ? data.exportHeight
+          : typeof obj.height === "number"
+            ? obj.height
+            : 1080;
+
+      if (assetId && (role === "artboard" || data.kind === "campaign")) {
+        if (!seenAssetIds.has(assetId)) {
+          seenAssetIds.add(assetId);
+          creatives.push({
+            id: directionId || assetId,
+            name,
+            assetId,
+            projectId: canvas.projectId,
+            projectTitle: project?.title ?? "Untitled",
+            formatId,
+            version,
+            width,
+            height,
+            createdAt: canvas.updatedAt
+              ? new Date(canvas.updatedAt).toISOString()
+              : new Date().toISOString(),
+          });
+        }
+      }
+    }
+  }
+
+  // Also check if any messages announced complete creative images whose asset isn't on the canvas
+  const messages = await db
+    .select({
+      projectId: studioMessage.projectId,
+      content: studioMessage.content,
+      createdAt: studioMessage.createdAt,
+    })
+    .from(studioMessage)
+    .where(
+      and(
+        inArray(studioMessage.projectId, projectIds),
+        eq(studioMessage.role, "assistant"),
+      ),
+    )
+    .orderBy(desc(studioMessage.createdAt));
+
+  const assets = await db
+    .select()
+    .from(studioAsset)
+    .where(inArray(studioAsset.projectId, projectIds))
+    .orderBy(desc(studioAsset.createdAt));
+
+  for (const asset of assets) {
+    if (!seenAssetIds.has(asset.id)) {
+      const project = projectMap.get(asset.projectId);
+      let matchedName: string | null = null;
+      for (const msg of messages) {
+        if (
+          msg.projectId === asset.projectId &&
+          msg.content.includes("complete creative image")
+        ) {
+          const match = msg.content.match(/- ([^\n]+)/);
+          if (match?.[1]) {
+            matchedName = match[1].trim();
+            break;
+          }
+        }
+      }
+      if (matchedName) {
+        seenAssetIds.add(asset.id);
+        creatives.push({
+          id: asset.id,
+          name: matchedName,
+          assetId: asset.id,
+          projectId: asset.projectId,
+          projectTitle: project?.title ?? "Untitled",
+          version: 1,
+          width: asset.width,
+          height: asset.height,
+          createdAt: asset.createdAt
+            ? new Date(asset.createdAt).toISOString()
+            : new Date().toISOString(),
+        });
+      }
+    }
+  }
+
+  return creatives;
 }
 
 export async function renameStudioProject(

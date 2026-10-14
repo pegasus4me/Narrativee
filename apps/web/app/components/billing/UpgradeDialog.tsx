@@ -3,7 +3,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useState } from "react";
 import Image from "next/image";
 import { Check, X } from "lucide-react";
-import { pricingPlans } from "@/app/pricing/pricingData";
+import { pricingPlans, PLAN_CREDITS } from "@/app/pricing/pricingData";
 import PricingModels from "@/app/pricing/PricingModels";
 import { Button } from "@/components/ui/button";
 import type { Usage, PlanCatalog } from "@/lib/api/billing";
@@ -90,8 +90,11 @@ export default function UpgradeDialog({
           {paid && usage?.plan === "starter" && (
             <p className="mt-3 text-sm text-zinc-600">
               Stripe will confirm the prorated payment. A successful upgrade
-              adds 1,000 credits to this month’s allowance and keeps your reset
-              date.
+              adds{" "}
+              {(
+                (PLAN_CREDITS.pro ?? 7000) - (PLAN_CREDITS.starter ?? 2000)
+              ).toLocaleString()}{" "}
+              credits to this month’s allowance and keeps your reset date.
             </p>
           )}
           {usage?.resetAt && (
@@ -121,7 +124,9 @@ export default function UpgradeDialog({
                 .map((plan) => {
                   const item = catalog?.plans[plan],
                     credits =
-                      item?.credits ?? (plan === "starter" ? 500 : 1500);
+                      PLAN_CREDITS[plan] ??
+                      item?.credits ??
+                      (plan === "starter" ? 2000 : 7000);
                   const annual = paid
                     ? usage?.billingInterval === "yearly"
                     : yearly;

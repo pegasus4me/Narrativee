@@ -74,7 +74,7 @@ export default function Header() {
 
         <div className="flex h-10 items-center justify-self-end gap-3 lg:col-start-3 lg:row-start-1">
           <Link
-            href={authLink("signin", "/workspace/studio")}
+            href={authLink("signin", "/workspace")}
             onClick={() => ph?.capture("nav_clicked", { target: "signin" })}
             className="rounded-full px-3 py-2 text-[#737373] transition-colors duration-200 hover:text-[#292929]"
           >

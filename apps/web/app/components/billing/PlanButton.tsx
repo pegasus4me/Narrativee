@@ -3,7 +3,11 @@ import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { authLink } from "@/lib/auth-destination";
 import { billingRequest, navigateBilling, type Usage } from "@/lib/api/billing";
-import { Button, type ButtonVariant, type ButtonSize } from "@/components/ui/button";
+import {
+  Button,
+  type ButtonVariant,
+  type ButtonSize,
+} from "@/components/ui/button";
 export default function PlanButton({
   plan,
   yearly,
@@ -25,7 +29,7 @@ export default function PlanButton({
       window.location.assign(
         authLink(
           "signup",
-          `/workspace/studio?plan=${plan}&interval=${yearly ? "yearly" : "monthly"}`,
+          `/workspace?plan=${plan}&interval=${yearly ? "yearly" : "monthly"}`,
         ),
       );
       return;

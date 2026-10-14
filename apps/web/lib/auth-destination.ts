@@ -1,7 +1,7 @@
 import { studioPath } from "./api/brands";
 
 export function authDestination(): string {
-  if (typeof window === "undefined") return "/workspace/studio";
+  if (typeof window === "undefined") return "/workspace";
   const params = new URLSearchParams(window.location.search);
   const next = params.get("next");
   if (next) {
@@ -26,7 +26,7 @@ export function authDestination(): string {
   const analysisId = params.get("analysisId");
   return analysisId
     ? `/workspace?analysisId=${encodeURIComponent(analysisId)}`
-    : "/workspace/studio";
+    : "/workspace";
 }
 
 export const authLink = (page: "signin" | "signup", destination: string) =>

@@ -100,7 +100,8 @@ export async function checkout(
       if (session.status === "open") {
         if (
           account.checkout_plan === plan &&
-          account.checkout_interval === interval
+          account.checkout_interval === interval &&
+          session.amount_total === 0
         )
           return { url: session.url };
         await stripe.checkout.sessions.expire(session.id);
@@ -151,7 +152,10 @@ export async function checkout(
         client_reference_id: userId,
         line_items: [{ price: priceId(plan, interval), quantity: 1 }],
         allowed_payment_method_types: ["card"],
-        subscription_data: { metadata: { narrativee_user_id: userId } },
+        subscription_data: {
+          trial_period_days: 7,
+          metadata: { narrativee_user_id: userId },
+        },
         success_url: returnUrl(checkoutPath, "confirming"),
         cancel_url: returnUrl(checkoutPath, "cancelled"),
         expires_at: expiresAt,

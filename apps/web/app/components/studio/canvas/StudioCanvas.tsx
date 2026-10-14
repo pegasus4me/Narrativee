@@ -2,7 +2,8 @@
 
 import { useStudioCanvas } from "./useStudioCanvas";
 //import { CanvasControls } from "./CanvasControls";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { LayoutGrid, MousePointer2 } from "lucide-react";
 import {
   StudioWorkingBorder,
@@ -11,8 +12,21 @@ import {
 
 export function StudioCanvas({ projectId }: { projectId: string }) {
   const editor = useStudioCanvas(projectId);
+  const searchParams = useSearchParams();
+  const focusedRef = useRef<string | null>(null);
   const [working, setWorking] = useState(false);
   const [view, setView] = useState<"canvas" | "grid">("canvas");
+
+  useEffect(() => {
+    const focusId = searchParams.get("focus");
+    if (!focusId || !editor.hasContent || focusedRef.current === focusId) return;
+    focusedRef.current = focusId;
+    const timer = setTimeout(() => {
+      editor.focusDirection(focusId);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [searchParams, editor.hasContent]);
+
   useEffect(() => {
     window.dispatchEvent(
       new CustomEvent("narrativee:studio-prompt-mount", {

@@ -6,6 +6,7 @@ import {
   createStudioProject,
   findOrCreateStudioProject,
   findStudioProject,
+  listStudioCreatives,
   listStudioProjects,
   readStudioMessages,
   renameStudioProject,
@@ -130,6 +131,19 @@ export function createStudioRouter(generate?: StudioReply) {
         response.json(projects);
         return;
       }
+      if (request.query.view === "creatives") {
+        const creatives = await listStudioCreatives(
+          brandId.data,
+          request.user!.id,
+        );
+        if (!creatives) {
+          response.status(404).json({ error: "Brand not found" });
+          return;
+        }
+        response.setHeader("Cache-Control", "no-store");
+        response.json(creatives);
+        return;
+      }
       const project = await findOrCreateStudioProject(
         brandId.data,
         request.user!.id,
@@ -143,6 +157,29 @@ export function createStudioRouter(generate?: StudioReply) {
     } catch (error) {
       console.error("Could not open Studio project:", error);
       response.status(500).json({ error: "Could not open the project" });
+    }
+  });
+
+  router.get("/creatives", async (request: AuthRequest, response: Response) => {
+    const brandId = projectIdSchema.safeParse(request.query.brandId);
+    if (!brandId.success) {
+      response.status(400).json({ error: "A valid brand is required" });
+      return;
+    }
+    try {
+      const creatives = await listStudioCreatives(
+        brandId.data,
+        request.user!.id,
+      );
+      if (!creatives) {
+        response.status(404).json({ error: "Brand not found" });
+        return;
+      }
+      response.setHeader("Cache-Control", "no-store");
+      response.json(creatives);
+    } catch (error) {
+      console.error("Could not list Studio creatives:", error);
+      response.status(500).json({ error: "Could not list creatives" });
     }
   });
 

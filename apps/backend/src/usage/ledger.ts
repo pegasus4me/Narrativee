@@ -93,7 +93,7 @@ export async function snapshot(client: PoolClient, userId: string) {
   const paidValid =
     !paid ||
     (account.paid_until > now &&
-      ["active", "past_due", "canceled"].includes(account.status));
+      ["active", "trialing", "past_due", "canceled"].includes(account.status));
   const {
     rows: [bucket],
   } = await client.query(

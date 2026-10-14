@@ -2,8 +2,10 @@
 
 import { CreditStatus } from "../billing/UsageProvider";
 import { useState } from "react";
-import { ArrowLeft, Brain, UserPlus } from "lucide-react";
+import { ArrowLeft, Brain, LogOut, UserPlus } from "lucide-react";
 import Button from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
+
 export default function StudioHeader({
   brandBrainOpen,
   canOpenBrandBrain,
@@ -15,6 +17,19 @@ export default function StudioHeader({
 }) {
   const [copied, setCopied] = useState(false);
   const [invited, setInvited] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await authClient.signOut();
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    } finally {
+      window.location.assign("/auth/signin");
+    }
+  };
 
   const handleShare = async () => {
     try {
@@ -66,6 +81,20 @@ export default function StudioHeader({
         title="Share canvas link"
       >
         {copied ? "Link copied!" : "Share"}
+      </button>
+
+      <button
+        type="button"
+        onClick={handleLogout}
+        disabled={loggingOut}
+        className="flex h-7 items-center gap-1.5 rounded-[6px] border border-border bg-muted px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-destructive/10 hover:text-destructive active:scale-95 disabled:opacity-50"
+        title="Log out"
+        aria-label="Log out"
+      >
+        <LogOut size={13} className="text-muted-foreground" />
+        <span className="hidden sm:inline">
+          {loggingOut ? "Logging out…" : "Log out"}
+        </span>
       </button>
     </div>
   );

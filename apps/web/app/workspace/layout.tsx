@@ -15,9 +15,7 @@ export default function WorkspaceLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>): React.ReactNode {
   const pathname = usePathname();
-  const isStudioProject =
-    pathname === "/workspace/studio" ||
-    pathname.startsWith("/workspace/studio/");
+  const isStudioProject = pathname.startsWith("/workspace/studio/");
 
   return (
     <Suspense fallback={null}>

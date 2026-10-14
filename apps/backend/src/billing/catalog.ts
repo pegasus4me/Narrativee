@@ -1,8 +1,8 @@
 export const CREDIT_MICRODOLLARS = 10_000;
 export const plans = {
   trial: { name: "Free trial", credits: 80, days: 7, monthly: 0, yearly: 0 },
-  starter: { name: "Starter", credits: 500, monthly: 1900, yearly: 18240 },
-  pro: { name: "Pro", credits: 1500, monthly: 4900, yearly: 47040 },
+  starter: { name: "Starter", credits: 2000, monthly: 1900, yearly: 18240 },
+  pro: { name: "Pro", credits: 7000, monthly: 4900, yearly: 47040 },
   agency: { name: "Agency", credits: null, monthly: null, yearly: null },
 } as const;
 export type PaidPlan = "starter" | "pro";

@@ -128,6 +128,30 @@ export const listStudioProjects = (brandId: string, signal?: AbortSignal) =>
     return chats;
   });
 
+export interface StudioCreativeSummary {
+  id: string;
+  name: string;
+  assetId: string;
+  projectId: string;
+  projectTitle: string;
+  formatId?: string;
+  version: number;
+  width: number;
+  height: number;
+  createdAt: string;
+}
+
+export const listStudioCreatives = (brandId: string, signal?: AbortSignal) =>
+  request<StudioCreativeSummary[]>(
+    `?brandId=${encodeURIComponent(brandId)}&view=creatives`,
+    { signal },
+  ).then((creatives) => {
+    if (!Array.isArray(creatives)) {
+      throw new Error("Studio API is out of date. Restart the backend.");
+    }
+    return creatives;
+  });
+
 export const getStudioProject = (id: string, signal?: AbortSignal) =>
   request<{ project: StudioProject; messages: StudioMessage[] }>(
     `/${encodeURIComponent(id)}`,

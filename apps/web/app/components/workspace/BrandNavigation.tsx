@@ -110,12 +110,12 @@ export default function BrandNavigation({ collapsed }: { collapsed: boolean }) {
   return (
     <div className="mx-2 mb-3">
       <div
-        className={`relative flex items-center gap-2 overflow-hidden rounded-md px-2 ${active ? "min-h-12 bg-black bg-[url('/app_bg.png')] bg-cover bg-center py-1 text-white" : "h-8 text-ink-2"}`}
+        className={`relative flex items-center gap-2 overflow-hidden rounded-md px-1 ${active ? "min-h-2 py-1 text-black" : "h-8 text-black"}`}
       >
         {active && (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-black/60"
+            className="pointer-events-none absolute inset-0 "
           />
         )}
         {active ? (
@@ -132,22 +132,9 @@ export default function BrandNavigation({ collapsed }: { collapsed: boolean }) {
               <Shapes size={17} className="relative z-10 shrink-0" />
             )}
             <div className="sidebar-copy relative z-10 flex min-w-0 flex-1 flex-col">
-              <span className="truncate text-[14px] font-medium leading-5 text-white">
+              <a className="truncate text-[14px] font-medium leading-5 text-black " href={active.url ?? undefined}>
                 {displayName}
-              </span>
-              {active.url && (
-                <a
-                  href={active.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  tabIndex={collapsed ? -1 : 0}
-                  className="flex max-w-full items-center gap-1 self-start text-[12px] leading-4 text-white/80 hover:text-white hover:underline"
-                  title={active.url}
-                >
-                  <span className="truncate">{domain}</span>
-                  <ExternalLink size={11} className="shrink-0" />
-                </a>
-              )}
+              </a>
             </div>
           </>
         ) : (

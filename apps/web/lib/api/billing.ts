@@ -85,7 +85,7 @@ export async function navigateBilling(
     ...selection,
     returnPath: currentReturnPath().startsWith("/workspace")
       ? currentReturnPath()
-      : "/workspace/studio",
+      : "/workspace",
   });
   window.location.assign(url);
 }

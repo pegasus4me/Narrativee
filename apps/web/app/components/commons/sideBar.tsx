@@ -10,7 +10,7 @@ import {
 } from "react";
 import BrandNavigation from "../workspace/BrandNavigation";
 import { useBrands } from "../workspace/BrandProvider";
-import { createStudioProject } from "@/lib/api/studio";
+import { createStudioProject, listStudioProjects } from "@/lib/api/studio";
 import StudioSplashTransition from "../studio/StudioSplashTransition";
 import {
   ChevronDown as IconChevronDownSmall,
@@ -22,12 +22,14 @@ import {
   UserPlus as IconUserAdd,
   Brain,
   Blocks,
+  LogOut,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import GlideMenu from "@/components/primitives/GlideMenu";
 import darkLogo from "public/logo-dark.png";
+import { authClient } from "@/lib/auth-client";
 
 /* ─────────────────────────────────────────────────────────
  * SIDEBAR NAV
@@ -46,7 +48,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { key: "studio", label: "Studio", icon: <IconHome size={18} /> },
   { key: "brand-brain", label: "Brand brain", icon: <Brain size={18} /> },
-  { key: "integrations", label: "Integrations", icon: <Blocks size={18} /> },
+  // { key: "integrations", label: "Integrations", icon: <Blocks size={18} /> },
 ];
 
 export type SidebarRecent = {
@@ -114,6 +116,7 @@ function RailButton({
   count,
   onClick,
   disabled = false,
+  title,
 }: {
   icon: ReactNode;
   label: string;
@@ -121,11 +124,14 @@ function RailButton({
   count?: string;
   onClick?: () => void;
   disabled?: boolean;
+  title?: string;
 }) {
   return (
     <button
       data-row
       type="button"
+      title={title ?? label}
+      aria-label={label}
       onClick={onClick}
       disabled={disabled}
       className={`sidebar-row relative z-10 mx-2 flex h-8 items-center rounded-[8px] px-2 text-left
@@ -226,14 +232,58 @@ export default function SidebarNav({
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const { data: session } = authClient.useSession();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await authClient.signOut();
+    } catch (error) {
+      console.error("Sign out error:", error);
+    } finally {
+      window.location.assign("/auth/signin");
+    }
+  };
+
+  const [loadedRecents, setLoadedRecents] = useState<SidebarRecent[]>([]);
+
+  useEffect(() => {
+    if (!activeBrand?.id) {
+      setLoadedRecents([]);
+      return;
+    }
+    let isMounted = true;
+    listStudioProjects(activeBrand.id)
+      .then((projects) => {
+        if (!isMounted) return;
+        setLoadedRecents(
+          projects.map((p) => ({
+            id: p.id,
+            label:
+              p.title || (p.kind === "discovery" ? "Discovery" : "Untitled chat"),
+            prompt: p.kind,
+          })),
+        );
+      })
+      .catch(() => {
+        // ignore error silently
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [activeBrand?.id]);
+
+  const allRecents = recents ?? loadedRecents;
 
   const selectedTitle =
     activeTitle === undefined ? demoActiveTitle : activeTitle;
   const visibleRecents = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return recents;
-    return recents?.filter((item) => item.label.toLowerCase().includes(q));
-  }, [recents, query]);
+    if (!q) return allRecents;
+    return allRecents?.filter((item) => item.label.toLowerCase().includes(q));
+  }, [allRecents, query]);
 
   useEffect(() => {
     if (searchOpen) searchRef.current?.focus();
@@ -279,27 +329,6 @@ export default function SidebarNav({
               priority
             />
           </Link>
-
-          <button
-            type="button"
-            aria-label="Collapse sidebar"
-            aria-hidden={collapsed}
-            tabIndex={collapsed ? -1 : 0}
-            onClick={collapse}
-            className="sidebar-collapse-control flex size-7 items-center justify-center rounded-[8px] text-ink-3 transition-[opacity,background-color,color] duration-150 hover:bg-hover-2 hover:text-ink"
-          >
-            <IconSidebarLeftArrow size={17} />
-          </button>
-          <button
-            type="button"
-            aria-label="Expand sidebar"
-            aria-hidden={!collapsed}
-            tabIndex={collapsed ? 0 : -1}
-            onClick={() => setCollapsed(false)}
-            className="sidebar-expand-control absolute left-[10px] top-0 flex size-8 items-center justify-center rounded-[8px] text-ink-3 transition-[opacity,background-color,color] duration-150 hover:bg-hover-2 hover:text-ink"
-          >
-            <IconSidebarLeftArrow size={17} className="rotate-180" />
-          </button>
         </div>
 
         <BrandNavigation collapsed={collapsed} />
@@ -396,7 +425,9 @@ export default function SidebarNav({
 
           <GlideGroup>
             {visibleRecents?.map((item) => {
-              const isActive = item.label === selectedTitle;
+              const isActive =
+                item.label === selectedTitle ||
+                pathname === `/workspace/studio/${item.id}`;
               return (
                 <button
                   key={item.id}
@@ -404,10 +435,14 @@ export default function SidebarNav({
                   type="button"
                   title={item.label}
                   onClick={() => {
-                    setInternalNav("chats");
+                    setInternalNav("studio");
                     if (activeTitle === undefined)
                       setDemoActiveTitle(item.label);
-                    onPick?.(item.id, item.label, item.prompt);
+                    if (onPick) {
+                      onPick(item.id, item.label, item.prompt);
+                    } else {
+                      router.push(`/workspace/studio/${item.id}`);
+                    }
                   }}
                   className={`sidebar-row relative z-10 mx-2 flex h-8 items-center rounded-[8px] px-2 text-left transition-[width,background-color,color,transform] duration-150 active:scale-[0.98] ${
                     isActive
@@ -432,14 +467,45 @@ export default function SidebarNav({
         </div>
 
         <div className="mt-auto flex flex-col gap-1.5 pt-2.5">
-          {/* Invite users */}
+          {session?.user && (
+            <div
+              className="sidebar-row mx-2 flex h-9 items-center rounded-[8px] px-2"
+              title={session.user.name || session.user.email}
+            >
+              <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-[10px] font-bold text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200 overflow-hidden">
+                {session.user.image ? (
+                  <img
+                    src={session.user.image}
+                    alt=""
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  (
+                    session.user.name?.[0] ||
+                    session.user.email?.[0] ||
+                    "U"
+                  ).toUpperCase()
+                )}
+              </div>
+              <div className="sidebar-copy ml-1.5 min-w-0 flex-1 truncate">
+                <p className="truncate text-[13px] font-medium leading-tight text-ink">
+                  {session.user.name || "Account"}
+                </p>
+                <p className="truncate text-[11px] leading-tight text-ink-3">
+                  {session.user.email}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Invite users & Log out */}
           <GlideGroup>
+          
             <RailButton
-              icon={<IconUserAdd size={18} />}
-              label="Invite users"
-              count="3/10"
-              active={currentNav === "invite"}
-              onClick={() => selectNav("invite")}
+              icon={<LogOut size={18} />}
+              label={loggingOut ? "Logging out…" : "Log out"}
+              disabled={loggingOut}
+              onClick={handleLogout}
             />
           </GlideGroup>
 
@@ -449,7 +515,7 @@ export default function SidebarNav({
               <button
                 type="button"
                 onClick={onFooterClick}
-                className="flex h-8 w-full items-center justify-center gap-1.5 rounded-control bg-hover-2 text-[12.5px] font-medium text-ink bg-secondary transition-[background-color,transform] duration-150 hover:bg-line-strong active:scale-[0.98] dark:text-black"
+                className="flex h-8 w-full items-center justify-center gap-1.5 rounded-control bg-hover-2 text-[12.5px] font-medium text-ink bg-tertiary transition-[background-color,transform] duration-150 hover:bg-line-strong active:scale-[0.98] dark:text-black"
               >
                 {footerIcon}
                 {footerLabel}

@@ -1,5 +1,10 @@
 export const trialDays = 7;
 
+export const PLAN_CREDITS: Record<string, number> = {
+  starter: 2000,
+  pro: 7000,
+};
+
 const imageModels = [
   { name: "GPT Image 2", logo: "/openai.svg" },
   { name: "Nano Banana 2", logo: "/model-logos/nanobanana.svg" },
@@ -21,7 +26,7 @@ export const pricingPlans = [
     monthlyPrice: 19,
     imageModels: imageModels.slice(0, 6),
     features: [
-      "500 credits every month",
+      "2,000 credits every month",
       "2 seats included",
       "Your personal AI brand designer",
       "A Brand Brain for your business",
@@ -37,7 +42,7 @@ export const pricingPlans = [
     monthlyPrice: 49,
     imageModels,
     features: [
-      "1,500 credits every month",
+      "7,000 credits every month",
       "4 seats included",
       "Everything in Starter, plus…",
       "More room for recurring creative",

@@ -772,7 +772,7 @@ test(
             [anchor, new Date(Date.UTC(now.getUTCFullYear() + 1, 0, 31, 12))],
           );
           const usage = await ledger.getUsage("annual");
-          assert.equal(usage.availableCredits, 500);
+          assert.equal(usage.availableCredits, 2000);
           assert.equal(
             usage.resetAt,
             monthlyPeriod(anchor, now).end.toISOString(),
@@ -875,7 +875,10 @@ test(
               data: { object: { id: "in_start", customer: "cus_test" } },
             }) as unknown as Stripe.Event;
           await processStripeEvent(event("evt_1"), sdk);
-          assert.equal((await ledger.getUsage("stripe")).availableCredits, 500);
+          assert.equal(
+            (await ledger.getUsage("stripe")).availableCredits,
+            2000,
+          );
           await operation("stripe", async () => {
             const {
               rows: [op],

@@ -3,6 +3,10 @@ import { verifyAuth, type AuthRequest } from "../middleware/auth";
 import { AccessError, billingError } from "../billing/catalog";
 import { assertAccess, getUsage } from "./ledger";
 import { requestKey, usageContext } from "./operations";
+import { pool } from "../auth/auth";
+import { stripeClient } from "../billing/stripe";
+import { customerLock } from "../billing/checkout";
+import { syncSubscriptionForCustomer } from "../billing/webhooks";
 
 // Retain the middleware name and trial error codes for existing API clients.
 export async function requireTrialAccess(
@@ -30,10 +34,34 @@ export async function requireTrialAccess(
       );
   }
 }
+
 export const usageRouter = Router();
 usageRouter.get("/", verifyAuth, async (request: AuthRequest, response) => {
   try {
-    const { bucketId, ...usage } = await getUsage(request.user!.id);
+    const userId = request.user!.id;
+    if (process.env.STRIPE_SECRET_KEY) {
+      try {
+        const {
+          rows: [acc],
+        } = await pool.query(
+          "SELECT customer_id, checkout_id FROM billing_account WHERE user_id=$1",
+          [userId],
+        );
+        if (acc?.customer_id && acc?.checkout_id) {
+          const session = await stripeClient().checkout.sessions.retrieve(
+            acc.checkout_id,
+          );
+          if (session.status === "complete") {
+            await customerLock(userId, async () => {
+              await syncSubscriptionForCustomer(userId, acc.customer_id);
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("Auto-syncing completed checkout failed", err);
+      }
+    }
+    const { bucketId, ...usage } = await getUsage(userId);
     response.setHeader("Cache-Control", "no-store");
     response.json(usage);
   } catch (error) {

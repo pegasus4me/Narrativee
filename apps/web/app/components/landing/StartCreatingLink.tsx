@@ -39,7 +39,7 @@ export default function StartCreatingLink({
   const [starting, startTransition] = useTransition();
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const reducedMotion = useReducedMotion();
-  const destination = "/workspace/studio";
+  const destination = "/workspace";
   const href = session ? destination : authLink("signup", destination);
 
   useEffect(() => {
