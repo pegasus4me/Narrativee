@@ -13,7 +13,6 @@ import {
   brandFromAnalysis,
   BrandApiError,
   claimBrand,
-  analysisPath,
   createBrand,
   getBrand,
   listBrands,
@@ -97,11 +96,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
             error: null,
             legacyId: null,
           });
-          router.replace(
-            created.analysisId
-              ? analysisPath(created.analysisId)
-              : studioPath(created.id),
-          );
+          router.replace(studioPath(created.id, Boolean(created.analysisId)));
           return;
         }
         const targetId =
@@ -202,7 +197,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     router,
   ]);
 
-  function select(brand: Brand, showAnalysis = false) {
+  function select(brand: Brand, showScan = false) {
     setState((current) => ({
       ...current,
       active: brand,
@@ -210,11 +205,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
       brands: [brand, ...current.brands.filter((item) => item.id !== brand.id)],
     }));
     window.sessionStorage.setItem("active_brand_id", brand.id);
-    router.push(
-      showAnalysis && brand.analysisId
-        ? analysisPath(brand.analysisId)
-        : studioPath(brand.id),
-    );
+    router.push(studioPath(brand.id, showScan && Boolean(brand.analysisId)));
   }
 
   async function remove(brand: Brand) {

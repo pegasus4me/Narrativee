@@ -57,8 +57,11 @@ export const createBrand = (input: {
   key: string;
 }) => request<Brand>("", { method: "POST", body: JSON.stringify(input) });
 
-export const studioPath = (id: string) =>
-  `/workspace/studio?brandId=${encodeURIComponent(id)}`;
+export const studioPath = (id: string, showScan = false) => {
+  const params = new URLSearchParams({ brandId: id });
+  if (showScan) params.set("scan", "true");
+  return `/workspace/studio?${params}`;
+};
 
 export const analysisPath = (id: string) =>
   `/workspace?${new URLSearchParams({ analysisId: id, onboarding: "true" })}`;

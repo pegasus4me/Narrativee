@@ -10,6 +10,7 @@ import SidebarNav from "../components/commons/sideBar";
 import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import { BrandProvider } from "../components/workspace/BrandProvider";
+import BrandScanDialog from "../components/workspace/BrandScanDialog";
 
 export default function WorkspaceLayout({
   children,
@@ -20,6 +21,7 @@ export default function WorkspaceLayout({
   return (
     <Suspense fallback={null}>
       <BrandProvider>
+        <BrandScanDialog />
         <AuthGuard>
           <UsageProvider>
             {isStudioProject ? (
