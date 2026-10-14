@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Check, X } from "lucide-react";
 import { pricingPlans } from "@/app/pricing/pricingData";
+import PricingModels from "@/app/pricing/PricingModels";
 import { Button } from "@/components/ui/button";
 import type { Usage, PlanCatalog } from "@/lib/api/billing";
 import { navigateBilling } from "@/lib/api/billing";
@@ -205,6 +206,9 @@ export default function UpgradeDialog({
                                 </li>
                               ))}
                           </ul>
+                        )}
+                        {planData && (
+                          <PricingModels models={planData.imageModels} />
                         )}
                       </div>
                       <Button

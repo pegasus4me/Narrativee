@@ -18,6 +18,7 @@ import { BoardResearchUnavailableError } from "../brand-board/research";
 import { JevConfigurationError, JevRequestError } from "./identity.judgment";
 import { agentFailureMessage } from "./agent-errors";
 import { canvasRouter } from "./canvas/canvas.routes";
+import { adReferencesRouter } from "../ad-references/ad-references.routes";
 import { CampaignError } from "./campaign/campaign.service";
 import { campaignOutputsSchema } from "./campaign/campaign.schema";
 import { campaignGenerationSchema } from "./campaign/campaign.brief";
@@ -68,6 +69,7 @@ export function createStudioRouter(generate?: StudioReply) {
   });
 
   router.use(canvasRouter);
+  router.use(adReferencesRouter);
 
   router.post(
     [

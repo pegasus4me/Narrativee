@@ -3,16 +3,18 @@ import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { authLink } from "@/lib/auth-destination";
 import { billingRequest, navigateBilling, type Usage } from "@/lib/api/billing";
-import { Button, type ButtonVariant } from "@/components/ui/button";
+import { Button, type ButtonVariant, type ButtonSize } from "@/components/ui/button";
 export default function PlanButton({
   plan,
   yearly,
   variant,
+  size = "lg",
   className,
 }: {
   plan: "starter" | "pro";
   yearly: boolean;
   variant?: ButtonVariant;
+  size?: ButtonSize;
   className?: string;
 }) {
   const { data: session } = authClient.useSession();
@@ -49,14 +51,12 @@ export default function PlanButton({
     <>
       <Button
         variant={variant ?? (plan === "starter" ? "tertiary" : "primary")}
-        size="lg"
+        size={size}
         className={className}
         disabled={busy}
         onClick={choose}
       >
-        {busy
-          ? "Opening billing…"
-          : `Choose ${plan === "starter" ? "Starter" : "Pro"}`}{" "}
+        {busy ? "Opening billing…" : "Start your 7 day trial"}{" "}
         <span aria-hidden="true">→</span>
       </Button>
       {error && (

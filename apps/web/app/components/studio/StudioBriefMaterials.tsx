@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/brand-brain";
 import { projectImageUrl } from "@/lib/api/studio-canvas";
 import StudioUploadButton from "./StudioUploadButton";
+import StudioAdReferences from "./StudioAdReferences";
 
 export interface StudioBriefReference {
   id: string;
@@ -121,6 +122,12 @@ export default function StudioBriefMaterials({
           onBusyChange={onBusyChange}
           label="Inspiration"
           onUploaded={(image) => attach(image, "style")}
+        />
+        <StudioAdReferences
+          projectId={projectId}
+          disabled={disabled || references.length >= 5}
+          onBusyChange={onBusyChange}
+          onSelected={(image) => attach(image, "style")}
         />
       </div>
       {error && (

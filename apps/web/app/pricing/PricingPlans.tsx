@@ -7,6 +7,7 @@ import PlanButton from "../components/billing/PlanButton";
 import { useQuery } from "@tanstack/react-query";
 import { billingRequest, type PlanCatalog } from "@/lib/api/billing";
 import { pricingPlans } from "./pricingData";
+import PricingModels from "./PricingModels";
 import styles from "./pricing.module.css";
 
 export default function PricingPlans() {
@@ -20,7 +21,7 @@ export default function PricingPlans() {
   return (
     <section aria-label="Narrativee plans">
       <div className={styles.billing}>
-        <div className={styles.billingToggle} aria-label="Billing period">
+        <div className={`${styles.billingToggle} bg-neutral-50`} aria-label="Billing period">
           <button
             type="button"
             aria-pressed={!yearly}
@@ -55,17 +56,25 @@ export default function PricingPlans() {
           };
           return (
             <article
-              className={`${styles.plan} ${index === 0 ? styles.featured : ""}`}
+              className={`${styles.plan} ${index === 0 ? styles.featured : ""} bg-neutral-50 rounded-3xl`}
               key={plan.name}
               aria-labelledby={`plan-${plan.name.toLowerCase()}`}
             >
               <div className={styles.planBody}>
-                <h2 id={`plan-${plan.name.toLowerCase()}`}>
-                  {plan.name === "Agency" ? "agencies" : plan.name.toLowerCase()}
+                <h2
+                  id={`plan-${plan.name.toLowerCase()}`}
+                  className={plan.name === "Starter" ? "text-tertiary" : ""}
+                >
+                  {plan.name === "Agency"
+                    ? "agencies"
+                    : plan.name.toLowerCase()}
                 </h2>
+                {plan.description && (
+                  <p className={styles.planDescription}>{plan.description}</p>
+                )}
                 <div className={styles.priceBlock} aria-live="polite">
                   <div className={styles.priceRow}>
-                    <span className={`${styles.price} text-5xl font-bold`}>
+                    <span className={`${styles.price} text-6xl font-bold`}>
                       {plan.monthlyPrice === null
                         ? "Let’s talk"
                         : `$${yearly ? (plan.monthlyPrice * 0.8).toFixed(2) : plan.monthlyPrice}`}
@@ -78,22 +87,24 @@ export default function PricingPlans() {
                         ? `$${(plan.monthlyPrice * 0.8 * 12).toFixed(2)} billed yearly · per month`
                         : `per month · ~$${(plan.monthlyPrice / 30).toFixed(2)}/day`}
                   </p>
+                  <p className={styles.priceUnit}>/ per brand</p>
                 </div>
 
                 {plan.monthlyPrice === null ? (
                   <Button
                     variant="outline"
-                    size="lg"
+                    size="xl"
                     asChild
                     className="w-full"
                   >
                     <a href="mailto:contact@narrativee.com?subject=Narrativee%20Agency%20plan">
-                      Get in touch <ArrowUpRight size={15} aria-hidden="true" />
+                      Get in touch <ArrowUpRight size={16} aria-hidden="true" />
                     </a>
                   </Button>
                 ) : (
                   <PlanButton
                     className="w-full"
+                    size="xl"
                     plan={plan.name === "Starter" ? "starter" : "pro"}
                     yearly={yearly}
                   />
@@ -102,7 +113,7 @@ export default function PricingPlans() {
                 <ul className={styles.features}>
                   {plan.features.map((copy, featureIndex) => (
                     <li key={copy}>
-                      <Check size={16} strokeWidth={1.7} aria-hidden="true" />
+                      <Check size={18} strokeWidth={2.5} aria-hidden="true" />
                       <span>
                         {featureIndex === 0 &&
                         item?.credits !== null &&
@@ -113,6 +124,7 @@ export default function PricingPlans() {
                     </li>
                   ))}
                 </ul>
+                <PricingModels models={plan.imageModels} />
               </div>
             </article>
           );

@@ -92,14 +92,13 @@ export default function Home(): React.ReactNode {
               >
                 From brand context to creative ads your team can{" "}
                 <span className="whitespace-nowrap">
-                  ship.
+                  ship
                   <HeroPlatformStack />
                 </span>
               </h1>
               <p className="mx-auto mt-6 max-w-[620px] text-[18px] md:text-[22px] font-semibold tracking-[-0.025em] text-[#525252]">
-                Bring research, brand rules and team feedback into every brief,
-                then shape editable social and ad creative in one shared
-                workspace.
+                The shared workspace where your team and AI agents build on
+                your brand, keeping every campaign true to what makes it yours.
               </p>
               <div
                 id="start"

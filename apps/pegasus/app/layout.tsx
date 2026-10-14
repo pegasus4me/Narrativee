@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import localFont from "next/font/local";
 import "./globals.css";
-
-const mono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-mono",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "safoan.inc — Building Pegasus",
@@ -18,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className={mono.variable}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
