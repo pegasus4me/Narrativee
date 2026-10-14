@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import type Stripe from "stripe";
-import { AccessError, monthlyPeriod } from "../src/billing/catalog";
+import { AccessError, monthlyPeriod, plans } from "../src/billing/catalog";
 import { rateFor, usageCost } from "../src/usage/model-rates";
 
 test("month-end resets retain the original day across leap years", () => {
@@ -877,7 +877,7 @@ test(
           await processStripeEvent(event("evt_1"), sdk);
           assert.equal(
             (await ledger.getUsage("stripe")).availableCredits,
-            2000,
+            plans.starter.credits,
           );
           await operation("stripe", async () => {
             const {
@@ -890,7 +890,10 @@ test(
             return { saved: true };
           });
           await processStripeEvent(event("evt_1"), sdk);
-          assert.equal((await ledger.getUsage("stripe")).availableCredits, 499);
+          assert.equal(
+            (await ledger.getUsage("stripe")).availableCredits,
+            plans.starter.credits - 1,
+          );
           selected = "pro";
           invoices.push({
             id: "in_upgrade",
@@ -908,7 +911,7 @@ test(
           await processStripeEvent(event("evt_upgrade"), sdk);
           assert.equal(
             (await ledger.getUsage("stripe")).availableCredits,
-            1499,
+            plans.pro.credits - 1,
           );
           assert.equal((await ledger.getUsage("stripe")).resetAt, reset);
           await processStripeEvent(
@@ -917,7 +920,7 @@ test(
           );
           assert.equal(
             (await ledger.getUsage("stripe")).availableCredits,
-            1499,
+            plans.pro.credits - 1,
           );
           status = "past_due";
           await processStripeEvent(
@@ -979,6 +982,7 @@ test(
           const session = {
             id: "cs_test",
             status: "open",
+            amount_total: 0,
             url: "https://checkout.stripe.test/session",
             expires_at: Math.floor(Date.now() / 1000) + 1800,
           };
