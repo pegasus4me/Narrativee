@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import {
   getSiteAnalysis,
+  retrySiteAnalysis,
   type SiteAnalysis,
   type Inference,
   type Observation,
@@ -33,6 +34,9 @@ function WorkspaceContent() {
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<SiteAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pollRevision, setPollRevision] = useState(0);
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
 
   // Active question answers state
   const [selectedAnswers, setSelectedAnswers] = useState<
@@ -97,7 +101,7 @@ function WorkspaceContent() {
         clearTimeout(pollTimerRef.current);
       }
     };
-  }, [analysisId]);
+  }, [analysisId, pollRevision]);
 
   const isGuest = !session?.user;
 
@@ -197,6 +201,36 @@ function WorkspaceContent() {
           {analysis.error || "Unable to complete site analysis."}
         </p>
         <div className="mt-6 flex items-center justify-center gap-3">
+          <button
+            type="button"
+            disabled={retrying}
+            onClick={async () => {
+              if (!analysis) return;
+              setRetrying(true);
+              setRetryError(null);
+              try {
+                await retrySiteAnalysis(analysis.id);
+                setAnalysis({
+                  ...analysis,
+                  status: "queued",
+                  progress: 0,
+                  error: null,
+                });
+                setPollRevision((revision) => revision + 1);
+              } catch (error) {
+                setRetryError(
+                  error instanceof Error
+                    ? error.message
+                    : "Unable to restart analysis",
+                );
+              } finally {
+                setRetrying(false);
+              }
+            }}
+            className="flex items-center gap-1.5 rounded-full bg-secondary px-5 py-2 text-sm font-medium text-black hover:bg-secondary/90 disabled:opacity-50"
+          >
+            {retrying ? "Restarting scan…" : "Retry scan"}
+          </button>
           <Link
             href="/"
             className="flex items-center gap-1.5 rounded-full bg-secondary px-5 py-2 text-sm font-medium text-black hover:bg-secondary/90 transition-colors cursor-pointer"
@@ -204,6 +238,11 @@ function WorkspaceContent() {
             Try another website on home
           </Link>
         </div>
+        {retryError && (
+          <p role="alert" className="mt-3 text-sm text-rose-600">
+            {retryError}
+          </p>
+        )}
       </div>
     );
   }

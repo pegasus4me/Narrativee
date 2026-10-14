@@ -61,6 +61,8 @@ export class OpenAIBrandSynthesizer {
     url: string,
     document: FirecrawlDocument,
   ): Promise<BrandDiagnosis> {
+    const branding = document.branding ?? null;
+    const brandingExcerpt = JSON.stringify(branding);
     const response = await this.client.responses.parse({
       model: this.model,
       reasoning: { effort: "low" },
@@ -72,8 +74,9 @@ export class OpenAIBrandSynthesizer {
             url,
             title: document.metadata?.title ?? "",
             description: document.metadata?.description ?? "",
-            markdown: document.markdown?.slice(0, 80_000) ?? "",
-            branding: document.branding ?? null,
+            // Keep the full prompt comfortably below the model's 32k input cap.
+            markdown: document.markdown?.slice(0, 20_000) ?? "",
+            branding: brandingExcerpt.length <= 12_000 ? branding : null,
           }),
         },
       ],

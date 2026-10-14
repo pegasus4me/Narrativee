@@ -40,7 +40,11 @@ export class AnalysisService {
     return analysis.id;
   }
 
-  async run(id: string, url: string): Promise<void> {
+  async run(
+    id: string,
+    url: string,
+    operationKey = `research:${id}`,
+  ): Promise<void> {
     const analysis = await findInternalAnalysis(id);
     if (!analysis?.userId) {
       await this.update(id, {
@@ -62,7 +66,7 @@ export class AnalysisService {
             );
           return { analysisId: id };
         },
-        `research:${id}`,
+        operationKey,
       );
     } catch (error) {
       console.error("Website research failed", error);

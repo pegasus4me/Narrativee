@@ -1,4 +1,5 @@
 import { Router, type Response } from "express";
+import { randomUUID } from "node:crypto";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "../auth/auth";
 import { discoveryMessage, siteAnalysis } from "../auth/schema/schema";
@@ -12,8 +13,65 @@ import { asAccessError, billingError } from "../billing/catalog";
 export const analysisRouter = Router();
 analysisRouter.use(optionalAuth);
 analysisRouter.post(
-  ["/", "/:id/competitors", "/:id/messages"],
+  ["/", "/:id/retry", "/:id/competitors", "/:id/messages"],
   requireTrialAccess,
+);
+
+analysisRouter.post(
+  "/:id/retry",
+  async (request: AuthRequest, response: Response): Promise<void> => {
+    try {
+      const analysis = await findPublicAnalysis(request.params.id, request);
+      if (!analysis) {
+        response.status(404).json({ error: "Analysis not found" });
+        return;
+      }
+      if (analysis.status !== "failed" || !analysis.brandId) {
+        response.status(409).json({ error: "This analysis cannot be retried" });
+        return;
+      }
+
+      const service = createService();
+      const [started] = await db
+        .update(siteAnalysis)
+        .set({
+          status: "queued",
+          progress: 0,
+          diagnosis: null,
+          competitorCandidates: null,
+          selectedCompetitorUrls: null,
+          competitorAnalysis: null,
+          error: null,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(siteAnalysis.id, request.params.id),
+            eq(siteAnalysis.status, "failed"),
+          ),
+        )
+        .returning({ id: siteAnalysis.id });
+      if (!started) {
+        response.status(409).json({ error: "Analysis already restarted" });
+        return;
+      }
+
+      void service.run(
+        request.params.id,
+        analysis.url,
+        `research:${request.params.id}:retry:${randomUUID()}`,
+      );
+      response
+        .status(202)
+        .json({ analysisId: request.params.id, status: "queued" });
+    } catch (error) {
+      response.status(asAccessError(error)?.status ?? 500).json({
+        ...billingError(error),
+        error:
+          error instanceof Error ? error.message : "Unable to retry analysis",
+      });
+    }
+  },
 );
 
 analysisRouter.post(

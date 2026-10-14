@@ -138,6 +138,17 @@ export async function getSiteAnalysis(id: string): Promise<SiteAnalysis> {
   return data as SiteAnalysis;
 }
 
+export async function retrySiteAnalysis(id: string): Promise<void> {
+  const response = await billingFetch(
+    `${API_URL}/site-analyses/${encodeURIComponent(id)}/retry`,
+    { method: "POST", credentials: "include" },
+  );
+  if (!response.ok) {
+    const data = await readApiJson<{ error?: string }>(response);
+    throw new Error(data.error || "Unable to restart site analysis");
+  }
+}
+
 export async function confirmCompetitors(
   id: string,
   urls: string[],
