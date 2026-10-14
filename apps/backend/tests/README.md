@@ -20,7 +20,7 @@ This uses `LOCAL_DATABASE_URL`, falling back to `DATABASE_URL`, and runs the add
 
 Run `node --import tsx scripts/run-billing-tests.ts products` against a configured local Postgres connection. The runner refuses remote hosts and creates/drops only its disposable `brand_products_test_*` database. The test covers authenticated product creation and editing, multiple private photos, cross-brand isolation enforced in both routes and the database, image validation, grouped agent context, and product/photo archiving. Migration 0023 must be applied before deploying these routes. The `campaign` suite additionally checks that Research and Creator receive product descriptions through the normal campaign flow with mocked providers.
 
-New accounts receive 80 credits once, with a trial ending 168 hours after signup. Existing accounts are not enrolled retroactively. Authenticated AI requests check the live trial expiry and balance; saved work remains readable. `GET /api/usage` returns the caller's balance and trial status. Credit deductions await the agreed conversion from actual provider usage to credits.
+New accounts receive 400 credits once, with a trial ending 168 hours after signup. Existing accounts are not enrolled retroactively. Authenticated AI requests check the live trial expiry and balance; saved work remains readable. `GET /api/usage` returns the caller's balance and trial status. Credit deductions await the agreed conversion from actual provider usage to credits.
 
 ```sh
 TEST_DATABASE_URL=postgresql://postgres:password@127.0.0.1:5432/trial_flow_test_local node --import tsx --test tests/trial-flow.test.ts

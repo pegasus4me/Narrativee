@@ -34,8 +34,8 @@ export default function PricingPage() {
         <div className={styles.note}>
           <span className={styles.betaDot} aria-hidden="true" />
           <p>
-            We’re in beta. New accounts get 80 credits for a {trialDays}-day
-            free trial, no card required. Paid credits reset every month, including yearly plans.
+            We’re in beta. New accounts get 400 credits for a {trialDays}-day
+            free trial, cancel anytime.
           </p>
           <a href="mailto:contact@narrativee.com">
             Have a question? <ArrowUpRight size={13} aria-hidden="true" />

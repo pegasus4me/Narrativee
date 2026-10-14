@@ -86,9 +86,14 @@ test(
     await pool.query(await readFile("drizzle/0019_trial_credits.sql", "utf8"));
     await pool.query(sql);
     await pool.query(sql);
+    const trialMigration = await readFile(
+      "drizzle/0024_trial_allowance.sql",
+      "utf8",
+    );
+    await pool.query(trialMigration);
     async function user(id: string) {
       await pool.query(
-        `INSERT INTO "user"(id,name,email,"emailVerified") VALUES($1,$1,$2,false)`,
+        `INSERT INTO "user"(id,name,email,"emailVerified",trial_credits_remaining) VALUES($1,$1,$2,false,80)`,
         [id, `${id}@billing.test`],
       );
     }
@@ -101,7 +106,7 @@ test(
     }
     try {
       await t.test(
-        "new trials grant once; migration replay preserves balances and deadlines",
+        "legacy 80-credit trials preserve balances and deadlines on migration replay",
         async () => {
           await user("trial");
           const first = await ledger.getUsage("trial");
@@ -137,6 +142,26 @@ test(
         },
       );
       await t.test(
+        "new 400-credit trials survive startup replay without refills",
+        async () => {
+          await pool.query(
+            `INSERT INTO "user"(id,name,email,"emailVerified") VALUES('new-trial','New trial','new-trial@billing.test',false)`,
+          );
+          await pool.query(sql);
+          await pool.query(trialMigration);
+          const initial = await ledger.getUsage("new-trial");
+          assert.equal(initial.availableCredits, 400);
+          await pool.query(
+            "UPDATE credit_bucket SET spent=10000 WHERE id='trial:new-trial'",
+          );
+          await pool.query(sql);
+          await pool.query(trialMigration);
+          const replayed = await ledger.getUsage("new-trial");
+          assert.equal(replayed.availableCredits, 399);
+          assert.equal(replayed.trialEndsAt, initial.trialEndsAt);
+        },
+      );
+      await t.test(
         "launch grant is idempotent and preserves enrolled balances",
         async () => {
           const { grantLegacyTrials } = await import(
@@ -145,7 +170,7 @@ test(
           const before = await ledger.getUsage("trial");
           assert.equal(await grantLegacyTrials(), 1);
           assert.equal(await grantLegacyTrials(), 0);
-          assert.equal((await ledger.getUsage("legacy")).availableCredits, 80);
+          assert.equal((await ledger.getUsage("legacy")).availableCredits, 400);
           assert.equal(
             (await ledger.getUsage("trial")).availableCredits,
             before.availableCredits,

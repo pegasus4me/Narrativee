@@ -60,6 +60,7 @@ test(
       "0020_studio_project_title.sql",
       "0021_billing.sql",
       "0023_brand_products.sql",
+      "0024_trial_allowance.sql",
     ]) {
       await pool.query(await readFile(`drizzle/${file}`, "utf8"));
     }

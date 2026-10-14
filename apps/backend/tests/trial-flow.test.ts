@@ -29,7 +29,7 @@ test("trial expires with unused credits at the exact expiry boundary", () => {
 });
 
 test(
-  "new accounts receive 80 credits once and expired trials cannot start AI work",
+  "new accounts receive 400 credits once and expired trials cannot start AI work",
   {
     skip: !process.env.TEST_DATABASE_URL,
   },
@@ -74,6 +74,7 @@ test(
       "0020_studio_project_title.sql",
       "0021_billing.sql",
       "0023_brand_products.sql",
+      "0024_trial_allowance.sql",
     ])
       await pool.query(await readFile(`drizzle/${file}`, "utf8"));
     const legacy = (
@@ -140,7 +141,7 @@ test(
       assert.equal(usageResponse.status, 200);
       assert.equal(usageResponse.headers.get("cache-control"), "no-store");
       const usage = await usageResponse.json();
-      assert.equal(usage.trialCreditsRemaining, 80);
+      assert.equal(usage.trialCreditsRemaining, 400);
       assert.equal(usage.trialStatus, "active");
       const trialDuration =
         new Date(usage.trialEndsAt).getTime() - beforeSignup;
@@ -159,11 +160,14 @@ test(
       const projectId = (await project.json()).id;
 
       await pool.query(
-        `UPDATE credit_bucket SET spent=680000 WHERE id='trial:'||$1`,
+        `UPDATE credit_bucket SET spent=3880000 WHERE id='trial:'||$1`,
         [userId],
       );
       await pool.query(
         await readFile("drizzle/0019_trial_credits.sql", "utf8"),
+      );
+      await pool.query(
+        await readFile("drizzle/0024_trial_allowance.sql", "utf8"),
       );
       const login = await call("/auth/sign-in/email", "", {
         email: "trial@example.test",
@@ -182,7 +186,7 @@ test(
       assert.equal(
         (await (await call("/usage", cookieOf(second))).json())
           .trialCreditsRemaining,
-        80,
+        400,
       );
       const override = await call("/auth/update-user", cookie, {
         trialCreditsRemaining: 99999,
@@ -231,8 +235,8 @@ test(
       for (const status of ["exhausted", "expired"] as const) {
         await pool.query(
           status === "exhausted"
-            ? `UPDATE credit_bucket SET spent=800000 WHERE id='trial:'||$1`
-            : `UPDATE credit_bucket SET spent=680000,starts_at=now()-interval '168 hours',expires_at=now()-interval '1 second' WHERE id='trial:'||$1`,
+            ? `UPDATE credit_bucket SET spent=4000000 WHERE id='trial:'||$1`
+            : `UPDATE credit_bucket SET spent=3880000,starts_at=now()-interval '168 hours',expires_at=now()-interval '1 second' WHERE id='trial:'||$1`,
           [userId],
         );
         for (const [path, body] of guardedPaths) {
@@ -298,7 +302,7 @@ test(
             `SELECT trial_credits_remaining FROM "user" WHERE id = 'provider-user'`,
           )
         ).rows[0].trial_credits_remaining,
-        80,
+        400,
       );
       const decline = await call(
         `/studio/projects/${projectId}/approvals/${randomUUID()}/stream`,

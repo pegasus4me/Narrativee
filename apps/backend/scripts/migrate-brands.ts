@@ -55,6 +55,7 @@ async function main() {
       "0021_billing.sql",
       "0022_server_only_tables.sql",
       "0023_brand_products.sql",
+      "0024_trial_allowance.sql",
     ]) {
       await connection.query(await readFile(`drizzle/${name}`, "utf8"));
     }

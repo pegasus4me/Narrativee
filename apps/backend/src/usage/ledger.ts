@@ -37,10 +37,10 @@ export async function lockAccount(client: PoolClient, userId: string) {
     `SELECT * FROM billing_account WHERE user_id=$1 FOR UPDATE`,
     [userId],
   );
-  // Auth signup defaults define the deadline; never start a new trial on a read.
+  // Preserve legacy 80-credit grants; signup defaults supply the allowance for new trials.
   await client.query(
     `INSERT INTO credit_bucket(id,user_id,kind,starts_at,expires_at,allowance,spent)
-    SELECT 'trial:'||id,id,'trial',trial_ends_at-interval '168 hours',trial_ends_at,800000,
+    SELECT 'trial:'||id,id,'trial',trial_ends_at-interval '168 hours',trial_ends_at,greatest(80,trial_credits_remaining)::bigint*10000,
     greatest(0,80-trial_credits_remaining)::bigint*10000 FROM "user"
     WHERE id=$1 AND trial_ends_at IS NOT NULL ON CONFLICT DO NOTHING`,
     [userId],

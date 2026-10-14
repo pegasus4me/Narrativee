@@ -31,7 +31,7 @@ export const user = pgTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
     trialCreditsRemaining: integer("trial_credits_remaining")
-      .default(80)
+      .default(400)
       .notNull(),
     trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }).default(
       sql`now() + interval '168 hours'`,
