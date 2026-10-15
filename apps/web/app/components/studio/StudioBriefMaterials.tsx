@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 import {
   getBrandBrain,
@@ -28,6 +28,7 @@ export default function StudioBriefMaterials({
   onReferencesChange,
   disabled,
   onBusyChange,
+  children,
 }: {
   brandId: string;
   projectId: string;
@@ -37,6 +38,7 @@ export default function StudioBriefMaterials({
   onReferencesChange: (references: StudioBriefReference[]) => void;
   disabled: boolean;
   onBusyChange: (busy: boolean) => void;
+  children?: ReactNode;
 }) {
   const [brain, setBrain] = useState<BrandBrain | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -93,14 +95,18 @@ export default function StudioBriefMaterials({
     );
   }
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="pointer-events-auto mx-auto w-fit max-w-full space-y-2">
+      <div
+        role="toolbar"
+        aria-label="Creative materials"
+        className="flex max-w-full flex-wrap items-center justify-center gap-1 rounded-b-[28px] border border-t-0 border-border bg-background/95 p-1.5 backdrop-blur-sm"
+      >
         <select
           aria-label="Product from Brand Brain"
           value={productId ?? ""}
           disabled={disabled}
           onChange={(event) => chooseProduct(event.target.value)}
-          className="h-8 max-w-48 rounded-lg border border-border bg-background px-2 text-xs"
+          className="h-9 max-w-44 rounded-full border-0 bg-transparent px-3 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <option value="">Choose a product</option>
           {brain?.products?.map((product) => (
@@ -129,6 +135,7 @@ export default function StudioBriefMaterials({
           onBusyChange={onBusyChange}
           onSelected={(image) => attach(image, "style")}
         />
+        {children}
       </div>
       {error && (
         <p role="status" className="text-xs text-muted-foreground">
@@ -144,7 +151,7 @@ export default function StudioBriefMaterials({
         </p>
       )}
       {references.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto">
+        <div className="flex max-w-full gap-2 overflow-x-auto pb-1">
           {references.map((reference) => (
             <div
               key={reference.id}

@@ -99,7 +99,7 @@ export default function StudioOutputSelect({
         <button
           type="button"
           disabled={disabled}
-          className="flex h-8 items-center gap-1 rounded-xl px-2 text-xs text-muted-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/20 disabled:opacity-40"
+          className="flex h-9 shrink-0 items-center gap-1 rounded-full px-3 text-xs text-muted-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/20 disabled:opacity-40"
         >
           <PlatformIcon platform={output.platform} />
           Outputs · {outputs.length}

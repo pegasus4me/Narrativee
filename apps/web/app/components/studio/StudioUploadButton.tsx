@@ -86,7 +86,7 @@ export default function StudioUploadButton({
         onClick={() => input.current?.click()}
         className={
           label
-            ? "h-8 w-auto gap-1.5 rounded-xl px-2 text-xs"
+            ? "h-9 w-auto gap-1.5 rounded-full px-3 text-xs"
             : "size-8 rounded-xl"
         }
       >
@@ -100,7 +100,7 @@ export default function StudioUploadButton({
       {status && (
         <span
           role={error ? "alert" : "status"}
-          className={`absolute bottom-10 left-0 z-20 w-64 rounded-lg border border-border bg-background p-2 pr-7 text-xs shadow-lg ${error ? "text-destructive" : "text-muted-foreground"}`}
+          className={`absolute top-12 left-0 z-20 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-background p-2 pr-7 text-xs shadow-lg ${error ? "text-destructive" : "text-muted-foreground"}`}
         >
           {status}
           {!busy && (

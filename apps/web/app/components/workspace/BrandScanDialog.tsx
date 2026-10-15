@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import { CheckCircle2, X } from "lucide-react";
+import { Loader } from "@/components/motion/loader";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSiteAnalysis, type SiteAnalysis } from "@/lib/api/analysis";
 import { studioPath } from "@/lib/api/brands";
 import { useBrands } from "./BrandProvider";
+import BrandScanProgress from "./BrandScanProgress";
 
 const runningStatuses = new Set([
   "queued",
@@ -85,7 +87,9 @@ export default function BrandScanDialog() {
     if (active?.id) router.replace(studioPath(active.id));
   }
 
-  const failed = analysis?.status === "failed";
+  const failed =
+    analysis?.status === "failed" ||
+    analysis?.status === "competitor_analysis_failed";
   const complete =
     analysis?.status === "awaiting_competitor_confirmation" ||
     analysis?.status === "completed";
@@ -94,41 +98,48 @@ export default function BrandScanDialog() {
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && close()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[1200] bg-black/30 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-[1201] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-line bg-surface p-6 text-ink shadow-overlay">
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-[1201] max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-line bg-surface p-6 text-ink shadow-overlay sm:p-8">
           <Dialog.Close
             aria-label="Close scan status"
             className="absolute right-4 top-4 rounded p-1 text-ink-3 hover:bg-hover-2"
           >
             <X size={18} />
           </Dialog.Close>
-          <Dialog.Title className="pr-8 text-lg font-semibold">
+          {!failed && !error && (
+            <div className="mx-auto mb-5 flex size-20 items-center justify-center">
+              {complete ? (
+                <CheckCircle2
+                  size={40}
+                  aria-hidden="true"
+                  className="text-emerald-500"
+                />
+              ) : (
+                <Loader
+                  variant="dither"
+                  size={48}
+                  label="Brand scan in progress"
+                />
+              )}
+            </div>
+          )}
+          <Dialog.Title className="px-6 text-center text-xl font-semibold">
             {failed
               ? "The brand scan hit a problem"
               : complete
                 ? "Your brand is ready"
-                : `Setting up ${active?.name ?? "your brand"}`}
+                : `Analyzing ${active?.name ?? "your brand"}`}
           </Dialog.Title>
-          <Dialog.Description className="mt-2 text-sm leading-6 text-ink-2">
+          <Dialog.Description
+            className="mt-2 text-center text-sm leading-6 text-ink-2"
+            aria-live="polite"
+          >
             {failed
               ? (analysis?.error ?? "The website scan could not be completed.")
               : complete
                 ? "Your brand context is ready. You can continue working in Studio."
                 : (error ?? statusLabel(analysis))}
           </Dialog.Description>
-          {!complete && !failed && !error && (
-            <div
-              className="mt-5 h-1.5 overflow-hidden rounded-full bg-hover-2"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={analysis?.progress ?? 0}
-            >
-              <div
-                className="h-full bg-ink transition-[width] duration-500"
-                style={{ width: `${Math.max(8, analysis?.progress ?? 8)}%` }}
-              />
-            </div>
-          )}
+          {!failed && !error && <BrandScanProgress analysis={analysis} />}
           {(complete || failed || error) && (
             <button
               type="button"

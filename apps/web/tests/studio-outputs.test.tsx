@@ -79,6 +79,9 @@ test("the Outputs popup retains platform and size selections, validates custom p
     socialPlatformLogos[platform] = iconFixture.toDataURL();
   }
   const container = environment.document.createElement("div");
+  const materialsTarget = environment.document.createElement("div");
+  materialsTarget.id = "studio-materials-project";
+  environment.document.body.appendChild(materialsTarget);
   environment.document.body.appendChild(container);
   const root = createRoot(container);
   const render = (pending = false) =>
@@ -102,7 +105,7 @@ test("the Outputs popup retains platform and size selections, validates custom p
   const group = () =>
     environment.document.querySelector('[aria-label="Campaign outputs"]')!;
   const outputTrigger = () =>
-    [...container.querySelectorAll("button")].find((button) =>
+    [...materialsTarget.querySelectorAll("button")].find((button) =>
       button.textContent?.includes("Outputs ·"),
     )!;
   const click = (element: Element) =>
@@ -140,7 +143,12 @@ test("the Outputs popup retains platform and size selections, validates custom p
     });
   try {
     await render();
-    assert.ok(container.querySelector("form")!.contains(outputTrigger()));
+    assert.ok(
+      materialsTarget
+        .querySelector('[role="toolbar"]')!
+        .contains(outputTrigger()),
+    );
+    assert.ok(!container.querySelector("form")!.contains(outputTrigger()));
     assert.equal(outputTrigger().getAttribute("aria-expanded"), "false");
     assert.equal(group(), null);
     await click(outputTrigger());
@@ -242,6 +250,7 @@ test("the Outputs popup retains platform and size selections, validates custom p
     });
     Object.assign(socialPlatformLogos, previousLogos);
     container.remove();
+    materialsTarget.remove();
     for (const [key, descriptor] of previous) {
       if (descriptor) Object.defineProperty(globalThis, key, descriptor);
       else Reflect.deleteProperty(globalThis, key);

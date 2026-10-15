@@ -124,6 +124,9 @@ test("the single brief sends selected products and retouches without an agent se
     );
   }
   const container = environment.document.createElement("div");
+  const materialsTarget = environment.document.createElement("div");
+  materialsTarget.id = "studio-materials-project";
+  environment.document.body.appendChild(materialsTarget);
   environment.document.body.appendChild(container);
   const root = createRoot(container);
   const send = () =>
@@ -144,15 +147,21 @@ test("the single brief sends selected products and retouches without an agent se
     );
     assert.equal(container.querySelector('[aria-label="Choose model"]'), null);
     assert.equal(container.querySelector('[role="tablist"]'), null);
-    assert.match(container.textContent!, /Up to 50 credits/);
-    const select = container.querySelector(
+    assert.equal(container.querySelector('[role="toolbar"]'), null);
+    assert.ok(
+      materialsTarget.querySelector('[aria-label="Creative materials"]'),
+    );
+    assert.ok(materialsTarget.querySelector('[aria-label="Product photo"]'));
+    assert.ok(materialsTarget.querySelector('[aria-label="Inspiration"]'));
+    assert.match(materialsTarget.textContent!, /Ad references/);
+    const select = materialsTarget.querySelector(
       'select[aria-label="Product from Brand Brain"]',
     ) as unknown as HTMLSelectElement;
     await act(async () => {
       select.value = productId;
       select.dispatchEvent(new window.Event("change", { bubbles: true }));
     });
-    assert.match(container.textContent!, /Bottle/);
+    assert.match(materialsTarget.textContent!, /Bottle/);
     await send();
     assert.deepEqual(submitted[0]?.generation, {
       productId,
@@ -192,7 +201,7 @@ test("the single brief sends selected products and retouches without an agent se
     assert.equal(submitted[2]?.generation.editAssetId, undefined);
     await act(async () =>
       (
-        container.querySelector(
+        materialsTarget.querySelector(
           '[aria-label="Remove Bottle from brief"]',
         ) as HTMLButtonElement
       ).click(),
@@ -206,6 +215,7 @@ test("the single brief sends selected products and retouches without an agent se
   } finally {
     await act(async () => root.unmount());
     container.remove();
+    materialsTarget.remove();
     for (const [key, descriptor] of previous) {
       if (descriptor) Object.defineProperty(globalThis, key, descriptor);
       else Reflect.deleteProperty(globalThis, key);

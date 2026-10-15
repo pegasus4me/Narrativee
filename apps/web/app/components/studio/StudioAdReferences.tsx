@@ -128,7 +128,7 @@ export default function StudioAdReferences({
           variant="ghost"
           size="sm"
           disabled={disabled}
-          className="h-8 gap-1.5 px-2 text-xs"
+          className="h-9 gap-1.5 rounded-full px-3 text-xs"
         >
           <Search size={15} />
           Ad references
