@@ -50,6 +50,14 @@ export type CreatorEvent =
 const activeProjects = new Set<string>();
 export class CreatorBusyError extends Error {}
 
+const creatorDependencies = {
+  classifyCreatorIntentWithJev,
+  readStudioTeamContext,
+  runCampaignRequest,
+  runCollaborativeConversation,
+  saveStudioExchange,
+};
+
 async function runCreatorRequestInternal(
   projectId: string,
   brandId: string,
@@ -59,7 +67,15 @@ async function runCreatorRequestInternal(
   selectedAgent: CreativeAgentSelection = "team",
   outputs?: CampaignOutput[],
   generation?: CampaignGeneration,
+  dependencies = creatorDependencies,
 ) {
+  const {
+    classifyCreatorIntentWithJev,
+    readStudioTeamContext,
+    runCampaignRequest,
+    runCollaborativeConversation,
+    saveStudioExchange,
+  } = dependencies;
   return withCreatorProject(projectId, async () => {
     let currentAgent: AgentActivityEvent["agent"] =
       selectedAgent === "team" ? "brand" : selectedAgent;
@@ -100,6 +116,23 @@ async function runCreatorRequestInternal(
     };
     try {
       if (generation) {
+        // Composer selections describe context, not permission to generate.
+        const intent = await classifyCreatorIntentWithJev(
+          content,
+          (await history()).slice(-12),
+          Boolean(generation.editAssetId),
+        );
+        if (intent === "conversation")
+          return await runCollaborativeConversation(
+            projectId,
+            userId,
+            content,
+            publish,
+            selectedAgent,
+            undefined,
+            undefined,
+            outputs,
+          );
         const answer = await runCampaignRequest(
           projectId,
           brandId,
@@ -211,6 +244,7 @@ export async function runCreatorRequest(
   selectedAgent: CreativeAgentSelection = "team",
   outputs?: CampaignOutput[],
   generation?: CampaignGeneration,
+  dependencies = creatorDependencies,
 ) {
   return billable(userId, "creation", () =>
     runCreatorRequestInternal(
@@ -222,6 +256,7 @@ export async function runCreatorRequest(
       selectedAgent,
       outputs,
       generation,
+      dependencies,
     ),
   );
 }

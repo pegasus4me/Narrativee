@@ -68,21 +68,22 @@ export async function evaluateJev(
 export async function classifyCreatorIntentWithJev(
   content: string,
   history: Array<{ role: string; content: string }> = [],
+  selectedCreative = false,
 ) {
   const result = await evaluateJev(
-    { request: content, history },
+    { request: content, history, selectedCreative },
     {
       intent: {
         type: "choice",
         instructions:
-          "Read request and history together, including answers to a campaign clarification. Choose campaign_creation for generating a new ad, launch visual, social creative, poster or promotional asset. Choose logo_exploration only for new logo/identity exploration. Existing-layer edits are currently manual: route revision requests about an existing creative to conversation and explain editing controls, rather than generating replacements. Choose conversation for questions and discussion.",
+          "Classify the latest user request, using history only to resolve its context. Choose conversation for greetings, questions, critique, explanations, research, strategy, brainstorming, or requests not to generate, even if earlier messages requested artwork. Agent mentions, selected products, references, output settings, and selecting a creative do not authorize image generation. Choose campaign_creation only when the user now asks for a rendered ad, launch visual, social creative, poster or promotional image, explicitly approves generating a previously discussed brief, or answers an essential clarification for an unfinished creation request. When selectedCreative is true, an explicit request to change the selected image also uses campaign_creation; asking about that image stays conversation. Existing editable-layer operations without a selected generated image stay conversation. Choose logo_exploration only for explicit new logo/identity creation. When uncertain, choose conversation so the agents can clarify before creating anything.",
         criteria: {
           logo_exploration:
             "The user asks for new logos, wordmarks, marks or visual identity exploration.",
           campaign_creation:
-            "The user asks to create a new campaign, ad, social, launch or promotional visual, or answers the designer's campaign clarification.",
+            "The latest user message explicitly requests a rendered visual, changes to a selected generated image, or continues an unfinished creation brief. Planning a campaign or discussing ideas alone is conversation.",
           conversation:
-            "The user asks a question or requests discussion without asking to create visual work.",
+            "The latest user message is discussion, research, strategy, critique, brainstorming, a question, or is ambiguous about executing visual work. Historical creation requests and selected creative settings are not authorization.",
         },
       },
     },
