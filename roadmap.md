@@ -1,95 +1,82 @@
-# Narrativee roadmap
+On est le **14 octobre**. Il te reste exactement **11 semaines (78 jours)** avant le 1er janvier pour atteindre **1 000 $ de MRR**.
 
-This is a living roadmap, not a release promise. It follows the [README vision](README.md): an AI designer that learns a company's brand and works alongside its team to create beautiful, brand-consistent campaigns and assets.
+Si tu veux vraiment appliquer le *"Move fast and break things"*, on commence par regarder les mathématiques en face :
 
-The first customers are growing startups and small marketing teams with an existing brand and recurring social or ad creative needs. Agencies doing this work for client brands also fit the wider direction.
+* À **19 $/mois**, il te faut **53 clients payants** d'ici le 1er janvier (soit près de 5 nouveaux clients chaque semaine dès aujourd'hui, avec zéro churn). En outbound pur en partant de zéro, c'est un enfer.
+* Mais regarde ta petite ligne magique : **`/ per brand` (par marque)**.
 
-## First release focus
+C'est là que tu gagnes. Si tu vends à un e-commerçant solo, tu gagnes 19 $. Si tu vends à une agence comme celle de Sara qui gère 5 marques clientes sur le plan Pro (49 $), **1 seule signature d'agence = 245 $/mois**. Il te suffit alors de **4 à 5 agences** (ou un mix de 3 agences + 10 marques en direct) pour dépasser les 1 000 $ de MRR avant le Nouvel An.
 
-Deliver one editable square static social or ad creative from an existing brand and a short brief. Make the composition useful, respect approved identity, support reliable revisions, and carry explicitly saved decisions into the next request.
+---
 
-Prioritize the complete brief → creation → revision → export loop before expanding formats, integrations, automatic learning, or agency operations. Product announcements are one possible brief within this job, not a separate product category.
+## Le Hack Pricing Immédiat (À faire ce soir en 10 minutes)
 
-The release earns its place when customers use or publish the work without rebuilding it, then return with another brief. The advantage over their existing workflow must show up as less customer effort and fewer corrections.
+1. **Ajoute un "Agency Pack" à 149 $/mois (jusqu'à 5 Brand Brains inclus)** sur ta page de pricing. Pour une agence qui facture ses clients 2 000 $/mois, 149 $ est un achat impulsif sans validation comptable. Pour toi, **7 agences = 1 043 $ de MRR**.
+2. **Attention à tes marges à 19 $ :** Tu donnes accès aux 6 meilleurs modèles (GPT Image 2, Nano Banana 2, Seedream 4.5, FLUX.2, Ideogram 3, Recraft V4) avec 2 000 crédits pour 19 $. Assure-toi qu'une génération coûte entre 20 et 50 crédits (soit 40 à 100 images max pour 19 $), sinon tes coûts d'API vont dévorer tes 19 $ dès qu'un utilisateur fera des tests intensifs.
 
-## Core loop
+---
 
-Existing brand and source material → approved Brand Brain context → brief in Studio → one editable creative → revision and export → explicitly saved decisions for the next request.
+## Phase 1 : 0 à 10 Clients (Octobre – Mi-Novembre)
 
-The agent does the creative heavy lifting. The human can steer, edit, approve, and correct what the agent remembers.
+**Objectif :** ~300 $– 500$ MRR | **Mentalité :** *Do things that don't scale, vends en DM, casse tout.*
 
-## Current foundation
+À ce stade, personne ne connaît Narrativee. Tu ne vends pas un abonnement self-serve, tu vends le fait que **toi et ton IA allez leur faire gagner 5 heures cette semaine**.
 
-- Discovery and competitor research remain separate research workflows; detected website identity and evidence-backed brand understanding now populate Brand Kit.
-- Brand Brain stores brand rules, inspiration, feedback, and uploaded images.
-- Studio replies and logo generation receive Brand Brain context before generation.
-- Campaign generation receives actual visual references as well as their captions; older conversation/logo paths still have separate context handling.
-- Website-to-kit population is connected. Automatic learning from Studio is not connected yet.
+| Semaine | Action prioritaire ("Move Fast") | Volume / KPI |
+| --- | --- | --- |
+| **Semaines 1–2 (15–31 Oct)** | **Le "Trojan Horse" Outbound :** Ne demande pas aux gens de tester. Prends 20 sites d'agences/marques par jour, passe-les dans le scanner Narrativee toi-même, génère 3 visuels ultra propres avec FLUX.2 / Recraft V4 / Nano Banana 2, et envoie la capture d'écran + un Loom de 45s par mail/LinkedIn : *"J'ai créé votre Brand Brain, vous voulez l'accès ?"* | 200 prospects contactés → 20 réponses → 5 premiers clients. |
+| **Semaines 3–4 (Nov 1–15)** | **Concierge Onboarding :** Dès qu'un prospect mord, fais un appel de 15 min. Configure son Brand Brain en direct avec lui. Demande-lui sa carte bleue à la fin de l'appel ("Je te fais le setup complet maintenant sur le plan à 49 $, si dans 7 jours tu n'as pas sorti ta campagne, je te rembourse en un clic"). | 5 nouveaux clients (Total : **10 clients**). |
 
-## Next: make Brand Brain useful without manual setup
+**Ce que tu as le droit de coder en Phase 1 :** Uniquement corriger les bugs bloquants que tes 10 premiers utilisateurs rencontrent devant toi pendant les appels. Rien d'autre.
 
-- [x] Automatically populate Brand Kit from website discovery: detected logo, social-sharing image, named colors, font families, and evidence-backed brand observations, where available. Existing saved scans are also supported.
-- [x] Show the source of imported information and distinguish website observations from user-approved identity. Do not invent missing information.
-- [x] Let users add material, confirm imported rules or assets, and archive/replace incorrect findings. Their explicit choices take priority.
-- [x] Make repeated discovery safe: avoid duplicate imports, respect archived findings, and never silently overwrite user corrections or approvals.
-- [x] Pass uploaded logos and visual references to the campaign design engine as images, not only captions.
-- [ ] Keep brand context available across Studio projects and creation paths; verify that the designer actually respects it.
+---
 
-Success signal: a user enters their website, sees a useful starting kit, corrects anything necessary, and gets work that follows that identity without re-entering it in every prompt.
+## Phase 2 : 10 à 100 Clients (Mi-Novembre – 1er Janvier et +)
 
-## Next: review onboarding for the fastest possible wow moment
+**Objectif :** Franchir les **1 000 $ de MRR avant le 1er janvier** (atteint dès ~20-25 marques actives), puis scaler à 3 500 $+ MRR.
+**Mentalité :** *Transformer l'outbound manuel en machine d'acquisition et activer le multi-marques.*
 
-- [ ] Review the full onboarding journey from landing page and signup to the first usable creation in Studio.
-- [ ] Maximize the wow moment as early as possible: let users see that the designer understands their brand and can produce something worth using.
-- [ ] Remove unnecessary forms, configuration, and lengthy discovery exchanges before the first result.
-- [ ] Explore a fast path: website → visible brand understanding → one short campaign brief → first asset. Keep deeper research and optional inputs from blocking this path unnecessarily.
-- [ ] Make progress and failures understandable, preserve user input, and provide recovery when website extraction is incomplete.
-- [ ] Measure time to first usable asset, onboarding completion, and where users leave. Set a realistic speed target after observing real runs, without lowering the quality bar.
+Le mois de **Novembre (Black Friday / Cyber Monday)** et **Décembre (Noël / Q4)** sont les mois où les agences et e-commerçants sont sous l'eau : ils doivent produire 10x plus de créas publicitaires que d'habitude. C'est ton moment parfait.
 
-Success signal: new users reach a recognizable, presentable first asset quickly and understand why Narrativee is more useful than a generic image-generation prompt.
+1. **L'Expansion "Multi-Brand" chez tes 10 premiers clients (Fin Novembre)**
+* Une agence qui a pris 1 marque à 19 $ou 49$ pour tester en octobre doit passer ses 4 autres clients dessus en novembre pour gérer le rush du Black Friday.
+* Envoie un message personnel à tes 10 premiers inscrits : *"Tu as le rush de fin d'année qui arrive : donne-moi les URLs de tes 3 autres clients, je te configure leurs Brand Brains aujourd'hui et je te fais -30 % sur les workspaces supplémentaires."*
 
-## Next: strengthen the design engine
 
-- [x] Implement one square static campaign creative per request, with a multi-frame document contract for future formats.
-- [x] Generate separate editable text, graphics, and image layers directly in Studio, without replacing existing work.
-- [x] Add authenticated server saving, private project imagery, revision conflicts, reopening, and selected-frame PNG export.
-- [ ] Review three real campaign briefs and require at least two usable, on-brand compositions without rebuilding them. Automated written-plan judgment is not a visual quality gate.
-- [ ] Improve art direction, composition, typography, imagery, and brand consistency together—not just prompt complexity.
-- [ ] Evaluate creations against approved identity, the brief, visual quality, and reference interpretation. References guide exploration; they are not instructions to copy another brand.
-- [ ] Make revisions preserve approved parts of the creative while changing the requested text, imagery, or composition. Verify the saved and exported result, not only the assistant's reply.
-- [ ] Save explicitly approved work for reuse in Brand Brain; canvas saving must not silently promote it into brand rules.
-- [ ] Test the same workflow twice with early customers: does the second delivery need less explanation and fewer corrections?
+2. **Build in Public & Comparatifs de Modèles sur LinkedIn / X (3x par semaine)**
+* Tu as les 6 modèles les plus chauds du marché sous le capot (GPT Image 2, Nano Banana 2, Seedream 4.5, FLUX.2, Ideogram 3, Recraft V4).
+* Fais des posts ultra-visuels où tu montres : *"Même brief produit, même Brand Brain : voici ce que sort FLUX.2 vs Ideogram 3 vs Recraft V4, et comment l'agent d'inspection corrige les défauts."* Les créatifs adorent ces comparatifs et ça prouve la supériorité de ton workflow sur un simple abonnement Midjourney.
 
-Success signal: customers use or publish the assets without manual redesign, then return for another brief.
 
-## Then: automatic learning through collaboration
+3. **Cold Email Automatisé (Instantly / Lemlist)**
+* Ce que tu as fait à la main en Phase 1, tu l'automatises. Scrape les agences créatives et les marques Shopify (via Apollo ou Clay), et envoie 100 mails/jour depuis 2 domaines secondaires (ex: `getnarrativee.com`, `trynarrativee.com` pour ne jamais brûler `narrativee.com`).
 
-- [ ] Capture explicit approvals, corrections, and useful feedback from Studio, with the project and source that produced them.
-- [ ] Separate campaign-specific instructions from lasting brand preferences; one request should not become a permanent rule by default.
-- [ ] Learn recurring preferences automatically, while keeping uncertain inferences distinct from approved identity.
-- [ ] Never silently replace official logos, palettes, fonts, or directives. Propose identity changes for human approval.
-- [ ] Let users inspect, correct, and forget learned preferences. Evolve the manual Feedback tab into a view of what the designer has learned.
-- [ ] Verify that saved lessons improve later work and do not conflict with explicit brand rules.
 
-Success signal: the designer remembers useful corrections across projects, while users retain control of their identity and memory.
+4. **Activation Product-Led (Onboarding sans appel)**
+* Remplace tes appels d'onboarding par une séquence automatique : dès qu'un utilisateur entre son URL sur `narrativee.com`, il doit voir ses 3 premières créas générées en **moins de 90 secondes** avant même de devoir configurer quoi que ce soit de complexe.
 
-## Future integrations and capabilities
 
-Backlog only. Add an integration when repeated customer needs justify it and it improves the core loop. Validate API access, costs, privacy, and asset reuse rights before implementation.
 
-- [ ] Pinterest: selectively import references from a customer's boards, with notes explaining what they like about each reference.
-- [ ] Image libraries such as Pexels or Unsplash: find suitable photography with verified usage terms and source tracking.
-- [ ] Custom fonts: import licensed fonts alongside the existing Google Fonts selection.
-- [ ] Additional social and ad placements: add a channel/placement picker and verified size presets, then recompose approved creative for each format after square creative delivery is reliable.
-- [ ] Email, WhatsApp, or SMS: notify customers when requested work is ready for review.
-- [ ] Instagram, Meta, X, and other publishing channels: approved publishing workflows after asset quality and review are reliable.
-- [ ] Reusable visual-system library: original parameterized designs and presets; do not embed third-party tool code or assets without verified rights.
-- [ ] Brand boards: assemble selected and approved Studio work into a presentation after creation, rather than making a report the primary output.
+---
 
-## Roadmap discipline
+## Phase 3 : 100 à 1 000 Clients (T1 – T2 2027)
 
-- Keep the first release centered on excellent static social and ad creative for existing brands, reliable revisions, and explicit continuity between requests.
-- Keep the long-term AI brand designer vision separate from the first release's promises. Broader identity work, motion and video, and agency operations do not block this entry point.
-- Do not turn Studio into a Figma replacement before the agent's core workflow is useful.
-- Ship small improvements, test with customers, and prioritize quality and distribution over speculative features.
-- Keep future integrations here until they earn a place in active work. Revisit priorities after each customer test; dates remain unset until scope and evidence support them.
+**Objectif :** 25 000 $ à 40 000 $ MRR | **Mentalité :** *Systèmes, SEO Programmatique, Intégrations & Rétention.*
+
+C'est **seulement ici** que tu ressors tes idées d'ingénieur (SEO, Docs, MCP/API, Intégrations) :
+
+* **Le "Free Tool" / SEO Programmatique :** Crée un outil gratuit en page d'accueil : *"Auditeur de cohérence de marque IA gratuit"* ou *"Générateur de Brand Guidelines depuis une URL"*. L'utilisateur entre son URL, Narrativee génère une magnifique planche de marque (couleurs, typographie, style photo, ton) partageable, et propose : *"Générez vos 5 premières pubs avec ce Brand Brain → 19 $/mois"*.
+* **Boucle virale Agence → Client (Guest Approval Links) :** Tu as déjà mis *"2 seats included"* dans ton offre à 19 $. Ajoute un lien de partage "Validation Client" en lecture seule. Quand l'agence envoie les créas à son client pour validation, le client clique sur un lien brandé *"Propulsé par Narrativee — Le Brand Brain de [Nom du Client]"*. Chaque agence devient ton panneau publicitaire.
+* **Intégrations Directes (Meta Ads Library, Shopify, MCP/API) :** Permets d'importer directement le catalogue produit Shopify en un clic et de pousser les PNG validés directement dans Meta Ads Manager.
+
+---
+
+## Ton Plan de Bataille des 48 Prochaines Heures
+
+Ne touche plus au code de ton produit, ne touche pas au SEO, ne touche pas à MCP :
+
+1. **Ce soir :** Mets `safoan@narrativee.com` en route et ajoute une option "Agence (5 marques)" à 149 $/mois à côté de tes plans 19 $et 49$.
+2. **Demain matin (9h–12h) :** Prends le site de Sara (ou d'un de ses clients), passe-le dans Narrativee, sors 3 visuels bluffants avec tes 6 modèles, et enregistre un Loom de 45 secondes.
+3. **Demain après-midi (14h–18h) :** Répète l'opération pour 15 autres agences et envoie tes 16 premiers messages courts.
+
+Tu veux qu'on regarde comment formuler l'offre "Agence" sur ta page de pricing ou tu préfères qu'on prépare le script exact de ton Loom de 45 secondes pour demain matin ?

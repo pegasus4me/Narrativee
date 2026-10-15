@@ -202,7 +202,7 @@ export default function SidebarNav({
   async function newProject() {
     if (creatingProject) return;
     if (!activeBrand?.id) {
-      setCreationError("Sélectionne une marque avant de créer un projet.");
+      setCreationError("Add a brand to narrativee before starting a campaign");
       return;
     }
     setCreatingProject(true);

@@ -1,0 +1,933 @@
+{
+  "researched_at": "2026-10-14",
+  "scope": "Global; strongest product fit regardless of geography",
+  "icp": "Small businesses or small agencies needing recurring branded static ads, social graphics or product promotional images, using existing brand rules and source images; exclude TikTok/video-led agencies.",
+  "cost_usd": 0.2377,
+  "starting_balance_usd": 0.87718,
+  "ending_balance_usd": 0.63948,
+  "source_limit": "Company sizes are provider estimates. Page checks are fetched/indexed website evidence, not live interviews. No willingness to buy established.",
+  "top_10": [
+    {
+      "rank": 1,
+      "name": "All Over Social",
+      "market": "United Kingdom",
+      "segment": "Agency / consultant",
+      "size": "3 (provider estimate; site presents Jade-led work)",
+      "person": "Jade Squire",
+      "role": "Founder / marketing consultant",
+      "website": "https://alloversocial.co.uk/",
+      "email": "jade.squire@alloversocial.co.uk",
+      "contact": "https://alloversocial.co.uk/",
+      "fit": "The official site combines content creation, asset design, Meta advertising and daily client social management. Jade's contact is published directly.",
+      "test": "A real branded promotional graphic for one client, then a follow-on promotion.",
+      "qualify": "Confirm a recurring static-image/graphics brief and a need to reduce production or correction time. Which repeat graphics require manual design, rather than photography, video or scheduling?",
+      "sources": [
+        "https://alloversocial.co.uk/",
+        "https://alloversocial.co.uk/about/"
+      ],
+      "draft": "Hi Jade — I saw that you handle social content, asset design and Meta campaigns for small businesses. I'm building Narrativee to turn a brief and source images into branded static creatives. I'm looking for my first customers and would like to try one real client promotion with you, then a second brief to compare the preparation and corrections with your usual process. Would a short guided session be useful?",
+      "email_check": {
+        "provider": "BounceBan via treg",
+        "checked_date": "2026-10-14",
+        "result": "deliverable",
+        "accept_all": true,
+        "role_address": false,
+        "call_id": "9f2fac3b32d34bba9bd5c6e35d5eb190",
+        "verification_id": "ovg-eb7f0ea6"
+      },
+      "status": "Not contacted",
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false
+    },
+    {
+      "rank": 2,
+      "name": "Little Media Agency",
+      "market": "United Kingdom",
+      "segment": "Agency",
+      "size": "5 (provider estimate)",
+      "person": "Sara Fleyfel",
+      "role": "Founder & director",
+      "website": "https://littlemediaagency.com/",
+      "email": "sara@littlemediaagency.com",
+      "contact": "https://linkedin.com/in/sarafleyfel",
+      "backup_email": "info@littlemediaagency.com",
+      "fit": "Its official site explicitly offers branded social posts and social advertising. Sara's professional profile identifies her role and publishes her address.",
+      "test": "One repeat client social graphic, followed by the next brief for that brand.",
+      "qualify": "Confirm a recurring static-image/graphics brief and a need to reduce production or correction time. Can exported PNGs fit the approval workflow, or are separate editable layers required?",
+      "sources": [
+        "https://littlemediaagency.com/about-us/",
+        "https://linkedin.com/in/sarafleyfel",
+        "https://littlemediaagency.com/contact/"
+      ],
+      "draft": "Hi Sara — I saw that Little Media creates branded posts and social campaigns, and that you also train marketers in AI. I'm building Narrativee for static creative production using a client's brief, images and brand rules. Could we test it on one recurring client graphic, then a second brief, and compare briefing and revision effort with your current workflow? I'm looking for my first customers and would run the sessions personally.",
+      "email_check": {
+        "provider": "BounceBan via treg",
+        "checked_date": "2026-10-14",
+        "result": "deliverable",
+        "accept_all": false,
+        "role_address": false,
+        "call_id": "0d472c1b842b4b2099600cfbe025d803",
+        "verification_id": "fgm-c1a51688"
+      },
+      "status": "Not contacted",
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false
+    },
+    {
+      "rank": 3,
+      "name": "WAY Digital",
+      "market": "France",
+      "segment": "Agency",
+      "size": "2 (provider estimate; site describes a duo)",
+      "person": "Tina / Ana",
+      "role": "Co-founders",
+      "website": "https://waydigital.fr/",
+      "email": "tina@waydigital.fr",
+      "contact": "https://waydigital.fr/contact",
+      "fit": "The official site describes a two-person business/technology team, recurring client work, and advertising creative including AI expertise.",
+      "test": "Create a product promotion for one existing ecommerce client, then reuse that client's approved rules.",
+      "qualify": "Confirm a recurring static-image/graphics brief and a need to reduce production or correction time. Do they need a production workspace, or are their existing AI/design tools already sufficient?",
+      "sources": [
+        "https://waydigital.fr/",
+        "https://waydigital.fr/about",
+        "https://waydigital.fr/contact"
+      ],
+      "draft": "Bonjour Tina — j’ai découvert WAY et votre approche en binôme business + tech, avec de la création publicitaire et de l’IA. Je construis Narrativee pour créer des visuels statiques à partir d’un brief et des photos produit, en gardant le contexte de chaque marque. Seriez-vous ouverte à tester deux briefs successifs d’un même client avec moi, pour voir si cela réduit la préparation et les corrections ?",
+      "email_check": {
+        "provider": "BounceBan via treg",
+        "checked_date": "2026-10-14",
+        "result": "deliverable",
+        "accept_all": true,
+        "role_address": false,
+        "call_id": "25036418ce7c475e9f257169c8840187",
+        "verification_id": "jio-646f8aeb"
+      },
+      "status": "Not contacted",
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false
+    },
+    {
+      "rank": 4,
+      "name": "Clickstera",
+      "market": "United States (company base)",
+      "segment": "Agency",
+      "size": "3 (provider estimate)",
+      "person": "Aadarsh Shaw",
+      "role": "Founder & CEO",
+      "website": "https://clickstera.com/",
+      "email": "info@clickstera.com",
+      "contact": "https://linkedin.com/in/aadarshshaw1",
+      "fit": "The official site describes Meta campaigns using static, UGC and AI creative; its about page identifies Aadarsh and a technical co-founder.",
+      "test": "A static Meta concept for an existing physical-product client.",
+      "qualify": "Confirm a recurring static-image/graphics brief and a need to reduce production or correction time. Are static production/revisions a bottleneck, or is their internal creative system already better?",
+      "sources": [
+        "https://clickstera.com/",
+        "https://clickstera.com/about",
+        "https://linkedin.com/in/aadarshshaw1"
+      ],
+      "draft": "Hi Aadarsh — I saw Clickstera's use of static and AI-driven Meta creatives alongside marketplace campaigns. I'm building Narrativee, a workspace for turning product images and a brief into static creatives with brand context. Could we compare it with your current process on one real static brief, then a follow-up for the same brand? I'm looking for my first customers and would work through both with you personally.",
+      "email_check": {
+        "provider": "BounceBan via treg",
+        "checked_date": "2026-10-14",
+        "result": "deliverable",
+        "accept_all": true,
+        "role_address": true,
+        "call_id": "56983e7307814445bfbed519f636a791",
+        "verification_id": "o0k-4b49feef"
+      },
+      "status": "Not contacted",
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false
+    },
+    {
+      "rank": 5,
+      "name": "Maris Dae",
+      "market": "Canada",
+      "segment": "Product brand",
+      "size": "8 (provider estimate; official team article names three leaders)",
+      "person": "Michelle Lazar / Sam Rayner",
+      "role": "CMO / founder",
+      "website": "https://marisdae.com/",
+      "email": "hello@marisdae.com",
+      "contact": "https://marisdae.com/pages/get-in-touch",
+      "fit": "A May 2026 team article names a CMO and founder; the brand sells a visually distinctive bodycare collection and gift set. Recurring creative demand is an inference to qualify.",
+      "test": "One approved product-led promotion for its bodycare set; use customer-supplied claims and imagery.",
+      "qualify": "How often do they need new static creatives, and who produces and approves them?",
+      "sources": [
+        "https://marisdae.com/blogs/news/meet-the-team",
+        "https://marisdae.com/pages/about-us",
+        "https://marisdae.com/pages/shipping-returns"
+      ],
+      "draft": "Hi Michelle / Sam — I came across Maris Dae's team introduction and your ocean-inspired bodycare collection. I'm building Narrativee to turn a product photo and brief into brand-aware static creatives. I'm looking for my first customers: could we try one upcoming product or gifting promotion together, then a second brief to compare the effort with your usual process? I'd use your own approved imagery and messaging.",
+      "email_check": {
+        "provider": "BounceBan via treg",
+        "checked_date": "2026-10-14",
+        "result": "deliverable",
+        "accept_all": true,
+        "role_address": true,
+        "call_id": "8bd6ad4792a748d08586d03fc3558160",
+        "verification_id": "0ok-141123b3"
+      },
+      "status": "Not contacted",
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false
+    },
+    {
+      "rank": 6,
+      "name": "RISE coffee box",
+      "market": "United Kingdom",
+      "segment": "Product / subscription brand",
+      "size": "3 (provider estimate)",
+      "person": "Alice Wainwright / Ben Charalambous",
+      "role": "Co-founders",
+      "website": "https://www.risecoffeebox.co.uk/",
+      "email": "hello@risecoffeebox.co.uk",
+      "contact": "https://linkedin.com/in/alicewainwright",
+      "alternate_contact": "https://linkedin.com/in/ben-charalambous",
+      "fit": "The official site describes changing coffee selections each month and subscription/gifting offers. This creates a plausible repeat brief; design pain is unconfirmed.",
+      "test": "A current coffee-box promotion followed by the next selection, preserving RISE's branding.",
+      "qualify": "Are visuals produced internally, and is design effort material compared with other marketing work?",
+      "sources": [
+        "https://www.risecoffeebox.co.uk/pages/about",
+        "https://www.risecoffeebox.co.uk/pages/contact-us",
+        "https://linkedin.com/in/alicewainwright",
+        "https://linkedin.com/in/ben-charalambous"
+      ],
+      "draft": "Hi Alice / Ben — I saw that RISE introduces new coffee selections each month alongside subscription and gifting offers. I'm building Narrativee for turning product images and a brief into branded static creatives. Could we work through one upcoming box promotion, then a follow-up brief, and compare the preparation and corrections with your current process? I'm looking for my first customers and would run the test personally.",
+      "email_check": {
+        "provider": "BounceBan via treg",
+        "checked_date": "2026-10-14",
+        "result": "deliverable",
+        "accept_all": false,
+        "role_address": true,
+        "call_id": "02f5df5e2b924234a63ddd96a60e4887",
+        "verification_id": "ktz-bfbd41d9"
+      },
+      "status": "Not contacted",
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false
+    },
+    {
+      "rank": 7,
+      "name": "Herlum",
+      "market": "United Kingdom",
+      "segment": "Product brand",
+      "size": "3 (provider estimate)",
+      "person": "Isadora Belfort",
+      "role": "Founder",
+      "website": "https://www.herlum.co.uk/",
+      "email": "hello@herlum.co.uk",
+      "contact": "https://www.herlum.co.uk/pages/contact-us",
+      "fit": "The founder story establishes a clear Brazilian-inspired identity; the contact page describes hospitality and gifting offers. Visual fit is good, but recurring production pain is unconfirmed.",
+      "test": "A bodycare or gifting creative using the actual product packaging and approved visual references.",
+      "qualify": "Can an early image tool meet their visual standard, and do they have recurring briefs?",
+      "sources": [
+        "https://www.herlum.co.uk/pages/founder-story",
+        "https://www.herlum.co.uk/pages/contact-us"
+      ],
+      "draft": "Hi Isadora — Herlum's Brazilian-inspired identity and scent-led products caught my attention. I'm building Narrativee to create branded static visuals from a real product photo, references and a brief. Could we try it on an upcoming product or gifting promotion, then compare a second brief with your current process? I'm looking for my first customers and would guide the test personally, with you reviewing the final image.",
+      "email_check": {
+        "provider": "BounceBan via treg",
+        "checked_date": "2026-10-14",
+        "result": "deliverable",
+        "accept_all": true,
+        "role_address": true,
+        "call_id": "3cdc90a415674e49bb1e4a91b37d727d",
+        "verification_id": "ev5-fc987581"
+      },
+      "status": "Not contacted",
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false
+    },
+    {
+      "rank": 8,
+      "name": "Mala the Brand",
+      "market": "Canada",
+      "segment": "Product brand",
+      "size": "4 (provider estimate; official site describes a small family team)",
+      "person": "Nicole / Parker",
+      "role": "Current family owners (site says ownership changed in 2025)",
+      "website": "https://www.malathebrand.com/",
+      "email": "hello@malathebrand.com",
+      "contact": "https://www.malathebrand.com/pages/contact",
+      "fit": "The current story page identifies the new family owners and a small-batch candle business. Product imagery and a recognizable identity make a useful test; weekly design pain is unknown.",
+      "test": "A product or gift-set promotion followed by another scent/offer for the same brand.",
+      "qualify": "Who now handles marketing, and do they need recurring graphics enough to pay?",
+      "sources": [
+        "https://www.malathebrand.com/pages/our-story",
+        "https://www.malathebrand.com/pages/contact"
+      ],
+      "draft": "Hi Nicole / Parker — I read about your family taking over Mala and continuing its small-batch approach. I'm building Narrativee for turning product photos and a brief into branded static creatives. Could we try one upcoming scent or gifting promotion together, then a second brief to compare the work with your normal process? I'm looking for my first customers and would run the sessions personally.",
+      "email_check": {
+        "provider": "BounceBan via treg",
+        "checked_date": "2026-10-14",
+        "result": "deliverable",
+        "accept_all": false,
+        "role_address": true,
+        "call_id": "3e9943dce34245609d324b128f2a09ec",
+        "verification_id": "z0d-54b72097"
+      },
+      "status": "Not contacted",
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false
+    },
+    {
+      "name": "Butter Be Kind",
+      "market": "United States (provider location)",
+      "segment": "Product brand",
+      "size": "5 (provider estimate)",
+      "person": "Teja",
+      "role": "Founder",
+      "website": "https://butterbekind.com/",
+      "email": null,
+      "contact": "https://butterbekind.com/pages/contact",
+      "fit": "The official founder story identifies Teja, and the brand has a physical skincare range with existing packaging and visual identity. Static creative frequency and production pain remain unconfirmed.",
+      "test": "One product-led static promotional image using supplied packaging photos and approved copy.",
+      "qualify": "Do they need static graphics regularly, and who creates and approves them?",
+      "sources": [
+        "https://butterbekind.com/pages/about",
+        "https://butterbekind.com/pages/contact"
+      ],
+      "draft": "Hi Teja — I came across Butter Be Kind and your founder story. I'm building Narrativee to turn product photos and a short brief into branded static images. Could we try one upcoming product promotion, then a second brief, and compare preparation and correction time with your usual process? I'm looking for my first customers and would guide the sessions personally.",
+      "status": "Not contacted",
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "rank": 9
+    },
+    {
+      "name": "Amala Chai",
+      "market": "United Kingdom",
+      "segment": "Product brand",
+      "size": "7 (provider estimate)",
+      "person": "Akhil",
+      "role": "Founder",
+      "website": "https://amalachai.com/",
+      "email": "hello@amalachai.com",
+      "contact": "https://amalachai.com/pages/contact",
+      "fit": "The official site identifies founder Akhil and shows physical chai kits, ingredients and a subscription offer. Product-photo promotions fit the static workflow; recurring design pain is unconfirmed.",
+      "test": "A static image for one chai kit or subscription offer, followed by a second product brief.",
+      "qualify": "Are static product promotions a recurring job, and does generating them take material time?",
+      "sources": [
+        "https://amalachai.com/",
+        "https://amalachai.com/pages/contact"
+      ],
+      "draft": "Hi Akhil — I saw Amala Chai's kits and subscription offer, and the story behind the brand. I'm building Narrativee for turning product photos and a brief into branded static creatives. Could we try one upcoming product promotion together, then a second brief to compare the work with your normal process? I'm looking for my first customers and would run the sessions personally.",
+      "email_check": {
+        "provider": null,
+        "checked_date": null,
+        "result": "Not checked; address explicitly published on official contact page",
+        "accept_all": null
+      },
+      "status": "Not contacted",
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "rank": 10
+    }
+  ],
+  "wave_2": [
+    {
+      "rank": 11,
+      "name": "Herbs and Kettles",
+      "website": "https://herbsandkettles.com/",
+      "discovery_source": "https://herbsandkettles.com/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 3,
+      "country": "United States",
+      "discovery_note": "Herbs and Kettles is a direct trade, single origin, premium tea company where we personally select marvelous whole leaf teas from different regions of India. Our chais, herbal and artisanal blends are crafted keeping in mind wellness, aromas and flavors.\nThrough travel and direct collaboration with tea growers in different regions of India, we personally select single-batch, single-origin teas for your enjoyment. Our herbal and artisanal blends a",
+      "call_id": "bd1c9d6c46c7493f98d13fecb516a9d4",
+      "status": "Not contacted",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small US tea brand with a clear visual product range; production pain unknown."
+    },
+    {
+      "rank": 12,
+      "name": "brut tea",
+      "website": "https://bruttea.com/",
+      "discovery_source": "https://bruttea.com/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 4,
+      "country": "United Kingdom",
+      "discovery_note": "brut tea exists to enhance human creativity and mindful moments through the ritual of tea.\n\nIn a world optimised for speed and constant output, we believe tea enables us to live in another way: with focus, presence, and connection. At brut tea, we design products and experiences that invite people to slow down – whether at home, at work, or in a café – and rediscover the simple pleasure of making and drinking tea with intention.\n\nOur beloved matc",
+      "call_id": "bd1c9d6c46c7493f98d13fecb516a9d4",
+      "status": "Not contacted",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small UK tea brand with matcha and tea-token formats; recurring production pain unknown."
+    },
+    {
+      "rank": 13,
+      "name": "Stratia Skincare",
+      "website": "https://stratiaskin.com/",
+      "discovery_source": "https://stratiaskin.com/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 7,
+      "country": "United States",
+      "discovery_note": "We are an obsessively researched skincare brand that uses only the most effective and essential ingredients. We make skincare that works.\n\nDriven by boundless scientific curiosity to figure out how skin works and what skincare products actually do, our founder Alli Reed obsessively read dermatology journals. Inspired by a particular study about ceramides, cholesterol, and fatty acids, she decided to start formulating her own skincare and blogged ",
+      "call_id": "e52b26555f4d43ebad2d20a70a04987d",
+      "status": "Not contacted",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Founder-led US skincare brand; strong identity but existing design workflow may suffice."
+    }
+  ],
+  "calls": [
+    {
+      "key": "agency_uk",
+      "endpoint_id": "parallel.companies.search",
+      "call_id": "caea2c31ba3a4c68b89f04c2b5c1d40b",
+      "status": 200,
+      "cost_usd": 0.005
+    },
+    {
+      "key": "agency_fr",
+      "endpoint_id": "exa.companies.search",
+      "call_id": "1743e05426f44064953dabb5ca144932",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "brands_uk",
+      "endpoint_id": "exa.companies.search",
+      "call_id": "08a74a4f420148ee854f8e97a1afba26",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "structured_uk",
+      "endpoint_id": "icypeas.companies.search",
+      "call_id": "c99864e8a987408e9a1177399327e808",
+      "status": 200,
+      "cost_usd": 0.0057
+    },
+    {
+      "key": "agency_global",
+      "endpoint_id": "parallel.companies.search",
+      "call_id": "c480c61602f54c24b3b4492d3ff4cd46",
+      "status": 200,
+      "cost_usd": 0.005
+    },
+    {
+      "key": "brands_global",
+      "endpoint_id": "exa.companies.search",
+      "call_id": "54fcd38e7e474f71be2a0334600fabe4",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "agency_global_exa",
+      "endpoint_id": "exa.companies.search",
+      "call_id": "64a25dd1db4b41e08ea5db5e77943ee7",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "brands_beauty",
+      "endpoint_id": "exa.companies.search",
+      "call_id": "e52b26555f4d43ebad2d20a70a04987d",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "brands_food",
+      "endpoint_id": "exa.companies.search",
+      "call_id": "bd1c9d6c46c7493f98d13fecb516a9d4",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_way",
+      "endpoint_id": "exa.web.search",
+      "call_id": "1fa8b2f6a861432c90a72ad7cd2c65ce",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_juicy",
+      "endpoint_id": "exa.web.search",
+      "call_id": "50db942177d643fd87cd2027c4ac190c",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_clickstera",
+      "endpoint_id": "exa.web.search",
+      "call_id": "becb78813e2f4e3b96d7bea04b5d8198",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_vanspec",
+      "endpoint_id": "exa.web.search",
+      "call_id": "21113956696343759f93e570e1bcf3d0",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_soulwave",
+      "endpoint_id": "exa.web.search",
+      "call_id": "5cd7754e3511472c98667a45ecb5350c",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_allover",
+      "endpoint_id": "exa.web.search",
+      "call_id": "8cafdaa0d3154972b0a0deb894604b5f",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_herlum",
+      "endpoint_id": "exa.web.search",
+      "call_id": "aeb74621152d4af8beaffc005ac2d607",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_maris",
+      "endpoint_id": "exa.web.search",
+      "call_id": "d51d0539c41043e79c69500bb679acff",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_rise",
+      "endpoint_id": "exa.web.search",
+      "call_id": "893d310ba83f46eab85a83075f31ce44",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_mala",
+      "endpoint_id": "exa.web.search",
+      "call_id": "e6be92505f974d909d28b29e284b262c",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_factor",
+      "endpoint_id": "exa.web.search",
+      "call_id": "5830ecdaacd44b5ba0cc72a22538f0d8",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_butter",
+      "endpoint_id": "exa.web.search",
+      "call_id": "81d2f1dac94b4f19a2fdd9a7009ce861",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_natural",
+      "endpoint_id": "exa.web.search",
+      "call_id": "09dd85db0f4a4728b265c6f6ac3b3a41",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_amala",
+      "endpoint_id": "exa.web.search",
+      "call_id": "982b9fe53c884ee6a0dad1a2181d8756",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "validate_little",
+      "endpoint_id": "exa.web.search",
+      "call_id": "6b3a23c57ade4941bf3a022c26e1fcf9",
+      "status": 200,
+      "cost_usd": 0.007
+    },
+    {
+      "key": "enrich_vanspec",
+      "endpoint_id": "exa.web.answer",
+      "call_id": "6333a884296f424583c99c87b57b7750",
+      "status": 200,
+      "cost_usd": 0.005
+    },
+    {
+      "key": "enrich_little",
+      "endpoint_id": "exa.web.answer",
+      "call_id": "d225567cd0cc438b90a97eda60d92052",
+      "status": 200,
+      "cost_usd": 0.005
+    },
+    {
+      "key": "enrich_maris",
+      "endpoint_id": "exa.web.answer",
+      "call_id": "514b5823f5eb4533ae6cd0a00d0d8859",
+      "status": 200,
+      "cost_usd": 0.005
+    },
+    {
+      "key": "enrich_rise",
+      "endpoint_id": "exa.web.answer",
+      "call_id": "cc657a7776b0488b80911672552c6f3c",
+      "status": 200,
+      "cost_usd": 0.005
+    },
+    {
+      "key": "enrich_factor",
+      "endpoint_id": "exa.web.answer",
+      "call_id": "6e08c11387a84ce79158cd4d0af510f4",
+      "status": 200,
+      "cost_usd": 0.005
+    },
+    {
+      "key": "enrich_clickstera",
+      "endpoint_id": "exa.web.answer",
+      "call_id": "4ee556a21aa54e018c7051bcb5e63058",
+      "status": 200,
+      "cost_usd": 0.005
+    },
+    {
+      "key": "enrich_contact_all",
+      "endpoint_id": "exa.web.answer",
+      "call_id": "d7a5f66ff5854220a9f5f46ceb8a8610",
+      "status": 200,
+      "cost_usd": 0.005
+    },
+    {
+      "key": "verify_tina@waydigital.fr",
+      "endpoint_id": "bounceban.people.email.verify",
+      "call_id": "25036418ce7c475e9f257169c8840187",
+      "status": 200,
+      "cost_usd": 0.004
+    },
+    {
+      "key": "verify_contact@juicycreative.fr",
+      "endpoint_id": "bounceban.people.email.verify",
+      "call_id": "bfc7af3367d24e5d905641e189fa25d4",
+      "status": 200,
+      "cost_usd": 0.004
+    },
+    {
+      "key": "verify_jade.squire@alloversocial.co.uk",
+      "endpoint_id": "bounceban.people.email.verify",
+      "call_id": "9f2fac3b32d34bba9bd5c6e35d5eb190",
+      "status": 200,
+      "cost_usd": 0.004
+    },
+    {
+      "key": "verify_info@clickstera.com",
+      "endpoint_id": "bounceban.people.email.verify",
+      "call_id": "56983e7307814445bfbed519f636a791",
+      "status": 200,
+      "cost_usd": 0.004
+    },
+    {
+      "key": "verify_info@littlemediaagency.com",
+      "endpoint_id": "bounceban.people.email.verify",
+      "call_id": "29d7ccbbe53c43b9ba667e797fc3ccb7",
+      "status": 200,
+      "cost_usd": 0.004
+    },
+    {
+      "key": "verify_hello@marisdae.com",
+      "endpoint_id": "bounceban.people.email.verify",
+      "call_id": "8bd6ad4792a748d08586d03fc3558160",
+      "status": 200,
+      "cost_usd": 0.004
+    },
+    {
+      "key": "verify_hello@risecoffeebox.co.uk",
+      "endpoint_id": "bounceban.people.email.verify",
+      "call_id": "683857b3106b437e8a9d23621bfe2612",
+      "status": 200,
+      "cost_usd": 0.004
+    },
+    {
+      "key": "verify_hello@herlum.co.uk",
+      "endpoint_id": "bounceban.people.email.verify",
+      "call_id": "3cdc90a415674e49bb1e4a91b37d727d",
+      "status": 200,
+      "cost_usd": 0.004
+    },
+    {
+      "key": "verify_hello@malathebrand.com",
+      "endpoint_id": "bounceban.people.email.verify",
+      "call_id": "3e9943dce34245609d324b128f2a09ec",
+      "status": 200,
+      "cost_usd": 0.004
+    },
+    {
+      "key": "verify_sara@littlemediaagency.com",
+      "endpoint_id": "bounceban.people.email.verify",
+      "call_id": "0d472c1b842b4b2099600cfbe025d803",
+      "status": 200,
+      "cost_usd": 0.004
+    }
+  ],
+  "agency_candidates_on_hold": [
+    {
+      "name": "Vanspec Marketing",
+      "website": "https://vanspecmarketing.com/",
+      "discovery_source": "https://vanspecmarketing.com/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 4,
+      "country": "Canada",
+      "discovery_note": "Most DTC brands that struggle to scale don’t have an ads problem.\nThey have a growth systems problem.\n\nMeta is generating revenue, but CAC is volatile. Creative performance fades. Ad spend increases while margins shrink. The team isn’t sure which lever actually drives growth.\n\nVanspec Marketing was built to solve that.\n\nWe help direct-to-consumer ecommerce brands doing $1M–$8M in annual revenue turn Meta into a profitable customer acquisition eng",
+      "call_id": "64a25dd1db4b41e08ea5db5e77943ee7",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Meta-led DTC acquisition and creative testing; founder Landon Gartner identified. First-party site checked; qualify static workload.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "LAIO",
+      "website": "https://laio.fr/",
+      "discovery_source": "https://laio.fr/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 10,
+      "country": "France",
+      "discovery_note": "LAIO is a digital advertising agency specialized in helping e-commerce brands grow.\n\nSince 2020, we have supported more than 150 brands in increasing their visibility, customer acquisition and sales through high-performing advertising strategies.\n\nOur approach combines creative strategy, content production and media buying to build impactful campaigns across Meta, Instagram, Facebook, TikTok and Google.\n\nOur services:\n• Social Ads (Meta, TikTok, ",
+      "call_id": "1743e05426f44064953dabb5ca144932",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Ecommerce media buying and creative production; indexed team 10. Check static share.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "Agence Social Ads | Meta, Google & Créa | Fireco",
+      "website": "https://linkedin.com/company/firecoagency",
+      "discovery_source": "https://linkedin.com/company/firecoagency",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 3,
+      "country": "France",
+      "discovery_note": "🚀 Fireco accompagne les marques dans la création de contenu et la mise en place de campagnes publicitaires Facebook et Instagram.\n\n🛠 Création, suivi et optimisation de campagnes Meta Ads afin de propulser votre marque et votre croissance.\n\n🎓 Formation et Coaching en création de campagnes Facebook ads et Instagram Ads afin de perfectionner ses compétences en gestion de publicités.",
+      "call_id": "1743e05426f44064953dabb5ca144932",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small Meta/social content agency; confirm decision-maker and actual production needs.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "AYA",
+      "website": "https://ayamedia.co/",
+      "discovery_source": "https://ayamedia.co/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 16,
+      "country": "France",
+      "discovery_note": "AYA accompagne les marques B2C ambitieuses avec 3 expertises activables indépendamment ou ensemble : Media Buying, Creative Strategy et Studio.\n\nNotre objectif : faire de votre acquisition et de votre création publicitaire un véritable système de croissance.\n\nMEDIA BUYING\n\nStratégie, pilotage, testing et scaling de vos campagnes Social Ads sur Meta Ads, TikTok Ads, Pinterest Ads et LinkedIn Ads.\n\nNous ne regardons pas uniquement les métriques des",
+      "call_id": "1743e05426f44064953dabb5ca144932",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Explicit static production, media buying and creative strategy; indexed team 16, above the initial preferred size.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "We Love Digital",
+      "website": "https://welovedigital.fr/",
+      "discovery_source": "https://welovedigital.fr/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 7,
+      "country": "France",
+      "discovery_note": "👉 We Love Digital vous aide à générer de la croissance grâce à une méthodologie unique et avancée :\n\n- Mediabuying : pilotage de vos campagnes sur les réseaux sociaux (Meta, Snapchat,Pinterest, YouTube et TikTok) et sur les moteurs de recherche.\n\n- Growth e-commerce : on optimise votre taux de conversion, votre LTV et toutes les variables qui permettent d’accroître votre CA.\n\n- Créas : nous réalisons des créas qui convertissent et vous accompagn",
+      "call_id": "1743e05426f44064953dabb5ca144932",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small ecommerce advertising/creative team; verify current creative workflow.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "Social First - Agence Social Media",
+      "website": "https://socialfirst.fr/",
+      "discovery_source": "https://socialfirst.fr/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 4,
+      "country": "France",
+      "discovery_note": "Social First est une agence experte des réseaux sociaux, basée à Paris.\n\nNous aidons les marques à sublimer leur image et﻿ leurs contenus sur les réseaux, en plaçant (enfin) l’Humain au cœur de leur stratégie.\n\nNous imaginons, créons, diffusons et amplifions des contenus créatifs et engageants pour créer des liens sociaux forts avec vos audiences.\n\nNos domaines d'intervention : \n\n✍️ Stratégie social media\n🎬 Création de contenu \n👩‍💻 Community m",
+      "call_id": "1743e05426f44064953dabb5ca144932",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small social content agency; separate static design from video/influencer work.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "Agence Melya",
+      "website": "https://linkedin.com/company/agence-melya",
+      "discovery_source": "https://linkedin.com/company/agence-melya",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 4,
+      "country": "France",
+      "discovery_note": "Nous aidons les entreprises ambitieuses à transformer Instagram et Meta Ads en un système d’acquisition plus rentable.\n\nNotre conviction est simple : une campagne publicitaire performante ne repose pas uniquement sur de bonnes Ads.\n\nElle repose sur un écosystème complet :\n\n→ une stratégie claire\n→ des contenus qui développent la notoriété et la confiance\n→ une présence régulière et de qualité\n→ des campagnes Meta Ads qui transforment cette audien",
+      "call_id": "1743e05426f44064953dabb5ca144932",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small organic-social and Meta acquisition team; confirm static image production.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "Just Wavy",
+      "website": "https://justwavy.com/",
+      "discovery_source": "https://justwavy.com/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 6,
+      "country": "United States",
+      "discovery_note": "Just Wavy is a founder-led growth marketing agency built for ambitious DTC brands.\n\nWe're not a traditional agency. No layers, no bloat, no juniors learning on your dime — just senior operators who have driven over $500M in revenue and managed more than $100M in ad spend for 100+ brands across fashion and apparel, skincare and beauty, health and wellness, and CPG.\n\nWhat we do:\n• Paid Media — Meta, Google, TikTok, Reddit, and Pinterest\n• Performan",
+      "call_id": "64a25dd1db4b41e08ea5db5e77943ee7",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Founder-led DTC agency with performance creative; likely sophisticated existing workflow.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "Ads By Ashley",
+      "website": "https://adsbyashley.com/",
+      "discovery_source": "https://adsbyashley.com/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 2,
+      "country": "Not established",
+      "discovery_note": "Ashley is a paid social consulting agency specializing in e-commerce growth through multiple platforms including Facebook, Instagram, Snapchat, and TikTok. They believe in scaling through thought provoking creative driven by data.",
+      "call_id": "64a25dd1db4b41e08ea5db5e77943ee7",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small ecommerce paid-social consultancy; confirm it produces creative rather than only buys media.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "Seasoned Digital",
+      "website": "https://seasoneddigital.com.au/",
+      "discovery_source": "https://seasoneddigital.com.au/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 2,
+      "country": "Australia",
+      "discovery_note": "We are a boutique paid ads marketing agency based in Melbourne & Sydney, Australia specialising in Meta, Google, Pinterest & TikTok Ads. We've worked with brands across a variety of industries including fashion, beauty, lifestyle, hospitality, travel and more. Ready to spice up your marketing recipe with paid ads? Apply to work with us now. ",
+      "call_id": "64a25dd1db4b41e08ea5db5e77943ee7",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Boutique Australian paid-media agency; qualify creative ownership.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "COYT",
+      "website": "https://coyt.com.au/",
+      "discovery_source": "https://coyt.com.au/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 2,
+      "country": "Australia",
+      "discovery_note": "Most E-commerce and D2C brands are leaving significant revenue on the table. Not because paid traffic doesn't work, but because they're using a broken, siloed playbook.\n\nCOYT is a performance marketing agency built exclusively for modern product brands. We engineer and run a complete customer acquisition and retention system: Meta & Google Ads, Klaviyo email marketing, server-side attribution, and performance creative built to convert.\n\nWhat make",
+      "call_id": "64a25dd1db4b41e08ea5db5e77943ee7",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small Australian product-brand performance agency; claims integrated performance creative.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "Upmkt Digital",
+      "website": "https://upmktdigital.com/",
+      "discovery_source": "https://upmktdigital.com/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 4,
+      "country": "United States",
+      "discovery_note": "UpMkt Digital is an e-commerce agency that works with growth-stage retail brands. We increase online engagement and powerfully improve sales. \n\nOur precise, data-driven digital sales strategies, coupled with stylish, trust-worthy, and highly engaging online brand experiences succeed at connecting, compelling, and converting target audiences into real-time revenue. ",
+      "call_id": "64a25dd1db4b41e08ea5db5e77943ee7",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small US ecommerce agency; creative output and buying authority need verification.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "SMR Social",
+      "website": "https://smrsocial.com",
+      "discovery_source": "https://linkedin.com/company/smr-social",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 4,
+      "country": "United Kingdom",
+      "discovery_note": "Employee Count Official: 4 | Name: SMR Social | Website Url: https://smrsocial.com | Primary Sector: Business Services | Primary Subsector: Marketing Services | Stage: Unfunded | Founded Year: 2014 | Location Country: United Kingdom | Acquisitions As Acquirer Count: 0 | Short Description: Provider of social media strategy, content creation, and community management | All Locations: [{\"country\":\"United Kingdom\"}] | Detailed Description: Provider o",
+      "call_id": "caea2c31ba3a4c68b89f04c2b5c1d40b",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small UK social content and advertising team; find current owner/contact.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "Pick & Mix Social Media Marketing",
+      "website": "https://www.pickandmixms.co.uk/",
+      "discovery_source": "https://linkedin.com/company/pick-and-mix-marketing",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 5,
+      "country": "United Kingdom",
+      "discovery_note": "Employee Count Official: 5 | Name: Pick & Mix Social Media Marketing | Website Url: https://www.pickandmixms.co.uk/ | Primary Sector: Business Services | Primary Subsector: Marketing Services | Stage: Unfunded | Founded Year: 2011 | Location Country: United Kingdom | Acquisitions As Acquirer Count: 0 | Short Description: Provider of social media marketing, content planning, and strategy services | All Locations: [{\"country\":\"United Kingdom\"}] | D",
+      "call_id": "caea2c31ba3a4c68b89f04c2b5c1d40b",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small social content/planning and paid-social team; verify recurring asset work.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    },
+    {
+      "name": "Social Soda",
+      "website": "https://socialsoda.co.uk",
+      "discovery_source": "http://linkedin.com/company/social-soda-social-media-consultancy/",
+      "source_type": "Provider index; not fully qualified",
+      "indexed_headcount": 3,
+      "country": "United Kingdom",
+      "discovery_note": "Employee Count Official: 3 | Name: Social Soda | Website Url: https://socialsoda.co.uk | Primary Sector: Business Services | Primary Subsector: Marketing Services | Stage: Unfunded | Founded Year: 2016 | Location Country: United Kingdom | Acquisitions As Acquirer Count: 0 | Short Description: Provider of social media management, content creation, and advertising services | All Locations: [{\"country\":\"United Kingdom\"}] | Detailed Description: Prov",
+      "call_id": "caea2c31ba3a4c68b89f04c2b5c1d40b",
+      "status": "On hold for static-only screening",
+      "contact_verified": false,
+      "need_confirmed": false,
+      "willingness_to_pay_confirmed": false,
+      "fit_note": "Small social content/advertising agency with graphic design; qualify static versus video workload.",
+      "screening_required": "Verify a concrete static graphics/ad-production service and decision-maker. Exclude if TikTok Shop, UGC or video-led."
+    }
+  ],
+  "excluded": [
+    {
+      "name": "Juicy Creative",
+      "website": "https://juicycreative.fr/",
+      "sources": [
+        "https://juicycreative.fr/",
+        "https://www.juicycreative.fr/agence-tiktok-shop"
+      ],
+      "status": "Excluded from current outreach",
+      "reason": "TikTok Shop / UGC-led positioning; excluded per user's static-only targeting constraint."
+    },
+    {
+      "name": "Factor",
+      "website": "https://www.by-factor.com/",
+      "sources": [
+        "https://www.by-factor.com/",
+        "https://www.newsletter.by-factor.com/authors/nabeel-ismail",
+        "https://linkedin.com/in/itsnabeelismail"
+      ],
+      "status": "Excluded from current outreach",
+      "reason": "UGC-led production offer; excluded to keep initial outreach centered on static creatives."
+    }
+  ],
+  "targeting_constraint": "Current Narrativee offer: static creatives only. Exclude TikTok Shop / UGC / video-led agencies. Generalist agencies are usable only for a specific recurring static-graphics brief; other agency candidates remain on hold.",
+  "updated_at": "2026-10-14"
+}
