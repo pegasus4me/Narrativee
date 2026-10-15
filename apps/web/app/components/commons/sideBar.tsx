@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import BrandNavigation from "../workspace/BrandNavigation";
+import WorkspaceNameLabel from "../workspace/WorkspaceNameLabel";
 import { useBrands } from "../workspace/BrandProvider";
 import { createStudioProject, listStudioProjects } from "@/lib/api/studio";
 import StudioSplashTransition from "../studio/StudioSplashTransition";
@@ -330,6 +331,8 @@ export default function SidebarNav({
             />
           </Link>
         </div>
+
+        <WorkspaceNameLabel className="sidebar-copy mx-3 mb-2 truncate text-xs text-ink-3" />
 
         <BrandNavigation collapsed={collapsed} />
 

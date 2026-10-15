@@ -3,7 +3,14 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { ArrowLeft, PanelLeftClose, SquarePen, Settings2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Maximize2,
+  Minimize2,
+  PanelLeftClose,
+  SquarePen,
+  Settings2,
+} from "lucide-react";
 import StudioImageSettings from "./StudioImageSettings";
 import StudioChatSwitcher from "./StudioChatSwitcher";
 import StudioAgentConversation from "./StudioAgentConversation";
@@ -19,6 +26,7 @@ export default function StudioPromptSidebar({
   className?: string;
 }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const {
     project,
     messages,
@@ -64,7 +72,7 @@ export default function StudioPromptSidebar({
       )}
       <aside
         aria-label="Project conversation"
-        className={`flex shrink-0 flex-col border-r border-dashed border-neutral-200 bg-background ${collapsed ? "hidden" : "h-[42%] w-full lg:h-full lg:w-[350px]"} ${className}`}
+        className={`flex min-h-0 shrink-0 flex-col border-r border-dashed border-neutral-200 bg-background ${collapsed ? "hidden" : expanded ? "h-[75%] w-full lg:h-full lg:w-[min(640px,60%)]" : "h-[42%] w-full lg:h-full lg:w-[350px]"} ${className}`}
       >
         <div className="flex h-12 shrink-0 items-center gap-2 border-b border-dashed border-neutral-200 px-3">
           <Link
@@ -98,6 +106,16 @@ export default function StudioPromptSidebar({
             className="ml-auto rounded p-1.5 hover:bg-muted disabled:opacity-40"
           >
             <SquarePen size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setExpanded((value) => !value)}
+            aria-label={expanded ? "Restore sidebar width" : "Expand sidebar"}
+            aria-pressed={expanded}
+            title={expanded ? "Restore sidebar width" : "Expand sidebar"}
+            className="shrink-0 rounded p-1.5 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
           <button
             type="button"

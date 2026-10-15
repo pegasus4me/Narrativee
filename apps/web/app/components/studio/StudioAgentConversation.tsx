@@ -11,6 +11,7 @@ import type { AgentActivity, StudioMessage } from "@/lib/api/studio";
 import StudioMessageMarkdown from "./StudioMessageMarkdown";
 import StudioReplyAuthor from "./StudioReplyAuthor";
 import StudioApprovalCard from "./StudioApprovalCard";
+import StudioProposalReview from "./StudioProposalReview";
 
 export default function StudioAgentConversation({
   messages,
@@ -70,7 +71,13 @@ export default function StudioAgentConversation({
                     className="px-1"
                   >
                     <StudioReplyAuthor agent={message.agent} />
-                    <StudioMessageMarkdown content={message.content} />
+                    {message.approval?.proposal ? (
+                      <StudioProposalReview
+                        proposal={message.approval.proposal}
+                      />
+                    ) : (
+                      <StudioMessageMarkdown content={message.content} />
+                    )}
                     <StudioApprovalCard
                       message={message}
                       busy={approvalBusy}

@@ -324,9 +324,7 @@ export async function runCampaignRequest(
         );
         discussion.say(
           "brand",
-          generation
-            ? "The image brief follows your scene and selected references. Pixel, create it."
-            : "Pixel, the plan passes the supplied brand rules, grounding and specificity checks. It's ready for the team to review and approve.",
+          "Pixel, the plan passes the supplied brand rules, grounding and specificity checks. It's ready for the team to review and approve.",
         );
         break;
       }
@@ -383,7 +381,7 @@ export async function runCampaignRequest(
           : undefined,
       );
     }
-    if (!approved && !generation) {
+    if (!approved) {
       const directions = plan
         .creatives!.map(
           (creative, index) =>
@@ -412,6 +410,7 @@ export async function runCampaignRequest(
           canvasRevision,
           canvasHash: approvalCanvasHash(canvas.snapshot),
           outputs,
+          ...(generation ? { generation } : {}),
         },
         contributions: discussion.contributions,
       };

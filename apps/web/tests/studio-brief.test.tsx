@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import React, { act, useState } from "react";
 import { getEnv } from "fabric/node";
-test("the single brief sends selected products and retouches without an agent selector", async (t) => {
+test("the brief selects Brand Brain references, retries loading, and preserves products and retouches", async (t) => {
   const environment = getEnv();
   const window = environment.document.defaultView!;
   const globals = {
@@ -12,6 +12,17 @@ test("the single brief sends selected products and retouches without an agent se
     Element: window.Element,
     SVGElement: window.SVGElement,
     Node: window.Node,
+    NodeFilter: window.NodeFilter,
+    HTMLInputElement: window.HTMLInputElement,
+    DocumentFragment: window.DocumentFragment,
+    getComputedStyle: window.getComputedStyle.bind(window),
+    MutationObserver: class {
+      observe() {}
+      disconnect() {}
+      takeRecords() {
+        return [];
+      }
+    },
     CustomEvent: window.CustomEvent,
     Event: window.Event,
     IS_REACT_ACT_ENVIRONMENT: true,
@@ -74,26 +85,44 @@ test("the single brief sends selected products and retouches without an agent se
   );
   const productId = "00000000-0000-4000-8000-000000000001";
   const photoId = "00000000-0000-4000-8000-000000000002";
-  t.mock.method(globalThis, "fetch", async (input: unknown) =>
-    Response.json(
-      String(input).includes("generation-cost")
-        ? { maxCredits: 50 }
-        : {
-            items: [],
-            products: [
-              { id: productId, name: "Soie", description: "A perfume" },
-            ],
-            assets: [
-              {
-                id: photoId,
-                productId,
-                caption: "Bottle",
-                filename: "bottle.png",
-              },
-            ],
-          },
-    ),
-  );
+  const referenceId = "00000000-0000-4000-8000-000000000003";
+  let brainFails = false;
+  t.mock.method(globalThis, "fetch", async (input: unknown) => {
+    // Keep authenticated image previews as placeholders in this DOM test.
+    if (String(input).includes("/brain/assets/"))
+      return new Response(null, { status: 404 });
+    if (String(input).includes("generation-cost"))
+      return Response.json({ maxCredits: 50 });
+    if (brainFails)
+      return Response.json({ error: "Unavailable" }, { status: 503 });
+    return Response.json({
+      items: [],
+      products: [{ id: productId, name: "Soie", description: "A perfume" }],
+      assets: [
+        {
+          id: photoId,
+          productId,
+          kind: "rule",
+          caption: "Bottle",
+          filename: "bottle.png",
+        },
+        {
+          id: referenceId,
+          kind: "inspiration",
+          caption: "Warm editorial",
+          filename: "warm.png",
+          width: 600,
+          height: 900,
+        },
+        {
+          id: "logo",
+          kind: "rule",
+          caption: "Brand logo",
+          filename: "logo.png",
+        },
+      ],
+    });
+  });
   const { createRoot } = await import("react-dom/client");
   const { StudioCanvasPrompt } = await import(
     "../app/components/studio/StudioCanvasPrompt"
@@ -152,7 +181,11 @@ test("the single brief sends selected products and retouches without an agent se
       materialsTarget.querySelector('[aria-label="Creative materials"]'),
     );
     assert.ok(materialsTarget.querySelector('[aria-label="Product photo"]'));
-    assert.ok(materialsTarget.querySelector('[aria-label="Inspiration"]'));
+    assert.equal(
+      materialsTarget.querySelector('[aria-label="Inspiration"]'),
+      null,
+    );
+    assert.ok(materialsTarget.querySelector('[aria-label="Reference"]'));
     assert.match(materialsTarget.textContent!, /Ad references/);
     const select = materialsTarget.querySelector(
       'select[aria-label="Product from Brand Brain"]',
@@ -162,11 +195,55 @@ test("the single brief sends selected products and retouches without an agent se
       select.dispatchEvent(new window.Event("change", { bubbles: true }));
     });
     assert.match(materialsTarget.textContent!, /Bottle/);
+    brainFails = true;
+    const openReferences = () =>
+      act(async () =>
+        (
+          materialsTarget.querySelector(
+            '[aria-label="Reference"]',
+          ) as HTMLButtonElement
+        ).click(),
+      );
+    const dialog = () => environment.document.querySelector('[role="dialog"]')!;
+    await openReferences();
+    assert.match(dialog().textContent!, /References could not be loaded/);
+    brainFails = false;
+    await act(async () =>
+      (
+        dialog().querySelector('[role="alert"] button') as HTMLButtonElement
+      ).click(),
+    );
+    assert.equal(
+      dialog().querySelectorAll('[aria-label^="Use reference:"]').length,
+      1,
+    );
+    await act(async () =>
+      (
+        dialog().querySelector(
+          '[aria-label="Use reference: Warm editorial"]',
+        ) as HTMLButtonElement
+      ).click(),
+    );
+    assert.equal(environment.document.querySelector('[role="dialog"]'), null);
+    assert.match(materialsTarget.textContent!, /Warm editorial/);
+    await openReferences();
+    const selectedReference = dialog().querySelector(
+      '[aria-label="Use reference: Warm editorial"]',
+    ) as HTMLButtonElement;
+    assert.equal(selectedReference.disabled, true);
+    assert.equal(selectedReference.getAttribute("aria-pressed"), "true");
+    await act(async () =>
+      (
+        dialog().querySelector(
+          '[aria-label="Close references"]',
+        ) as HTMLButtonElement
+      ).click(),
+    );
     await send();
     assert.deepEqual(submitted[0]?.generation, {
       productId,
-      referenceIds: [photoId],
-      styleReferenceIds: [],
+      referenceIds: [photoId, referenceId],
+      styleReferenceIds: [referenceId],
       editAssetId: undefined,
     });
     await act(async () =>
@@ -199,6 +276,14 @@ test("the single brief sends selected products and retouches without an agent se
     );
     await send();
     assert.equal(submitted[2]?.generation.editAssetId, undefined);
+    await act(async () =>
+      (
+        materialsTarget.querySelector(
+          '[aria-label="Remove Warm editorial from brief"]',
+        ) as HTMLButtonElement
+      ).click(),
+    );
+    assert.doesNotMatch(materialsTarget.textContent!, /Warm editorial/);
     await act(async () =>
       (
         materialsTarget.querySelector(

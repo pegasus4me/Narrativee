@@ -17,6 +17,7 @@ export default function WorkspaceLayout({
 }: Readonly<{ children: React.ReactNode }>): React.ReactNode {
   const pathname = usePathname();
   const isStudioProject = pathname.startsWith("/workspace/studio/");
+  const isOnboarding = pathname === "/workspace/onboarding";
 
   return (
     <Suspense fallback={null}>
@@ -24,7 +25,7 @@ export default function WorkspaceLayout({
         <BrandScanDialog />
         <AuthGuard>
           <UsageProvider>
-            {isStudioProject ? (
+            {isStudioProject || isOnboarding ? (
               <main className="h-screen w-full overflow-y-auto bg-background">
                 {children}
               </main>

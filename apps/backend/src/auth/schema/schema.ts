@@ -45,6 +45,19 @@ export const user = pgTable(
   ],
 );
 
+export const onboardingProfile = pgTable("onboarding_profile", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  workspaceType: text("workspace_type").notNull(),
+  workspaceName: text("workspace_name").notNull(),
+  agencySize: text("agency_size"),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expiresAt").notNull(),

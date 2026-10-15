@@ -145,7 +145,7 @@ test("explicit references cannot mix products, invent IDs or use a product as st
   );
 });
 
-test("direct generation renders from the requested scene, and retouching preserves the original as a version", async () => {
+test("selected materials prepare a prompt for approval before rendering or retouching", async () => {
   const png = await sharp({
     create: { width: 16, height: 16, channels: 3, background: "#123456" },
   })
@@ -241,35 +241,65 @@ test("direct generation renders from the requested scene, and retouching preserv
           throw new Error("A successful revision must keep all versions");
         },
       };
-    const answer = await runCampaignRequest(
-      randomUUID(),
-      randomUUID(),
-      randomUUID(),
-      editing
-        ? "Reduce reflections, keep everything else"
-        : "On white sheets, morning light, no text",
+    const projectId = randomUUID();
+    const brandId = randomUUID();
+    const userId = randomUUID();
+    const request = editing
+      ? "Reduce reflections, keep everything else"
+      : "On white sheets, morning light, no text";
+    const generation = {
+      productId,
+      referenceIds: [photoId],
+      ...(editing ? { editAssetId: sourceId } : {}),
+    };
+    const proposal = await runCampaignRequest(
+      projectId,
+      brandId,
+      userId,
+      request,
       (event) => events.push(event),
       "team",
       undefined,
       [defaultCampaignOutput],
-      {
-        productId,
-        referenceIds: [photoId],
-        ...(editing ? { editAssetId: sourceId } : {}),
-      },
+      generation,
       dependencies,
     );
-    assert.equal(
-      answer.approval,
-      undefined,
-      "Generate directly without another direction approval",
+    assert.ok(proposal.approval?.kind === "campaign_creation");
+    assert.deepEqual(proposal.approval.generation, generation);
+    assert.ok(
+      !events.some((event) => event.type === "campaign_scene"),
+      "Preparing the prompt never generates an image",
     );
+    assert.ok(
+      events.some(
+        (event) => event.type === "reply_agent" && event.agent === "creator",
+      ),
+      "Pixel presents the prompt for approval",
+    );
+    dependencies.createCampaignPlan = async () => {
+      throw new Error(
+        "Approval executes the reviewed prompt without replanning",
+      );
+    };
+    const answer = await runCampaignRequest(
+      projectId,
+      brandId,
+      userId,
+      request,
+      (event) => events.push(event),
+      "team",
+      proposal.approval,
+      [defaultCampaignOutput],
+      proposal.approval.generation,
+      dependencies,
+    );
+    assert.equal(answer.approval, undefined);
     const scene = events.find((event) => event.type === "campaign_scene");
     assert.ok(scene?.type === "campaign_scene");
     const frame = scene.document.frames[0]!;
     assert.equal(frame.version, editing ? 3 : 1);
     assert.equal(frame.revisionOf, editing ? sourceId : undefined);
-    assert.equal(sourceReads, editing ? 1 : 0);
+    assert.equal(sourceReads, editing ? 2 : 0);
     assert.equal(frame.layers[0]?.type, "image");
     assert.equal(
       snapshot.canvas.objects &&

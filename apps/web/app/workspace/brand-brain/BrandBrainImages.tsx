@@ -23,7 +23,8 @@ export function BrandBrainImages({
   const [file, setFile] = useState<File | null>(null);
   const [category, setCategory] = useState<"identity" | "imagery">("identity");
   const [caption, setCaption] = useState("");
-  const kind = purpose === "brand" ? "rule" : "inspiration";
+  const isInspiration = purpose === "inspiration";
+  const kind = isInspiration ? "inspiration" : "rule";
   const assets =
     brain.data?.assets.filter(
       (asset) => asset.kind === kind && !asset.productId,
@@ -36,15 +37,20 @@ export function BrandBrainImages({
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!file || !caption.trim()) return;
+    if (brain.busy || !file || !caption.trim()) return;
     if (
-      await brain.addImage(
-        file,
-        kind,
-        purpose === "inspiration" ? "imagery" : category,
-        caption.trim(),
-      )
-    ) {
+      file &&
+      (file.size > 8 * 1024 * 1024 ||
+        !["image/png", "image/jpeg", "image/webp"].includes(file.type))
+    )
+      return;
+    const saved = await brain.addImage(
+      file,
+      kind,
+      isInspiration ? "imagery" : category,
+      caption.trim(),
+    );
+    if (saved) {
       setFile(null);
       setCaption("");
       setEditing(false);
@@ -66,60 +72,32 @@ export function BrandBrainImages({
         setEditing(true);
       }}
     >
-      {assets.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          {assets.map((asset) => (
-            <div
-              key={asset.id}
-              className="group relative overflow-hidden rounded-xl border border-zinc-200 dark:border-white/10"
-            >
-              <AssetPreview
-                brandId={brandId}
-                assetId={asset.id}
-                alt={asset.caption || asset.filename}
-                className={`h-36 w-full object-contain p-4 ${asset.category === "identity" ? "bg-[repeating-conic-gradient(#d4d4d8_0%_25%,#a1a1aa_0%_50%)] bg-size-[16px_16px]" : "bg-zinc-50 dark:bg-white/[0.03]"}`}
-              />
-              <button
-                type="button"
-                disabled={brain.busy}
-                aria-label={`Archive ${asset.filename}`}
-                onClick={() => void brain.archiveImage(asset.id)}
-                className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-white/90 text-zinc-600 opacity-0 group-hover:opacity-100 focus:opacity-100"
-              >
-                <X size={14} />
-              </button>
-              <div className="border-t border-zinc-200 p-3 dark:border-white/10">
-                <p className="truncate text-sm" title={asset.filename}>
-                  {asset.filename}
-                </p>
-                <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">
-                  {asset.caption}
-                </p>
-                <WebsiteSource
-                  source={asset.source}
-                  sourceUrl={asset.sourceUrl}
-                  busy={brain.busy}
-                  onApprove={
-                    kind === "rule"
-                      ? () => void brain.approveImage(asset.id)
-                      : undefined
-                  }
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+      {isInspiration && (
+        <button
+          type="button"
+          disabled={brain.busy || editing}
+          aria-expanded={editing}
+          onClick={() => setEditing(true)}
+          className="flex h-9 items-center gap-2 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900"
+        >
+          <Plus size={15} />
+          Add reference
+        </button>
       )}
-      {editing || !assets.length ? (
-        <form onSubmit={submit} className="space-y-4">
+      {editing || (!isInspiration && !assets.length) ? (
+        <form
+          onSubmit={submit}
+          className="space-y-4 rounded-xl border border-zinc-200 p-4 dark:border-white/10"
+        >
           <div
             tabIndex={0}
             role="group"
             aria-label="Paste or drop an image"
+            aria-disabled={brain.busy}
             onDragOver={(event) => event.preventDefault()}
             onDrop={(event) => {
               event.preventDefault();
-              setFile(event.dataTransfer.files[0] ?? null);
+              if (!brain.busy) setFile(event.dataTransfer.files[0] ?? null);
             }}
             className="flex flex-col items-center rounded-xl border border-dashed border-zinc-300 bg-zinc-50/50 px-5 py-9 text-center outline-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-zinc-400 focus-within:ring-2 focus-within:ring-zinc-400 dark:border-zinc-700 dark:bg-white/[0.02] dark:hover:bg-white/[0.04]"
           >
@@ -140,7 +118,7 @@ export function BrandBrainImages({
                 ? file.name
                 : purpose === "brand"
                   ? "Drop or paste a logo or image here"
-                  : "Drop or paste an inspiration image here"}
+                  : "Drop or paste a reference image here"}
             </span>
             <span className="mt-1 text-xs text-zinc-500">
               {file
@@ -151,6 +129,7 @@ export function BrandBrainImages({
               {file ? "Choose a different file" : "Browse files"}
               <input
                 ref={inputRef}
+                disabled={brain.busy}
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 aria-label="Choose image"
@@ -162,7 +141,7 @@ export function BrandBrainImages({
               PNG, JPEG, WebP · up to 8 MB
             </span>
           </div>
-          {file && (
+          {(file || isInspiration) && (
             <div className="space-y-3">
               {purpose === "brand" && (
                 <select
@@ -177,32 +156,49 @@ export function BrandBrainImages({
                   <option value="imagery">Photography / image</option>
                 </select>
               )}
-              <input
+              <textarea
+                disabled={brain.busy}
                 value={caption}
                 onChange={(event) => setCaption(event.target.value)}
                 maxLength={1000}
-                placeholder="e.g. Use this logo on our social posts."
-                aria-label="Image guidance"
-                className="h-10 w-full rounded-lg border border-zinc-200 bg-transparent px-3 text-sm outline-none focus:border-zinc-400 dark:border-zinc-700"
+                placeholder={
+                  isInspiration
+                    ? "What inspires you about this reference?"
+                    : "e.g. Use this logo on our social posts."
+                }
+                aria-label={
+                  isInspiration ? "Reference description" : "Image guidance"
+                }
+                className="min-h-24 w-full resize-y rounded-lg border border-zinc-200 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-700"
               />
               <div className="flex items-center gap-3">
                 <button
                   disabled={
                     brain.busy ||
+                    !file ||
                     !caption.trim() ||
-                    file.size > 8 * 1024 * 1024 ||
-                    !["image/png", "image/jpeg", "image/webp"].includes(
-                      file.type,
+                    Boolean(
+                      file &&
+                        (file.size > 8 * 1024 * 1024 ||
+                          !["image/png", "image/jpeg", "image/webp"].includes(
+                            file.type,
+                          )),
                     )
                   }
                   className="h-9 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900"
                 >
-                  {brain.busy ? "Uploading…" : "Save image"}
+                  {brain.busy
+                    ? "Saving…"
+                    : isInspiration
+                      ? "Save reference"
+                      : "Save image"}
                 </button>
                 <button
                   type="button"
+                  disabled={brain.busy}
                   onClick={() => {
                     setFile(null);
+                    setCaption("");
                     setEditing(false);
                     if (inputRef.current) inputRef.current.value = "";
                   }}
@@ -211,22 +207,24 @@ export function BrandBrainImages({
                   Cancel
                 </button>
               </div>
-              {(file.size > 8 * 1024 * 1024 ||
-                !["image/png", "image/jpeg", "image/webp"].includes(
-                  file.type,
-                )) && (
-                <p role="alert" className="text-xs text-red-500">
-                  Choose a PNG, JPEG, or WebP image smaller than 8 MB.
-                </p>
-              )}
+              {file &&
+                (file.size > 8 * 1024 * 1024 ||
+                  !["image/png", "image/jpeg", "image/webp"].includes(
+                    file.type,
+                  )) && (
+                  <p role="alert" className="text-xs text-red-500">
+                    Choose a PNG, JPEG, or WebP image smaller than 8 MB.
+                  </p>
+                )}
               <p className="text-xs text-zinc-500">
-                Describe how your agents should use this image, then save it to
-                your brand.
+                {isInspiration
+                  ? "Add an image and describe what you like about it."
+                  : "Describe how your agents should use this image, then save it to your brand."}
               </p>
             </div>
           )}
         </form>
-      ) : (
+      ) : !isInspiration ? (
         <button
           type="button"
           onClick={() => setEditing(true)}
@@ -235,6 +233,67 @@ export function BrandBrainImages({
           <Plus size={15} />
           Add image
         </button>
+      ) : null}
+      {assets.length > 0 && (
+        <div
+          className={
+            isInspiration
+              ? "columns-2 gap-4 lg:columns-3"
+              : "grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3"
+          }
+        >
+          {assets.map((asset) => (
+            <div
+              key={asset.id}
+              className={`group relative min-w-0 overflow-hidden ${isInspiration ? "mb-4 break-inside-avoid rounded-2xl" : "rounded-xl border border-zinc-200 dark:border-white/10"}`}
+              style={
+                isInspiration
+                  ? { aspectRatio: `${asset.width} / ${asset.height}` }
+                  : undefined
+              }
+            >
+              <AssetPreview
+                brandId={brandId}
+                assetId={asset.id}
+                alt={asset.caption || asset.filename}
+                className={
+                  isInspiration
+                    ? "h-full w-full object-cover"
+                    : `h-36 w-full object-contain p-4 ${asset.category === "identity" ? "bg-[repeating-conic-gradient(#d4d4d8_0%_25%,#a1a1aa_0%_50%)] bg-size-[16px_16px]" : "bg-zinc-50 dark:bg-white/[0.03]"}`
+                }
+              />
+              <button
+                type="button"
+                disabled={brain.busy}
+                aria-label={`Archive ${asset.filename}`}
+                onClick={() => void brain.archiveImage(asset.id)}
+                className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-white/90 text-zinc-600 opacity-0 group-hover:opacity-100 focus:opacity-100"
+              >
+                <X size={14} />
+              </button>
+              {!isInspiration && (
+                <div className="border-t border-zinc-200 p-3 dark:border-white/10">
+                  <p className="truncate text-sm" title={asset.filename}>
+                    {asset.filename}
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-zinc-500">
+                    {asset.caption}
+                  </p>
+                  <WebsiteSource
+                    source={asset.source}
+                    sourceUrl={asset.sourceUrl}
+                    busy={brain.busy}
+                    onApprove={
+                      kind === "rule"
+                        ? () => void brain.approveImage(asset.id)
+                        : undefined
+                    }
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

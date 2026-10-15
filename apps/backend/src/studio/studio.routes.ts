@@ -290,12 +290,10 @@ export function createStudioRouter(generate?: StudioReply) {
           maxCredits: campaignCreditBound(outputs.data, imageModel, textModel),
         });
       } catch (error) {
-        response
-          .status(503)
-          .json({
-            error: "Could not verify the generation cost",
-            ...billingError(error),
-          });
+        response.status(503).json({
+          error: "Could not verify the generation cost",
+          ...billingError(error),
+        });
       }
     },
   );
@@ -458,7 +456,7 @@ export function createStudioRouter(generate?: StudioReply) {
         return;
       }
       const project = await findStudioProject(id.data, request.user!.id);
-      if (!project || project.kind !== "creation") {
+      if (!project) {
         response.status(404).json({ error: "Proposal not found" });
         return;
       }
@@ -520,6 +518,10 @@ export function createStudioRouter(generate?: StudioReply) {
           message.data.content,
           (event) => response.write(`${JSON.stringify(event)}\n`),
           message.data.agent ?? "team",
+          undefined,
+          undefined,
+          message.data.outputs,
+          message.data.generation,
         );
         if (!result) throw new Error("Project not found");
         response.write(`${JSON.stringify({ type: "done", ...result })}\n`);
@@ -552,6 +554,8 @@ export function createStudioRouter(generate?: StudioReply) {
           message.data.agent ?? "team",
           undefined,
           generate,
+          message.data.outputs,
+          message.data.generation,
         );
         if (!result) {
           response.status(404).json({ error: "Project not found" });

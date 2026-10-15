@@ -28,6 +28,8 @@ import type {
   StudioAgentAnswer,
 } from "./agent-team";
 import type { VisualApproval } from "./visual-approval";
+import type { ResponseInputItem } from "openai/resources/responses/responses";
+import type { ConversationMaterials } from "./conversation-materials";
 
 export function presentStudioMessage(
   message: typeof studioMessage.$inferSelect,
@@ -41,12 +43,25 @@ export function presentStudioMessage(
             status: approvalStatus,
             kind: approvalData.kind,
             brief: approvalData.brief,
+            ...(approvalData.kind === "campaign_creation" &&
+            "creatives" in approvalData.plan &&
+            approvalData.plan.creatives?.length
+              ? {
+                  proposal: {
+                    creatives: approvalData.plan.creatives,
+                    outputs: approvalData.outputs,
+                  },
+                }
+              : {}),
           }
         : null,
   };
 }
 
-export type StudioReplyOptions = { model: string };
+export type StudioReplyOptions = {
+  model: string;
+  attachments?: ResponseInputItem[];
+};
 export type Turn = { role: "user" | "assistant"; content: string };
 export type StudioReply = (
   system: string,
@@ -559,6 +574,7 @@ export async function loadStudioConversation(
   userId: string,
   content: string,
   thread: CreativeAgentSelection = "team",
+  materials?: ConversationMaterials,
 ) {
   const project = await findStudioProject(projectId, userId);
   if (!project) return null;
@@ -580,7 +596,8 @@ export async function loadStudioConversation(
   const competitorAnalysis = competitorAnalysisSchema.safeParse(
     analysis?.competitorAnalysis,
   );
-  const brandBrain = await loadBrandBrainContext(project.brandId);
+  const brandBrain =
+    materials?.brandBrain ?? (await loadBrandBrainContext(project.brandId));
   const brandContext: Record<string, unknown> = {
     brandName: project.brandName,
     brandUrl: project.brandUrl,
@@ -592,6 +609,7 @@ export async function loadStudioConversation(
       ? compactCompetitorAnalysis(competitorAnalysis.data)
       : null,
     brandBrain,
+    selectedMaterials: materials?.selectedMaterials ?? null,
     teamConversation: sharedMessages,
     studioMode: project.kind,
     canvas:
@@ -607,7 +625,7 @@ export async function loadStudioConversation(
     })),
     { role: "user", content },
   ];
-  return { project, system, turns };
+  return { project, system, turns, attachments: materials?.attachments };
 }
 
 export async function readStudioTeamContext(projectId: string) {

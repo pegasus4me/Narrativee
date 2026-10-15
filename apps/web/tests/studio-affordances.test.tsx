@@ -5,6 +5,8 @@ import React from "react";
 import { StudioWorkingBorder } from "../app/components/studio/StudioWorkingBorder";
 import StudioReplyAuthor from "../app/components/studio/StudioReplyAuthor";
 import StudioApprovalCard from "../app/components/studio/StudioApprovalCard";
+import StudioMessageMarkdown from "../app/components/studio/StudioMessageMarkdown";
+import StudioProposalReview from "../app/components/studio/StudioProposalReview";
 import type { CampaignOutput } from "../lib/studio-outputs";
 import { uploadProjectImage } from "../lib/api/studio-canvas";
 import {
@@ -13,6 +15,129 @@ import {
   streamStudioApproval,
   type StudioAgentSelection,
 } from "../lib/api/studio";
+
+test("agent prose replaces em dashes while preserving reference URLs", () => {
+  const markup = renderToStaticMarkup(
+    <StudioMessageMarkdown
+      content={
+        "Use this — keep it simple. **Warm—natural.** [View—reference](https://example.com/image—reference)"
+      }
+    />,
+  );
+  assert.match(markup, /Use this, keep it simple/);
+  assert.match(markup, /Warm, natural/);
+  assert.match(markup, /View, reference/);
+  assert.match(markup, /href="https:\/\/example.com\/image%E2%80%94reference"/);
+  assert.doesNotMatch(markup.replace(/<[^>]*>/g, ""), /\u2014/);
+});
+
+test("proposal reviews separate copy, art direction, exact prompt, and reference instructions", () => {
+  const markup = renderToStaticMarkup(
+    <StudioProposalReview
+      proposal={{
+        outputs: [
+          {
+            platform: "instagram",
+            formatId: "square_1080",
+            width: 1080,
+            height: 1080,
+          },
+        ],
+        creatives: [
+          {
+            name: "Held for the Night",
+            concept: "Hands frame the real product.",
+            copy: ["A softer close to the day.", "Night balm"],
+            imagePrompt:
+              "Subject: Product held by hands\nComposition: Headline above the bottle",
+            referenceIds: ["product", "style"],
+            direction: {
+              recipeId: "custom",
+              subject: "The real bottle",
+              composition: "Headline at the top",
+              lightingAndMaterials: "Soft daylight",
+              typography: "Clear sans serif",
+              palette: ["#F7F5F3"],
+              avoid: ["Altered label", "Bottom headline"],
+            },
+            references: [
+              {
+                id: "style",
+                role: "style",
+                instruction: "Keep the hand framing.",
+              },
+            ],
+            unusedReferences: [
+              { id: "unused", reason: "Does not match the chosen direction." },
+            ],
+          },
+          {
+            name: "Older saved direction",
+            concept: "Legacy prompt is still reviewable.",
+            copy: [],
+            imagePrompt: "Preserve this exact older prompt.",
+            referenceIds: [],
+          },
+        ],
+      }}
+    />,
+  );
+  assert.match(markup, /Held for the Night/);
+  assert.match(markup, /Instagram · 1080 × 1080 px/);
+  assert.match(markup, /aria-label="Image copy"/);
+  assert.match(markup, /A softer close to the day\./);
+  assert.match(markup, /<dt[^>]*>Composition<\/dt>/);
+  assert.match(markup, /Headline at the top/);
+  assert.match(markup, /Reference instructions/);
+  assert.match(markup, /Does not match the chosen direction/);
+  assert.match(markup, /Additional copy \(1\)/);
+  assert.match(markup, /Night balm/);
+  assert.equal((markup.match(/<details/g) ?? []).length, 5);
+  assert.doesNotMatch(markup, /<details[^>]*\bopen/);
+  assert.match(markup, /Subject: Product held by hands<\/p>/);
+  assert.match(markup, /Composition: Headline above the bottle<\/p>/);
+  assert.match(markup, /Preserve this exact older prompt/);
+  assert.match(markup, /No text/);
+  assert.match(markup, /Creates 2 PNGs/);
+  assert.match(markup, /corrections use credits/);
+});
+
+test("a completed reply is retained if the connection fails after the terminal event", async (t) => {
+  const completed = {
+    type: "done",
+    userMessage: { role: "user", content: "Let's go for that" },
+    assistantMessage: {
+      role: "assistant",
+      agent: "creator",
+      approval: { status: "pending" },
+    },
+  };
+  t.mock.method(
+    globalThis,
+    "fetch",
+    async () =>
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              new TextEncoder().encode(JSON.stringify(completed) + "\n"),
+            );
+          },
+          pull(controller) {
+            controller.error(new TypeError("network error"));
+          },
+        }),
+      ),
+  );
+  const result = await streamStudioCreatorMessage(
+    "project",
+    "Let's go for that",
+    () => {},
+    () => {},
+  );
+  assert.equal(result.assistantMessage.agent, "creator");
+  assert.equal(result.assistantMessage.approval?.status, "pending");
+});
 
 test("creator streams carry multiple output selections without changing the brief", async (t) => {
   const outputs: CampaignOutput[] = [

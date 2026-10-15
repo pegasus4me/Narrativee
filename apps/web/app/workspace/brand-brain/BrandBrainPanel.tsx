@@ -10,7 +10,7 @@ import { BrandProducts } from "./BrandProducts";
 const views = [
   { id: "kit", title: "Brand kit" },
   { id: "products", title: "Products" },
-  { id: "inspiration", title: "Inspiration" },
+  { id: "inspiration", title: "References" },
   { id: "feedback", title: "Feedback" },
 ] as const;
 
@@ -85,20 +85,6 @@ export default function BrandBrainPanel({ brandId }: { brandId: string }) {
                       brain={brain}
                       brandId={brandId}
                       purpose="inspiration"
-                    />
-                    <BrandBrainNotes
-                      brain={brain}
-                      kind="inspiration"
-                      categories={[
-                        "identity",
-                        "color",
-                        "typography",
-                        "imagery",
-                        "layout",
-                        "other",
-                      ]}
-                      placeholder="What would you like your designer to explore?"
-                      buttonLabel="Save inspiration"
                     />
                   </div>
                   <div hidden={selected !== "feedback"}>

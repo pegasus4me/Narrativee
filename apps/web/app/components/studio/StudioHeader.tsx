@@ -2,18 +2,16 @@
 
 import { CreditStatus } from "../billing/UsageProvider";
 import { useState } from "react";
-import { ArrowLeft, Brain, LogOut, UserPlus } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { Brain, LogOut, UserPlus } from "lucide-react";
 import Button from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import WorkspaceNameLabel from "../workspace/WorkspaceNameLabel";
 
 export default function StudioHeader({
-  brandBrainOpen,
   canOpenBrandBrain,
-  onToggleBrandBrain,
 }: {
-  brandBrainOpen: boolean;
   canOpenBrandBrain: boolean;
-  onToggleBrandBrain: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   const [invited, setInvited] = useState(false);
@@ -50,19 +48,19 @@ export default function StudioHeader({
 
   return (
     <div className="ml-auto flex shrink-0 items-center gap-2">
-      <button
-        type="button"
-        onClick={onToggleBrandBrain}
-        disabled={!canOpenBrandBrain}
-        className="flex h-7 items-center gap-1.5 rounded-[6px] border border-dashed border-neutral-200 bg-white px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-neutral-100 disabled:opacity-40"
-        title={brandBrainOpen ? "Back to canvas" : "Open Brand Brain"}
-        aria-label={brandBrainOpen ? "Back to canvas" : "Open Brand Brain"}
-      >
-        {brandBrainOpen ? <ArrowLeft size={13} /> : <Brain size={13} />}
-        <span className="hidden sm:inline">
-          {brandBrainOpen ? "Back to canvas" : "Brand Brain"}
-        </span>
-      </button>
+      <WorkspaceNameLabel className="hidden max-w-40 truncate text-xs text-muted-foreground md:inline" />
+      <Dialog.Trigger asChild>
+        <button
+          type="button"
+          disabled={!canOpenBrandBrain}
+          className="flex h-7 items-center gap-1.5 rounded-[6px] border border-dashed border-neutral-200 bg-white px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-neutral-100 disabled:opacity-40"
+          title="Open Brand Brain"
+          aria-label="Open Brand Brain"
+        >
+          <Brain size={13} />
+          <span className="hidden sm:inline">Brand Brain</span>
+        </button>
+      </Dialog.Trigger>
       <CreditStatus />
       <button
         type="button"

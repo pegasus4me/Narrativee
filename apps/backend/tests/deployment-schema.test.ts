@@ -60,6 +60,14 @@ test(
         ).rows[0].relrowsecurity,
         true,
       );
+      assert.equal(
+        (
+          await pool.query(
+            "SELECT relrowsecurity FROM pg_class WHERE oid = 'onboarding_profile'::regclass",
+          )
+        ).rows[0].relrowsecurity,
+        true,
+      );
       await pool.query("SELECT product_id FROM brand_brain_asset LIMIT 0");
       await pool.query(
         "SELECT approval_data, approval_status FROM studio_message LIMIT 0",

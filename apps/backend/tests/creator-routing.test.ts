@@ -70,7 +70,11 @@ test("composer metadata never turns conversation into image generation, includin
   ]) {
     for (const generation of [
       { referenceIds: [] },
-      { productId: "product", referenceIds: ["photo"] },
+      {
+        productId: "product",
+        referenceIds: ["photo", "style"],
+        styleReferenceIds: ["style"],
+      },
       { referenceIds: [], editAssetId: "selected-image" },
     ]) {
       const calls: string[] = [];
@@ -96,14 +100,23 @@ test("composer metadata never turns conversation into image generation, includin
           _emit,
           agent,
           prepareVisual,
+          _generate,
+          outputs,
+          selection,
         ) => {
           calls.push("conversation");
           assert.equal(latest, content);
           assert.equal(agent, "team");
+          assert.deepEqual(
+            selection,
+            generation,
+            "Discussion receives the exact composer selection",
+          );
+          assert.deepEqual(outputs, [defaultCampaignOutput]);
           assert.equal(
-            prepareVisual,
-            undefined,
-            "Discussion cannot delegate artwork generation",
+            typeof prepareVisual,
+            "function",
+            "Pixel's proposal tool stays available while discussing selected materials",
           );
           return exchange;
         },
@@ -189,4 +202,105 @@ test("an unavailable classifier cannot fall through to image generation", async 
     /Classifier unavailable/,
   );
   assert.equal(visuals, 0);
+});
+
+test("choosing a direction saves Pixel's approval card with the selected materials", async () => {
+  const generation = { referenceIds: ["style"], styleReferenceIds: ["style"] };
+  const approval = {
+    kind: "campaign_creation" as const,
+    brief: "Held for the Night",
+    plan: {
+      renderMode: "image" as const,
+      clarifyingQuestion: null,
+      creatives: [],
+    },
+    contextHash: "hash",
+    canvasRevision: 1,
+    generation,
+  };
+  await request("let's go for that", generation, {
+    readStudioTeamContext: async () => history,
+    classifyCreatorIntentWithJev: async () => "campaign_creation",
+    runCollaborativeConversation: async () =>
+      assert.fail("Move the chosen direction to Pixel"),
+    runCampaignRequest: async (
+      _project,
+      _brand,
+      _user,
+      latest,
+      _emit,
+      _thread,
+      approved,
+      _outputs,
+      selection,
+    ) => {
+      assert.equal(latest, "let's go for that");
+      assert.equal(approved, undefined);
+      assert.deepEqual(selection, generation);
+      return {
+        agent: "creator",
+        content: "Review this prompt before creating.",
+        approval,
+      };
+    },
+    saveStudioExchange: async (
+      _project,
+      _latest,
+      _reply,
+      agent,
+      _thread,
+      _contributions,
+      savedApproval,
+    ) => {
+      assert.equal(agent, "creator");
+      assert.deepEqual(savedApproval, approval);
+      return exchange;
+    },
+  });
+});
+
+test("Sage can hand selected materials to Pixel when a conversational turn requests a proposal", async () => {
+  const generation = { referenceIds: ["style"], styleReferenceIds: ["style"] };
+  let classifications = 0;
+  let prepared = false;
+  await request("Let's go with Held for the Night", generation, {
+    readStudioTeamContext: async () => history,
+    classifyCreatorIntentWithJev: async () =>
+      classifications++ === 0 ? "conversation" : "campaign_creation",
+    runCollaborativeConversation: async (
+      _project,
+      _user,
+      _content,
+      _emit,
+      _agent,
+      prepareVisual,
+    ) => {
+      assert.ok(prepareVisual);
+      await prepareVisual({
+        kind: "campaign_creation",
+        brief: "Held for the Night with the selected product and reference",
+      });
+      return exchange;
+    },
+    runCampaignRequest: async (
+      _project,
+      _brand,
+      _user,
+      brief,
+      _emit,
+      _thread,
+      approved,
+      _outputs,
+      selection,
+    ) => {
+      assert.match(brief, /Held for the Night/);
+      assert.equal(approved, undefined);
+      assert.deepEqual(selection, generation);
+      prepared = true;
+      return { agent: "creator", content: "Prompt ready for approval" };
+    },
+    saveStudioExchange: async () =>
+      assert.fail("Conversation saves its own exchange"),
+  });
+  assert.equal(prepared, true);
 });

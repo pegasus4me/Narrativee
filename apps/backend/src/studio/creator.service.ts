@@ -97,6 +97,7 @@ async function runCreatorRequestInternal(
         selectedAgent,
         undefined,
         outputs,
+        generation,
       );
     const history = () => readStudioTeamContext(projectId);
     const delegateVisual = async (task: VisualTask) => {
@@ -129,9 +130,10 @@ async function runCreatorRequestInternal(
             content,
             publish,
             selectedAgent,
-            undefined,
+            delegateVisual,
             undefined,
             outputs,
+            generation,
           );
         const answer = await runCampaignRequest(
           projectId,

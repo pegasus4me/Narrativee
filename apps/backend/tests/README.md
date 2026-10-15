@@ -14,7 +14,7 @@ Apply the schema to an application database before deploying the new routes:
 pnpm db:migrate-brands
 ```
 
-This uses `LOCAL_DATABASE_URL`, falling back to `DATABASE_URL`, and runs the additive application migrations through 0023 transactionally and idempotently. It does not replay the unrelated old Drizzle history, which is incomplete in this repository.
+This uses `LOCAL_DATABASE_URL`, falling back to `DATABASE_URL`, and runs the additive application migrations through 0025 transactionally and idempotently. It does not replay the unrelated old Drizzle history, which is incomplete in this repository.
 
 ## Product library
 
@@ -105,4 +105,4 @@ Run `pnpm test:billing` for isolated Postgres tests with mocked provider and Str
 
 ## Single-workflow checks
 
-`campaign-generation.test.ts` verifies explicit product/reference selection, style roles, direct generation without mandatory research or a proposal, clarification without an image call, source-image edits and version metadata, and conservative credit bounds. The disposable `campaign` HTTP suite also exercises authenticated direct requests, cost estimates, private source selection, original-image preservation after retouching, and rejection of an image from another project. These tests use mocked image providers and establish workflow behavior, not live visual quality. `tests/studio-brief.test.tsx` in the web app checks the one composer, visible product photos, direct request payload, retouch selection and missing-product-photo gate.
+`campaign-generation.test.ts` verifies explicit product/reference selection, style roles, prompt preparation without mandatory research, followed by explicit approval before generation, clarification without an image call, source-image edits and version metadata, and conservative credit bounds. The disposable `campaign` HTTP suite also exercises authenticated composer requests, saved reference selections through approval, cost estimates, private source selection, original-image preservation after retouching, and rejection of an image from another project. These tests use mocked image providers and establish workflow behavior, not live visual quality. `tests/studio-brief.test.tsx` in the web app checks the one composer, visible product photos, direct request payload, retouch selection and missing-product-photo gate.

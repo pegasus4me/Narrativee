@@ -15,6 +15,7 @@ import { studioRouter } from "./studio/studio.routes";
 import { waitlistRouter } from "./waitlist/waitlist.routes";
 import { googleFontsRouter } from "./fonts/google-fonts.routes";
 import { usageRouter } from "./usage/usage.routes";
+import { onboardingRouter } from "./onboarding/onboarding.routes";
 import { health } from "./health";
 
 const app = express();
@@ -49,6 +50,7 @@ app.use("/api/studio/projects", studioRouter);
 app.use("/api/waitlist", waitlistRouter);
 app.use("/api/fonts", googleFontsRouter);
 app.use("/api/usage", usageRouter);
+app.use("/api/onboarding", onboardingRouter);
 app.use("/api/billing", billingRouter);
 let recovering = false;
 const recovery = setInterval(async () => {

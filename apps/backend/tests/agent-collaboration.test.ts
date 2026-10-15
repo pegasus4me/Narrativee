@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { ResponseOutputItem } from "openai/resources/responses/responses";
+import type {
+  ResponseInputItem,
+  ResponseOutputItem,
+} from "openai/resources/responses/responses";
 import {
   collaborateWithAgents,
   type AgentRespond,
@@ -20,6 +23,59 @@ function call(name: string, arguments_: object): ResponseOutputItem {
   };
 }
 const text = (content: string) => ({ output: [], text: content });
+
+test("selected image inputs reach Sage, mentioned teammates and delegated agents once per turn", async () => {
+  const attachments: ResponseInputItem[] = [
+    {
+      role: "user",
+      content: [
+        {
+          type: "input_text",
+          text: 'Selected reference: {"id":"style","role":"style"}',
+        },
+        {
+          type: "input_image",
+          image_url: "data:image/png;base64,c3R5bGU=",
+          detail: "auto",
+        },
+      ],
+    },
+  ];
+  const agents: string[] = [];
+  let sageCalls = 0;
+  await collaborateWithAgents({
+    agent: "brand",
+    system: "Only the selected reference is active",
+    turns: [
+      {
+        role: "user",
+        content: "@Scout and @Sage, can this reference work with my product?",
+      },
+    ],
+    attachments,
+    settings: async () => defaultAgentSettings,
+    emit: () => {},
+    respond: async (request) => {
+      agents.push(request.agent);
+      const images = request.input.filter(
+        (item) => "content" in item && Array.isArray(item.content),
+      );
+      assert.deepEqual(images, attachments);
+      if (request.agent === "brand" && sageCalls++ === 0)
+        return {
+          text: "",
+          output: [
+            call("delegate_agent", {
+              agent: "creator",
+              task: "Compare the reference perspective with the selected product",
+            }),
+          ],
+        };
+      return text("The selected reference can guide the product composition.");
+    },
+  });
+  assert.deepEqual(agents, ["research", "brand", "creator", "brand"]);
+});
 
 test("explicit mentions consult each tagged teammate before the main reply without relying on a model tool call", async () => {
   const calls: string[] = [];

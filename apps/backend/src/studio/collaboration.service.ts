@@ -18,6 +18,9 @@ import {
 import type { CreatorEvent } from "./creator.service";
 import { mentionedAgents } from "./agent-mentions";
 import type { CampaignOutput } from "./campaign/campaign.output";
+import type { CampaignGeneration } from "./campaign/campaign.types";
+import { loadCampaignContext } from "./campaign/campaign.context";
+import { buildConversationMaterials } from "./conversation-materials";
 
 async function runCollaborativeConversationInternal(
   projectId: string,
@@ -28,12 +31,20 @@ async function runCollaborativeConversationInternal(
   prepareVisual?: (task: VisualTask) => Promise<StudioAgentAnswer>,
   generate?: StudioReply,
   outputs?: CampaignOutput[],
+  generation?: CampaignGeneration,
 ) {
+  const materials = generation
+    ? buildConversationMaterials(
+        await loadCampaignContext(projectId, userId, selectedAgent, generation),
+        generation,
+      )
+    : undefined;
   const conversation = await loadStudioConversation(
     projectId,
     userId,
     content,
     selectedAgent,
+    materials,
   );
   if (!conversation) return null;
   const agent =
@@ -52,6 +63,13 @@ async function runCollaborativeConversationInternal(
         );
         const text = await generate(request.system, turns, {
           model: request.model,
+          attachments: request.input.filter(
+            (item) =>
+              "role" in item &&
+              item.role === "user" &&
+              "content" in item &&
+              Array.isArray(item.content),
+          ),
         });
         request.onDelta?.(text);
         return { output: [], text };
@@ -72,6 +90,7 @@ async function runCollaborativeConversationInternal(
         ? `\nSelected campaign outputs: ${JSON.stringify(outputs)}. When preparing a campaign proposal, preserve every selected platform and size. These selections are not approval to create or publish.`
         : ""),
     turns: conversation.turns,
+    attachments: conversation.attachments,
     settings: (target) =>
       readAgentSettings(conversation.project.brandId, target),
     emit,
@@ -98,6 +117,7 @@ export async function runCollaborativeConversation(
   prepareVisual?: (task: VisualTask) => Promise<StudioAgentAnswer>,
   generate?: StudioReply,
   outputs?: CampaignOutput[],
+  generation?: CampaignGeneration,
 ) {
   return billable(userId, "conversation", () =>
     runCollaborativeConversationInternal(
@@ -109,6 +129,7 @@ export async function runCollaborativeConversation(
       prepareVisual,
       generate,
       outputs,
+      generation,
     ),
   );
 }

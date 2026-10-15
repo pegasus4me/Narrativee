@@ -165,9 +165,11 @@ export function useStudioConversation(projectId: string) {
       failed = true;
       setDraft(content);
       setError(
-        cause instanceof Error
-          ? cause.message
-          : "The creation could not finish",
+        cause instanceof TypeError
+          ? "The request was interrupted. Your draft is kept. Check the latest saved reply before retrying."
+          : cause instanceof Error
+            ? cause.message
+            : "The creation could not finish",
       );
       const saved = await getStudioProject(projectId).catch(() => null);
       if (saved) setMessages(saved.messages);

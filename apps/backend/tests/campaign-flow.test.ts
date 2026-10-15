@@ -36,7 +36,7 @@ test(
       "SUPABASE_STORAGE_SECRET_ACCESS_KEY",
       "SUPABASE_STORAGE_BUCKET",
     ])
-      delete process.env[key];
+      process.env[key] = "";
     const directory = await mkdtemp(
       join(tmpdir(), "narrativee-campaign-test-"),
     );
@@ -755,8 +755,10 @@ test(
         [sourceId, brandId, key, png.length],
       );
       // A larger reference inventory must not hide product uploads behind the image API's attachment limit.
+      const savedReferenceIds: string[] = [];
       for (let index = 0; index < 7; index++) {
         const inspirationId = randomUUID();
+        savedReferenceIds.push(inspirationId);
         const inspirationKey = `${brandId}/${inspirationId}.png`;
         await uploadAsset(inspirationKey, png, "image/png");
         await pool.query(
@@ -775,6 +777,64 @@ test(
             [productId, inspirationId],
           );
       }
+      const { runCollaborativeConversation: discussReferences } = await import(
+        "../src/studio/collaboration.service"
+      );
+      const selectedPhotoId = savedReferenceIds[0]!;
+      const selectedStyleId = savedReferenceIds[2]!;
+      const selectedGeneration = {
+        productId,
+        referenceIds: [selectedStyleId, selectedPhotoId],
+        styleReferenceIds: [selectedStyleId],
+      };
+      const referenceDiscussion = await discussReferences(
+        projectId,
+        owner.user.id,
+        "Do you have the selected reference image with my product?",
+        () => {},
+        "brand",
+        undefined,
+        async (system, _turns, options) => {
+          assert.match(system, new RegExp(selectedStyleId));
+          assert.match(system, /Orange chocolate/);
+          assert.doesNotMatch(system, /Style reference 7/);
+          assert.doesNotMatch(system, /data:image/);
+          const images = (options?.attachments ?? []).flatMap((item) =>
+            "content" in item && Array.isArray(item.content)
+              ? item.content.filter((part) => part.type === "input_image")
+              : [],
+          );
+          assert.equal(
+            images.length,
+            2,
+            "Sage receives only the chosen style and product photo",
+          );
+          for (const image of images) {
+            assert.equal(image.type, "input_image");
+            if (image.type !== "input_image") continue;
+            const pixels = Buffer.from(
+              image.image_url!.split(",")[1]!,
+              "base64",
+            );
+            assert.deepEqual(
+              await sharp(pixels).raw().toBuffer(),
+              await sharp(png).raw().toBuffer(),
+            );
+          }
+          return "I can inspect the selected reference and your product photo.";
+        },
+        undefined,
+        selectedGeneration,
+      );
+      assert.match(
+        referenceDiscussion!.assistantMessage.content,
+        /selected reference/,
+      );
+      assert.equal(
+        imageCalls,
+        0,
+        "Discussing selected references does not create an image",
+      );
       const endpoint = `/studio/projects/${projectId}`;
       assert.equal((await call(`${endpoint}/canvas`)).status, 401);
       assert.equal(
@@ -1954,7 +2014,7 @@ test(
       );
       failVisualReview = false;
 
-      // The same authenticated endpoint executes the single workflow without a proposal.
+      // Composer selections are saved with Pixel's prompt and require explicit approval.
       directRun = true;
       const quoteResponse = await call(
         `${endpoint}/generation-cost`,
@@ -1989,7 +2049,7 @@ test(
       );
       const researchBeforeDirect = researchCalls;
       const directStream = await (
-        await call(`${endpoint}/creator/stream`, owner.cookie, {
+        await createAndApprove(`${endpoint}/creator/stream`, owner.cookie, {
           content: "Put our product on white sheets in morning light",
           outputs: [
             {
@@ -2044,7 +2104,7 @@ test(
         200,
       );
       const revisedStream = await (
-        await call(`${endpoint}/creator/stream`, owner.cookie, {
+        await createAndApprove(`${endpoint}/creator/stream`, owner.cookie, {
           content: "Reduce the reflections and preserve everything else",
           generation: {
             productId,

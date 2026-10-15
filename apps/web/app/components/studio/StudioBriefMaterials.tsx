@@ -10,6 +10,7 @@ import {
 import { projectImageUrl } from "@/lib/api/studio-canvas";
 import StudioUploadButton from "./StudioUploadButton";
 import StudioAdReferences from "./StudioAdReferences";
+import StudioReferencePicker from "./StudioReferencePicker";
 
 export interface StudioBriefReference {
   id: string;
@@ -122,12 +123,27 @@ export default function StudioBriefMaterials({
           label="Product photo"
           onUploaded={(image) => attach(image, "product")}
         />
-        <StudioUploadButton
-          projectId={projectId}
+        <StudioReferencePicker
+          brandId={brandId}
+          selectedIds={references.map(({ id }) => id)}
           disabled={disabled || references.length >= 5}
-          onBusyChange={onBusyChange}
-          label="Inspiration"
-          onUploaded={(image) => attach(image, "style")}
+          onSelected={(asset) => {
+            if (
+              disabled ||
+              references.length >= 5 ||
+              references.some(({ id }) => id === asset.id)
+            )
+              return;
+            onReferencesChange([
+              ...references,
+              {
+                id: asset.id,
+                name: asset.caption || asset.filename,
+                url: brainAssetUrl(brandId, asset.id),
+                role: "style",
+              },
+            ]);
+          }}
         />
         <StudioAdReferences
           projectId={projectId}

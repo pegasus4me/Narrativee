@@ -87,7 +87,7 @@ export function StudioCanvasPrompt({
           </StudioBriefMaterials>,
           materialsTarget,
         )}
-      <div className="pointer-events-auto relative mx-auto w-full max-w-2xl rounded-2xl border border-border bg-background p-3 shadow-lg">
+      <div className="pointer-events-auto relative mx-auto w-full max-w-2xl rounded-2xl border border-border bg-white p-3">
         {error && (
           <p role="alert" className="mb-2 text-sm text-destructive">
             {error} Your brief is still here.

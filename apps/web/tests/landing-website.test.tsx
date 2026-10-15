@@ -14,11 +14,12 @@ test("landing websites survive signup, signin and OAuth return destinations with
     "  company.com/products?campaign=one&source=two#details  ",
   );
   const params = new URL(destination, "https://narrativee.com").searchParams;
+  assert.equal(new URL(destination, "https://narrativee.com").pathname, "/workspace/onboarding");
   assert.equal(
     params.get("website"),
     "https://company.com/products?campaign=one&source=two",
   );
-  assert.equal(params.get("setup"), "true");
+  assert.equal(params.get("setup"), null);
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
   try {
     for (const page of ["signup", "signin"] as const) {
@@ -66,11 +67,11 @@ test("landing websites survive signup, signin and OAuth return destinations with
   }
 });
 
-test("auth destinations redirect to /workspace by default and not studio", () => {
+test("auth destinations begin in onboarding and retain legacy analysis returns", () => {
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
   try {
     Reflect.deleteProperty(globalThis, "window");
-    assert.equal(authDestination(), "/workspace");
+    assert.equal(authDestination(), "/workspace/onboarding");
 
     Object.defineProperty(globalThis, "window", {
       configurable: true,
@@ -84,10 +85,10 @@ test("auth destinations redirect to /workspace by default and not studio", () =>
         },
       },
     });
-    assert.equal(authDestination(), "/workspace");
+    assert.equal(authDestination(), "/workspace/onboarding");
     assert.equal(
       `${window.location.origin}${authDestination()}`,
-      "https://narrativee.com/workspace",
+      "https://narrativee.com/workspace/onboarding",
     );
 
     const loginLink = authLink("signin", "/workspace");
@@ -105,11 +106,23 @@ test("auth destinations redirect to /workspace by default and not studio", () =>
         },
       },
     });
-    assert.equal(authDestination(), "/workspace");
+    assert.equal(authDestination(), "/workspace/onboarding");
     assert.equal(
       `${window.location.origin}${authDestination()}`,
-      "https://narrativee.com/workspace",
+      "https://narrativee.com/workspace/onboarding",
     );
+    const analysisLoginLink = authLink("signin", "/workspace?analysisId=legacy");
+    Object.defineProperty(globalThis, "window", {
+      configurable: true,
+      value: {
+        location: {
+          origin: "https://narrativee.com",
+          search: new URL(analysisLoginLink, "https://narrativee.com").search,
+        },
+        sessionStorage: { getItem: () => null },
+      },
+    });
+    assert.equal(authDestination(), "/workspace?analysisId=legacy");
   } finally {
     if (previousWindow)
       Object.defineProperty(globalThis, "window", previousWindow);

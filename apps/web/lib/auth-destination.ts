@@ -1,7 +1,7 @@
 import { studioPath } from "./api/brands";
 
 export function authDestination(): string {
-  if (typeof window === "undefined") return "/workspace";
+  if (typeof window === "undefined") return "/workspace/onboarding";
   const params = new URLSearchParams(window.location.search);
   const next = params.get("next");
   if (next) {
@@ -9,11 +9,26 @@ export function authDestination(): string {
       const target = new URL(next, window.location.origin);
       if (
         target.origin === window.location.origin &&
-        (["/workspace", "/workspace/studio", "/workspace/discovery"].includes(
+        ([
+          "/workspace",
+          "/workspace/studio",
+          "/workspace/discovery",
+          "/workspace/onboarding",
+        ].includes(
           target.pathname,
         ) ||
           target.pathname.startsWith("/workspace/studio/"))
       ) {
+        if (target.pathname === "/workspace" && !target.searchParams.has("analysisId")) {
+          return "/workspace/onboarding";
+        }
+        if (
+          target.pathname === "/workspace/studio" &&
+          target.searchParams.get("setup") === "true" &&
+          target.searchParams.has("website")
+        ) {
+          return `/workspace/onboarding?${new URLSearchParams({ website: target.searchParams.get("website")! })}`;
+        }
         return `${target.pathname}${target.search}`;
       }
     } catch {
@@ -26,7 +41,7 @@ export function authDestination(): string {
   const analysisId = params.get("analysisId");
   return analysisId
     ? `/workspace?analysisId=${encodeURIComponent(analysisId)}`
-    : "/workspace";
+    : "/workspace/onboarding";
 }
 
 export const authLink = (page: "signin" | "signup", destination: string) =>
@@ -49,8 +64,5 @@ export function websiteSetupPath(value: string): string {
     throw new Error("Enter a valid website, like company.com.");
   }
   website.hash = "";
-  return `/workspace/studio?${new URLSearchParams({
-    website: website.toString(),
-    setup: "true",
-  })}`;
+  return `/workspace/onboarding?${new URLSearchParams({ website: website.toString() })}`;
 }

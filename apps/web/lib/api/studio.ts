@@ -2,7 +2,10 @@ import { billingFetch, notifyBilling } from "./billing";
 import { API_URL } from "../api-config";
 import type { CampaignDocument } from "./studio-canvas";
 import type { CampaignOutput } from "../studio-outputs";
-import type { CampaignGeneration } from "../../../backend/src/studio/campaign/campaign.types";
+import type {
+  CampaignCreative,
+  CampaignGeneration,
+} from "../../../backend/src/studio/campaign/campaign.types";
 export type { CampaignGeneration } from "../../../backend/src/studio/campaign/campaign.types";
 import type {
   AnalysisStatus,
@@ -34,6 +37,10 @@ export interface StudioMessage {
     status: "pending" | "executing" | "completed" | "rejected" | "failed";
     kind: "campaign_creation" | "logo_exploration";
     brief: string;
+    proposal?: {
+      creatives: CampaignCreative[];
+      outputs?: CampaignOutput[];
+    };
   } | null;
 }
 
@@ -377,6 +384,10 @@ async function readStudioStream(
       let end = buffer.indexOf("\n");
       while (end !== -1) {
         await readLine(buffer.slice(0, end));
+        if (completed) {
+          await reader.cancel().catch(() => undefined);
+          return completed;
+        }
         buffer = buffer.slice(end + 1);
         end = buffer.indexOf("\n");
       }

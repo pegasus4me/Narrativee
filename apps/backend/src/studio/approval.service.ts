@@ -21,8 +21,7 @@ async function decideVisualApprovalInternal(
 ) {
   return withCreatorProject(projectId, async () => {
     const project = await findStudioProject(projectId, userId);
-    if (!project || project.kind !== "creation")
-      throw new ApprovalError(404, "Proposal not found");
+    if (!project) throw new ApprovalError(404, "Proposal not found");
     // Claim exactly once in a short transaction; providers run after commit.
     const proposal = await db.transaction(async (transaction) => {
       const [message] = await transaction
@@ -95,6 +94,9 @@ async function decideVisualApprovalInternal(
             ? prepared
             : undefined,
           prepared.kind === "campaign_creation" ? prepared.outputs : undefined,
+          prepared.kind === "campaign_creation"
+            ? prepared.generation
+            : undefined,
         );
       };
       let needsReview = action === "refresh";
