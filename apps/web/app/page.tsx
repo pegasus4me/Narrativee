@@ -3,6 +3,7 @@ import Link from "next/link";
 import brandDesignerRocket from "public/brand-designer-rose-rocket-transparent.png";
 import brandDesignerBoard from "public/brand-designer-rose-brand-board.png";
 import brandDesignerCards from "public/brand-designer-rose-social-cards.png";
+import landingWorkspace from "public/landing-workspace.png";
 import Header from "./components/commons/Header";
 import StartCreatingLink from "./components/landing/StartCreatingLink";
 import VisitorStats from "./components/landing/VisitorStats";
@@ -147,11 +148,9 @@ export default function Home(): React.ReactNode {
           aria-label="Narrativee creative workspace"
         >
           <Image
-            src="/landing-workspace.png"
-            alt="Narrativee creative workspace showing a perfume campaign in progress"
-            width={3600}
-            height={2082}
-            sizes="(max-width: 768px) calc(100vw - 48px), min(60vw, 1120px)"
+            src={landingWorkspace}
+            alt="Narrativee Studio showing AI agents and two skincare campaign creatives"
+            sizes="(max-width: 1168px) calc(100vw - 48px), 1120px"
             className="block h-auto w-full"
           />
         </section>
