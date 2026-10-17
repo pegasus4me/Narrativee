@@ -32,13 +32,13 @@ export interface ButtonProps
   asChild?: boolean;
 }
 
+const primaryButtonStyle =
+  "bg-tertiary text-white [--btn-contrast:#cc48b5] hover:bg-tertiary/90";
+
 const variantStyles: Record<ButtonVariant, string> = {
-  default:
-    "bg-zinc-900 text-white [--btn-contrast:#09090b] hover:bg-zinc-800",
-  primary:
-    "bg-zinc-900 text-white [--btn-contrast:#09090b] hover:bg-zinc-800",
-  tertiary:
-    "bg-[#ef5da8] text-white [--btn-contrast:#b8327a] hover:bg-[#f26cb0]",
+  default: primaryButtonStyle,
+  primary: primaryButtonStyle,
+  tertiary: primaryButtonStyle,
   secondary:
     "bg-[#78ff93] text-zinc-950 font-bold [--btn-contrast:#30b852] hover:bg-[#8aff9f]",
   outline:

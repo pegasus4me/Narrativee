@@ -98,8 +98,8 @@ export default function Home(): React.ReactNode {
                 </span>
               </h1>
               <p className="mx-auto mt-6 max-w-[620px] text-[18px] md:text-[22px] font-semibold tracking-[-0.025em] text-[#525252]">
-                The shared workspace where your team and AI agents build on
-                your brand, keeping every campaign true to what makes it yours.
+                The shared workspace where your team and AI agents build on your
+                brand, keeping every campaign true to what makes it yours.
               </p>
               <div
                 id="start"
@@ -108,9 +108,9 @@ export default function Home(): React.ReactNode {
                 <StartCreatingLink
                   location="hero"
                   websiteInput
-                  className="inline-flex items-center rounded-full bg-tertiary px-6 py-4 text-base font-semibold text-[#171717] hover:bg-tertiary/90"
+                  className="inline-flex items-center rounded-full px-6 py-4 text-base font-semibold text-white"
                 >
-                  Try Narrativee →
+                  Amplify my brand →
                 </StartCreatingLink>
               </div>
               <ul

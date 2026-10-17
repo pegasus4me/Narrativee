@@ -16,6 +16,7 @@ import { usePostHog } from "posthog-js/react";
 import { authClient } from "@/lib/auth-client";
 import { authLink, websiteSetupPath } from "@/lib/auth-destination";
 import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 
 const websiteExamples = ["yourbrand.com", "yourstore.com", "yourbusiness.com"];
 
@@ -151,8 +152,9 @@ export default function StartCreatingLink({
             type="submit"
             disabled={starting}
             className={cn(
+              buttonVariants({ variant: "primary", size: "lg" }),
               className,
-              "inline-flex h-12 shrink-0 items-center justify-center whitespace-nowrap rounded-full px-4 py-0 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-800 disabled:opacity-50",
+              "h-12 shrink-0 whitespace-nowrap rounded-full px-4 py-0 text-sm",
             )}
           >
             <span className="sr-only sm:not-sr-only">
@@ -170,13 +172,6 @@ export default function StartCreatingLink({
             {error}
           </p>
         )}
-        <Link
-          href={href}
-          onClick={trackStart}
-          className="mt-3 inline-block text-xs text-neutral-500 underline underline-offset-4 hover:text-black"
-        >
-          {"I don't have a website"}
-        </Link>
       </div>
     );
   }
